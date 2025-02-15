@@ -1,5 +1,14 @@
 import IRacingAPI from "@iracing-data/api";
 import { handleOutput, hasValidSession } from "../util";
+import { Command } from "commander";
+
+export const addLeagueCommand = (program: Command, api: IRacingAPI) =>
+  program
+    .command("league <leagueId>")
+    .description("Fetch league")
+    .option("-l, --include-licenses", "Include licenses")
+    .option("-o, --output <path>", "Output path")
+    .action(league(api));
 
 export type LeagueOptions = {
   custId: number;

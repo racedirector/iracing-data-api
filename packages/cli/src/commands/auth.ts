@@ -1,6 +1,14 @@
 import inquirer from "inquirer";
 import { hashPassword } from "../util";
 import IRacingAPI from "@iracing-data/api";
+import { Command } from "commander";
+
+export const addAuthCommand = (program: Command, api: IRacingAPI) =>
+  program
+    .command("auth")
+    .description("Stores credentials for the iRacing API")
+    .option("-u, --username <username>", "iRacing username")
+    .action(auth(api));
 
 export const auth =
   (api: IRacingAPI) => async (options: { username: string }) => {
