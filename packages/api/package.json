@@ -1,0 +1,12 @@
+{
+  "name": "@iracing-data/api",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "axios": "^1.7.9",
+    "axios-cookiejar-support": "^5.0.5",
+    "tough-cookie": "^5.1.1"
+  }
+}

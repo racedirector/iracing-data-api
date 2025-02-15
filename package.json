@@ -1,0 +1,36 @@
+{
+  "name": "iracing-data-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "lint:fix": "pnpm lint --fix",
+    "lint": "eslint . --ext .ts,.js",
+    "style:fix": "prettier --write .",
+    "style": "prettier --check .",
+    "format": "pnpm lint:fix && pnpm style:fix",
+    "build": "pnpm --recursive --stream build",
+    "dev": "NODE_ENV=development pnpm --stream '/^dev:.+$/'",
+    "dev:tsc": "tsc --build tsconfig.json --watch",
+    "dev:pkg": "pnpm --recursive --parallel --stream dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/lodash": "^4.17.15",
+    "@types/node": "^18",
+    "@typescript-eslint/eslint-plugin": "8.22.0",
+    "@typescript-eslint/parser": "8.22.0",
+    "dotenv": "16.4.7",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "8.3.0",
+    "eslint-plugin-prettier": "4.0.0",
+    "prettier": "2.5.1",
+    "prettier-config-standard": "7.0.0",
+    "typescript": "^5.7.3"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
