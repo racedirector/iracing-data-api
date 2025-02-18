@@ -11,7 +11,7 @@ export class HostedAPI {
    * Sessions that can be joined as a driver or spectator, and also includes
    * non-league pending sessions for the user.
    */
-  combinedSessions({ packageId }: { packageId: number }) {
+  combinedSessions({ packageId }: { packageId?: number } = {}) {
     return this._client.get(`/data/hosted/combined_sessions`, {
       params: { package_id: packageId },
     });

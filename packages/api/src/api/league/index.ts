@@ -58,7 +58,7 @@ export class LeagueAPI {
   }: {
     mine?: boolean;
     packageId?: number;
-  }) {
+  } = {}) {
     return this._client.get("/data/league/cust_league_sessions", {
       params: { mine, package_id: packageId },
     });

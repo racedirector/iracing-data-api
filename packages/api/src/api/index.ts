@@ -34,20 +34,79 @@ export class IRacingAPI {
   }
 
   private _car: CarAPI;
+  get car() {
+    return this._car;
+  }
+
   private _carClass: CarClassAPI;
+  get carClass() {
+    return this._carClass;
+  }
+
   private _constants: ConstantsAPI;
+  get constants() {
+    return this._constants;
+  }
+
   private _driverStats: DriverStatsAPI;
+  get driverStats() {
+    return this._driverStats;
+  }
+
   private _hosted: HostedAPI;
+  get hosted() {
+    return this._hosted;
+  }
+
   private _league: LeagueAPI;
+  get league() {
+    return this._league;
+  }
+
   private _lookup: LookupAPI;
+  get lookup() {
+    return this._lookup;
+  }
+
   private _member: MemberAPI;
+  get member() {
+    return this._member;
+  }
+
   private _results: ResultsAPI;
+  get results() {
+    return this._results;
+  }
+
   private _season: SeasonAPI;
+  get season() {
+    return this._season;
+  }
+
   private _series: SeriesAPI;
+  get series() {
+    return this._series;
+  }
+
   private _stats: StatsAPI;
+  get stats() {
+    return this._stats;
+  }
+
   private _team: TeamAPI;
+  get team() {
+    return this._team;
+  }
+
   private _timeAttack: TimeAttackAPI;
+  get timeAttack() {
+    return this._timeAttack;
+  }
+
   private _track: TrackAPI;
+  get track() {
+    return this._track;
+  }
 
   constructor(cookieJar: CookieJar = new CookieJar()) {
     this._cookieJar = cookieJar;
@@ -212,13 +271,13 @@ export class IRacingAPI {
 
   // League Endpoints
   async getLeagueSessions(
-    input: Parameters<LeagueAPI["customerLeagueSessions"]>[0]
+    input: Parameters<LeagueAPI["customerLeagueSessions"]>[0] = {}
   ) {
     const response = await this._league.customerLeagueSessions(input);
     return this.fetchValidLinkData(response.data);
   }
 
-  async getLeagueDirectory(input: Parameters<LeagueAPI["directory"]>[0]) {
+  async getLeagueDirectory(input: Parameters<LeagueAPI["directory"]>[0] = {}) {
     const response = await this._league.directory(input);
     return this.fetchValidLinkData(response.data);
   }
@@ -228,7 +287,9 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  async getLeagueMembership(input: Parameters<LeagueAPI["membership"]>[0]) {
+  async getLeagueMembership(
+    input: Parameters<LeagueAPI["membership"]>[0] = {}
+  ) {
     const response = await this._league.membership(input);
     return this.fetchValidLinkData(response.data);
   }
@@ -333,7 +394,9 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  async searchHostedResults(input: Parameters<ResultsAPI["searchHosted"]>[0]) {
+  async searchHostedResults(
+    input: Parameters<ResultsAPI["searchHosted"]>[0] = {}
+  ) {
     const response = await this._results.searchHosted(input);
     return this.fetchValidLinkData(response.data);
   }
