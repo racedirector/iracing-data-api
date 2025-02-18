@@ -21,3 +21,10 @@ export const assertCategory = (
     throw new Error(`Invalid category: ${value}`);
   }
 };
+
+export type IRacingAPIResponse = {
+  // A link to the cached data
+  link: string;
+  // An ISO 8601 date string
+  expires: string;
+};

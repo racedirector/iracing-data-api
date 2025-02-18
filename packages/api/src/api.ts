@@ -6,16 +6,9 @@ import {
   InvalidResponseData,
   IRacingAuthenticationError,
 } from "./error";
-import { CategoryType } from "./types";
+import { CategoryType, IRacingAPIResponse } from "./types";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
-
-type IRacingAPIResponse = {
-  // A link to the cached data
-  link: string;
-  // An ISO 8601 date string
-  expires: string;
-};
 
 export class IRacingAPI {
   private axiosInstance: AxiosInstance;
@@ -257,6 +250,37 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
+  async getPointsSystems(leagueId: number, seasonId?: number): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/league/get_points_systems",
+      {
+        params: {
+          league_id: leagueId,
+          ...(seasonId && { season_id: seasonId }),
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonSessions(
+    leagueId: number,
+    seasonId: number,
+    resultsOnly?: boolean
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/league/season_sessions",
+      {
+        params: {
+          league_id: leagueId,
+          season_id: seasonId,
+          results_only: resultsOnly,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
   // Lookup Endpoints
   async getCountries() {
     const response = await this.axiosInstance.get("/data/lookup/countries");
@@ -268,6 +292,26 @@ export class IRacingAPI {
       params: { search_term: searchTerm, league_id: leagueId },
     });
 
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getClubHistory(
+    seasonYear: number,
+    seasonQuarter: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get("/data/lookup/club_history", {
+      params: { season_year: seasonYear, season_quarter: seasonQuarter },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async lookupGet(): Promise<any> {
+    const response = await this.axiosInstance.get("/data/lookup/get");
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getLicenses(): Promise<any> {
+    const response = await this.axiosInstance.get("/data/lookup/licenses");
     return this.fetchValidLinkData(response.data);
   }
 
@@ -293,6 +337,51 @@ export class IRacingAPI {
       }
     );
 
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getAwardInstances(custId: number, awardId: number): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/member/award_instances",
+      {
+        params: { cust_id: custId, award_id: awardId },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getChartData(
+    custId: number,
+    categoryId: number,
+    chartType: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get("/data/member/chart_data", {
+      params: {
+        cust_id: custId,
+        category_id: categoryId,
+        chart_type: chartType,
+      },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getMemberGet(
+    custIds: number[],
+    includeLicenses?: boolean
+  ): Promise<any> {
+    const response = await this.axiosInstance.get("/data/member/get", {
+      params: {
+        cust_ids: custIds.join(","),
+        include_licenses: includeLicenses,
+      },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getParticipationCredits(): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/member/participation_credits"
+    );
     return this.fetchValidLinkData(response.data);
   }
 
@@ -334,6 +423,61 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
+  async getEventLog(
+    subsessionId: number,
+    simsessionNumber: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get("/data/results/event_log", {
+      params: {
+        subsession_id: subsessionId,
+        simsession_number: simsessionNumber,
+      },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getLapChartData(
+    subsessionId: number,
+    simsessionNumber: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/results/lap_chart_data",
+      {
+        params: {
+          subsession_id: subsessionId,
+          simsession_number: simsessionNumber,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async searchSeries(params: Record<string, any>): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/results/search_series",
+      { params }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonResults(
+    seasonId: number,
+    eventType: number,
+    raceWeekNum?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/results/season_results",
+      {
+        params: {
+          season_id: seasonId,
+          event_type: eventType,
+          race_week_num: raceWeekNum,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
   // Season Endpoints
   async getSeasonList(seasonYear: number, seasonQuarter: number) {
     const response = await this.axiosInstance.get("/data/season/list", {
@@ -351,6 +495,32 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
+  async getSpectatorSubsessionIds(eventTypes?: number[]): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/season/spectator_subsessionids",
+      {
+        params: { event_types: eventTypes ? eventTypes.join(",") : undefined },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSpectatorSubsessionIdsDetail(
+    eventTypes?: number[],
+    seasonIds?: number[]
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/season/spectator_subsessionids_detail",
+      {
+        params: {
+          event_types: eventTypes ? eventTypes.join(",") : undefined,
+          season_ids: seasonIds ? seasonIds.join(",") : undefined,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
   // Series Endpoints
   async getSeries() {
     const response = await this.axiosInstance.get("/data/series/get");
@@ -362,6 +532,23 @@ export class IRacingAPI {
       params: { series_id: seriesId },
     });
 
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeriesAssets(): Promise<any> {
+    const response = await this.axiosInstance.get("/data/series/assets");
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeriesSeasons(includeSeries?: boolean): Promise<any> {
+    const response = await this.axiosInstance.get("/data/series/seasons", {
+      params: { include_series: includeSeries },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getStatsSeries(): Promise<any> {
+    const response = await this.axiosInstance.get("/data/series/stats_series");
     return this.fetchValidLinkData(response.data);
   }
 
@@ -397,6 +584,184 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
+  async getMemberBests(custId?: number): Promise<any> {
+    const response = await this.axiosInstance.get("/data/stats/member_bests", {
+      params: { cust_id: custId },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getMemberDivision(seasonId: number, eventType: number): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/member_division",
+      {
+        params: { season_id: seasonId, event_type: eventType },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getMemberRecap(
+    custId?: number,
+    year?: number,
+    season?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get("/data/stats/member_recap", {
+      params: { cust_id: custId, year, season },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getMemberRecentRaces(custId?: number): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/member_recent_races",
+      {
+        params: { cust_id: custId },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getMemberSummary(custId?: number): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/member_summary",
+      {
+        params: { cust_id: custId },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getMemberYearly(custId?: number): Promise<any> {
+    const response = await this.axiosInstance.get("/data/stats/member_yearly", {
+      params: { cust_id: custId },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonSupersessionStandings(
+    seasonId: number,
+    carClassId: number,
+    clubId?: number,
+    division?: number,
+    raceWeekNum?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/season_supersession_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          club_id: clubId,
+          division,
+          race_week_num: raceWeekNum,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonTeamStandings(
+    seasonId: number,
+    carClassId: number,
+    raceWeekNum?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/season_team_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          race_week_num: raceWeekNum,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonTTStandings(
+    seasonId: number,
+    carClassId: number,
+    clubId?: number,
+    division?: number,
+    raceWeekNum?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/season_tt_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          club_id: clubId,
+          division,
+          race_week_num: raceWeekNum,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonTTResults(
+    seasonId: number,
+    carClassId: number,
+    raceWeekNum: number,
+    clubId?: number,
+    division?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/season_tt_results",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          race_week_num: raceWeekNum,
+          club_id: clubId,
+          division,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getSeasonQualifyResults(
+    seasonId: number,
+    carClassId: number,
+    raceWeekNum: number,
+    clubId?: number,
+    division?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/stats/season_qualify_results",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          race_week_num: raceWeekNum,
+          club_id: clubId,
+          division,
+        },
+      }
+    );
+    return this.fetchValidLinkData(response.data);
+  }
+
+  async getWorldRecords(
+    carId: number,
+    trackId: number,
+    seasonYear?: number,
+    seasonQuarter?: number
+  ): Promise<any> {
+    const response = await this.axiosInstance.get("/data/stats/world_records", {
+      params: {
+        car_id: carId,
+        track_id: trackId,
+        ...(seasonYear && { season_year: seasonYear }),
+        ...(seasonQuarter && { season_quarter: seasonQuarter }),
+      },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
   // Track Endpoints
   async getTrackAssets() {
     const response = await this.axiosInstance.get("/data/track/assets");
@@ -405,6 +770,25 @@ export class IRacingAPI {
 
   async getTrackInfo() {
     const response = await this.axiosInstance.get("/data/track/get");
+    return this.fetchValidLinkData(response.data);
+  }
+
+  // Team endpoint
+  async getTeam(teamId: number, includeLicenses?: boolean): Promise<any> {
+    const response = await this.axiosInstance.get("/data/team/get", {
+      params: { team_id: teamId, include_licenses: includeLicenses },
+    });
+    return this.fetchValidLinkData(response.data);
+  }
+
+  // Time Attack endpoint
+  async getMemberSeasonResults(taCompSeasonId: number): Promise<any> {
+    const response = await this.axiosInstance.get(
+      "/data/time_attack/member_season_results",
+      {
+        params: { ta_comp_season_id: taCompSeasonId },
+      }
+    );
     return this.fetchValidLinkData(response.data);
   }
 }
