@@ -1,9 +1,37 @@
+export class IRacingAuthenticationError extends Error {
+  constructor() {
+    super("Failed to authenticate with iRacing.");
+  }
+}
+
+export class InvalidResponseData extends Error {
+  constructor() {
+    super("Invalid response data");
+  }
+}
+
+export class InvalidSessionError extends Error {
+  constructor() {
+    super("You are not authenticated. Please run `auth`.");
+  }
+}
+
+export class CacheExpiredError extends Error {
+  constructor() {
+    super("Cached data has expired");
+  }
+}
+
 export type IRacingAPIResponse = {
   // A link to the cached data
   link: string;
   // An ISO 8601 date string
   expires: string;
 };
+
+// Divisions are 0-based: 0 is Division 1, 10 is Rookie.
+// See /data/constants/divisons for more information.
+export type Division = 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10;
 
 export enum CategoryId {
   Oval = 1,
