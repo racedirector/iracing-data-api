@@ -1,19 +1,15 @@
 import fs from "fs";
-import path from "path";
 import util from "util";
 import {
   Cookie,
   MemoryCookieStore,
   MemoryCookieStoreIndex,
-  Nullable,
 } from "tough-cookie";
-
-const DEFAULT_COOKIE_PATH = path.join(__dirname, ".cookies.json");
 
 export class JSONCookieStore extends MemoryCookieStore {
   private _filePath: string;
 
-  constructor(filePath: string = DEFAULT_COOKIE_PATH) {
+  constructor(filePath: string) {
     super();
     this._filePath = filePath;
     if (util.inspect.custom) {

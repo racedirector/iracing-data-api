@@ -30,11 +30,11 @@ const categoryArg = new Argument(
 /**
  * Main program instance that provides a common interface for the CLI tool.
  */
-const program = new Command<[], {}, { credentials: string }>()
+const program = new Command()
   .description("CLI tool for interacting with the iRacing API")
   .version("0.0.0")
   .option(
-    "--credentials [path]",
+    "--credentials <path>",
     "Path to credentials file",
     path.join(__dirname, "cookies.json")
   );
@@ -96,6 +96,22 @@ program
   });
 
 /**
+ * award-instances command
+ */
+program
+  .command("award-instances")
+  .argument("<custId>", "Customer ID", parseInt)
+  .argument("<awardId>", "Award ID", parseInt)
+  .description("Fetch award instances")
+  .option("-o, --output <path>", "Output path")
+  .action(async (custId, awardId, _, command) => {
+    const { credentials, output } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    const awardInstances = await api.getAwardInstances(custId, awardId);
+    console.log(awardInstances);
+  });
+
+/**
  * car-assets command
  */
 program
@@ -149,6 +165,23 @@ program
     const api = createAPI(credentials);
     const categories = await api.getCategories();
     console.log(categories);
+  });
+
+/**
+ * club-history command
+ */
+program
+  .command("club-history")
+  .argument("<seasonYear>", "Season year", parseInt)
+  .argument("<seasonQuarter>", "Season quarter", parseInt)
+  .description("Fetch club history")
+  .option("-o, --output <path>", "Output path")
+  .action(async (seasonYear, seasonQuarter, _, command) => {
+    const { credentials, output } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    console.log(`Fetching club history for ${seasonYear} ${seasonQuarter}...`);
+    const clubHistory = await api.getClubHistory(seasonYear, seasonQuarter);
+    console.log(clubHistory);
   });
 
 /**
@@ -336,6 +369,23 @@ program
   });
 
 /**
+ * league-points-systems command
+ */
+program
+  .command("league-points-systems")
+  .argument("<leagueId>", "League ID", parseInt)
+  .description("Fetch league points systems")
+  .option("-s, --season-id <seasonId>", "Season ID", parseInt)
+  .option("-o, --output <path>", "Output path")
+  .action(async (leagueId, _, command) => {
+    const { credentials, output, seasonId } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    console.log("Fetching league points systems...");
+    const leaguePointsSystems = await api.getPointsSystems(leagueId, seasonId);
+    console.log(leaguePointsSystems);
+  });
+
+/**
  * league-roster command
  */
 program
@@ -371,6 +421,32 @@ program
     const leagueSeasons = await api.getLeagueSeasons(leagueId, retired);
 
     console.log(leagueSeasons);
+  });
+
+/**
+ * league-season-sessions command
+ */
+program
+  .command("league-season-sessions")
+  .argument("<leagueId>", "League ID", parseInt)
+  .argument("<seasonId>", "Season ID", parseInt)
+  .description("Fetch league season sessions")
+  .option("-r, --results-only", "Results only")
+  .option("-o, --output <path>", "Output path")
+  .action(async (leagueId, seasonId, _, command) => {
+    const { credentials, output, resultsOnly } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+
+    console.log(
+      `Fetching league season sessions for ${leagueId} ${seasonId}...`
+    );
+    const leagueSeasonSessions = await api.getSeasonSessions(
+      leagueId,
+      seasonId,
+      resultsOnly
+    );
+
+    console.log(leagueSeasonSessions);
   });
 
 /**
@@ -417,6 +493,20 @@ program
     console.log("Fetching league sessions...");
     const leagueSessions = await api.getLeagueSessions();
     console.log(leagueSessions);
+  });
+
+/**
+ * licenses command
+ */
+program
+  .command("licenses")
+  .description("Fetch licenses")
+  .option("-o, --output <path>", "Output path")
+  .action(async (_, command) => {
+    const { credentials, output } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    const licenses = await api.getLicenses();
+    console.log(licenses);
   });
 
 /**

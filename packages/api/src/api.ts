@@ -235,7 +235,7 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  async getPointsSystems(leagueId: number, seasonId?: number): Promise<any> {
+  async getPointsSystems(leagueId: number, seasonId?: number) {
     const response = await this.axiosInstance.get(
       "/data/league/get_points_systems",
       {
@@ -252,7 +252,7 @@ export class IRacingAPI {
     leagueId: number,
     seasonId: number,
     resultsOnly?: boolean
-  ): Promise<any> {
+  ) {
     const response = await this.axiosInstance.get(
       "/data/league/season_sessions",
       {
@@ -280,10 +280,7 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  async getClubHistory(
-    seasonYear: number,
-    seasonQuarter: number
-  ): Promise<any> {
+  async getClubHistory(seasonYear: number, seasonQuarter: number) {
     const response = await this.axiosInstance.get("/data/lookup/club_history", {
       params: { season_year: seasonYear, season_quarter: seasonQuarter },
     });
@@ -295,7 +292,7 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  async getLicenses(): Promise<any> {
+  async getLicenses() {
     const response = await this.axiosInstance.get("/data/lookup/licenses");
     return this.fetchValidLinkData(response.data);
   }
@@ -325,7 +322,7 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  async getAwardInstances(custId: number, awardId: number): Promise<any> {
+  async getAwardInstances(custId: number, awardId: number) {
     const response = await this.axiosInstance.get(
       "/data/member/award_instances",
       {
