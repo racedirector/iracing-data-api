@@ -11,11 +11,11 @@ import {
 const DEFAULT_COOKIE_PATH = path.join(__dirname, ".cookies.json");
 
 export class JSONCookieStore extends MemoryCookieStore {
-  private filePath: string;
+  private _filePath: string;
 
   constructor(filePath: string = DEFAULT_COOKIE_PATH) {
     super();
-    this.filePath = filePath;
+    this._filePath = filePath;
     if (util.inspect.custom) {
       this[util.inspect.custom] = this.inspect;
     }
@@ -58,6 +58,10 @@ export class JSONCookieStore extends MemoryCookieStore {
     }
 
     return cookiesJSON;
+  }
+
+  get filePath() {
+    return this._filePath;
   }
 
   override async putCookie(cookie: Cookie): Promise<void> {

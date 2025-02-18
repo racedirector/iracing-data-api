@@ -4,7 +4,12 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "lib": ["dom"],
-    "noUnusedLocals": false
+    "noUnusedLocals": false,
+    // !!!: Don't output declaration or source maps
+    // !!!: This is a CLI, not a library, no need.
+    "declaration": false,
+    "declarationMap": false,
+    "sourceMap": false
   },
   "exclude": ["node_modules", "dist"]
 }

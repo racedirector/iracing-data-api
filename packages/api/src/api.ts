@@ -6,6 +6,7 @@ import {
   InvalidResponseData,
   IRacingAuthenticationError,
 } from "./error";
+import { CategoryType } from "./types";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
 
@@ -18,16 +19,16 @@ type IRacingAPIResponse = {
 
 export class IRacingAPI {
   private axiosInstance: AxiosInstance;
-  private cookieJar: CookieJar;
+  private _cookieJar: CookieJar;
+  get cookieJar() {
+    return this._cookieJar;
+  }
 
-  constructor(
-    url: string = DEFAULT_IRACING_DATA_API_URL,
-    cookieJar: CookieJar = new CookieJar()
-  ) {
-    this.cookieJar = cookieJar;
+  constructor(cookieJar: CookieJar = new CookieJar()) {
+    this._cookieJar = cookieJar;
     this.axiosInstance = wrapper(
       axios.create({
-        baseURL: url,
+        baseURL: DEFAULT_IRACING_DATA_API_URL,
         withCredentials: true, // Ensure cookies are sent and received
         jar: this.cookieJar,
         headers: {
@@ -49,6 +50,30 @@ export class IRacingAPI {
           return false;
         })
       : false;
+  }
+
+  /**
+   * Checks if we have a valid session and returns the email of the currently logged in user.
+   * @returns the email of the currently logged in user or null
+   */
+  whoami(): string | null {
+    if (this.hasValidSession()) {
+      const cookies = this.cookieJar.getCookiesSync(
+        DEFAULT_IRACING_DATA_API_URL
+      );
+      const authTokenCookie = cookies.find(
+        (cookie) => cookie.key === "authtoken_members"
+      );
+
+      if (authTokenCookie) {
+        const { authtoken: { email } = {} } =
+          JSON.parse(decodeURIComponent(authTokenCookie.value)) || {};
+
+        return email;
+      }
+    }
+
+    return null;
   }
 
   /**
@@ -98,57 +123,85 @@ export class IRacingAPI {
   }
 
   // Car Endpoints
-  getCarAssets() {
-    return this.axiosInstance.get("/data/car/assets");
+  async getCarAssets() {
+    const response = await this.axiosInstance.get("/data/car/assets");
+    return this.fetchValidLinkData(response.data);
   }
 
-  getCar() {
-    return this.axiosInstance.get("/data/car/get");
+  async getCar() {
+    const response = await this.axiosInstance.get("/data/car/get");
+    return this.fetchValidLinkData(response.data);
   }
 
   // Car Class Endpoints
-  getCarClass() {
-    return this.axiosInstance.get("/data/carclass/get");
+  async getCarClass() {
+    const response = await this.axiosInstance.get("/data/carclass/get");
+    return this.fetchValidLinkData(response.data);
   }
 
   // Constants Endpoints
-  getCategories() {
-    return this.axiosInstance.get("/data/constants/categories");
+  async getCategories() {
+    const response = await this.axiosInstance.get("/data/constants/categories");
+    return this.fetchValidLinkData(response.data);
   }
 
-  getDivisions() {
-    return this.axiosInstance.get("/data/constants/divisions");
+  async getDivisions() {
+    const response = await this.axiosInstance.get("/data/constants/divisions");
+    return this.fetchValidLinkData(response.data);
   }
 
-  getEventTypes() {
-    return this.axiosInstance.get("/data/constants/event_types");
+  async getEventTypes() {
+    const response = await this.axiosInstance.get(
+      "/data/constants/event_types"
+    );
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Driver Stats Endpoints
-  getDriverStatsByCategory(category: string) {
-    return this.axiosInstance.get(`/data/driver_stats_by_category/${category}`);
+  async getDriverStatsByCategory(category: CategoryType) {
+    const response = await this.axiosInstance.get(
+      `/data/driver_stats_by_category/${category}`
+    );
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Hosted Sessions
-  getHostedCombinedSessions(packageId?: number) {
-    return this.axiosInstance.get("/data/hosted/combined_sessions", {
-      params: packageId ? { package_id: packageId } : {},
-    });
+  async getHostedCombinedSessions(packageId?: number) {
+    const response = await this.axiosInstance.get(
+      "/data/hosted/combined_sessions",
+      {
+        params: packageId ? { package_id: packageId } : {},
+      }
+    );
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getHostedSessions() {
-    return this.axiosInstance.get("/data/hosted/sessions");
+  async getHostedSessions() {
+    const response = await this.axiosInstance.get("/data/hosted/sessions");
+    return this.fetchValidLinkData(response.data);
   }
 
   // League Endpoints
-  getLeagueSessions(mine?: boolean, packageId?: number) {
-    return this.axiosInstance.get("/data/league/cust_league_sessions", {
-      params: { mine, package_id: packageId },
-    });
+  async getLeagueSessions(mine?: boolean, packageId?: number) {
+    const response = await this.axiosInstance.get(
+      "/data/league/cust_league_sessions",
+      {
+        params: { mine, package_id: packageId },
+      }
+    );
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getLeagueDirectory(params?: Record<string, any>) {
-    return this.axiosInstance.get("/data/league/directory", { params });
+  async getLeagueDirectory(params?: Record<string, any>) {
+    const response = await this.axiosInstance.get("/data/league/directory", {
+      params,
+    });
+
+    return this.fetchValidLinkData(response.data);
   }
 
   async getLeague(leagueId: number, includeLicenses?: boolean) {
@@ -159,60 +212,77 @@ export class IRacingAPI {
     return this.fetchValidLinkData(response.data);
   }
 
-  getLeagueMembership(custId?: number, includeLeague?: boolean) {
-    return this.axiosInstance.get("/data/league/membership", {
+  async getLeagueMembership(custId?: number, includeLeague?: boolean) {
+    const response = await this.axiosInstance.get("/data/league/membership", {
       params: { cust_id: custId, include_league: includeLeague },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getLeagueRoster(leagueId: number, includeLicenses?: boolean) {
-    return this.axiosInstance.get("/data/league/roster", {
+  async getLeagueRoster(leagueId: number, includeLicenses?: boolean) {
+    const response = await this.axiosInstance.get("/data/league/roster", {
       params: { league_id: leagueId, include_licenses: includeLicenses },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getLeagueSeasons(leagueId: number, retired?: boolean) {
-    return this.axiosInstance.get("/data/league/seasons", {
+  async getLeagueSeasons(leagueId: number, retired?: boolean) {
+    const response = await this.axiosInstance.get("/data/league/seasons", {
       params: { league_id: leagueId, retired },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getLeagueSeasonStandings(
+  async getLeagueSeasonStandings(
     leagueId: number,
     seasonId: number,
     carClassId?: number,
     carId?: number
   ) {
-    return this.axiosInstance.get("/data/league/season_standings", {
-      params: {
-        league_id: leagueId,
-        season_id: seasonId,
-        car_class_id: carClassId,
-        car_id: carId,
-      },
-    });
+    const response = await this.axiosInstance.get(
+      "/data/league/season_standings",
+      {
+        params: {
+          league_id: leagueId,
+          season_id: seasonId,
+          car_class_id: carClassId,
+          car_id: carId,
+        },
+      }
+    );
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Lookup Endpoints
-  getCountries() {
-    return this.axiosInstance.get("/data/lookup/countries");
+  async getCountries() {
+    const response = await this.axiosInstance.get("/data/lookup/countries");
+    return this.fetchValidLinkData(response.data);
   }
 
-  searchDrivers(searchTerm: string, leagueId?: number) {
-    return this.axiosInstance.get("/data/lookup/drivers", {
+  async searchDrivers(searchTerm: string, leagueId?: number) {
+    const response = await this.axiosInstance.get("/data/lookup/drivers", {
       params: { search_term: searchTerm, league_id: leagueId },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Member Endpoints
-  getMemberAwards(custId?: number) {
-    return this.axiosInstance.get("/data/member/awards", {
+  async getMemberAwards(custId?: number) {
+    const response = await this.axiosInstance.get("/data/member/awards", {
       params: { cust_id: custId },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getMemberInfo() {
-    return this.axiosInstance.get("/data/member/info");
+  async getMemberInfo() {
+    const response = await this.axiosInstance.get("/data/member/info");
+    return this.fetchValidLinkData(response.data);
   }
 
   async getMemberProfile(custId?: number) {
@@ -227,22 +297,24 @@ export class IRacingAPI {
   }
 
   // Results Endpoints
-  getRaceResults(subsessionId: number, includeLicenses?: boolean) {
-    return this.axiosInstance.get("/data/results/get", {
+  async getRaceResults(subsessionId: number, includeLicenses?: boolean) {
+    const response = await this.axiosInstance.get("/data/results/get", {
       params: {
         subsession_id: subsessionId,
         include_licenses: includeLicenses,
       },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getLapData(
+  async getLapData(
     subsessionId: number,
     simsessionNumber: number,
     custId?: number,
     teamId?: number
   ) {
-    return this.axiosInstance.get("/data/results/lap_data", {
+    const response = await this.axiosInstance.get("/data/results/lap_data", {
       params: {
         subsession_id: subsessionId,
         simsession_number: simsessionNumber,
@@ -250,68 +322,90 @@ export class IRacingAPI {
         team_id: teamId,
       },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  searchHostedResults(params: Record<string, any>) {
-    return this.axiosInstance.get("/data/results/search_hosted", { params });
+  async searchHostedResults(params: Record<string, any>) {
+    const response = await this.axiosInstance.get(
+      "/data/results/search_hosted",
+      { params }
+    );
+    return this.fetchValidLinkData(response.data);
   }
 
   // Season Endpoints
-  getSeasonList(seasonYear: number, seasonQuarter: number) {
-    return this.axiosInstance.get("/data/season/list", {
+  async getSeasonList(seasonYear: number, seasonQuarter: number) {
+    const response = await this.axiosInstance.get("/data/season/list", {
       params: { season_year: seasonYear, season_quarter: seasonQuarter },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getRaceGuide(from?: string, includeEndAfterFrom?: boolean) {
-    return this.axiosInstance.get("/data/season/race_guide", {
+  async getRaceGuide(from?: string, includeEndAfterFrom?: boolean) {
+    const response = await this.axiosInstance.get("/data/season/race_guide", {
       params: { from, include_end_after_from: includeEndAfterFrom },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Series Endpoints
-  getSeries() {
-    return this.axiosInstance.get("/data/series/get");
+  async getSeries() {
+    const response = await this.axiosInstance.get("/data/series/get");
+    return this.fetchValidLinkData(response.data);
   }
 
-  getSeriesPastSeasons(seriesId: number) {
-    return this.axiosInstance.get("/data/series/past_seasons", {
+  async getSeriesPastSeasons(seriesId: number) {
+    const response = await this.axiosInstance.get("/data/series/past_seasons", {
       params: { series_id: seriesId },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Stats Endpoints
-  getMemberCareerStats(custId?: number) {
-    return this.axiosInstance.get("/data/stats/member_career", {
+  async getMemberCareerStats(custId?: number) {
+    const response = await this.axiosInstance.get("/data/stats/member_career", {
       params: { cust_id: custId },
     });
+
+    return this.fetchValidLinkData(response.data);
   }
 
-  getSeasonDriverStandings(
+  async getSeasonDriverStandings(
     seasonId: number,
     carClassId: number,
     clubId?: number,
     division?: number,
     raceWeekNum?: number
   ) {
-    return this.axiosInstance.get("/data/stats/season_driver_standings", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        club_id: clubId,
-        division,
-        race_week_num: raceWeekNum,
-      },
-    });
+    const response = await this.axiosInstance.get(
+      "/data/stats/season_driver_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          club_id: clubId,
+          division,
+          race_week_num: raceWeekNum,
+        },
+      }
+    );
+
+    return this.fetchValidLinkData(response.data);
   }
 
   // Track Endpoints
-  getTrackAssets() {
-    return this.axiosInstance.get("/data/track/assets");
+  async getTrackAssets() {
+    const response = await this.axiosInstance.get("/data/track/assets");
+    return this.fetchValidLinkData(response.data);
   }
 
-  getTrackInfo() {
-    return this.axiosInstance.get("/data/track/get");
+  async getTrackInfo() {
+    const response = await this.axiosInstance.get("/data/track/get");
+    return this.fetchValidLinkData(response.data);
   }
 }
 
