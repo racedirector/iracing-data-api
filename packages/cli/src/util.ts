@@ -19,11 +19,3 @@ export function handleOutput(data: any, output?: string) {
     console.log(JSON.stringify(data, null, 2));
   }
 }
-
-export function hasValidSession(api: IRacingAPI) {
-  if (!api.hasValidSession()) {
-    console.log("You are not authenticated. Please run `auth`.");
-    return false;
-  }
-  return true;
-}

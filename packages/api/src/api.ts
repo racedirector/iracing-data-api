@@ -7,6 +7,7 @@ import {
   IRacingAuthenticationError,
 } from "./error";
 import { CategoryType, IRacingAPIResponse } from "./types";
+import { allCookiesValid } from "./util";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
 
@@ -31,35 +32,19 @@ export class IRacingAPI {
     );
   }
 
-  hasValidSession() {
-    const cookies = this.cookieJar.getCookiesSync(DEFAULT_IRACING_DATA_API_URL);
-    // Ensure that every cookie is not-expired
-    return cookies.length
-      ? cookies.every((cookie) => {
-          if (cookie.TTL() > 0) {
-            return true;
-          }
-
-          return false;
-        })
-      : false;
-  }
-
   /**
    * Checks if we have a valid session and returns the email of the currently logged in user.
    * @returns the email of the currently logged in user or null
    */
   whoami(): string | null {
-    if (this.hasValidSession()) {
-      const cookies = this.cookieJar.getCookiesSync(
-        DEFAULT_IRACING_DATA_API_URL
-      );
+    const cookies = this.cookieJar.getCookiesSync(DEFAULT_IRACING_DATA_API_URL);
+    if (allCookiesValid(cookies)) {
       const authTokenCookie = cookies.find(
         (cookie) => cookie.key === "authtoken_members"
       );
 
       if (authTokenCookie) {
-        const { authtoken: { email } = {} } =
+        const { authtoken: { email = null } = {} } =
           JSON.parse(decodeURIComponent(authTokenCookie.value)) || {};
 
         return email;
