@@ -63,6 +63,7 @@ const categoryArg = new extra_typings_1.Argument("<category>", "Category to fetc
 const program = new extra_typings_1.Command("iracing-data")
     .description("CLI tool for interacting with the iRacing API")
     .version("0.0.0")
+    // ???: Should this remain a global option or be attached to relevant commands via Command subclass?
     .option("--credentials <path>", "Path to credentials file", path_1.default.join(__dirname, "cookies.json"));
 /**
  * whoami command
@@ -131,7 +132,7 @@ program
         customerId,
         awardId,
     });
-    console.log(awardInstances);
+    (0, util_1.handleOutput)(awardInstances, output);
 });
 /**
  * car-assets command
@@ -144,7 +145,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const carAssets = await api.carAssets();
-    console.log(carAssets);
+    (0, util_1.handleOutput)(carAssets, output);
 });
 /**
  * car command
@@ -157,7 +158,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const car = await api.carGet();
-    console.log(car);
+    (0, util_1.handleOutput)(car, output);
 });
 /**
  * car-class command
@@ -170,7 +171,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const carClass = await api.carClassGet();
-    console.log(carClass);
+    (0, util_1.handleOutput)(carClass, output);
 });
 /**
  * categories command
@@ -183,7 +184,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const categories = await api.constantsCategories();
-    console.log(categories);
+    (0, util_1.handleOutput)(categories, output);
 });
 /**
  * club-history command
@@ -202,7 +203,7 @@ program
         seasonYear,
         seasonQuarter,
     });
-    console.log(clubHistory);
+    (0, util_1.handleOutput)(clubHistory, output);
 });
 /**
  * countries command
@@ -215,7 +216,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const countries = await api.lookupCountries();
-    console.log(countries);
+    (0, util_1.handleOutput)(countries, output);
 });
 /**
  * divisions command
@@ -228,7 +229,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const divisions = await api.constantsDivisions();
-    console.log(divisions);
+    (0, util_1.handleOutput)(divisions, output);
 });
 /**
  * docs command
@@ -241,7 +242,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const docs = await api.doc();
-    console.log(docs);
+    (0, util_1.handleOutput)(docs, output);
 });
 /**
  * driver-stats
@@ -256,7 +257,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const driverStats = await api.driverStatsByCategory({ category });
-    console.log(driverStats);
+    (0, util_1.handleOutput)(driverStats, output);
 });
 /**
  * event-types command
@@ -269,7 +270,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const eventTypes = await api.constantsEventTypes();
-    console.log(eventTypes);
+    (0, util_1.handleOutput)(eventTypes, output);
 });
 /**
  * hosted command
@@ -282,7 +283,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const hostedSessions = await api.hostedSessions();
-    console.log(hostedSessions);
+    (0, util_1.handleOutput)(hostedSessions, output);
 });
 /**
  * hosted-combined command
@@ -298,7 +299,7 @@ program
     const hostedCombinedSessions = await api.hostedCombinedSessions({
         packageId,
     });
-    console.log(hostedCombinedSessions);
+    (0, util_1.handleOutput)(hostedCombinedSessions, output);
 });
 /**
  * lap-data command
@@ -320,7 +321,7 @@ program
         customerId,
         teamId,
     });
-    console.log(lapData);
+    (0, util_1.handleOutput)(lapData, output);
 });
 /**
  * league command
@@ -336,7 +337,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching league ${leagueId}...`);
     const league = await api.leagueGet({ leagueId, includeLicenses });
-    console.log(league);
+    (0, util_1.handleOutput)(league, output);
 });
 /**
  * league-directory command
@@ -351,7 +352,7 @@ program
     console.log("Fetching league directory...");
     console.log("TODO: Support params");
     const leagueDirectory = await api.leagueDirectory();
-    console.log(leagueDirectory);
+    (0, util_1.handleOutput)(leagueDirectory, output);
 });
 /**
  * league-membership command
@@ -370,7 +371,7 @@ program
         customerId,
         includeLeague,
     });
-    console.log(leagueMembership);
+    (0, util_1.handleOutput)(leagueMembership, output);
 });
 /**
  * league-points-systems command
@@ -389,7 +390,7 @@ program
         leagueId,
         seasonId,
     });
-    console.log(leaguePointsSystems);
+    (0, util_1.handleOutput)(leaguePointsSystems, output);
 });
 /**
  * league-roster command
@@ -408,7 +409,7 @@ program
         leagueId,
         includeLicenses,
     });
-    console.log(leagueRoster);
+    (0, util_1.handleOutput)(leagueRoster, output);
 });
 /**
  * league-seasons command
@@ -424,7 +425,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching league seasons for ${leagueId}...`);
     const leagueSeasons = await api.leagueSeasons({ leagueId, retired });
-    console.log(leagueSeasons);
+    (0, util_1.handleOutput)(leagueSeasons, output);
 });
 /**
  * league-season-sessions command
@@ -445,7 +446,7 @@ program
         seasonId,
         resultsOnly,
     });
-    console.log(leagueSeasonSessions);
+    (0, util_1.handleOutput)(leagueSeasonSessions, output);
 });
 /**
  * league-season-standings command
@@ -468,7 +469,7 @@ program
         carClassId,
         carId,
     });
-    console.log(leagueSeasonStandings);
+    (0, util_1.handleOutput)(leagueSeasonStandings, output);
 });
 /**
  * league-sessions command
@@ -484,7 +485,7 @@ program
     const api = createAPI(credentials);
     console.log("Fetching league sessions...");
     const leagueSessions = await api.leagueCustomerLeagueSessions();
-    console.log(leagueSessions);
+    (0, util_1.handleOutput)(leagueSessions, output);
 });
 /**
  * licenses command
@@ -497,7 +498,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const licenses = await api.lookupLicenses();
-    console.log(licenses);
+    (0, util_1.handleOutput)(licenses, output);
 });
 /**
  * member-awards command
@@ -512,7 +513,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member awards for ${customerId}...`);
     const memberAwards = await api.memberAwards({ customerId });
-    console.log(memberAwards);
+    (0, util_1.handleOutput)(memberAwards, output);
 });
 /**
  * member-career-stats command
@@ -527,7 +528,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member career stats for ${customerId}...`);
     const memberCareerStats = await api.statsMemberCareer({ customerId });
-    console.log(memberCareerStats);
+    (0, util_1.handleOutput)(memberCareerStats, output);
 });
 /**
  * member-info command
@@ -541,7 +542,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member info...`);
     const memberInfo = await api.memberInfo();
-    console.log(memberInfo);
+    (0, util_1.handleOutput)(memberInfo, output);
 });
 /**
  * member-profile command
@@ -556,7 +557,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member profile${customerId ? ` for ${customerId}` : ""}...`);
     const memberProfile = await api.memberProfile({ customerId });
-    console.log(memberProfile);
+    (0, util_1.handleOutput)(memberProfile, output);
 });
 /**
  * race-guide command
@@ -595,7 +596,7 @@ program
         subsessionId,
         includeLicenses,
     });
-    console.log(raceResults);
+    (0, util_1.handleOutput)(raceResults, output);
 });
 /**
  * search-drivers command
@@ -611,7 +612,7 @@ program
     const api = createAPI(credentials);
     console.log(`Searching for drivers matching "${search}"...`);
     const drivers = await api.lookupDrivers({ searchTerm: search, leagueId });
-    console.log(drivers);
+    (0, util_1.handleOutput)(drivers, output);
 });
 /**
  * search-hosted-results command
@@ -626,7 +627,7 @@ program
     console.log(`Searching for hosted results matching "undefined"...`);
     console.log("TODO: Add support for params");
     const hostedResults = await api.resultsSearchHosted();
-    console.log(hostedResults);
+    (0, util_1.handleOutput)(hostedResults, output);
 });
 /**
  * season-driver-standings command
@@ -652,7 +653,7 @@ program
         division,
         raceWeekNumber,
     });
-    console.log(seasonDriverStandings);
+    (0, util_1.handleOutput)(seasonDriverStandings, output);
 });
 /**
  * season-list command
@@ -668,7 +669,7 @@ program
     const api = createAPI(credentials);
     console.log("Fetching season list...");
     const seasonList = await api.seasonList({ seasonYear, seasonQuarter });
-    console.log(seasonList);
+    (0, util_1.handleOutput)(seasonList, output);
 });
 /**
  * series command
@@ -682,7 +683,7 @@ program
     const api = createAPI(credentials);
     console.log("Fetching series...");
     const series = await api.seriesGet();
-    console.log(series);
+    (0, util_1.handleOutput)(series, output);
 });
 /**
  * series-past-seasons command
@@ -697,7 +698,7 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching past seasons for series ${seriesId}...`);
     const seriesPastSeasons = await api.seriesPastSeasons({ seriesId });
-    console.log(seriesPastSeasons);
+    (0, util_1.handleOutput)(seriesPastSeasons, output);
 });
 /**
  * track-assets command
@@ -711,7 +712,7 @@ program
     const api = createAPI(credentials);
     console.log("Fetching track assets...");
     const trackAssets = await api.trackAssets();
-    console.log(trackAssets);
+    (0, util_1.handleOutput)(trackAssets, output);
 });
 /**
  * track-info command
@@ -725,6 +726,6 @@ program
     const api = createAPI(credentials);
     console.log("Fetching track info...");
     const trackInfo = await api.trackGet();
-    console.log(trackInfo);
+    (0, util_1.handleOutput)(trackInfo, output);
 });
 program.parse();

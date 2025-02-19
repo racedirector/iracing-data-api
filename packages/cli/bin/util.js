@@ -7,7 +7,9 @@ exports.hashPassword = hashPassword;
 exports.handleOutput = handleOutput;
 const node_crypto_1 = __importDefault(require("node:crypto"));
 const node_fs_1 = __importDefault(require("node:fs"));
-// Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
+/**
+ * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
+ */
 async function hashPassword(email, password) {
     const value = password + email.toLowerCase();
     const encoder = new TextEncoder();
@@ -15,10 +17,15 @@ async function hashPassword(email, password) {
     const hashBuffer = await node_crypto_1.default.subtle.digest("SHA-256", data);
     return Buffer.from(hashBuffer).toString("base64");
 }
+/**
+ * Logs the data to the console or writes it to a file.
+ * @param data The data to be output
+ * @param output The path of the file to write the data to
+ */
 function handleOutput(data, output) {
     if (output) {
         node_fs_1.default.writeFileSync(output, JSON.stringify(data, null, 2));
-        console.log("Output written to", output);
+        console.log("Output written to:", output);
     }
     else {
         console.log(JSON.stringify(data, null, 2));

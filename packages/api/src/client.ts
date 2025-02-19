@@ -78,8 +78,9 @@ export class IRacingAPIClient {
 
   // /data
 
-  doc() {
-    return this.api.data.doc();
+  async doc() {
+    const response = await this.api.data.doc();
+    return response.data;
   }
 
   // /data/car

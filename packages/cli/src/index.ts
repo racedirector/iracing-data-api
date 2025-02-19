@@ -37,6 +37,7 @@ const categoryArg = new Argument(
 const program = new Command("iracing-data")
   .description("CLI tool for interacting with the iRacing API")
   .version("0.0.0")
+  // ???: Should this remain a global option or be attached to relevant commands via Command subclass?
   .option(
     "--credentials <path>",
     "Path to credentials file",

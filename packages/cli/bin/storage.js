@@ -7,6 +7,9 @@ exports.JSONCookieStore = void 0;
 const fs_1 = __importDefault(require("fs"));
 const util_1 = __importDefault(require("util"));
 const tough_cookie_1 = require("tough-cookie");
+/**
+ * Subclass of the `MemoryCookieStore` that persists cookies to a JSON file after all operations.
+ */
 class JSONCookieStore extends tough_cookie_1.MemoryCookieStore {
     constructor(filePath) {
         super();

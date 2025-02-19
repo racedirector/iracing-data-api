@@ -6,6 +6,9 @@ import {
   MemoryCookieStoreIndex,
 } from "tough-cookie";
 
+/**
+ * Subclass of the `MemoryCookieStore` that persists cookies to a JSON file after all operations.
+ */
 export class JSONCookieStore extends MemoryCookieStore {
   private _filePath: string;
 
