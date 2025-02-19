@@ -10,13 +10,21 @@ on:
 
 jobs:
   publish:
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v2
 
-      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: https://npm.pkg.github.com/
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
 
       - name: Install dependencies
         run: pnpm install
@@ -27,9 +35,7 @@ jobs:
       - name: Publish
         run: |
           cd packages/cli
-          pnpm publish --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          pnpm publish --access public --dry-run
 
       # Cache build artifacts (for subsequent workflow runs)
       - name: Cache Build Artifacts
