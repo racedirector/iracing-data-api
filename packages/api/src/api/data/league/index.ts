@@ -1,4 +1,3 @@
-import { AxiosInstance } from "axios";
 import { NetworkClientProvider } from "../../../types";
 
 export class LeagueAPI extends NetworkClientProvider {
@@ -28,7 +27,7 @@ export class LeagueAPI extends NetworkClientProvider {
     upperbound?: number;
     sort?: "relevance" | "leaguename" | "displayname" | "rostercount";
     order?: "asc" | "desc";
-  }) {
+  } = {}) {
     return this.client.get("/data/league/directory", {
       params: {
         search,

@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from "axios";
 import { wrapper } from "axios-cookiejar-support";
-import { CookieJar, Store } from "tough-cookie";
+import { CookieJar } from "tough-cookie";
 import { IRacingAPI } from "./api";
 import { allCookiesValid, fetchValidLinkData } from "./util";
 import { IRacingAuthenticationError } from "./types";
@@ -9,7 +9,7 @@ const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
 
 export class IRacingAPIClient {
   private _client: AxiosInstance;
-  private _cookieJar: CookieJar;
+
   get cookieJar() {
     return this._cookieJar;
   }
@@ -19,8 +19,7 @@ export class IRacingAPIClient {
     return this._api;
   }
 
-  constructor(cookieStore?: Store) {
-    this._cookieJar = new CookieJar(cookieStore);
+  constructor(private _cookieJar: CookieJar = new CookieJar()) {
     this._client = wrapper(
       axios.create({
         baseURL: DEFAULT_IRACING_DATA_API_URL,
@@ -145,14 +144,16 @@ export class IRacingAPIClient {
   // /data/league
 
   async leagueDirectory(
-    input: Parameters<IRacingAPI["data"]["league"]["directory"]>[0]
+    input: Parameters<IRacingAPI["data"]["league"]["directory"]>[0] = {}
   ) {
     const response = await this.api.data.league.directory(input);
     return fetchValidLinkData(response.data);
   }
 
   async leagueCustomerLeagueSessions(
-    input: Parameters<IRacingAPI["data"]["league"]["customerLeagueSessions"]>[0]
+    input: Parameters<
+      IRacingAPI["data"]["league"]["customerLeagueSessions"]
+    >[0] = {}
   ) {
     const response = await this.api.data.league.customerLeagueSessions(input);
     return fetchValidLinkData(response.data);
@@ -310,7 +311,7 @@ export class IRacingAPIClient {
   }
 
   async resultsSearchHosted(
-    input: Parameters<IRacingAPI["data"]["results"]["searchHosted"]>[0]
+    input: Parameters<IRacingAPI["data"]["results"]["searchHosted"]>[0] = {}
   ) {
     const response = await this.api.data.results.searchHosted(input);
     return fetchValidLinkData(response.data);

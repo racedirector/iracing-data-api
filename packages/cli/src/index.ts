@@ -4,7 +4,7 @@ import inquirer from "inquirer";
 import { Argument, Command } from "@commander-js/extra-typings";
 import _, { noop } from "lodash";
 import { CookieJar } from "tough-cookie";
-import IRacingAPI, {
+import IRacingAPIClient, {
   CATEGORY_VALUES,
   assertCategory,
   assertDivision,
@@ -21,7 +21,7 @@ const createCookieJar = (credentials: string) => {
 };
 
 const createAPI = (credentials: string) => {
-  return new IRacingAPI(createCookieJar(credentials));
+  return new IRacingAPIClient(createCookieJar(credentials));
 };
 
 const categoryArg = new Argument(
@@ -111,7 +111,10 @@ program
   .action(async (customerId, awardId, _, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const awardInstances = await api.getAwardInstances({ customerId, awardId });
+    const awardInstances = await api.memberAwardInstances({
+      customerId,
+      awardId,
+    });
     console.log(awardInstances);
   });
 
@@ -125,7 +128,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const carAssets = await api.getCarAssets();
+    const carAssets = await api.carAssets();
     console.log(carAssets);
   });
 
@@ -139,7 +142,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const car = await api.getCar();
+    const car = await api.carGet();
     console.log(car);
   });
 
@@ -153,7 +156,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const carClass = await api.getCarClass();
+    const carClass = await api.carClassGet();
     console.log(carClass);
   });
 
@@ -167,7 +170,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const categories = await api.getCategories();
+    const categories = await api.constantsCategories();
     console.log(categories);
   });
 
@@ -184,7 +187,10 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Fetching club history for ${seasonYear} ${seasonQuarter}...`);
-    const clubHistory = await api.getClubHistory({ seasonYear, seasonQuarter });
+    const clubHistory = await api.lookupClubHistory({
+      seasonYear,
+      seasonQuarter,
+    });
     console.log(clubHistory);
   });
 
@@ -198,7 +204,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const countries = await api.getCountries();
+    const countries = await api.lookupCountries();
     console.log(countries);
   });
 
@@ -212,7 +218,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const divisions = await api.getDivisions();
+    const divisions = await api.constantsDivisions();
     console.log(divisions);
   });
 
@@ -226,7 +232,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const docs = await api.getDoc();
+    const docs = await api.doc();
     console.log(docs);
   });
 
@@ -242,7 +248,7 @@ program
     assertCategory(category);
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const driverStats = await api.getDriverStatsByCategory({ category });
+    const driverStats = await api.driverStatsByCategory({ category });
     console.log(driverStats);
   });
 
@@ -256,7 +262,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const eventTypes = await api.getEventTypes();
+    const eventTypes = await api.constantsEventTypes();
     console.log(eventTypes);
   });
 
@@ -270,7 +276,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const hostedSessions = await api.getHostedSessions();
+    const hostedSessions = await api.hostedSessions();
     console.log(hostedSessions);
   });
 
@@ -285,7 +291,7 @@ program
   .action(async (_, command) => {
     const { credentials, output, packageId } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const hostedCombinedSessions = await api.getHostedCombinedSessions({
+    const hostedCombinedSessions = await api.hostedCombinedSessions({
       packageId,
     });
     console.log(hostedCombinedSessions);
@@ -306,7 +312,7 @@ program
     const { credentials, customerId, teamId, output } =
       command.optsWithGlobals();
     const api = createAPI(credentials);
-    const lapData = await api.getLapData({
+    const lapData = await api.resultsLapData({
       subsessionId,
       simsessionNumber: sessionNumber,
       customerId,
@@ -329,7 +335,7 @@ program
     const api = createAPI(credentials);
 
     console.log(`Fetching league ${leagueId}...`);
-    const league = await api.getLeague({ leagueId, includeLicenses });
+    const league = await api.leagueGet({ leagueId, includeLicenses });
 
     console.log(league);
   });
@@ -346,7 +352,7 @@ program
     const api = createAPI(credentials);
     console.log("Fetching league directory...");
     console.log("TODO: Support params");
-    const leagueDirectory = await api.getLeagueDirectory();
+    const leagueDirectory = await api.leagueDirectory();
     console.log(leagueDirectory);
   });
 
@@ -364,7 +370,7 @@ program
     const api = createAPI(credentials);
 
     console.log(`Fetching league membership for ${customerId}...`);
-    const leagueMembership = await api.getLeagueMembership({
+    const leagueMembership = await api.leagueMembership({
       customerId,
       includeLeague,
     });
@@ -385,7 +391,7 @@ program
     const { credentials, output, seasonId } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log("Fetching league points systems...");
-    const leaguePointsSystems = await api.getPointsSystems({
+    const leaguePointsSystems = await api.leagueGetPointsSystems({
       leagueId,
       seasonId,
     });
@@ -406,7 +412,7 @@ program
     const api = createAPI(credentials);
 
     console.log(`Fetching league roster for ${leagueId}...`);
-    const leagueRoster = await api.getLeagueRoster({
+    const leagueRoster = await api.leagueRoster({
       leagueId,
       includeLicenses,
     });
@@ -428,7 +434,7 @@ program
     const api = createAPI(credentials);
 
     console.log(`Fetching league seasons for ${leagueId}...`);
-    const leagueSeasons = await api.getLeagueSeasons({ leagueId, retired });
+    const leagueSeasons = await api.leagueSeasons({ leagueId, retired });
 
     console.log(leagueSeasons);
   });
@@ -450,7 +456,7 @@ program
     console.log(
       `Fetching league season sessions for ${leagueId} ${seasonId}...`
     );
-    const leagueSeasonSessions = await api.getSeasonSessions({
+    const leagueSeasonSessions = await api.leagueSeasonSessions({
       leagueId,
       seasonId,
       resultsOnly,
@@ -478,7 +484,7 @@ program
     console.log(
       `Fetching league season standings for ${leagueId} ${seasonId}...`
     );
-    const leagueSeasonStandings = await api.getLeagueSeasonStandings({
+    const leagueSeasonStandings = await api.leagueSeasonStandings({
       leagueId,
       seasonId,
       carClassId,
@@ -501,7 +507,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log("Fetching league sessions...");
-    const leagueSessions = await api.getLeagueSessions();
+    const leagueSessions = await api.leagueCustomerLeagueSessions();
     console.log(leagueSessions);
   });
 
@@ -515,7 +521,7 @@ program
   .action(async (_, command) => {
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    const licenses = await api.getLicenses();
+    const licenses = await api.lookupLicenses();
     console.log(licenses);
   });
 
@@ -531,7 +537,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Fetching member awards for ${customerId}...`);
-    const memberAwards = await api.getMemberAwards({ customerId });
+    const memberAwards = await api.memberAwards({ customerId });
     console.log(memberAwards);
   });
 
@@ -547,7 +553,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Fetching member career stats for ${customerId}...`);
-    const memberCareerStats = await api.getMemberCareerStats({ customerId });
+    const memberCareerStats = await api.statsMemberCareer({ customerId });
     console.log(memberCareerStats);
   });
 
@@ -562,7 +568,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Fetching member info...`);
-    const memberInfo = await api.getMemberInfo();
+    const memberInfo = await api.memberInfo();
     console.log(memberInfo);
   });
 
@@ -580,7 +586,7 @@ program
     console.log(
       `Fetching member profile${customerId ? ` for ${customerId}` : ""}...`
     );
-    const memberProfile = await api.getMemberProfile({ customerId });
+    const memberProfile = await api.memberProfile({ customerId });
     console.log(memberProfile);
   });
 
@@ -629,7 +635,7 @@ program
     const { credentials, includeLicenses, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Fetching race results for session ${subsessionId}...`);
-    const raceResults = await api.getRaceResults({
+    const raceResults = await api.resultsGet({
       subsessionId,
       includeLicenses,
     });
@@ -649,7 +655,7 @@ program
     const { credentials, output, leagueId } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Searching for drivers matching "${search}"...`);
-    const drivers = await api.searchDrivers({ searchTerm: search, leagueId });
+    const drivers = await api.lookupDrivers({ searchTerm: search, leagueId });
     console.log(drivers);
   });
 
@@ -665,7 +671,7 @@ program
     const api = createAPI(credentials);
     console.log(`Searching for hosted results matching "undefined"...`);
     console.log("TODO: Add support for params");
-    const hostedResults = await api.searchHostedResults();
+    const hostedResults = await api.resultsSearchHosted();
     console.log(hostedResults);
   });
 
@@ -691,7 +697,7 @@ program
     console.log(
       `Fetching season driver standings for ${seasonId} ${carClassId}...`
     );
-    const seasonDriverStandings = await api.getSeasonDriverStandings({
+    const seasonDriverStandings = await api.statsSeasonDriverStandings({
       seasonId,
       carClassId,
       clubId,
@@ -715,7 +721,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log("Fetching season list...");
-    const seasonList = await api.getSeasonList({ seasonYear, seasonQuarter });
+    const seasonList = await api.seasonList({ seasonYear, seasonQuarter });
     console.log(seasonList);
   });
 
@@ -730,7 +736,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log("Fetching series...");
-    const series = await api.getSeries();
+    const series = await api.seriesGet();
     console.log(series);
   });
 
@@ -746,7 +752,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(`Fetching past seasons for series ${seriesId}...`);
-    const seriesPastSeasons = await api.getSeriesPastSeasons({ seriesId });
+    const seriesPastSeasons = await api.seriesPastSeasons({ seriesId });
     console.log(seriesPastSeasons);
   });
 
@@ -761,7 +767,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log("Fetching track assets...");
-    const trackAssets = await api.getTrackAssets();
+    const trackAssets = await api.trackAssets();
     console.log(trackAssets);
   });
 
@@ -776,7 +782,7 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log("Fetching track info...");
-    const trackInfo = await api.getTrackInfo();
+    const trackInfo = await api.trackGet();
     console.log(trackInfo);
   });
 

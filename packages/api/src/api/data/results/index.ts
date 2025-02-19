@@ -99,7 +99,7 @@ export class ResultsAPI extends NetworkClientProvider {
     carId?: number;
     trackId?: number;
     categoryIds?: CategoryIdValue[];
-  }) {
+  } = {}) {
     return this.client.get("/data/results/search_hosted", {
       params: {
         start_range_begin: startRangeBegin?.toUTCString(),
