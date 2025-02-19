@@ -30,6 +30,8 @@ jobs:
         run: |
           cd packages/cli
           pnpm publish --access public --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       # Cache build artifacts (for subsequent workflow runs)
       - name: Cache Build Artifacts
