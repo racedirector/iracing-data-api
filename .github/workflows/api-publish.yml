@@ -1,0 +1,40 @@
+name: Publish @iracing-data/api
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/api/**"
+      - ".github/workflows/api-publish.yml"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: |
+          cd packages/api
+          pnpm build
+
+      - name: Publish
+        run: |
+          cd packages/api
+          pnpm publish --access public --dry-run
+
+      # Cache build artifacts (for subsequent workflow runs)
+      - name: Cache Build Artifacts
+        uses: actions/cache@v3
+        with:
+          path: |
+            packages/api/dist
+          key: ${{ runner.os }}-build-${{ github.sha }}

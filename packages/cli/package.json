@@ -1,5 +1,6 @@
 {
   "name": "@iracing-data/cli",
+  "version": "0.0.1",
   "main": "bin/index.js",
   "bin": {
     "iracing-data": "bin/index.js"
