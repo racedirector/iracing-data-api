@@ -14,7 +14,7 @@ export async function hashPassword(email: string, password: string) {
 export function handleOutput(data: any, output?: string) {
   if (output) {
     fs.writeFileSync(output, JSON.stringify(data, null, 2));
-    console.log("Output written to", output);
+    console.log("Output written to:", output);
   } else {
     console.log(JSON.stringify(data, null, 2));
   }

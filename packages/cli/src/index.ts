@@ -10,7 +10,7 @@ import IRacingAPIClient, {
   assertDivision,
 } from "@iracing-data/api";
 import { JSONCookieStore } from "./storage";
-import { hashPassword } from "./util";
+import { handleOutput, hashPassword } from "./util";
 
 const createCookieStore = (credentials: string) => {
   return new JSONCookieStore(credentials);
@@ -115,7 +115,8 @@ program
       customerId,
       awardId,
     });
-    console.log(awardInstances);
+
+    handleOutput(awardInstances, output);
   });
 
 /**
@@ -129,7 +130,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const carAssets = await api.carAssets();
-    console.log(carAssets);
+
+    handleOutput(carAssets, output);
   });
 
 /**
@@ -143,7 +145,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const car = await api.carGet();
-    console.log(car);
+
+    handleOutput(car, output);
   });
 
 /**
@@ -157,7 +160,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const carClass = await api.carClassGet();
-    console.log(carClass);
+
+    handleOutput(carClass, output);
   });
 
 /**
@@ -171,7 +175,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const categories = await api.constantsCategories();
-    console.log(categories);
+
+    handleOutput(categories, output);
   });
 
 /**
@@ -191,7 +196,8 @@ program
       seasonYear,
       seasonQuarter,
     });
-    console.log(clubHistory);
+
+    handleOutput(clubHistory, output);
   });
 
 /**
@@ -205,7 +211,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const countries = await api.lookupCountries();
-    console.log(countries);
+
+    handleOutput(countries, output);
   });
 
 /**
@@ -219,7 +226,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const divisions = await api.constantsDivisions();
-    console.log(divisions);
+
+    handleOutput(divisions, output);
   });
 
 /**
@@ -233,7 +241,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const docs = await api.doc();
-    console.log(docs);
+
+    handleOutput(docs, output);
   });
 
 /**
@@ -249,7 +258,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const driverStats = await api.driverStatsByCategory({ category });
-    console.log(driverStats);
+
+    handleOutput(driverStats, output);
   });
 
 /**
@@ -263,7 +273,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const eventTypes = await api.constantsEventTypes();
-    console.log(eventTypes);
+
+    handleOutput(eventTypes, output);
   });
 
 /**
@@ -277,7 +288,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const hostedSessions = await api.hostedSessions();
-    console.log(hostedSessions);
+
+    handleOutput(hostedSessions, output);
   });
 
 /**
@@ -294,7 +306,8 @@ program
     const hostedCombinedSessions = await api.hostedCombinedSessions({
       packageId,
     });
-    console.log(hostedCombinedSessions);
+
+    handleOutput(hostedCombinedSessions, output);
   });
 
 /**
@@ -318,7 +331,8 @@ program
       customerId,
       teamId,
     });
-    console.log(lapData);
+
+    handleOutput(lapData, output);
   });
 
 /**
@@ -337,7 +351,7 @@ program
     console.log(`Fetching league ${leagueId}...`);
     const league = await api.leagueGet({ leagueId, includeLicenses });
 
-    console.log(league);
+    handleOutput(league, output);
   });
 
 /**
@@ -353,7 +367,8 @@ program
     console.log("Fetching league directory...");
     console.log("TODO: Support params");
     const leagueDirectory = await api.leagueDirectory();
-    console.log(leagueDirectory);
+
+    handleOutput(leagueDirectory, output);
   });
 
 /**
@@ -375,7 +390,7 @@ program
       includeLeague,
     });
 
-    console.log(leagueMembership);
+    handleOutput(leagueMembership, output);
   });
 
 /**
@@ -395,7 +410,8 @@ program
       leagueId,
       seasonId,
     });
-    console.log(leaguePointsSystems);
+
+    handleOutput(leaguePointsSystems, output);
   });
 
 /**
@@ -417,7 +433,7 @@ program
       includeLicenses,
     });
 
-    console.log(leagueRoster);
+    handleOutput(leagueRoster, output);
   });
 
 /**
@@ -436,7 +452,7 @@ program
     console.log(`Fetching league seasons for ${leagueId}...`);
     const leagueSeasons = await api.leagueSeasons({ leagueId, retired });
 
-    console.log(leagueSeasons);
+    handleOutput(leagueSeasons, output);
   });
 
 /**
@@ -462,7 +478,7 @@ program
       resultsOnly,
     });
 
-    console.log(leagueSeasonSessions);
+    handleOutput(leagueSeasonSessions, output);
   });
 
 /**
@@ -491,7 +507,7 @@ program
       carId,
     });
 
-    console.log(leagueSeasonStandings);
+    handleOutput(leagueSeasonStandings, output);
   });
 
 /**
@@ -508,7 +524,8 @@ program
     const api = createAPI(credentials);
     console.log("Fetching league sessions...");
     const leagueSessions = await api.leagueCustomerLeagueSessions();
-    console.log(leagueSessions);
+
+    handleOutput(leagueSessions, output);
   });
 
 /**
@@ -522,7 +539,8 @@ program
     const { credentials, output } = command.optsWithGlobals();
     const api = createAPI(credentials);
     const licenses = await api.lookupLicenses();
-    console.log(licenses);
+
+    handleOutput(licenses, output);
   });
 
 /**
@@ -538,7 +556,8 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member awards for ${customerId}...`);
     const memberAwards = await api.memberAwards({ customerId });
-    console.log(memberAwards);
+
+    handleOutput(memberAwards, output);
   });
 
 /**
@@ -554,7 +573,8 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member career stats for ${customerId}...`);
     const memberCareerStats = await api.statsMemberCareer({ customerId });
-    console.log(memberCareerStats);
+
+    handleOutput(memberCareerStats, output);
   });
 
 /**
@@ -569,7 +589,8 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching member info...`);
     const memberInfo = await api.memberInfo();
-    console.log(memberInfo);
+
+    handleOutput(memberInfo, output);
   });
 
 /**
@@ -587,7 +608,8 @@ program
       `Fetching member profile${customerId ? ` for ${customerId}` : ""}...`
     );
     const memberProfile = await api.memberProfile({ customerId });
-    console.log(memberProfile);
+
+    handleOutput(memberProfile, output);
   });
 
 /**
@@ -639,7 +661,8 @@ program
       subsessionId,
       includeLicenses,
     });
-    console.log(raceResults);
+
+    handleOutput(raceResults, output);
   });
 
 /**
@@ -656,7 +679,8 @@ program
     const api = createAPI(credentials);
     console.log(`Searching for drivers matching "${search}"...`);
     const drivers = await api.lookupDrivers({ searchTerm: search, leagueId });
-    console.log(drivers);
+
+    handleOutput(drivers, output);
   });
 
 /**
@@ -672,7 +696,8 @@ program
     console.log(`Searching for hosted results matching "undefined"...`);
     console.log("TODO: Add support for params");
     const hostedResults = await api.resultsSearchHosted();
-    console.log(hostedResults);
+
+    handleOutput(hostedResults, output);
   });
 
 /**
@@ -705,7 +730,7 @@ program
       raceWeekNumber,
     });
 
-    console.log(seasonDriverStandings);
+    handleOutput(seasonDriverStandings, output);
   });
 
 /**
@@ -722,7 +747,8 @@ program
     const api = createAPI(credentials);
     console.log("Fetching season list...");
     const seasonList = await api.seasonList({ seasonYear, seasonQuarter });
-    console.log(seasonList);
+
+    handleOutput(seasonList, output);
   });
 
 /**
@@ -737,7 +763,8 @@ program
     const api = createAPI(credentials);
     console.log("Fetching series...");
     const series = await api.seriesGet();
-    console.log(series);
+
+    handleOutput(series, output);
   });
 
 /**
@@ -753,7 +780,8 @@ program
     const api = createAPI(credentials);
     console.log(`Fetching past seasons for series ${seriesId}...`);
     const seriesPastSeasons = await api.seriesPastSeasons({ seriesId });
-    console.log(seriesPastSeasons);
+
+    handleOutput(seriesPastSeasons, output);
   });
 
 /**
@@ -768,7 +796,8 @@ program
     const api = createAPI(credentials);
     console.log("Fetching track assets...");
     const trackAssets = await api.trackAssets();
-    console.log(trackAssets);
+
+    handleOutput(trackAssets, output);
   });
 
 /**
@@ -783,7 +812,8 @@ program
     const api = createAPI(credentials);
     console.log("Fetching track info...");
     const trackInfo = await api.trackGet();
-    console.log(trackInfo);
+
+    handleOutput(trackInfo, output);
   });
 
 program.parse();
