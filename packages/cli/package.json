@@ -1,6 +1,9 @@
 {
   "name": "@iracing-data/cli",
-  "bin": "bin/index.js",
+  "main": "bin/index.js",
+  "bin": {
+    "iracing-data": "bin/index.js"
+  },
   "scripts": {
     "codegen:readme": "pnpm start -h > README.md",
     "dev": "ts-node --project tsconfig.build.json src/index.ts",

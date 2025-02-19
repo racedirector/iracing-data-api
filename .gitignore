@@ -128,3 +128,6 @@ dist
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Default cookie-store from `iracing-data` CLI
+packages/cli/bin/*.json
