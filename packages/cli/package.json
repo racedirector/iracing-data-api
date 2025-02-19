@@ -1,11 +1,11 @@
 {
   "name": "@iracing-data/cli",
-  "bin": "dist/index.js",
+  "bin": "bin/index.js",
   "scripts": {
     "codegen:readme": "pnpm start -h > README.md",
     "dev": "ts-node --project tsconfig.build.json src/index.ts",
     "build": "tsc --build tsconfig.build.json",
-    "start": "node dist/index.js"
+    "start": "node bin/index.js"
   },
   "dependencies": {
     "@iracing-data/api": "workspace:*",

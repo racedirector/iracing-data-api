@@ -2,7 +2,7 @@
   "extends": "../../tsconfig/node.json",
   "compilerOptions": {
     "rootDir": "./src",
-    "outDir": "./dist",
+    "outDir": "./bin",
     "lib": ["dom"],
     "noUnusedLocals": false,
     // !!!: Don't output declaration or source maps
