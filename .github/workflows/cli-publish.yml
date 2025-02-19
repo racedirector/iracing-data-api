@@ -27,7 +27,7 @@ jobs:
       - name: Publish
         run: |
           cd packages/cli
-          pnpm publish --access public --dry-run
+          pnpm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
