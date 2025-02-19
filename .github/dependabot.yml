@@ -5,15 +5,10 @@
 
 version: 2
 updates:
-  - package-ecosystem: "npm" # See documentation for possible values
+  - package-ecosystem: "npm"
     directories: 
       - "/"
-      - "packages/*"
-    schedule:
-      interval: "weekly"
-
-  - package-ecosystem: "dependabot"
-    directory: "/"
+      - "packages/**/*"
     schedule:
       interval: "weekly"
 
