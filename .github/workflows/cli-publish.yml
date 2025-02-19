@@ -34,6 +34,7 @@ jobs:
 
       - name: Publish
         run: |
+          pnpm config list --json
           cd packages/cli
           pnpm publish --access public --dry-run
 
