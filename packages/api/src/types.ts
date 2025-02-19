@@ -1,3 +1,5 @@
+import { AxiosInstance } from "axios";
+
 export class IRacingAuthenticationError extends Error {
   constructor() {
     super("Failed to authenticate with iRacing.");
@@ -19,6 +21,14 @@ export class InvalidSessionError extends Error {
 export class CacheExpiredError extends Error {
   constructor() {
     super("Cached data has expired");
+  }
+}
+
+export class NetworkClientProvider {
+  constructor(private _client: AxiosInstance) {}
+
+  get client() {
+    return this._client;
   }
 }
 

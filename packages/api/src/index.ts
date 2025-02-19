@@ -1,4 +1,3 @@
-export * from "./api";
 export * from "./types";
 
-export { default } from "./api";
+export { default } from "./client";
