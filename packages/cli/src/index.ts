@@ -1,14 +1,14 @@
 #!/usr/bin/env node
 import path from "path";
-import inquirer from "inquirer";
 import { Argument, Command } from "@commander-js/extra-typings";
-import _, { noop } from "lodash";
-import { CookieJar } from "tough-cookie";
 import IRacingAPIClient, {
   CATEGORY_VALUES,
   assertCategory,
   assertDivision,
 } from "@iracing-data/api";
+import inquirer from "inquirer";
+import { noop } from "lodash";
+import { CookieJar } from "tough-cookie";
 import { JSONCookieStore } from "./storage";
 import { handleOutput, hashPassword } from "./util";
 
@@ -50,7 +50,7 @@ const program = new Command("iracing-data")
 program
   .command("whoami")
   .description("Prints the current session information.")
-  .action((_: {}, command) => {
+  .action((_: object, command) => {
     const { credentials } = command.optsWithGlobals();
     const api = createAPI(credentials);
     console.log(api.whoami() || "No session found.");
@@ -98,6 +98,7 @@ program
     const hashedPassword = await hashPassword(username, password);
     const api = createAPI(credentials);
     await api.authenticate({ username, password: hashedPassword });
+    console.log("✅ Authentication successful");
   });
 
 /**
@@ -629,8 +630,8 @@ program
   )
   .option("-o, --output <path>", "Output path")
   .action(async (from, _, command) => {
-    const { credentials, endAfterFrom, output } = command.optsWithGlobals();
-    const api = createAPI(credentials);
+    const { endAfterFrom } = command.optsWithGlobals();
+    // const api = createAPI(credentials);
     console.log(
       `Fetching race guide for ${from}. ${
         endAfterFrom ? "Including" : "Not including"

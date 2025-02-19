@@ -2,8 +2,8 @@ import axios, { AxiosInstance } from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
 import { IRacingAPI } from "./api";
-import { allCookiesValid, fetchValidLinkData } from "./util";
 import { IRacingAuthenticationError } from "./types";
+import { allCookiesValid, fetchValidLinkData } from "./util";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
 
@@ -69,7 +69,6 @@ export class IRacingAPIClient {
     const response = await this.api.auth.auth(input);
 
     if (response.status === 200) {
-      console.log("✅ Authentication successful");
       return response.data;
     }
 

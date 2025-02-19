@@ -1,4 +1,4 @@
-import { NetworkClientProvider, CategoryValue } from "../../../types";
+import { NetworkClientProvider, CategoryValue } from "../../types";
 
 export class DriverStatsAPI extends NetworkClientProvider {
   category({ category }: { category: CategoryValue }) {

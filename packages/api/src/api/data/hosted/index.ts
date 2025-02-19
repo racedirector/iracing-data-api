@@ -1,4 +1,4 @@
-import { NetworkClientProvider } from "../../../types";
+import { NetworkClientProvider } from "../../types";
 
 export class HostedAPI extends NetworkClientProvider {
   /**

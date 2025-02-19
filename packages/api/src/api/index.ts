@@ -1,7 +1,9 @@
 import { AxiosInstance } from "axios";
-import { NetworkClientProvider } from "../types";
 import { AuthAPI } from "./auth";
 import { DataAPI } from "./data";
+import { NetworkClientProvider } from "./types";
+
+export * from "./types";
 
 export class IRacingAPI extends NetworkClientProvider {
   private _auth: AuthAPI;

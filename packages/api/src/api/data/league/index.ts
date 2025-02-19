@@ -1,4 +1,4 @@
-import { NetworkClientProvider } from "../../../types";
+import { NetworkClientProvider } from "../../types";
 
 export class LeagueAPI extends NetworkClientProvider {
   directory({

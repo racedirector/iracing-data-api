@@ -1,0 +1,45 @@
+name: Publish @iracing-data/cli
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "packages/cli/**"
+      - ".github/workflows/cli-publish.yml"
+
+jobs:
+  publish:
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build
+        run: pnpm build
+
+      - name: Publish
+        run: |
+          cd packages/cli
+          pnpm publish --access public
+
+      # Cache build artifacts (for subsequent workflow runs)
+      - name: Cache Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: packages/cli/bin
+          key: ${{ runner.os }}-cli-build-${{ github.sha }}

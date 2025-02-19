@@ -1,20 +1,20 @@
 import { AxiosInstance } from "axios";
-import CarAPI from "./car";
-import CarClassAPI from "./car-class";
-import ConstantsAPI from "./constants";
-import DriverStatsAPI from "./driver-stats";
-import HostedAPI from "./hosted";
-import LeagueAPI from "./league";
-import LookupAPI from "./lookup";
-import MemberAPI from "./member";
-import ResultsAPI from "./results";
-import SeasonAPI from "./season";
-import SeriesAPI from "./series";
-import StatsAPI from "./stats";
-import TeamAPI from "./team";
-import TimeAttackAPI from "./time-attack";
-import TrackAPI from "./track";
-import { NetworkClientProvider } from "../../types";
+import { NetworkClientProvider } from "../types";
+import { CarAPI } from "./car";
+import { CarClassAPI } from "./car-class";
+import { ConstantsAPI } from "./constants";
+import { DriverStatsAPI } from "./driver-stats";
+import { HostedAPI } from "./hosted";
+import { LeagueAPI } from "./league";
+import { LookupAPI } from "./lookup";
+import { MemberAPI } from "./member";
+import { ResultsAPI } from "./results";
+import { SeasonAPI } from "./season";
+import { SeriesAPI } from "./series";
+import { StatsAPI } from "./stats";
+import { TeamAPI } from "./team";
+import { TimeAttackAPI } from "./time-attack";
+import { TrackAPI } from "./track";
 
 export class DataAPI extends NetworkClientProvider {
   private _car: CarAPI;
@@ -112,6 +112,6 @@ export class DataAPI extends NetworkClientProvider {
   }
 
   async doc() {
-    return this.client.get<Record<string, any>>("/data/doc");
+    return this.client.get("/data/doc");
   }
 }

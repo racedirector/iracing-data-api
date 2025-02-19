@@ -1,4 +1,4 @@
-import { NetworkClientProvider } from "../../../types";
+import { NetworkClientProvider } from "../../types";
 
 export class TeamAPI extends NetworkClientProvider {
   get({

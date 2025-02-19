@@ -43,6 +43,7 @@ class JSONCookieStore extends tough_cookie_1.MemoryCookieStore {
                 cookiesJSON = JSON.parse(cookieData);
             }
             catch (error) {
+                console.error(error);
                 throw new Error(`Could not parse cookie file at ${this.filePath}.`);
             }
         }
