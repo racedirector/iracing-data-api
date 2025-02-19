@@ -22,9 +22,7 @@ jobs:
         run: pnpm install
 
       - name: Build
-        run: |
-          cd packages/cli
-          pnpm build
+        run: pnpm build
 
       - name: Publish
         run: |
