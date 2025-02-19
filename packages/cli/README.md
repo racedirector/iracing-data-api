@@ -1,3 +1,8 @@
+# @iracing-data/cli
+
+A CLI impelementation for the iRacing `/data` API.
+
+```sh
 Usage: index [options] [command]
 
 CLI tool for interacting with the iRacing API
@@ -44,3 +49,4 @@ Commands:
   track-assets                                             Fetch track assets
   track-info                                               Fetch track info
   help [command]                                           display help for command
+```
