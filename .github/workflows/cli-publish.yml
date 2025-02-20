@@ -1,12 +1,9 @@
 name: Publish @iracing-data/cli
 
 on:
-  push:
-    branches:
-      - main
-    paths:
-      - "packages/cli/**"
-      - ".github/workflows/cli-publish.yml"
+  release:
+    types:
+      - created
 
 jobs:
   publish:
