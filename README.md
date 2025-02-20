@@ -99,7 +99,7 @@ Commands:
 
 ## TODO
 
-- [ ] Implement all endpoints
-- [ ] Convert function parameters to objects to better handle optional parameters
-- [ ] Add publish to npm github workflow
+- [x] Implement all endpoints
+- [x] Convert function parameters to objects to better handle optional parameters
+- [x] Add publish to npm github workflow
 - [ ] Establish nicer patterns for adding commands.
