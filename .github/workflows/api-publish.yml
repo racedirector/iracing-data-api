@@ -10,11 +10,13 @@ on:
 
 jobs:
   publish:
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v2
 
       - uses: pnpm/action-setup@v4
 
@@ -27,13 +29,11 @@ jobs:
       - name: Publish
         run: |
           cd packages/api
-          pnpm publish --access public --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          pnpm publish --access public
 
       # Cache build artifacts (for subsequent workflow runs)
       - name: Cache Build Artifacts
-        uses: actions/cache@v4
+        uses: actions/cache@v3
         with:
           path: |
             packages/api/dist
