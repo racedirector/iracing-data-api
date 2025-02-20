@@ -1,4 +1,4 @@
-import { NetworkClientProvider } from "../../../types";
+import { NetworkClientProvider } from "../../types";
 
 export class TimeAttackAPI extends NetworkClientProvider {
   memberSeasonResults({ seasonId }: { seasonId: number }) {

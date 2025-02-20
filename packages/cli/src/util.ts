@@ -17,7 +17,7 @@ export async function hashPassword(email: string, password: string) {
  * @param data The data to be output
  * @param output The path of the file to write the data to
  */
-export function handleOutput(data: any, output?: string) {
+export function handleOutput(data: object, output?: string) {
   if (output) {
     fs.writeFileSync(output, JSON.stringify(data, null, 2));
     console.log("Output written to:", output);

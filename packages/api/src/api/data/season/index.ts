@@ -2,7 +2,7 @@ import {
   EventType,
   IRacingAPIResponse,
   NetworkClientProvider,
-} from "../../../types";
+} from "../../types";
 
 export class SeasonAPI extends NetworkClientProvider {
   list({

@@ -1,10 +1,7 @@
-import { Cookie } from "tough-cookie";
-import {
-  CacheExpiredError,
-  InvalidResponseData,
-  IRacingAPIResponse,
-} from "./types";
 import axios, { AxiosInstance } from "axios";
+import { Cookie } from "tough-cookie";
+import { IRacingAPIResponse } from "./api/types";
+import { CacheExpiredError, InvalidResponseData } from "./types";
 
 export const allCookiesValid = (cookies: Cookie[]) =>
   cookies.every((cookie) => cookie.TTL() > 0);
@@ -24,7 +21,7 @@ export const fetchValidLinkData = async (
     throw new CacheExpiredError();
   }
 
-  const data = await client.get<Record<string, any>>(response.link, {
+  const data = await client.get(response.link, {
     responseType: "json",
   });
 

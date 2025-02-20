@@ -1,4 +1,4 @@
-import { NetworkClientProvider, IRacingAPIResponse } from "../../../types";
+import { NetworkClientProvider, IRacingAPIResponse } from "../../types";
 
 export class CarAPI extends NetworkClientProvider {
   assets() {

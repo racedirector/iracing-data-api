@@ -38,11 +38,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
-const inquirer_1 = __importDefault(require("inquirer"));
 const extra_typings_1 = require("@commander-js/extra-typings");
+const api_1 = __importStar(require("@iracing-data/api"));
+const inquirer_1 = __importDefault(require("inquirer"));
 const lodash_1 = require("lodash");
 const tough_cookie_1 = require("tough-cookie");
-const api_1 = __importStar(require("@iracing-data/api"));
 const storage_1 = require("./storage");
 const util_1 = require("./util");
 const createCookieStore = (credentials) => {
@@ -115,6 +115,7 @@ program
     const hashedPassword = await (0, util_1.hashPassword)(username, password);
     const api = createAPI(credentials);
     await api.authenticate({ username, password: hashedPassword });
+    console.log("✅ Authentication successful");
 });
 /**
  * award-instances command
@@ -569,8 +570,8 @@ program
     .option("-e, --end-after-from", "Include sessions which start before 'from' but end after.")
     .option("-o, --output <path>", "Output path")
     .action(async (from, _, command) => {
-    const { credentials, endAfterFrom, output } = command.optsWithGlobals();
-    const api = createAPI(credentials);
+    const { endAfterFrom } = command.optsWithGlobals();
+    // const api = createAPI(credentials);
     console.log(`Fetching race guide for ${from}. ${endAfterFrom ? "Including" : "Not including"} sessions which start before 'from' but end after.`);
     console.error("!!!: Fix this");
     // const raceGuide = await api.getRaceGuide({

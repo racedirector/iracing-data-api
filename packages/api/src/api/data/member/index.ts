@@ -2,7 +2,7 @@ import {
   CategoryIdValue,
   ChartTypeValue,
   NetworkClientProvider,
-} from "../../../types";
+} from "../../types";
 
 export class MemberAPI extends NetworkClientProvider {
   awards({ customerId }: { customerId?: number } = {}) {

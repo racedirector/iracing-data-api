@@ -2,7 +2,7 @@ import {
   CategoryIdValue,
   EventTypeValue,
   NetworkClientProvider,
-} from "../../../types";
+} from "../../types";
 
 export class ResultsAPI extends NetworkClientProvider {
   get({

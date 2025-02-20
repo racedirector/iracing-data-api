@@ -1,4 +1,4 @@
-import { NetworkClientProvider, IRacingAPIResponse } from "../../../types";
+import { NetworkClientProvider, IRacingAPIResponse } from "../../types";
 
 export class LookupAPI extends NetworkClientProvider {
   clubHistory({

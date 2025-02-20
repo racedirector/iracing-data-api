@@ -1,4 +1,4 @@
-import { Division, NetworkClientProvider } from "../../../types";
+import { Division, NetworkClientProvider } from "../../types";
 
 export class StatsAPI extends NetworkClientProvider {
   memberBests({
