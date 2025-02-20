@@ -7,6 +7,10 @@ import { allCookiesValid, fetchValidLinkData } from "./util";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
 
+/**
+ * A wrapper class for the IRacingAPI that provides convenience methods for
+ * interacting with the API.
+ */
 export class IRacingAPIClient extends NetworkClientProvider {
   private _api: IRacingAPI;
   get api() {
