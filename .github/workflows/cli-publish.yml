@@ -34,14 +34,13 @@ jobs:
 
       - name: Publish
         run: |
-          pnpm config list --json
           cd packages/cli
-          pnpm publish --access public --dry-run
+          pnpm publish --access public
 
       # Cache build artifacts (for subsequent workflow runs)
       - name: Cache Build Artifacts
         uses: actions/cache@v4
         with:
           path: |
-            packages/api/dist
+            packages/cli/bin
           key: ${{ runner.os }}-cli-build-${{ github.sha }}
