@@ -1,0 +1,5 @@
+src/
+doc/
+tsconfig.build.json
+tsconfig.build.tsbuildinfo
+tsconfig.json
