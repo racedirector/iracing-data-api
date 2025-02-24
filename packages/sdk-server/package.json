@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/sdk-server",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "description": "An express.js server that wraps the `@iracing-data/sdk` to provide a REST API for telemetry data.",
