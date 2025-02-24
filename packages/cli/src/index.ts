@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import path from "path";
 import { Argument, Command } from "@commander-js/extra-typings";
-import IRacingAPIClient, {
+import {
+  IRacingAPISessionClient,
   CATEGORY_VALUES,
   assertCategory,
   assertDivision,
@@ -21,7 +22,7 @@ const createCookieJar = (credentials: string) => {
 };
 
 const createAPI = (credentials: string) => {
-  return new IRacingAPIClient(createCookieJar(credentials));
+  return new IRacingAPISessionClient(createCookieJar(credentials));
 };
 
 const categoryArg = new Argument(

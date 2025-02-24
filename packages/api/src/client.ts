@@ -1,59 +1,25 @@
 import axios, { AxiosInstance } from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
-import { IRacingAPI } from "./api";
+import { IRacingAPI, NetworkClientProvider } from "./api";
 import { IRacingAuthenticationError } from "./types";
 import { allCookiesValid, fetchValidLinkData } from "./util";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
 
-export class IRacingAPIClient {
-  private _client: AxiosInstance;
-
-  get cookieJar() {
-    return this._cookieJar;
-  }
-
+/**
+ * A wrapper class for the IRacingAPI that provides convenience methods for
+ * interacting with the API.
+ */
+export class IRacingAPIClient extends NetworkClientProvider {
   private _api: IRacingAPI;
   get api() {
     return this._api;
   }
 
-  constructor(private _cookieJar: CookieJar = new CookieJar()) {
-    this._client = wrapper(
-      axios.create({
-        baseURL: DEFAULT_IRACING_DATA_API_URL,
-        withCredentials: true,
-        jar: this.cookieJar,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
-
-    this._api = new IRacingAPI(this._client);
-  }
-
-  /**
-   * Checks if we have a valid session and returns the email of the currently logged in user.
-   * @returns the email of the currently logged in user or null
-   */
-  whoami(): string | null {
-    const cookies = this.cookieJar.getCookiesSync(DEFAULT_IRACING_DATA_API_URL);
-    if (allCookiesValid(cookies)) {
-      const authTokenCookie = cookies.find(
-        (cookie) => cookie.key === "authtoken_members"
-      );
-
-      if (authTokenCookie) {
-        const { authtoken: { email = null } = {} } =
-          JSON.parse(decodeURIComponent(authTokenCookie.value)) || {};
-
-        return email;
-      }
-    }
-
-    return null;
+  constructor(client: AxiosInstance) {
+    super(client);
+    this._api = new IRacingAPI(client);
   }
 
   // /auth
@@ -528,6 +494,49 @@ export class IRacingAPIClient {
   async trackGet() {
     const response = await this.api.data.track.get();
     return fetchValidLinkData(response.data);
+  }
+}
+
+export class IRacingAPISessionClient extends IRacingAPIClient {
+  get cookieJar() {
+    return this._cookieJar;
+  }
+
+  constructor(private _cookieJar: CookieJar = new CookieJar()) {
+    const client = wrapper(
+      axios.create({
+        baseURL: DEFAULT_IRACING_DATA_API_URL,
+        withCredentials: true,
+        jar: _cookieJar,
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    );
+
+    super(client);
+  }
+
+  /**
+   * Checks if we have a valid session and returns the email of the currently logged in user.
+   * @returns the email of the currently logged in user or null
+   */
+  whoami(): string | null {
+    const cookies = this.cookieJar.getCookiesSync(DEFAULT_IRACING_DATA_API_URL);
+    if (allCookiesValid(cookies)) {
+      const authTokenCookie = cookies.find(
+        (cookie) => cookie.key === "authtoken_members"
+      );
+
+      if (authTokenCookie) {
+        const { authtoken: { email = null } = {} } =
+          JSON.parse(decodeURIComponent(authTokenCookie.value)) || {};
+
+        return email;
+      }
+    }
+
+    return null;
   }
 }
 
