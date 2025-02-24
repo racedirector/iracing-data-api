@@ -19,13 +19,11 @@ const main = async () => {
       console.debug(`Telemetry ${connected ? "connected" : "disconnected"}`);
     });
 
-  bridge.telemetryEmitter.on("telemetry", (telemetry) =>
-    console.debug("Telemetry event:", telemetry)
-  );
-
-  bridge.sessionEmitter.on("session", (session) =>
-    console.debug("Session event:", session)
-  );
+  bridge.telemetryEmitter
+    .on("telemetry", (telemetry) =>
+      console.debug("Telemetry event:", telemetry)
+    )
+    .on("session", (session) => console.debug("Session event:", session));
 
   bridge.start();
 
