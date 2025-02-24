@@ -1,0 +1,15 @@
+{
+  "name": "@iracing-data/sdk",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "description": "iRacing SDK adapter using irsdk-node",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@irsdk-node/types": "3.0.0",
+    "irsdk-node": "^4.0.1",
+    "typed-emitter": "^2.1.0"
+  }
+}

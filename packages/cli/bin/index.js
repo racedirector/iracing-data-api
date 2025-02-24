@@ -1,45 +1,12 @@
 #!/usr/bin/env node
 "use strict";
-var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    var desc = Object.getOwnPropertyDescriptor(m, k);
-    if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-      desc = { enumerable: true, get: function() { return m[k]; } };
-    }
-    Object.defineProperty(o, k2, desc);
-}) : (function(o, m, k, k2) {
-    if (k2 === undefined) k2 = k;
-    o[k2] = m[k];
-}));
-var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
-    Object.defineProperty(o, "default", { enumerable: true, value: v });
-}) : function(o, v) {
-    o["default"] = v;
-});
-var __importStar = (this && this.__importStar) || (function () {
-    var ownKeys = function(o) {
-        ownKeys = Object.getOwnPropertyNames || function (o) {
-            var ar = [];
-            for (var k in o) if (Object.prototype.hasOwnProperty.call(o, k)) ar[ar.length] = k;
-            return ar;
-        };
-        return ownKeys(o);
-    };
-    return function (mod) {
-        if (mod && mod.__esModule) return mod;
-        var result = {};
-        if (mod != null) for (var k = ownKeys(mod), i = 0; i < k.length; i++) if (k[i] !== "default") __createBinding(result, mod, k[i]);
-        __setModuleDefault(result, mod);
-        return result;
-    };
-})();
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const extra_typings_1 = require("@commander-js/extra-typings");
-const api_1 = __importStar(require("@iracing-data/api"));
+const api_1 = require("@iracing-data/api");
 const inquirer_1 = __importDefault(require("inquirer"));
 const lodash_1 = require("lodash");
 const tough_cookie_1 = require("tough-cookie");
@@ -52,7 +19,7 @@ const createCookieJar = (credentials) => {
     return new tough_cookie_1.CookieJar(createCookieStore(credentials));
 };
 const createAPI = (credentials) => {
-    return new api_1.default(createCookieJar(credentials));
+    return new api_1.IRacingAPISessionClient(createCookieJar(credentials));
 };
 const categoryArg = new extra_typings_1.Argument("<category>", "Category to fetch driver stats for")
     .choices(api_1.CATEGORY_VALUES)
@@ -544,6 +511,20 @@ program
     console.log(`Fetching member info...`);
     const memberInfo = await api.memberInfo();
     (0, util_1.handleOutput)(memberInfo, output);
+});
+/**
+ * member-participation command
+ */
+program
+    .command("member-participation")
+    .description("Fetch member info")
+    .option("-o, --output <path>", "Output path")
+    .action(async (_, command) => {
+    const { credentials, output } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    console.log(`Fetching member participation...`);
+    const participation = await api.memberParticipationCredits();
+    (0, util_1.handleOutput)(participation, output);
 });
 /**
  * member-profile command
