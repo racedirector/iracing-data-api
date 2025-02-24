@@ -1,0 +1,7 @@
+{
+  "name": "iracing-data-telemetry-server",
+  "private": true,
+  "dependencies": {
+    "@iracing-data/sdk-server": "workspace:^"
+  }
+}

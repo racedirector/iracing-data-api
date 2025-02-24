@@ -2,6 +2,7 @@
   "name": "@iracing-data/api",
   "version": "0.0.1",
   "main": "dist/index.js",
+  "description": "iRacing `/data` API client using axios",
   "scripts": {
     "build": "tsc --build tsconfig.build.json"
   },

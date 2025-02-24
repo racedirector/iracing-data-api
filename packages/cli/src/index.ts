@@ -597,6 +597,22 @@ program
   });
 
 /**
+ * member-participation command
+ */
+program
+  .command("member-participation")
+  .description("Fetch member info")
+  .option("-o, --output <path>", "Output path")
+  .action(async (_, command) => {
+    const { credentials, output } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    console.log(`Fetching member participation...`);
+    const participation = await api.memberParticipationCredits();
+
+    handleOutput(participation, output);
+  });
+
+/**
  * member-profile command
  */
 program
