@@ -12,7 +12,8 @@
     "build": "pnpm --recursive --stream build",
     "dev": "NODE_ENV=development pnpm --stream '/^dev:.+$/'",
     "dev:tsc": "tsc --build tsconfig.json --watch",
-    "dev:pkg": "pnpm --recursive --parallel --stream dev"
+    "dev:pkg": "pnpm --recursive --parallel --stream dev",
+    "postinstall": "patch-package"
   },
   "keywords": [],
   "author": "",
@@ -27,6 +28,7 @@
     "eslint-config-prettier": "8.3.0",
     "eslint-plugin-import": "^2.31.0",
     "eslint-plugin-prettier": "4.0.0",
+    "patch-package": "^8.0.0",
     "prettier": "2.5.1",
     "prettier-config-standard": "7.0.0",
     "ts-node": "^10.9.2",
