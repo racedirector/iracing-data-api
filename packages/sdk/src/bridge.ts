@@ -143,6 +143,10 @@ export class IRacingBridge {
     return this._telemetryEmitter;
   }
 
+  get isConnected() {
+    return this._connected;
+  }
+
   /**
    * Starts the telemetry loop.
    * @returns this for chaining
@@ -186,13 +190,15 @@ export class IRacingBridge {
     while (this._running) {
       if (await this.isSimRunning()) {
         console.debug("iRacing is running.");
-        this.connectionEmitter.emit("simConnect", true);
-        this._connected = true;
+        if (!this.isConnected) {
+          this.connectionEmitter.emit("simConnect", true);
+          this._connected = true;
+        }
 
         this.sdk.autoEnableTelemetry = this.autoEnableTelemetry;
-        this._telemetryLoop();
+        await this._telemetryLoop();
       } else {
-        if (this._connected) {
+        if (this.isConnected) {
           this.connectionEmitter.emit("simConnect", false);
           this._connected = false;
           console.debug("iRacing disconnected.");
@@ -231,7 +237,7 @@ export class IRacingBridge {
     this.connectionEmitter.emit("telemetryConnect", true);
 
     // Wait 1s for data to be available
-    while (this.sdk.waitForData(1000)) {
+    while (this.sdk.waitForData(this.fpsMs)) {
       const telemetry = this.sdk.getTelemetry();
       const session = this.sdk.getSessionData();
 
@@ -246,10 +252,6 @@ export class IRacingBridge {
       if (session) {
         this.telemetryEmitter.emit("session", session);
       }
-
-      // Sleep for the provided FPS
-      // ???: Should this be in the `waitForData` call?
-      await sleepMs(this.fpsMs);
     }
 
     this.connectionEmitter.emit("telemetryConnect", false);
