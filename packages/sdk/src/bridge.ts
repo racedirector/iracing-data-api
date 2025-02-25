@@ -1,7 +1,7 @@
 import assert from "node:assert";
 import { IRacingSDK } from "irsdk-node";
 import { IRacingConnectionEmitter, TelemetryEmitter } from "./types";
-import { sleep, sleepMs } from "./util";
+import { sleep } from "./util";
 
 /**
  * Options for creating a new IRacing Bridge instance.
