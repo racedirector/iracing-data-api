@@ -10,11 +10,12 @@ export class IRacing {
 
   constructor() {
     this._bridge = new IRacingBridge({
-      // Every 4s for testing sake.
-      fps: 0.25,
+      retryConnection: true,
+      retryIntervalSeconds: 1,
     });
 
     this._registerEventListeners();
+    this.bridge.start();
   }
 
   get bridge() {
@@ -40,8 +41,8 @@ export class IRacing {
       .on("telemetryConnect", this.onTelemetryConnectEvent.bind(this));
 
     this.bridge.telemetryEmitter
-      .on("telemetry", this.onTelemetryEvent.bind(this))
-      .on("session", this.onSessionEvent.bind(this));
+      .once("telemetry", this.onTelemetryEvent.bind(this))
+      .once("session", this.onSessionEvent.bind(this));
   }
 
   private onSimConnectEvent(connected: boolean) {

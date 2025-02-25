@@ -11,6 +11,7 @@ const main = async () => {
 
   const shutdown = async () => {
     await server.stop();
+    process.exit(0);
   };
 
   process.on("SIGINT", shutdown);

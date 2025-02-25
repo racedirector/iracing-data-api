@@ -1,7 +1,11 @@
 {
   "name": "iracing-data-telemetry-server",
   "private": true,
+  "scripts": {
+    "postinstall": "patch-package"
+  },
   "dependencies": {
-    "@iracing-data/sdk-server": "workspace:^"
+    "@iracing-data/sdk-server": "workspace:^",
+    "@irsdk-node/native": "^4.0.1"
   }
 }
