@@ -18,7 +18,7 @@ export interface TrackAsset {
 
 export type TrackAssetIndex = Record<string, TrackAsset>;
 
-export interface DownloadTrackSVGsOptions {
+export interface DownloadTrackAssetsOptions {
   /**
    * The directory to output the SVG files to.
    */
@@ -59,6 +59,12 @@ export interface DownloadTrackSVGsOptions {
    * @default false
    */
   skipTrackAssets?: boolean;
+
+  /**
+   * Include SVGs
+   * @default false
+   */
+  includeSVGs?: boolean;
 }
 
 /**
@@ -70,7 +76,7 @@ export interface DownloadTrackSVGsOptions {
  * @param options The options for the download.
  * @param client The client to use for the download.
  */
-export async function downloadTrackSVGs(
+export async function downloadTrackAssets(
   {
     outputDir,
     username: usernameProp,
@@ -79,7 +85,8 @@ export async function downloadTrackSVGs(
     writeFullInfo = false,
     skipTrackAssets = false,
     skipTrackInfo = false,
-  }: DownloadTrackSVGsOptions,
+    includeSVGs = false,
+  }: DownloadTrackAssetsOptions,
   client: IRacingAPISessionClient = new IRacingAPISessionClient()
 ) {
   /**
@@ -125,7 +132,7 @@ export async function downloadTrackSVGs(
     await writeFile(trackInfoPath, JSON.stringify(trackInfo), "utf8");
   }
 
-  console.log("Downloading SVGs for", Object.keys(tracks).length, "tracks.");
+  console.log("Downloading assets for", Object.keys(tracks).length, "tracks.");
 
   for (const [trackId, asset] of Object.entries<TrackAsset>(tracks)) {
     const info = trackInfo.find((t) => t.track_id === +trackId);
@@ -154,26 +161,30 @@ export async function downloadTrackSVGs(
       }
     }
 
-    await Promise.all(
-      Object.values(asset.track_map_layers).map(async (layer) => {
-        const layerPath = path.join(trackDir, layer);
-        const layerUrl = new URL(layer, asset.track_map).toString();
+    if (includeSVGs) {
+      await Promise.all(
+        Object.values(asset.track_map_layers).map(async (layer) => {
+          const layerPath = path.join(trackDir, layer);
+          const layerUrl = new URL(layer, asset.track_map).toString();
 
-        // Skip if the layer exists and we're not forcing download.
-        const layerExists = await exists(layerPath);
-        if (layerExists && !force) {
-          console.log("\tLayer already exists:", layerPath);
-          return;
-        } else {
-          // Get the asset from the URL and write to the file.
-          console.log("\tDownloading layer:", layer, "from", layerUrl);
-          const response = await client.client.get(layerUrl);
-          const svg = response.data;
-          await writeFile(layerPath, svg, "utf8");
-        }
-      })
-    );
+          // Skip if the layer exists and we're not forcing download.
+          const layerExists = await exists(layerPath);
+          if (layerExists && !force) {
+            console.log("\tLayer already exists:", layerPath);
+            return;
+          } else {
+            // Get the asset from the URL and write to the file.
+            console.log("\tDownloading layer:", layer, "from", layerUrl);
+            const response = await client.client.get(layerUrl);
+            const svg = response.data;
+            await writeFile(layerPath, svg, "utf8");
+          }
+        })
+      );
+    }
+
+    // TODO: Download images.
   }
 }
 
-export default downloadTrackSVGs;
+export default downloadTrackAssets;

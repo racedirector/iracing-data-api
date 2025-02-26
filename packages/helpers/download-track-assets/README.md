@@ -1,11 +1,11 @@
-# @iracing-data/helpers/download-track-svgs
+# @iracing-data/helpers/download-track-assets
 
 A helper function to download all the track SVGs from the iRacing API.
 
 ## Installation
 
 ```bash
-pnpm install @iracing-data/helpers/download-track-svgs
+pnpm install @iracing-data/helpers/download-track-assets
 ```
 
 ## Usage
