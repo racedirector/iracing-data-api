@@ -1,0 +1,13 @@
+{
+  "name": "@iracing-data/helpers/download-car-assets",
+  "version": "0.0.1",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@iracing-data/api": "workspace:*",
+    "dotenv": "16.4.7",
+    "inquirer": "^12.4.1"
+  }
+}
