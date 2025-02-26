@@ -26,7 +26,6 @@ await downloadTrackSVGs(
 );
 ```
 
-
 ### Configuration
 
 ```typescript
