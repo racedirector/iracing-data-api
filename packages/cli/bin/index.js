@@ -7,7 +7,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const extra_typings_1 = require("@commander-js/extra-typings");
 const api_1 = require("@iracing-data/api");
-const download_track_svgs_1 = require("@iracing-data/helpers/download-track-svgs");
+const download_car_assets_1 = require("@iracing-data/helpers/download-car-assets");
+const download_track_assets_1 = require("@iracing-data/helpers/download-track-assets");
 const inquirer_1 = __importDefault(require("inquirer"));
 const lodash_1 = require("lodash");
 const tough_cookie_1 = require("tough-cookie");
@@ -214,27 +215,50 @@ program
     (0, util_1.handleOutput)(docs, output);
 });
 program
-    .command("download-track-svgs")
+    .command("download-car-assets")
+    .description("Downloads the latest car assets.")
+    .requiredOption("-o, --out-dir <path>", "Output directory")
+    .option("-i, --write-full-info", "Write full car info", false)
+    .option("--skip-info", "Skip writing car info", false)
+    .option("-a, --write-full-assets", "Write full car assets", false)
+    .option("--skip-assets", "Skip writing car asset", false)
+    .option("-u, --username <username>", "iRacing username")
+    .action(async (_, command) => {
+    console.log("Downloading car assets...");
+    const { credentials, outDir, writeFullAssets, writeFullInfo, skipInfo: skipCarInfo, skipAssets: skipCarAssets, username, } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    await (0, download_car_assets_1.downloadCarAssets)({
+        outputDir: outDir,
+        writeFullAssets,
+        writeFullInfo,
+        skipCarAssets,
+        skipCarInfo,
+        username,
+    }, api);
+    console.log("Done!");
+});
+program
+    .command("download-track-assets")
     .description("Downloads the latest track SVGs.")
     .requiredOption("-o, --out-dir <path>", "Output directory")
-    .option("-f, --force", "Force download", false)
+    .option("-f, --force", "Force download of existing SVG layers", false)
     .option("-i, --write-full-info", "Write full track info", false)
     .option("--skip-info", "Skip writing track info", false)
     .option("-a, --write-full-assets", "Write full track assets", false)
     .option("--skip-assets", "Skip writing track asset", false)
-    .option("-u, --username <username>", "iRacing username")
+    .option("--include-svgs", "Include SVGs", false)
     .action(async (_, command) => {
-    console.log("Downloading track SVGs...");
-    const { credentials, outDir, writeFullAssets, writeFullInfo, skipAssets: skipTrackAssets, skipInfo: skipTrackInfo, username, force, } = command.optsWithGlobals();
+    console.log("Downloading track assets...");
+    const { credentials, outDir, writeFullAssets, writeFullInfo, skipAssets: skipTrackAssets, skipInfo: skipTrackInfo, includeSvgs, force, } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    await (0, download_track_svgs_1.downloadTrackSVGs)({
+    await (0, download_track_assets_1.downloadTrackAssets)({
         outputDir: outDir,
         writeFullAssets,
         writeFullInfo,
         skipTrackAssets,
         skipTrackInfo,
-        username,
         force,
+        includeSVGs: includeSvgs,
     }, api);
     console.log("Done!");
 });

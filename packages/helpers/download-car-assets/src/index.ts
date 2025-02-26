@@ -8,7 +8,7 @@ dotenv.config();
 
 export interface DownloadCarAssetsOptions {
   /**
-   * The directory to output the SVG files to.
+   * The directory to output the car files to.
    */
   outputDir: string;
 
@@ -19,29 +19,34 @@ export interface DownloadCarAssetsOptions {
   username?: string;
 
   /**
-   * Force download of track layers even if they already exist.
-   * @default false
-   */
-  force?: boolean;
-
-  /**
-   * Write full track info to the output directory.
+   * Write full car info to the output directory.
    * @default false
    */
   writeFullInfo?: boolean;
 
   /**
-   * Write full track assets to the output directory.
+   * Write full car assets to the output directory.
    * @default false
    */
   writeFullAssets?: boolean;
+
+  /**
+   * Skip writing track info for each track.
+   * @default false
+   */
+  skipCarInfo?: boolean;
+
+  /**
+   * Skip writing track assets for each track.
+   * @default false
+   */
+  skipCarAssets?: boolean;
 }
 
 /**
- * Downloads track SVGs to the provided output directory.
- * The output directory will contain a `tracks.json` file with the track assets,
- * and a `track-info.json` file with the track information.
- * Track SVGs will be downloaded to a directory named after the track ID.
+ * Downloads car assets to the provided output directory.
+ * The output directory will contain a `cars.json` file with the car assets,
+ * and a `car-info.json` file with the car information.
  *
  * @param options The options for the download.
  * @param client The client to use for the download.
@@ -50,9 +55,10 @@ export async function downloadCarAssets(
   {
     outputDir,
     username: usernameProp,
-    force = false,
     writeFullAssets = false,
     writeFullInfo = false,
+    skipCarInfo = false,
+    skipCarAssets = false,
   }: DownloadCarAssetsOptions,
   client: IRacingAPISessionClient = new IRacingAPISessionClient()
 ) {
@@ -80,7 +86,7 @@ export async function downloadCarAssets(
   /**
    * Get the JSON data for the track assets and track info from the API.
    */
-  const [tracks, trackInfo] = await Promise.all([
+  const [cars, carInfo] = await Promise.all([
     client.carAssets(),
     client.carGet(),
   ]);
@@ -89,15 +95,47 @@ export async function downloadCarAssets(
    * Write the data if requested.
    */
   if (writeFullAssets) {
-    const trackAssetsPath = path.join(outputDir, "tracks.json");
-    console.log("Writing full track assets to:", trackAssetsPath);
-    await writeFile(trackAssetsPath, JSON.stringify(tracks), "utf8");
+    const carAssetsPath = path.join(outputDir, "cars.json");
+    console.log("Writing full car assets to:", carAssetsPath);
+    await writeFile(carAssetsPath, JSON.stringify(cars), "utf8");
   }
 
   if (writeFullInfo) {
-    const trackInfoPath = path.join(outputDir, "track-info.json");
-    console.log("Writing full track info to:", trackInfoPath);
-    await writeFile(trackInfoPath, JSON.stringify(trackInfo), "utf8");
+    const carInfoPath = path.join(outputDir, "car-info.json");
+    console.log("Writing full track info to:", carInfoPath);
+    await writeFile(carInfoPath, JSON.stringify(carInfo), "utf8");
+  }
+
+  console.log("Downloading assets for", Object.keys(cars).length, "cars.");
+
+  for (const [carId, asset] of Object.entries(cars)) {
+    const info = carInfo.find((c) => c.car_id === +carId);
+    const trackDir = path.join(outputDir, carId);
+    const assetPath = path.join(trackDir, "assets.json");
+    const infoPath = path.join(trackDir, "info.json");
+
+    const trackDirExists = await exists(trackDir);
+    if (!trackDirExists) {
+      await mkdir(trackDir, { recursive: true });
+    }
+
+    console.log("Getting car with ID:", carId);
+
+    if (!skipCarAssets) {
+      console.log("\tWriting car asset to:", assetPath);
+      await writeFile(assetPath, JSON.stringify(asset), "utf8");
+    }
+
+    if (!skipCarInfo) {
+      if (info) {
+        console.log("\tWriting car info to:", infoPath);
+        await writeFile(infoPath, JSON.stringify(info), "utf8");
+      } else {
+        console.log("\tNo car info found for car ID:", carId);
+      }
+    }
+
+    // TODO: Download images.
   }
 }
 

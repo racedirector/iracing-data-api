@@ -65,9 +65,12 @@ importers:
       '@iracing-data/api':
         specifier: workspace:*
         version: link:../api
-      '@iracing-data/helpers/download-track-svgs':
+      '@iracing-data/helpers/download-car-assets':
         specifier: workspace:*
-        version: link:../helpers/download-track-svgs
+        version: link:../helpers/download-car-assets
+      '@iracing-data/helpers/download-track-assets':
+        specifier: workspace:*
+        version: link:../helpers/download-track-assets
       commander:
         specifier: 13.1.0
         version: 13.1.0
@@ -85,7 +88,19 @@ importers:
         specifier: ^13.1.0
         version: 13.1.0(commander@13.1.0)
 
-  packages/helpers/download-track-svgs:
+  packages/helpers/download-car-assets:
+    dependencies:
+      '@iracing-data/api':
+        specifier: workspace:*
+        version: link:../../api
+      dotenv:
+        specifier: 16.4.7
+        version: 16.4.7
+      inquirer:
+        specifier: ^12.4.1
+        version: 12.4.2(@types/node@18.19.76)
+
+  packages/helpers/download-track-assets:
     dependencies:
       '@iracing-data/api':
         specifier: workspace:*
