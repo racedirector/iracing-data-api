@@ -1,7 +1,18 @@
+import crypto from "node:crypto";
 import axios, { AxiosInstance } from "axios";
 import { Cookie } from "tough-cookie";
 import { IRacingAPIResponse } from "./api/types";
 import { CacheExpiredError, InvalidResponseData } from "./types";
+
+/**
+ * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
+ */
+export async function hashPassword(email: string, password: string) {
+  return crypto
+    .createHash("sha256")
+    .update(password + email.toLowerCase())
+    .digest("base64");
+}
 
 export const allCookiesValid = (cookies: Cookie[]) =>
   cookies.every((cookie) => cookie.TTL() > 0);

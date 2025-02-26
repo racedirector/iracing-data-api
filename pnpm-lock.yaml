@@ -65,6 +65,9 @@ importers:
       '@iracing-data/api':
         specifier: workspace:*
         version: link:../api
+      '@iracing-data/helpers/download-track-svgs':
+        specifier: workspace:*
+        version: link:../helpers/download-track-svgs
       commander:
         specifier: 13.1.0
         version: 13.1.0
@@ -81,6 +84,18 @@ importers:
       '@commander-js/extra-typings':
         specifier: ^13.1.0
         version: 13.1.0(commander@13.1.0)
+
+  packages/helpers/download-track-svgs:
+    dependencies:
+      '@iracing-data/api':
+        specifier: workspace:*
+        version: link:../../api
+      dotenv:
+        specifier: 16.4.7
+        version: 16.4.7
+      inquirer:
+        specifier: ^12.4.1
+        version: 12.4.2(@types/node@18.19.76)
 
   packages/sdk:
     dependencies:
@@ -1345,7 +1360,6 @@ packages:
   /dotenv@16.4.7:
     resolution: {integrity: sha512-47qPchRCykZC03FhkYAhrvwU4xDBFIj1QPqaarj6mdM/hgUzfPHcpkHJOn3mJAufFeeAxAzeGsr5X0M4k6fLZQ==}
     engines: {node: '>=12'}
-    dev: true
 
   /dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
