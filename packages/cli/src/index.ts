@@ -6,12 +6,14 @@ import {
   CATEGORY_VALUES,
   assertCategory,
   assertDivision,
+  hashPassword,
 } from "@iracing-data/api";
+import { downloadTrackSVGs } from "@iracing-data/helpers/download-track-svgs";
 import inquirer from "inquirer";
 import { noop } from "lodash";
 import { CookieJar } from "tough-cookie";
 import { JSONCookieStore } from "./storage";
-import { handleOutput, hashPassword } from "./util";
+import { handleOutput } from "./util";
 
 const createCookieStore = (credentials: string) => {
   return new JSONCookieStore(credentials);
@@ -246,6 +248,44 @@ program
     const docs = await api.doc();
 
     handleOutput(docs, output);
+  });
+
+program
+  .command("download-track-svgs")
+  .description("Downloads the latest track SVGs.")
+  .requiredOption("-o, --out-dir <path>", "Output directory")
+  .option("-f, --force", "Force download of existing SVG layers", false)
+  .option("-i, --write-full-info", "Write full track info", false)
+  .option("--skip-info", "Skip writing track info", false)
+  .option("-a, --write-full-assets", "Write full track assets", false)
+  .option("--skip-assets", "Skip writing track asset", false)
+  .option("-u, --username <username>", "iRacing username")
+  .action(async (_, command) => {
+    console.log("Downloading track SVGs...");
+    const {
+      credentials,
+      outDir,
+      writeFullAssets,
+      writeFullInfo,
+      skipAssets: skipTrackAssets,
+      skipInfo: skipTrackInfo,
+      username,
+      force,
+    } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    await downloadTrackSVGs(
+      {
+        outputDir: outDir,
+        writeFullAssets,
+        writeFullInfo,
+        skipTrackAssets,
+        skipTrackInfo,
+        username,
+        force,
+      },
+      api
+    );
+    console.log("Done!");
   });
 
 /**

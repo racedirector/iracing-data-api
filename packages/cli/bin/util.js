@@ -3,20 +3,8 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.hashPassword = hashPassword;
 exports.handleOutput = handleOutput;
-const node_crypto_1 = __importDefault(require("node:crypto"));
 const node_fs_1 = __importDefault(require("node:fs"));
-/**
- * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
- */
-async function hashPassword(email, password) {
-    const value = password + email.toLowerCase();
-    const encoder = new TextEncoder();
-    const data = encoder.encode(value);
-    const hashBuffer = await node_crypto_1.default.subtle.digest("SHA-256", data);
-    return Buffer.from(hashBuffer).toString("base64");
-}
 /**
  * Logs the data to the console or writes it to a file.
  * @param data The data to be output

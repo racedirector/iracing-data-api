@@ -7,6 +7,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const extra_typings_1 = require("@commander-js/extra-typings");
 const api_1 = require("@iracing-data/api");
+const download_track_svgs_1 = require("@iracing-data/helpers/download-track-svgs");
 const inquirer_1 = __importDefault(require("inquirer"));
 const lodash_1 = require("lodash");
 const tough_cookie_1 = require("tough-cookie");
@@ -79,7 +80,7 @@ program
         },
     ]);
     console.log(`Authenticating with ${username}...`);
-    const hashedPassword = await (0, util_1.hashPassword)(username, password);
+    const hashedPassword = await (0, api_1.hashPassword)(username, password);
     const api = createAPI(credentials);
     await api.authenticate({ username, password: hashedPassword });
     console.log("✅ Authentication successful");
@@ -211,6 +212,31 @@ program
     const api = createAPI(credentials);
     const docs = await api.doc();
     (0, util_1.handleOutput)(docs, output);
+});
+program
+    .command("download-track-svgs")
+    .description("Downloads the latest track SVGs.")
+    .requiredOption("-o, --out-dir <path>", "Output directory")
+    .option("-f, --force", "Force download", false)
+    .option("-i, --write-full-info", "Write full track info", false)
+    .option("--skip-info", "Skip writing track info", false)
+    .option("-a, --write-full-assets", "Write full track assets", false)
+    .option("--skip-assets", "Skip writing track asset", false)
+    .option("-u, --username <username>", "iRacing username")
+    .action(async (_, command) => {
+    console.log("Downloading track SVGs...");
+    const { credentials, outDir, writeFullAssets, writeFullInfo, skipAssets: skipTrackAssets, skipInfo: skipTrackInfo, username, force, } = command.optsWithGlobals();
+    const api = createAPI(credentials);
+    await (0, download_track_svgs_1.downloadTrackSVGs)({
+        outputDir: outDir,
+        writeFullAssets,
+        writeFullInfo,
+        skipTrackAssets,
+        skipTrackInfo,
+        username,
+        force,
+    }, api);
+    console.log("Done!");
 });
 /**
  * driver-stats

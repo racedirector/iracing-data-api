@@ -1,17 +1,4 @@
-import crypto from "node:crypto";
 import fs from "node:fs";
-
-/**
- * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
- */
-export async function hashPassword(email: string, password: string) {
-  const value = password + email.toLowerCase();
-  const encoder = new TextEncoder();
-  const data = encoder.encode(value);
-  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
-  return Buffer.from(hashBuffer).toString("base64");
-}
-
 /**
  * Logs the data to the console or writes it to a file.
  * @param data The data to be output
