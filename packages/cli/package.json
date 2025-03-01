@@ -13,8 +13,8 @@
   },
   "dependencies": {
     "@iracing-data/api": "workspace:*",
-    "@iracing-data/helpers/download-car-assets": "workspace:*",
-    "@iracing-data/helpers/download-track-assets": "workspace:*",
+    "@iracing-data/download-car-assets": "workspace:*",
+    "@iracing-data/download-track-assets": "workspace:*",
     "commander": "13.1.0",
     "inquirer": "^12.4.1",
     "lodash": "^4.17.21",

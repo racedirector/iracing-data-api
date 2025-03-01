@@ -65,10 +65,10 @@ importers:
       '@iracing-data/api':
         specifier: workspace:*
         version: link:../api
-      '@iracing-data/helpers/download-car-assets':
+      '@iracing-data/download-car-assets':
         specifier: workspace:*
         version: link:../helpers/download-car-assets
-      '@iracing-data/helpers/download-track-assets':
+      '@iracing-data/download-track-assets':
         specifier: workspace:*
         version: link:../helpers/download-track-assets
       commander:
