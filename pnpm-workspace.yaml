@@ -2,4 +2,5 @@ packages:
   - 'examples/*'
   - 'packages/*'
   - 'packages/helpers/*'
+  - 'packages/irsdk/*'
   - 'services/*'
