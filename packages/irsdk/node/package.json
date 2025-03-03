@@ -1,0 +1,21 @@
+{
+  "name": "@iracing-data/irsdk-node",
+  "version": "0.0.1-alpha.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsc --config tsconfig.build.json",
+    "prepack": "pnpm build"
+  },
+  "dependencies": {
+    "@iracing-data/irsdk-types": "workspace:*",
+    "js-yaml": "^4.1.0"
+  },
+  "optionalDependencies": {
+    "@iracing-data/irsdk-native": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.5"
+  }
+}
