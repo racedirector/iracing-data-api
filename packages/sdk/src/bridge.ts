@@ -1,6 +1,11 @@
 import assert from "node:assert";
 import { IRacingSDK } from "irsdk-node";
-import { IRacingConnectionEmitter, TelemetryEmitter } from "./types";
+import {
+  IRacingConnectionEmitter,
+  SimConnectionEmitter,
+  TelemetryConnectionEmitter,
+  TelemetryEmitter,
+} from "./types";
 import { sleep, sleepMs } from "./util";
 
 /**
@@ -9,7 +14,7 @@ import { sleep, sleepMs } from "./util";
 export interface IRacingBridgeOptions {
   /**
    * The number of frames per second to run the bridge at.
-   * @min 1
+   * @min > 0
    * @max 60
    * @default 1
    */
@@ -52,7 +57,13 @@ export interface IRacingBridgeOptions {
  * Manages the lifecycle of the SDK connection, emitting telemetry and session data.
  */
 export class IRacingBridge {
+  /** Public State */
+
+  /** Private State */
+
   // Events
+  private _simConnectionEmitter = new SimConnectionEmitter();
+  private _telemetryConnectionEmitter = new TelemetryConnectionEmitter();
   private _connectionEmitter = new IRacingConnectionEmitter();
   private _telemetryEmitter = new TelemetryEmitter();
 
@@ -135,6 +146,14 @@ export class IRacingBridge {
     this._autoEnableTelemetry = value;
   }
 
+  get simConnectionEmitter() {
+    return this._simConnectionEmitter;
+  }
+
+  get telemetryConnectionEmitter() {
+    return this._telemetryConnectionEmitter;
+  }
+
   get connectionEmitter() {
     return this._connectionEmitter;
   }
@@ -143,22 +162,96 @@ export class IRacingBridge {
     return this._telemetryEmitter;
   }
 
+  private get retryEnabled() {
+    return this._retryConnection;
+  }
+
+  private get shouldRetrySimConnection() {
+    const hasRetriesRemaining =
+      this._maxRetryCount === -1 || this._retryAttempts < this._maxRetryCount;
+
+    return this.retryEnabled && hasRetriesRemaining;
+  }
+
+  get simConnected() {
+    return new Promise<void>((resolve, reject) => {
+      console.debug("Checking for iRacing connection...");
+
+      const checkConnection = async () => {
+        if (await IRacingSDK.IsSimRunning()) {
+          console.debug("iRacing is running.");
+          clearInterval(interval);
+          resolve();
+        } else {
+          if (!this.shouldRetrySimConnection) {
+            clearInterval(interval);
+            reject(new Error("Could not connect to iRacing."));
+          } else {
+            console.debug(
+              `iRacing is not running.${
+                this._maxRetryCount >= 0
+                  ? ` Retries remaining: ${
+                      this._maxRetryCount - this._retryAttempts
+                    }`
+                  : " Retrying..."
+              }`
+            );
+
+            this._retryAttempts++;
+          }
+        }
+      };
+
+      checkConnection();
+      const interval = setInterval(
+        checkConnection,
+        this._retryIntervalSeconds * 1000
+      );
+    });
+  }
+
+  get simDisconnected() {
+    return new Promise<void>((resolve) => {
+      const checkConnection = async () => {
+        if (!(await IRacingSDK.IsSimRunning())) {
+          clearInterval(interval);
+          resolve();
+        }
+      };
+
+      checkConnection();
+      const interval = setInterval(
+        checkConnection,
+        this._retryIntervalSeconds * 1000
+      );
+    });
+  }
+
   /**
    * Starts the telemetry loop.
    * @returns this for chaining
    */
-  start(): this {
+  start() {
     // Start loops
     this._running = true;
     this._loop();
-    return this;
+  }
+
+  /**
+   * Returns a promise that resolves when the bridge connects
+   */
+  async startAsync() {
+    this._running = true;
+
+    await this.simConnected;
+
+    this.sdk.startSDK();
   }
 
   /**
    * Stops the telemetry loop.
-   * @returns this for chaining
    */
-  stop(): this {
+  stop() {
     // Stop the SDK
     this.sdk?.stopSDK();
     // Reset state
@@ -166,35 +259,53 @@ export class IRacingBridge {
 
     // Stop loops
     this._running = false;
-
-    return this;
   }
 
   /**
    * Stops the SDK and removes all registered listeners.
    */
-  async destroy() {
+  destroy() {
     this.stop();
 
     // Remove all event listeners
+    this._simConnectionEmitter.removeAllListeners();
+    this._telemetryConnectionEmitter.removeAllListeners();
     this._connectionEmitter.removeAllListeners();
     this._telemetryEmitter.removeAllListeners();
+  }
+
+  *telemetryGenerator() {
+    if (this.sdk.waitForData(this.fpsMs)) {
+      yield this.sdk.getTelemetry();
+    }
+  }
+
+  *sessionGenerator() {
+    if (this.sdk.waitForData(this.fpsMs)) {
+      yield this.sdk.getSessionData();
+    }
   }
 
   private async _loop() {
     console.debug("Checking for iRacing connection...");
     while (this._running) {
+      console.debug("loop");
       if (await this.isSimRunning()) {
-        console.debug("iRacing is running.");
-        this.connectionEmitter.emit("simConnect", true);
-        this._connected = true;
+        if (!this._connected) {
+          console.debug("iRacing is running.");
+          this._connected = true;
+          this.simConnectionEmitter.emit("connect");
+          this.connectionEmitter.emit("simConnect", true);
 
-        this.sdk.autoEnableTelemetry = this.autoEnableTelemetry;
-        this._telemetryLoop();
+          // this.sdk.autoEnableTelemetry = this.autoEnableTelemetry;
+          await this._telemetryLoop();
+        }
       } else {
         if (this._connected) {
-          this.connectionEmitter.emit("simConnect", false);
           this._connected = false;
+          this.connectionEmitter.emit("simConnect", false);
+          this.simConnectionEmitter.emit("disconnect");
+
           console.debug("iRacing disconnected.");
         } else {
           console.debug("iRacing is not running.");
@@ -228,6 +339,7 @@ export class IRacingBridge {
     // TODO: Ensure we can bail out if _running changes.
     await this.sdk.ready();
 
+    this.telemetryConnectionEmitter.emit("connect");
     this.connectionEmitter.emit("telemetryConnect", true);
 
     // Wait 1s for data to be available
@@ -253,6 +365,7 @@ export class IRacingBridge {
     }
 
     this.connectionEmitter.emit("telemetryConnect", false);
+    this.telemetryConnectionEmitter.emit("disconnect");
   }
 }
 

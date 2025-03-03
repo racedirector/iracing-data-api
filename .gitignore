@@ -131,3 +131,6 @@ dist
 
 # Default cookie-store from `iracing-data` CLI
 packages/cli/bin/*.json
+
+# test-data from CLI download tests
+test-data/

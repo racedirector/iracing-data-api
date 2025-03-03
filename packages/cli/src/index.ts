@@ -8,8 +8,9 @@ import {
   assertDivision,
   hashPassword,
 } from "@iracing-data/api";
-import { downloadCarAssets } from "@iracing-data/helpers/download-car-assets";
-import { downloadTrackAssets } from "@iracing-data/helpers/download-track-assets";
+import { downloadCarAssets } from "@iracing-data/download-car-assets";
+import { downloadTrackAssets } from "@iracing-data/download-track-assets";
+import { sdkDump, assertDumpFormat } from "@iracing-data/sdk-dump";
 import inquirer from "inquirer";
 import { noop } from "lodash";
 import { CookieJar } from "tough-cookie";
@@ -308,6 +309,7 @@ program
       includeSvgs,
       force,
     } = command.optsWithGlobals();
+    console.log("include svgs:", includeSvgs);
     const api = createAPI(credentials);
     await downloadTrackAssets(
       {
@@ -758,6 +760,23 @@ program
     });
 
     handleOutput(raceResults, output);
+  });
+
+program
+  .command("sdk-dump")
+  .description("Dump the SDK to the output directory.")
+  .requiredOption("-o, --output <path>", "Output path")
+  .option("--format <format>", "Format of the output", "json")
+  .action(async (_, command) => {
+    const { output, format } = command.optsWithGlobals();
+    assertDumpFormat(format);
+
+    await sdkDump({
+      format,
+      outputDir: output,
+    });
+
+    console.log("SDK data dumped to", output);
   });
 
 /**

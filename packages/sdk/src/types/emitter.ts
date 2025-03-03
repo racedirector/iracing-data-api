@@ -7,8 +7,17 @@ class IRacingSDKEventEmitter<T extends EventMap> extends (EventEmitter as {
   new <T extends EventMap>(): TypedEmitter<T>;
 })<T> {}
 
+type ConnectionEvents = {
+  connect: () => void;
+  disconnect: () => void;
+};
+
+export class SimConnectionEmitter extends IRacingSDKEventEmitter<ConnectionEvents> {}
+export class TelemetryConnectionEmitter extends IRacingSDKEventEmitter<ConnectionEvents> {}
+
 type IRacingConnectionEmitterEvents = {
   simConnect: (connected: boolean) => void;
+
   telemetryConnect: (connected: boolean) => void;
 };
 

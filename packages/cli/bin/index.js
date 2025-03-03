@@ -7,8 +7,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const extra_typings_1 = require("@commander-js/extra-typings");
 const api_1 = require("@iracing-data/api");
-const download_car_assets_1 = require("@iracing-data/helpers/download-car-assets");
-const download_track_assets_1 = require("@iracing-data/helpers/download-track-assets");
+const download_car_assets_1 = require("@iracing-data/download-car-assets");
+const download_track_assets_1 = require("@iracing-data/download-track-assets");
+const sdk_dump_1 = require("@iracing-data/sdk-dump");
 const inquirer_1 = __importDefault(require("inquirer"));
 const lodash_1 = require("lodash");
 const tough_cookie_1 = require("tough-cookie");
@@ -250,6 +251,7 @@ program
     .action(async (_, command) => {
     console.log("Downloading track assets...");
     const { credentials, outDir, writeFullAssets, writeFullInfo, skipAssets: skipTrackAssets, skipInfo: skipTrackInfo, includeSvgs, force, } = command.optsWithGlobals();
+    console.log("include svgs:", includeSvgs);
     const api = createAPI(credentials);
     await (0, download_track_assets_1.downloadTrackAssets)({
         outputDir: outDir,
@@ -629,6 +631,20 @@ program
         includeLicenses,
     });
     (0, util_1.handleOutput)(raceResults, output);
+});
+program
+    .command("sdk-dump")
+    .description("Dump the SDK to the output directory.")
+    .requiredOption("-o, --output <path>", "Output path")
+    .option("--format <format>", "Format of the output", "json")
+    .action(async (_, command) => {
+    const { output, format } = command.optsWithGlobals();
+    (0, sdk_dump_1.assertDumpFormat)(format);
+    await (0, sdk_dump_1.sdkDump)({
+        format,
+        outputDir: output,
+    });
+    console.log("SDK data dumped to", output);
 });
 /**
  * search-drivers command
