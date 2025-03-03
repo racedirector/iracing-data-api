@@ -2,9 +2,7 @@
 const { Server, Config } = require("@iracing-data/sdk-server");
 
 const main = async () => {
-  const config = Config.readEnvironment({
-    port: 3030,
-  });
+  const config = Config.readEnvironment();
 
   const server = Server.create({ config });
   await server.start();

@@ -1,15 +1,17 @@
 import { Router } from "express";
 import { AppContext } from "../../context";
 
-export const createRouter = (context: AppContext): Router => {
+export const createRouter = (_context: AppContext): Router => {
   const router = Router();
 
   router.get("/iracing/sim/connected", async (_req, res) => {
-    res.send(context.iRacing.isSimConnected);
+    res.send("TODO");
+    res.end();
   });
 
   router.get("/iracing/telemetry/connected", async (_req, res) => {
-    res.send(context.iRacing.isTelemetryConnected);
+    res.send("TODO");
+    res.end();
   });
 
   /**
@@ -17,10 +19,12 @@ export const createRouter = (context: AppContext): Router => {
    */
   router.get("/iracing/telemetry", (_req, res) => {
     res.send("TODO");
+    res.end();
   });
 
   router.get("/iracing/session", (_req, res) => {
     res.send("TODO");
+    res.end();
   });
 
   return router;
