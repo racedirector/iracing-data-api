@@ -7,7 +7,6 @@ const main = async () => {
     fps: 1,
     retryConnection: true,
     retryIntervalSeconds: 5,
-    maxRetryCount: 1,
   });
 
   // Register event listeners

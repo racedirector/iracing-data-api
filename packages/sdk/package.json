@@ -11,5 +11,8 @@
     "@irsdk-node/types": "3.0.0",
     "irsdk-node": "^4.0.1",
     "typed-emitter": "^2.1.0"
+  },
+  "optionalDependencies": {
+    "@irsdk-node/native": "4.0.1"
   }
 }
