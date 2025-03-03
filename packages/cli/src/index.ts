@@ -8,8 +8,8 @@ import {
   assertDivision,
   hashPassword,
 } from "@iracing-data/api";
-import { downloadCarAssets } from "@iracing-data/download-car-assets";
-import { downloadTrackAssets } from "@iracing-data/download-track-assets";
+import { syncCarAssets as downloadCarAssets } from "@iracing-data/sync-car-assets";
+import { syncTrackAssets as downloadTrackAssets } from "@iracing-data/sync-track-assets";
 import inquirer from "inquirer";
 import { noop } from "lodash";
 import { CookieJar } from "tough-cookie";

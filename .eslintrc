@@ -73,8 +73,8 @@
     {
       "files": [
         "packages/cli/**/*.ts",
-        "packages/helpers/download-car-assets/**/*.ts",
-        "packages/helpers/download-track-assets/**/*.ts"
+        "packages/helpers/sync-car-assets/**/*.ts",
+        "packages/helpers/sync-track-assets/**/*.ts"
       ],
       "rules": {
         "no-console": "off"

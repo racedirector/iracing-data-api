@@ -7,8 +7,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const path_1 = __importDefault(require("path"));
 const extra_typings_1 = require("@commander-js/extra-typings");
 const api_1 = require("@iracing-data/api");
-const download_car_assets_1 = require("@iracing-data/download-car-assets");
-const download_track_assets_1 = require("@iracing-data/download-track-assets");
+const sync_car_assets_1 = require("@iracing-data/sync-car-assets");
+const sync_track_assets_1 = require("@iracing-data/sync-track-assets");
 const inquirer_1 = __importDefault(require("inquirer"));
 const lodash_1 = require("lodash");
 const tough_cookie_1 = require("tough-cookie");
@@ -227,7 +227,7 @@ program
     console.log("Downloading car assets...");
     const { credentials, outDir, writeFullAssets, writeFullInfo, skipInfo: skipCarInfo, skipAssets: skipCarAssets, username, } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    await (0, download_car_assets_1.downloadCarAssets)({
+    await (0, sync_car_assets_1.syncCarAssets)({
         outputDir: outDir,
         writeFullAssets,
         writeFullInfo,
@@ -251,7 +251,7 @@ program
     console.log("Downloading track assets...");
     const { credentials, outDir, writeFullAssets, writeFullInfo, skipAssets: skipTrackAssets, skipInfo: skipTrackInfo, includeSvgs, force, } = command.optsWithGlobals();
     const api = createAPI(credentials);
-    await (0, download_track_assets_1.downloadTrackAssets)({
+    await (0, sync_track_assets_1.syncTrackAssets)({
         outputDir: outDir,
         writeFullAssets,
         writeFullInfo,

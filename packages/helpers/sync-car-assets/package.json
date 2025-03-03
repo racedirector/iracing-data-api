@@ -1,5 +1,5 @@
 {
-  "name": "@iracing-data/download-car-assets",
+  "name": "@iracing-data/sync-car-assets",
   "version": "0.0.1",
   "main": "dist/index.js",
   "scripts": {

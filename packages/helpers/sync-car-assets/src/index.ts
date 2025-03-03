@@ -6,7 +6,7 @@ import { exists, getIRacingCredentials } from "./util";
 
 dotenv.config();
 
-export interface DownloadCarAssetsOptions {
+export interface SyncCarAssetsOptions {
   /**
    * The directory to output the car files to.
    */
@@ -51,7 +51,7 @@ export interface DownloadCarAssetsOptions {
  * @param options The options for the download.
  * @param client The client to use for the download.
  */
-export async function downloadCarAssets(
+export async function syncCarAssets(
   {
     outputDir,
     username: usernameProp,
@@ -59,7 +59,7 @@ export async function downloadCarAssets(
     writeFullInfo = false,
     skipCarInfo = false,
     skipCarAssets = false,
-  }: DownloadCarAssetsOptions,
+  }: SyncCarAssetsOptions,
   client: IRacingAPISessionClient = new IRacingAPISessionClient()
 ) {
   /**
@@ -139,4 +139,4 @@ export async function downloadCarAssets(
   }
 }
 
-export default downloadCarAssets;
+export default syncCarAssets;

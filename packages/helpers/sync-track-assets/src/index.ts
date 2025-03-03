@@ -18,7 +18,7 @@ export interface TrackAsset {
 
 export type TrackAssetIndex = Record<string, TrackAsset>;
 
-export interface DownloadTrackAssetsOptions {
+export interface SyncTrackAssetsOptions {
   /**
    * The directory to output the SVG files to.
    */
@@ -76,7 +76,7 @@ export interface DownloadTrackAssetsOptions {
  * @param options The options for the download.
  * @param client The client to use for the download.
  */
-export async function downloadTrackAssets(
+export async function syncTrackAssets(
   {
     outputDir,
     username: usernameProp,
@@ -86,7 +86,7 @@ export async function downloadTrackAssets(
     skipTrackAssets = false,
     skipTrackInfo = false,
     includeSVGs = false,
-  }: DownloadTrackAssetsOptions,
+  }: SyncTrackAssetsOptions,
   client: IRacingAPISessionClient = new IRacingAPISessionClient()
 ) {
   /**
@@ -187,4 +187,4 @@ export async function downloadTrackAssets(
   }
 }
 
-export default downloadTrackAssets;
+export default syncTrackAssets;

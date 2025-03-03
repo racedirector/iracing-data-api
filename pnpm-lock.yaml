@@ -71,12 +71,12 @@ importers:
       '@iracing-data/api':
         specifier: workspace:*
         version: link:../api
-      '@iracing-data/download-car-assets':
+      '@iracing-data/sync-car-assets':
         specifier: workspace:*
-        version: link:../helpers/download-car-assets
-      '@iracing-data/download-track-assets':
+        version: link:../helpers/sync-car-assets
+      '@iracing-data/sync-track-assets':
         specifier: workspace:*
-        version: link:../helpers/download-track-assets
+        version: link:../helpers/sync-track-assets
       commander:
         specifier: 13.1.0
         version: 13.1.0
@@ -94,7 +94,7 @@ importers:
         specifier: ^13.1.0
         version: 13.1.0(commander@13.1.0)
 
-  packages/helpers/download-car-assets:
+  packages/helpers/sync-car-assets:
     dependencies:
       '@iracing-data/api':
         specifier: workspace:*
@@ -106,7 +106,7 @@ importers:
         specifier: ^12.4.1
         version: 12.4.2(@types/node@18.19.76)
 
-  packages/helpers/download-track-assets:
+  packages/helpers/sync-track-assets:
     dependencies:
       '@iracing-data/api':
         specifier: workspace:*
