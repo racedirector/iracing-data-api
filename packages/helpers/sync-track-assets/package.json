@@ -7,7 +7,14 @@
   },
   "dependencies": {
     "@iracing-data/api": "workspace:*",
-    "dotenv": "16.4.7",
+    "dotenv": "16.4.7"
+  },
+  "peerDependencies": {
     "inquirer": "^12.4.1"
+  },
+  "peerDependenciesMeta": {
+    "inquirer": {
+      "optional": true
+    }
   }
 }
