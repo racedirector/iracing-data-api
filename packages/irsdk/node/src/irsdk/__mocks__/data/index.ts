@@ -1,4 +1,3 @@
-import { TelemetryVarList } from "@iracing-data/irsdk-types";
 import { dump as dumpyml } from "js-yaml";
 
 export const loadSessionDataMock = async () => {
@@ -8,7 +7,7 @@ export const loadSessionDataMock = async () => {
 
 export const loadTelemetryMock = async () => {
   const data = await import("./telemetry.json");
-  return data.default as TelemetryVarList;
+  return data.default as object;
 };
 
 export const loadMocks = async () => {
