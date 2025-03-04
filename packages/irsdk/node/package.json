@@ -5,7 +5,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "clean": "rimraf dist *.tsbuildinfo",
-    "build": "tsc --config tsconfig.build.json",
+    "build": "tsc --build tsconfig.build.json",
     "prepack": "pnpm build"
   },
   "dependencies": {

@@ -3,7 +3,13 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "noUnusedLocals": false
+    "noUnusedLocals": true,
+    "composite": true,
+    "declaration": true,
+    "emitDeclarationOnly": true,
+    "stripInternal": true,
+    "sourceMap": false,
+    "declarationMap": false
   },
   "exclude": ["node_modules", "dist"]
 }
