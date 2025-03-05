@@ -76,12 +76,12 @@ export async function getIRacingCredentials(usernameProp?: string) {
     return { username, password };
   } else {
     assert(
-      usernameOption,
-      "Please provide username via CLI option, environment variable (IRACING_USERNAME), or enter when prompted."
+      usernameOption && usernameOption.length > 0,
+      "Please provide username via environment variable (IRACING_USERNAME)."
     );
     assert(
-      passwordOption,
-      "Please provider password via environment variable (IRACING_PASSWORD) or enter when prompted."
+      passwordOption && passwordOption.length > 0,
+      "Please provider password via environment variable (IRACING_PASSWORD)."
     );
 
     return { username: usernameOption, password: passwordOption };
