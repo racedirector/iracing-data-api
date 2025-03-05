@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/sync-car-assets",
-  "version": "0.0.2-alpha.1",
+  "version": "0.0.2-alpha.2",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --build tsconfig.build.json"
