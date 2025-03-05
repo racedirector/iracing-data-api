@@ -547,4 +547,7 @@ void irsdk_broadcastMsg(irsdk_BroadcastMsg msg, int var1, float var2);
 // to encode car #001 call padCarNum(1,2)
 int irsdk_padCarNum(int num, int zero);
 
+// Custom additions
+int irsdk_getLastTickCount();
+
 #endif // IRSDK_DEFINES_H

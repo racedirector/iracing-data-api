@@ -374,3 +374,10 @@ int irsdk_padCarNum(int num, int zero)
 
 	return retVal;
 }
+
+// Custom additions
+
+int irsdk_getLastTickCount()
+{
+	return lastTickCount;
+}

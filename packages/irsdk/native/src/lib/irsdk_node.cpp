@@ -32,11 +32,8 @@ Napi::Object irsdkNode::Init(Napi::Env env, Napi::Object exports)
  * Instance constructor
  */
 irsdkNode::irsdkNode(const Napi::CallbackInfo &info)
-    : Napi::ObjectWrap<irsdkNode>(info), m_data(NULL), m_nData(0), m_statusID(0), m_lastSessionCt(-1), m_lastTick(-1), _loggingEnabled(false)
+    : Napi::ObjectWrap<irsdkNode>(info), _loggingEnabled(false)
 {
-  // If logging enabled, log that we're initializing the class
-  if (_loggingEnabled)
-    printf("Initializing cpp class instance...\n");
 }
 
 // ---------------------------
@@ -118,16 +115,48 @@ Napi::Value irsdkNode::WaitForData(const Napi::CallbackInfo &info)
   return Napi::Boolean::New(info.Env(), result);
 }
 
+// --
+
+/**
+ * Direct bindings to the irsdkClient class
+ */
+
+// -- Session
+
+Napi::Value irsdkNode::GetSessionCount(const Napi::CallbackInfo &info)
+{
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getSessionCt());
+}
+
 Napi::Value irsdkNode::HasSessionInfoUpdate(const Napi::CallbackInfo &info)
 {
   return Napi::Boolean::New(info.Env(), irsdkClient::instance().wasSessionStrUpdated());
 }
 
-Napi::Value irsdkNode::GetSessionData(const Napi::CallbackInfo &info)
+Napi::Value irsdkNode::GetSessionStringValue(const Napi::CallbackInfo &info)
 {
-  const char *session = irsdkClient::instance().getSessionInfoStr();
-  return Napi::String::New(info.Env(), session);
+  if (info.Length() <= 0 || !info[0].IsString())
+  {
+    return Napi::String::New(info.Env(), "");
+  }
+
+  std::string path = info[0].As<Napi::String>().Utf8Value();
+  char val[256];
+  int result = irsdkClient::instance().getSessionStrVal(path.c_str(), val, sizeof(val));
+  if (result > 0)
+  {
+    return Napi::String::New(info.Env(), val);
+  }
+
+  return Napi::String::New(info.Env(), "");
 }
+
+Napi::Value irsdkNode::GetSessionString(const Napi::CallbackInfo &info)
+{
+  return Napi::String::New(info.Env(), irsdkClient::instance().getSessionStr());
+}
+
+// -- Telemetry
 
 Napi::Value irsdkNode::GetTelemetryData(const Napi::CallbackInfo &info)
 {
@@ -210,14 +239,90 @@ Napi::Value irsdkNode::BroadcastMessage(const Napi::CallbackInfo &info)
   return Napi::Boolean::New(env, true);
 }
 
-/**
- * Returns whether the SDK is running
- */
-Napi::Value irsdkNode::IsRunning(const Napi::CallbackInfo &info)
+Napi::Value irsdkNode::IsConnected(const Napi::CallbackInfo &info)
 {
-  bool sdkConnected = irsdk_isConnected();
-  // TODO: Check if we have data
-  return Napi::Boolean::New(info.Env(), sdkConnected);
+  return Napi::Boolean::New(info.Env(), irsdkClient::instance().isConnected());
+}
+
+Napi::Value irsdkNode::GetVarIdx(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 0 || !info[0].IsString())
+  {
+    return Napi::Number::New(info.Env(), -1);
+  }
+
+  std::string varName = info[0].As<Napi::String>().Utf8Value();
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getVarIdx(varName.c_str()));
+}
+
+Napi::Value irsdkNode::GetVarType(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 0 || !info[0].IsNumber())
+  {
+    return Napi::Number::New(info.Env(), -1);
+  }
+
+  int varIdx = info[0].As<Napi::Number>().Int32Value();
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getVarType(varIdx));
+}
+
+Napi::Value irsdkNode::GetVarCount(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 0 || !info[0].IsNumber())
+  {
+    return Napi::Number::New(info.Env(), -1);
+  }
+
+  int varIdx = info[0].As<Napi::Number>().Int32Value();
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getVarCount(varIdx));
+}
+
+Napi::Value irsdkNode::GetVarBool(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 1 || !info[0].IsNumber() || !info[1].IsNumber())
+  {
+    return Napi::Boolean::New(info.Env(), false);
+  }
+
+  int varIdx = info[0].As<Napi::Number>().Int32Value();
+  int entry = info[1].As<Napi::Number>().Int32Value();
+  return Napi::Boolean::New(info.Env(), irsdkClient::instance().getVarBool(varIdx, entry));
+}
+
+Napi::Value irsdkNode::GetVarInt(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 1 || !info[0].IsNumber() || !info[1].IsNumber())
+  {
+    return Napi::Number::New(info.Env(), -1);
+  }
+
+  int varIdx = info[0].As<Napi::Number>().Int32Value();
+  int entry = info[1].As<Napi::Number>().Int32Value();
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getVarInt(varIdx, entry));
+}
+
+Napi::Value irsdkNode::GetVarFloat(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 1 || !info[0].IsNumber() || !info[1].IsNumber())
+  {
+    return Napi::Number::New(info.Env(), -1);
+  }
+
+  int varIdx = info[0].As<Napi::Number>().Int32Value();
+  int entry = info[1].As<Napi::Number>().Int32Value();
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getVarFloat(varIdx, entry));
+}
+
+Napi::Value irsdkNode::GetVarDouble(const Napi::CallbackInfo &info)
+{
+  if (info.Length() <= 1 || !info[0].IsNumber() || !info[1].IsNumber())
+  {
+    return Napi::Number::New(info.Env(), -1);
+  }
+
+  int varIdx = info[0].As<Napi::Number>().Int32Value();
+  int entry = info[1].As<Napi::Number>().Int32Value();
+  return Napi::Number::New(info.Env(), irsdkClient::instance().getVarDouble(varIdx, entry));
 }
 
 Napi::Object InitAll(Napi::Env env, Napi::Object exports)

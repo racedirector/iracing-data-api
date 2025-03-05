@@ -1,3 +1,6 @@
+export * from "./telemetry-emitter";
+export * from "./session-emitter";
+
 export interface INativeSDK {
   enableLogging: boolean;
 

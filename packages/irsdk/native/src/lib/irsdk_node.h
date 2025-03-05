@@ -58,31 +58,6 @@ protected:
    * Logging enabled
    */
   bool _loggingEnabled;
-
-  /**
-   * Data buffer
-   */
-  char *m_data;
-
-  /**
-   * Data buffer length
-   */
-  int m_nData;
-
-  /**
-   * Status ID
-   */
-  int m_statusID;
-
-  /**
-   * Last emitted session count
-   */
-  int m_lastSessionCt;
-
-  /**
-   * Last session data tick
-   */
-  int m_lastTick;
 };
 
 #endif
