@@ -2,6 +2,9 @@
   "name": "iracing-data-irsdk-native",
   "private": true,
   "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@iracing-data/irsdk-native": "workspace:^"
   }

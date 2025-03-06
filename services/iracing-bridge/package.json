@@ -1,6 +1,9 @@
 {
   "name": "iracing-data-bridge",
   "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@iracing-data/sdk": "workspace:^"
   }

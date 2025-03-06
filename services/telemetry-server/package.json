@@ -1,6 +1,9 @@
 {
   "name": "iracing-data-telemetry-server",
   "private": true,
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
     "@iracing-data/sdk-server": "workspace:^"
   }
