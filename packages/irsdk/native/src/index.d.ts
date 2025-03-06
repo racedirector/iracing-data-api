@@ -1,35 +1,25 @@
-export * from "./telemetry-emitter";
-export * from "./session-emitter";
+import EventEmitter from "events";
 
-export interface INativeSDK {
+export class TelemetryEmitter extends EventEmitter {}
+export class SessionEmitter extends EventEmitter {}
+
+export class NativeSDK {
   enableLogging: boolean;
 
-  startSDK(): boolean;
-  stopSDK(): void;
+  /**
+   * Wait for data synchronously.
+   * @param timeout time timeout in milliseconds
+   */
+  public waitForData(timeout: number): void;
 
-  // State
-  isRunning(): boolean;
+  /**
+   * Wait for data asynchronously.
+   * @param timeout time timeout in milliseconds
+   */
+  public waitForDataAsync(timeout: number): Promise<void>;
 
-  waitForData(timeout?: number): boolean;
-  getSessionData(): string;
-  getTelemetryData(): unknown;
-  getTelemetryVariable(index: number): unknown;
-}
-
-export class NativeSDK implements INativeSDK {
-  enableLogging: boolean;
-
-  public startSDK(): boolean;
-
-  public stopSDK(): void;
-
-  public isRunning(): boolean;
-
-  public waitForData(timeout?: number): boolean;
-
-  public getSessionData(): string;
-
-  public getTelemetryData(): unknown;
-
-  public getTelemetryVariable(index: number): unknown;
+  /**
+   * Resolves with the session string. Rejects if not connected to iRacing.
+   */
+  public waitForSessionDataUpdate(): Promise<string>;
 }

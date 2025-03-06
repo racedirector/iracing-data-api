@@ -229,6 +229,12 @@ importers:
         specifier: workspace:^
         version: link:../../packages/sdk
 
+  services/irsdk:
+    dependencies:
+      '@iracing-data/irsdk-native':
+        specifier: workspace:^
+        version: link:../../packages/irsdk/native
+
   services/telemetry-server:
     dependencies:
       '@iracing-data/sdk-server':
@@ -528,7 +534,7 @@ packages:
     os: [win32]
     requiresBuild: true
     dependencies:
-      '@irsdk-node/types': 3.0.0
+      '@irsdk-node/types': file:../irsdk-node/packages/irsdk-node-types
       bindings: 1.5.0
       node-addon-api: 8.3.1
       node-gyp: 10.3.1
@@ -4329,3 +4335,11 @@ packages:
     resolution: {integrity: sha512-cYVsTjKl8b+FrnidjibDWskAv7UKOfcwaVZdp/it9n1s9fU3IkgDbhdIRKCW4JDsAlECJY0ytoVPT3sK6kideA==}
     engines: {node: '>=18'}
     dev: false
+
+  file:../irsdk-node/packages/irsdk-node-types:
+    resolution: {directory: ../irsdk-node/packages/irsdk-node-types, type: directory}
+    name: '@irsdk-node/types'
+    engines: {node: '>=18'}
+    requiresBuild: true
+    dev: false
+    optional: true

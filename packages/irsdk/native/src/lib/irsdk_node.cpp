@@ -1,5 +1,7 @@
+#include <iostream>
 #include "./irsdk_node.h"
-#include "../lib/yaml_parser.h"
+#include "../session-worker/session_worker.h"
+#include "../../lib/yaml_parser.h"
 
 // ---------------------------
 // Constrcutors
@@ -10,15 +12,12 @@
  */
 Napi::Object irsdkNode::Init(Napi::Env env, Napi::Object exports)
 {
-  Napi::Function func = DefineClass(env, "irsdkNode", {InstanceAccessor<&irsdkNode::GetEnableLogging, &irsdkNode::SetEnableLogging>("enableLogging"),
-                                                       // Control
-                                                       InstanceMethod("startSDK", &irsdkNode::StartSdk), InstanceMethod("stopSDK", &irsdkNode::StopSdk),
-                                                       // Data Retrieval
-                                                       InstanceMethod("waitForData", &irsdkNode::WaitForData), InstanceMethod("getSessionData", &irsdkNode::GetSessionData), InstanceMethod("getTelemetryData", &irsdkNode::GetTelemetryData), InstanceMethod("getTelemetryVariable", &irsdkNode::GetTelemetryVar),
-                                                       // Functionality
-                                                       InstanceMethod("broadcast", &irsdkNode::BroadcastMessage),
-                                                       // State
-                                                       InstanceMethod("isRunning", &irsdkNode::IsRunning)});
+  Napi::Function func = DefineClass(env, "irsdkNode", {
+                                                          InstanceAccessor<&irsdkNode::GetEnableLogging, &irsdkNode::SetEnableLogging>("enableLogging"),
+                                                          InstanceMethod("waitForData", &irsdkNode::WaitForData),
+                                                          InstanceMethod("waitForDataAsync", &irsdkNode::WaitForDataAsync),
+                                                          InstanceMethod("waitForSessionDataUpdate", &irsdkNode::WaitForSessionDataUpdate),
+                                                      });
 
   Napi::FunctionReference *constructor = new Napi::FunctionReference();
   *constructor = Napi::Persistent(func);
@@ -70,37 +69,6 @@ void irsdkNode::SetEnableLogging(const Napi::CallbackInfo &info, const Napi::Val
 // Methods
 // ---------------------------
 
-/**
- * Starts the SDK.
- *
- * If an SDK instance is not running, this method will start it and return
- * the result of `irsdk_startup()`. If an SDK instance is already running,
- * this method will return `true`.
- */
-Napi::Value irsdkNode::StartSdk(const Napi::CallbackInfo &info)
-{
-  if (!irsdk_isConnected())
-  {
-    bool result = irsdk_startup();
-    if (_loggingEnabled)
-    {
-      printf("Startup result: %i\n", result);
-    }
-
-    return Napi::Boolean::New(info.Env(), result);
-  }
-
-  return Napi::Boolean::New(info.Env(), true);
-}
-
-/**
- * Stops the SDK
- */
-Napi::Value irsdkNode::StopSdk(const Napi::CallbackInfo &info)
-{
-  return Napi::Boolean::New(info.Env(), false);
-}
-
 Napi::Value irsdkNode::WaitForData(const Napi::CallbackInfo &info)
 {
   // Read the timeout from the info or default to 1000
@@ -111,8 +79,34 @@ Napi::Value irsdkNode::WaitForData(const Napi::CallbackInfo &info)
   }
 
   // Wait for data and return the result
-  bool result = irsdkClient::instance().waitForData(timeout);
-  return Napi::Boolean::New(info.Env(), result);
+  return Napi::Boolean::New(info.Env(), irsdkClient::instance().waitForData(timeout));
+}
+
+Napi::Value irsdkNode::WaitForDataAsync(const Napi::CallbackInfo &info)
+{
+  Napi::Env env = info.Env();
+  Napi::Promise::Deferred deferred = Napi::Promise::Deferred::New(env);
+
+  // Simulate an asynchronous operation
+  std::thread([deferred, env]()
+              {
+      std::this_thread::sleep_for(std::chrono::seconds(2)); // Simulate work
+  
+      Napi::Boolean result = Napi::Boolean::New(env, true);
+      deferred.Resolve(result); })
+      .detach();
+
+  return deferred.Promise();
+}
+
+Napi::Value irsdkNode::WaitForSessionDataUpdate(const Napi::CallbackInfo &info)
+{
+  Napi::Env env = info.Env();
+
+  // Create a new session worker
+  SessionWorker *worker = new SessionWorker(env);
+  worker->Queue();
+  return worker->GetPromise();
 }
 
 // --
@@ -324,11 +318,3 @@ Napi::Value irsdkNode::GetVarDouble(const Napi::CallbackInfo &info)
   int entry = info[1].As<Napi::Number>().Int32Value();
   return Napi::Number::New(info.Env(), irsdkClient::instance().getVarDouble(varIdx, entry));
 }
-
-Napi::Object InitAll(Napi::Env env, Napi::Object exports)
-{
-  irsdkNode::Init(env, exports);
-  return exports;
-}
-
-NODE_API_MODULE(NODE_GYP_MODULE_NAME, InitAll);

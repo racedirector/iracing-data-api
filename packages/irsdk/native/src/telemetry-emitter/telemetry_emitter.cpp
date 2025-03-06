@@ -2,18 +2,17 @@
 #include <thread>
 #include <iostream>
 
-#include "telemetry_emitter.h"
-
-Napi::FunctionReference TelemetryEventEmitter::constructor;
+#include "./telemetry_emitter.h"
 
 Napi::Object TelemetryEventEmitter::Init(Napi::Env env, Napi::Object exports)
 {
   Napi::HandleScope scope(env);
 
-  Napi::Function func = DefineClass(env, "TelemetryEmitter", {InstanceMethod("CallAndEmit", &TelemetryEmitter::CallAndEmit)});
+  Napi::Function func = DefineClass(env, "TelemetryEmitter", {InstanceMethod("start", &TelemetryEventEmitter::Start), InstanceMethod("stop", &TelemetryEventEmitter::Stop)});
 
-  constructor = Napi::Persistent(func);
-  constructor.SuppressDestruct();
+  Napi::FunctionReference *constructor = new Napi::FunctionReference();
+  *constructor = Napi::Persistent(func);
+  env.SetInstanceData(constructor);
 
   exports.Set("TelemetryEmitter", func);
   return exports;
@@ -42,11 +41,3 @@ Napi::Value TelemetryEventEmitter::Stop(const Napi::CallbackInfo &info)
 
   return env.Undefined();
 }
-
-Napi::Object Init(Napi::Env env, Napi::Object exports)
-{
-  TelemetryEventEmitter::Init(env, exports);
-  return exports;
-}
-
-NODE_API_MODULE(NODE_GYP_MODULE_NAME, Init)

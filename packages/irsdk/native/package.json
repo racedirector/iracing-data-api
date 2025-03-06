@@ -1,6 +1,7 @@
 {
   "name": "@iracing-data/irsdk-native",
   "version": "0.0.1-alpha.0",
+  "type": "module",
   "main": "src/index.js",
   "types": "src/index.d.ts",
   "engines": {
@@ -15,7 +16,7 @@
     "clean:cpp": "node-gyp clean",
     "configure": "pnpm clean:cpp && node-gyp configure",
     "build": "pnpm --stream '/^build:.+$/'",
-    "build:cpp": "pnpm --stream '/^build:cpp:.+$/'",
+    "build:cpp": "pnpm configure && pnpm --stream '/^build:cpp:.+$/'",
     "build:cpp:release": "node-gyp build",
     "build:cpp:debug": "node-gyp build --debug",
     "build:ts": "tsc --build tsconfig.build.json"

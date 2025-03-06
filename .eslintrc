@@ -45,7 +45,9 @@
           "debug",
           "group",
           "groupCollapsed",
-          "groupEnd"
+          "groupEnd",
+          "time",
+          "timeEnd"
         ]
       }
     ],

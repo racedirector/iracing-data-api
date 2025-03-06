@@ -1,0 +1,8 @@
+{
+  "name": "iracing-data-irsdk",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@iracing-data/irsdk-native": "workspace:^"
+  }
+}

@@ -2,17 +2,17 @@
 #include <thread>
 #include <iostream>
 
-#include "session_emitter.h"
-
-Napi::FunctionReference SessionEventEmitter::constructor;
+#include "./session_emitter.h"
 
 Napi::Object SessionEventEmitter::Init(Napi::Env env, Napi::Object exports)
 {
   Napi::HandleScope scope(env);
 
-  Napi::Function func = DefineClass(env, "SessionEmitter", {InstanceMethod("start", &SessionEmitter::Start), InstanceMethod("stop", &SessionEmitter::Stop)});
+  Napi::Function func = DefineClass(env, "SessionEmitter", {InstanceMethod("start", &SessionEventEmitter::Start), InstanceMethod("stop", &SessionEventEmitter::Stop)});
 
-  constructor = Napi::Persistent(func);
+  Napi::FunctionReference *constructor = new Napi::FunctionReference();
+  *constructor = Napi::Persistent(func);
+  env.SetInstanceData(constructor);
 
   exports.Set("SessionEmitter", func);
   return exports;
@@ -41,11 +41,3 @@ Napi::Value SessionEventEmitter::Stop(const Napi::CallbackInfo &info)
 
   return env.Undefined();
 }
-
-Napi::Object Init(Napi::Env env, Napi::Object exports)
-{
-  SessionEventEmitter::Init(env, exports);
-  return exports;
-}
-
-NODE_API_MODULE(NODE_GYP_MODULE_NAME, Init)

@@ -13,6 +13,6 @@ private:
   static Napi::FunctionReference constructor;
   Napi::Value Start(const Napi::CallbackInfo &info);
   Napi::Value Stop(const Napi::CallbackInfo &info);
-}
+};
 
 #endif
