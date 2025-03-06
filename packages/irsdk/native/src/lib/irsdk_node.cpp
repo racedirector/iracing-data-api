@@ -17,6 +17,19 @@ Napi::Object irsdkNode::Init(Napi::Env env, Napi::Object exports)
                                                           InstanceMethod("waitForData", &irsdkNode::WaitForData),
                                                           InstanceMethod("waitForDataAsync", &irsdkNode::WaitForDataAsync),
                                                           InstanceMethod("waitForSessionDataUpdate", &irsdkNode::WaitForSessionDataUpdate),
+                                                          InstanceMethod("broadcastMessage", &irsdkNode::BroadcastMessage),
+                                                          InstanceMethod("isConnected", &irsdkNode::IsConnected),
+                                                          InstanceMethod("getSessionCount", &irsdkNode::GetSessionCount),
+                                                          InstanceMethod("hasSessionInfoUpdate", &irsdkNode::HasSessionInfoUpdate),
+                                                          InstanceMethod("getSessionStringValue", &irsdkNode::GetSessionStringValue),
+                                                          InstanceMethod("getSessionString", &irsdkNode::GetSessionString),
+                                                          InstanceMethod("getVarIdx", &irsdkNode::GetVarIdx),
+                                                          InstanceMethod("getVarType", &irsdkNode::GetVarType),
+                                                          InstanceMethod("getVarCount", &irsdkNode::GetVarCount),
+                                                          InstanceMethod("getVarBool", &irsdkNode::GetVarBool),
+                                                          InstanceMethod("getVarInt", &irsdkNode::GetVarInt),
+                                                          InstanceMethod("getVarFloat", &irsdkNode::GetVarFloat),
+                                                          InstanceMethod("getVarDouble", &irsdkNode::GetVarDouble),
                                                       });
 
   Napi::FunctionReference *constructor = new Napi::FunctionReference();

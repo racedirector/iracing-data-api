@@ -1,0 +1,11 @@
+{
+  "name": "iracing-data-irsdk-node",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "@iracing-data/irsdk-node": "workspace:^"
+  }
+}

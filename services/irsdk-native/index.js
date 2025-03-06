@@ -23,10 +23,14 @@ const waitSessionDataAsync = async (sdk) => {
 const main = async () => {
   const sdk = new NativeSDK();
 
-  const result = sdk.waitForData(1000);
-  // console.log("Wait for data result:", result);
+  // Wait up to 1s for data to be available
+  if (sdk.waitForData(1000)) {
+    console.log("Data is available");
+  } else {
+    console.log("Data is not available");
+  }
 
-  waitSessionDataAsync(sdk);
+  // waitSessionDataAsync(sdk);
   // waitAsync(sdk, 1000);
 
   // for (let i = 0; i < 5; i++) {

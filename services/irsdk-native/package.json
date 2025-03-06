@@ -1,5 +1,5 @@
 {
-  "name": "iracing-data-irsdk",
+  "name": "iracing-data-irsdk-native",
   "private": true,
   "type": "module",
   "dependencies": {

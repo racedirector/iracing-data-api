@@ -28,7 +28,6 @@ private:
   // Methods
   Napi::Value WaitForData(const Napi::CallbackInfo &info);
   Napi::Value WaitForDataAsync(const Napi::CallbackInfo &info);
-
   Napi::Value WaitForSessionDataUpdate(const Napi::CallbackInfo &info);
 
   /**

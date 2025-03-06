@@ -3,7 +3,7 @@
 #include "../../lib/irsdk_client.h"
 #include "./session_worker.h"
 
-SessionWorker::SessionWorker(Napi::Env &env, int timeout, bool retry)
+SessionWorker::SessionWorker(Napi::Env &env, int timeout = 16, bool retry = false)
     : Napi::AsyncWorker(env, "SessionWorker"), m_deferred(env), m_sessionString(NULL), m_timeout(timeout), m_retry(retry) {}
 
 void SessionWorker::Execute()

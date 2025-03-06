@@ -8,7 +8,8 @@ console.log("NodeJS Addon exports:", addon);
 const NativeSDK = addon.irsdkNode;
 const SessionEmitter = addon.SessionEmitter;
 const TelemetryEmitter = addon.TelemetryEmitter;
+const TelemetryGenerator = addon.TelemetryGenerator;
 
-export { SessionEmitter, TelemetryEmitter, NativeSDK };
+export { SessionEmitter, TelemetryEmitter, NativeSDK, TelemetryGenerator };
 
 export default NativeSDK;
