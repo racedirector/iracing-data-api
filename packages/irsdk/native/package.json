@@ -19,7 +19,10 @@
     "build:cpp": "pnpm configure && pnpm --stream '/^build:cpp:.+$/'",
     "build:cpp:release": "node-gyp build",
     "build:cpp:debug": "node-gyp build --debug",
-    "build:ts": "tsc --build tsconfig.build.json"
+    "build:ts": "tsc --build tsconfig.build.json",
+    "rebuild": "node-gyp rebuild",
+    "rebuild:debug": "node-gyp rebuild --debug",
+    "start": "node src/index.js"
   },
   "dependencies": {
     "node-addon-api": "8.3.1",

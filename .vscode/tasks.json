@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "type": "npm",
+      "script": "build:cpp:debug",
+      "path": "packages/irsdk/native",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build:cpp:debug - packages/irsdk/native",
+      "detail": "node-gyp build --debug"
+    },
+    {
+      "type": "npm",
+      "script": "build:cpp:release",
+      "path": "packages/irsdk/native",
+      "group": "build",
+      "problemMatcher": [],
+      "label": "npm: build:cpp:release - packages/irsdk/native",
+      "detail": "node-gyp build"
+    }
+  ]
+}

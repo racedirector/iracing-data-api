@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "lldb-dap",
+      "request": "launch",
+      "name": "Debug irsdk-native",
+      "preLaunchTask": "npm: build:cpp:debug - packages/irsdk/native",
+      "program": "node",
+      "args": ["--inspect", "packages/irsdk/native/src/index.js"],
+      "cwd": "${workspaceRoot}"
+    },
+    {
+      "type": "lldb-dap",
+      "request": "launch",
+      "name": "Debug irsdk-native service",
+      "preLaunchTask": "npm: build:cpp:debug - packages/irsdk/native",
+      "program": "node",
+      "args": ["--inspect-brk", "services/irsdk-native/index.js"],
+      "cwd": "${workspaceRoot}"
+    }
+  ]
+}

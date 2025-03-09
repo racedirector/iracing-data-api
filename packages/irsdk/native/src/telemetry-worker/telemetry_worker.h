@@ -15,4 +15,4 @@ private:
   char *m_telemetryData;
   int m_timeout;
   Napi::Promise::Deferred m_deferred;
-}
+};

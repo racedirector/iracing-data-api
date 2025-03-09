@@ -49,6 +49,7 @@ bool irsdkClient::waitForData(int timeoutMS)
 		// if new connection, or data changed length then init
 		if (!m_data || m_nData != irsdk_getHeader()->bufLen)
 		{
+			printf("irsdkClient::waitForData() - new data\n");
 			// allocate memory to hold incoming data from sim
 			if (m_data)
 				delete[] m_data;
@@ -68,11 +69,13 @@ bool irsdkClient::waitForData(int timeoutMS)
 		else if (m_data)
 		{
 			// else we are allready initialized, and data is ready for processing
+			printf("irsdkClient::waitForData() - data ready\n");
 			return true;
 		}
 	}
 	else if (!isConnected())
 	{
+		printf("irsdkClient::waitForData() - not connected\n");
 		// else session ended
 		if (m_data)
 			delete[] m_data;
@@ -82,6 +85,7 @@ bool irsdkClient::waitForData(int timeoutMS)
 		m_lastSessionCt = -1;
 	}
 
+	printf("irsdkClient::waitForData() - no data\n");
 	return false;
 }
 

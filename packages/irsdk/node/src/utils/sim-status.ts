@@ -2,7 +2,7 @@ import http from "http";
 import { SIM_STATUS_URI } from "../constants";
 
 export const getSimStatus = async () =>
-  new Promise((resolve, reject) => {
+  new Promise<boolean>((resolve, reject) => {
     http
       .get(SIM_STATUS_URI, (response) => {
         let data = "";

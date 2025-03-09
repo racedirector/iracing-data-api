@@ -15,32 +15,26 @@ public:
 private:
   // Properties
 
-  /**
-   * Whether logging is enabled
-   */
+  // Internal logging
   Napi::Value GetEnableLogging(const Napi::CallbackInfo &info);
-
-  /**
-   * Set logging enabled
-   */
   void SetEnableLogging(const Napi::CallbackInfo &info, const Napi::Value &value);
 
-  // Methods
+  Napi::Value BroadcastMessage(const Napi::CallbackInfo &info);
+
+  // Telemetry data
   Napi::Value WaitForData(const Napi::CallbackInfo &info);
   Napi::Value WaitForDataAsync(const Napi::CallbackInfo &info);
   Napi::Value WaitForSessionDataUpdate(const Napi::CallbackInfo &info);
 
-  /**
-   * Broadcast a message to the SDK
-   */
-  Napi::Value BroadcastMessage(const Napi::CallbackInfo &info);
-
+  // Connection state
   Napi::Value IsConnected(const Napi::CallbackInfo &info);
 
+  // Session Info
   Napi::Value GetSessionCount(const Napi::CallbackInfo &info);
   Napi::Value HasSessionInfoUpdate(const Napi::CallbackInfo &info);
   Napi::Value GetSessionStringValue(const Napi::CallbackInfo &info);
   Napi::Value GetSessionString(const Napi::CallbackInfo &info);
+
   Napi::Value GetVarIdx(const Napi::CallbackInfo &info);
   Napi::Value GetVarType(const Napi::CallbackInfo &info);
   Napi::Value GetVarCount(const Napi::CallbackInfo &info);

@@ -21,10 +21,11 @@ const waitSessionDataAsync = async (sdk) => {
 };
 
 const main = async () => {
+  console.info("Starting iRacing SDK");
   const sdk = new NativeSDK();
 
   // Wait up to 1s for data to be available
-  if (sdk.waitForData(1000)) {
+  if (sdk.waitForData(10 * 1000)) {
     console.log("Data is available");
   } else {
     console.log("Data is not available");
@@ -47,4 +48,5 @@ const main = async () => {
   process.on("disconnect", shutdown);
 };
 
+throw new Error("Not implemented");
 main();

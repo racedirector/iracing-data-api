@@ -1,20 +1,38 @@
 #include <napi.h>
+#include "../../lib/irsdk_defines.h"
+#include "../../lib/irsdk_client.h"
 #include "./telemetry_generator.h"
 
-static Napi::Object Init(Napi::Env env, Napi::Object exports)
+Napi::Object TelemetryGenerator::Init(Napi::Env env, Napi::Object exports)
 {
-  Napi::Function func = DefineClass(env, 'TelemetryGenerator', {TelemetryGenerator::InstanceMethod("start", &TelemetryGenerator::Start), TelemetryGenerator::InstanceMethod("stop", &TelemetryGenerator::Stop)});
+  Napi::Function func = DefineClass(env, "TelemetryGenerator", {InstanceMethod("start", &TelemetryGenerator::Start), InstanceMethod("stop", &TelemetryGenerator::Stop)});
 
   Napi::FunctionReference *constructor = new Napi::FunctionReference();
   *constructor = Napi::Persistent(func);
   env.SetInstanceData(constructor);
 
-  exports.Set('TelemetryGenerator', func);
+  exports.Set("TelemetryGenerator", func);
   return exports;
 }
 
-TelemetryGenerator::TelemetryGenerator(const Napi::CallbackInfo &info, int fps) : Napi::ObjectWrap<TelemetryGenerator>(info), m_running(false), m_fps(fps)
+TelemetryGenerator::TelemetryGenerator(const Napi::CallbackInfo &info) : Napi::ObjectWrap<TelemetryGenerator>(info), m_fps(1)
 {
+  Napi::Env env = info.Env();
+
+  if (info.Length() < 1)
+  {
+    Napi::TypeError::New(env, "Expected a callback function").ThrowAsJavaScriptException();
+    return;
+  }
+
+  if (!info[0].IsNumber())
+  {
+    Napi::TypeError::New(env, "Expected an argument for `fps`.").ThrowAsJavaScriptException();
+    return;
+  }
+
+  m_fps = info[0].As<Napi::Number>().Int32Value();
+  m_running.store(false);
 }
 
 void TelemetryGenerator::Start(const Napi::CallbackInfo &info)
@@ -27,14 +45,14 @@ void TelemetryGenerator::Start(const Napi::CallbackInfo &info)
   }
 
   Napi::Function callback = info[0].As<Napi::Function>();
-  m_tsfn = Napi::ThreadSafeFunction::New(env, callback, 'TelemetryData', 0, 1);
+  m_tsfn = Napi::ThreadSafeFunction::New(env, callback, "TelemetryData", 0, 1);
 
   m_running.store(true);
 
   m_workerThread = std::thread([this]()
                                {
     while (m_running.load()) {
-      if (!irsdkClient::instance().waitForData(m_timeout)) {
+      if (!irsdkClient::instance().waitForData()) {
         continue;
       }
 

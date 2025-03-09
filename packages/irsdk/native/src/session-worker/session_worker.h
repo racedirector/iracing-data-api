@@ -3,7 +3,7 @@
 class SessionWorker : public Napi::AsyncWorker
 {
 public:
-  SessionWorker(Napi::Env &env, int timeout);
+  SessionWorker(Napi::Env &env, int timeout, bool retry);
 
   Napi::Promise GetPromise() { return m_deferred.Promise(); }
 
