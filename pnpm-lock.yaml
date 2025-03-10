@@ -51,6 +51,18 @@ importers:
         specifier: ^5.7.3
         version: 5.7.3
 
+  examples/lap-timing:
+    dependencies:
+      '@commander-js/extra-typings':
+        specifier: 13.1.0
+        version: 13.1.0(commander@13.1.0)
+      '@iracing-data/irsdk-node':
+        specifier: workspace:^
+        version: link:../../packages/irsdk/node
+      commander:
+        specifier: ^13.1.0
+        version: 13.1.0
+
   examples/telemetry-client:
     dependencies:
       ws:
@@ -255,7 +267,6 @@ packages:
       commander: ~13.1.0
     dependencies:
       commander: 13.1.0
-    dev: true
 
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
