@@ -6,8 +6,6 @@
         "src/binding.cpp",
         "src/lib/irsdk_node.cpp",
         "src/telemetry-variable/telemetry_variable.cpp",
-        "src/telemetry-emitter/telemetry_emitter.cpp",
-        "src/session-emitter/session_emitter.cpp",
         "src/session-worker/session_worker.cpp",
         "src/telemetry-generator/telemetry_generator.cpp",
         "src/telemetry-worker/telemetry_worker.cpp",

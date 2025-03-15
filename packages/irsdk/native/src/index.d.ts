@@ -1,8 +1,3 @@
-import EventEmitter from "events";
-
-export class TelemetryEmitter extends EventEmitter {}
-export class SessionEmitter extends EventEmitter {}
-
 export class TelemetryVariable {
   public name: string;
   // Meta
