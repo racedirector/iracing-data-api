@@ -25,7 +25,7 @@
     "start": "node src/index.js"
   },
   "dependencies": {
-    "node-addon-api": "8.3.1",
-    "node-gyp": "^11.1.0"
+    "bindings": "1.5.0",
+    "node-addon-api": "8.3.1"
   }
 }
