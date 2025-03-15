@@ -16,7 +16,7 @@
       "name": "Debug irsdk-native service",
       "preLaunchTask": "npm: build:cpp:debug - packages/irsdk/native",
       "program": "node",
-      "args": ["--inspect-brk", "services/irsdk-native/index.js"],
+      "args": ["--inspect", "services/irsdk-native/index.js"],
       "cwd": "${workspaceRoot}"
     }
   ]
