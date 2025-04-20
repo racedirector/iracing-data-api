@@ -1,13 +1,11 @@
 import { Button, Text, View } from "react-native";
+import ReplayControls from "@/components/ReplayControls";
 import {
-  useBroadcastContext,
   Consumer as BroadcastConsumer,
   Provider as BroadcastProvider,
 } from "@/contexts/BroadcastContext";
 
 export default function Index() {
-  const { reloadTextures } = useBroadcastContext();
-
   return (
     <BroadcastProvider>
       <BroadcastConsumer>
@@ -24,6 +22,7 @@ export default function Index() {
               title="Reload All Textures"
               onPress={() => reloadTextures()}
             />
+            <ReplayControls isPlaying />
           </View>
         )}
       </BroadcastConsumer>
