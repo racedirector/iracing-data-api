@@ -28,6 +28,29 @@
           "object",
           "type"
         ],
+        "pathGroups": [
+          {
+            "pattern": "react",
+            "group": "builtin",
+            "position": "before"
+          },
+          {
+            "pattern": "react-native",
+            "group": "builtin",
+            "position": "before"
+          },
+          {
+            "pattern": "#/**",
+            "group": "external",
+            "position": "before"
+          },
+          {
+            "pattern": "@/**",
+            "group": "parent",
+            "position": "before"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": ["react"],
         "alphabetize": {
           "order": "asc",
           "caseInsensitive": true
@@ -78,6 +101,12 @@
       ],
       "rules": {
         "no-console": "off"
+      }
+    },
+    {
+      "files": ["packages/iracing-telemetry-types/*"],
+      "rules": {
+        "@typescript-eslint/triple-slash-reference": "off"
       }
     }
   ]

@@ -1,0 +1,20 @@
+{
+  "name": "@iracing-data/grpc-web",
+  "version": "0.0.0-alpha.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@iracing-data/telemetry-types": "workspace:*"
+  },
+  "devDependencies": {
+    "@grpc/grpc-js": "1.13.3",
+    "@grpc/proto-loader": "^0.7.13",
+    "google-protobuf": "^3.21.4",
+    "grpc-web": "^1.5.0",
+    "protoc-gen-grpc-web": "^1.5.0",
+    "ts-invariant": "^0.2.0"
+  }
+}

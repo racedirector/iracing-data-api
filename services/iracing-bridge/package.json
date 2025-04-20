@@ -1,7 +1,0 @@
-{
-  "name": "iracing-data-bridge",
-  "private": true,
-  "dependencies": {
-    "@iracing-data/sdk": "workspace:^"
-  }
-}

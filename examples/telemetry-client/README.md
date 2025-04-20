@@ -4,7 +4,7 @@ This is a simple example of a client that connects to the `telemetry-server` ser
 
 ## Overview
 
-Creates a WebSocket client that connects to the `telemetry-server` service.
+Creates a gRPC client that connects to the `telemetry-server` service.
 
 ## Usage
 
