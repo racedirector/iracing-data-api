@@ -112,16 +112,19 @@ export class KappsTelemetrySocket {
   }
 
   private loadRecord() {
-  //   const xhr = new XMLHttpRequest();
-  //   xhr.onreadystatechange = () => {
-  //     if (xhr.readyState === 4 && xhr.status === 200) {
-  //       const data = JSON.parse(xhr.responseText);
-  //       console.log(data); // You can adapt this as needed
-  //     }
-  //   };
-  //   if (this.record) {
-  //     xhr.open("GET", this.record, true);
-  //     xhr.send();
-  //   }
-  // }
+    //   const xhr = new XMLHttpRequest();
+    //   xhr.onreadystatechange = () => {
+    //     if (xhr.readyState === 4 && xhr.status === 200) {
+    //       const data = JSON.parse(xhr.responseText);
+    //       console.log(data); // You can adapt this as needed
+    //     }
+    //   };
+    //   if (this.record) {
+    //     xhr.open("GET", this.record, true);
+    //     xhr.send();
+    //   }
+    // }
+  }
 }
+
+export default KappsTelemetrySocket;

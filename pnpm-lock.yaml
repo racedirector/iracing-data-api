@@ -61,6 +61,12 @@ importers:
         specifier: ^5.7.3
         version: 5.7.3
 
+  examples/kapps-hello-world:
+    dependencies:
+      '@iracing-data/ws':
+        specifier: workspace:*
+        version: link:../../packages/iracing-telemetry-ws
+
   examples/telemetry-client:
     dependencies:
       '@iracing-data/grpc-node':
@@ -7205,7 +7211,7 @@ packages:
     resolution: {integrity: sha512-7vuh85V5cdDofPyxn58nrPjBktZo0u9x1g8WtjQol+jZDaE+fhN+cIvTj11GndBnMnyfrUOG1sZQxCdjKh+DKg==}
     engines: {node: '>= 10.13.0'}
     dependencies:
-      '@types/node': 18.19.76
+      '@types/node': 20.17.30
       merge-stream: 2.0.0
       supports-color: 8.1.1
     dev: true

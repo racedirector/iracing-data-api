@@ -1,0 +1,16 @@
+{
+  "name": "kapps-telemetry-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file .env ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@iracing-data/ws": "workspace:*"
+  }
+}
