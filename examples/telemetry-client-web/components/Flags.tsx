@@ -62,7 +62,7 @@ const flagsDescription = (value: number) => {
 
 export const Flags = ({ value }: { value?: number }) => {
   const content = useMemo(() => {
-    return value && flagsDescription(value);
+    return value !== undefined ? flagsDescription(value) : undefined;
   }, [value]);
 
   if (value === undefined) {
