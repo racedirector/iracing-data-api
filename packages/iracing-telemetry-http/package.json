@@ -1,0 +1,16 @@
+{
+  "name": "@iracing-data/http",
+  "version": "0.0.0-alpha.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@iracing-data/telemetry-types": "workspace:*",
+    "axios": "^1.7.9"
+  },
+  "devDependencies": {
+    "ts-invariant": "^0.2.0"
+  }
+}
