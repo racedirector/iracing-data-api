@@ -18,7 +18,7 @@ const paceFlagsDescription = (value: number) => {
 
 export const PaceFlags = ({ value }: { value?: number }) => {
   const content = useMemo(() => {
-    return value && paceFlagsDescription(value);
+    return value !== undefined ? paceFlagsDescription(value) : undefined;
   }, [value]);
 
   if (value === undefined) {
