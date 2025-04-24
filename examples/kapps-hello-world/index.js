@@ -5,7 +5,7 @@ const main = async () => {
   const host = process.env.HOST || "localhost:8182";
   console.debug("Connecting to telemetry server at:", host);
   const socket = new KappsTelemetrySocket(
-    ["Speed"],
+    ["Speed", "LapDistPct", "SessionTick", "SessionTime"],
     [],
     10,
     host,
