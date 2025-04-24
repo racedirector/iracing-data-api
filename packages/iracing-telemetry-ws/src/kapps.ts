@@ -26,6 +26,7 @@ export class KappsTelemetrySocket {
     private server: string = "127.0.0.1:8182",
     private readIbt: boolean = false,
     private record: string | null = null,
+    private readonly retryMs: number = 2000,
     public onConnect?: () => void,
     public onDisconnect?: () => void,
     public onUpdate?: (keys: string[]) => void,
@@ -103,7 +104,7 @@ export class KappsTelemetrySocket {
       this.connected = false;
       this.onDisconnect?.();
     }
-    this.reconnectTimeout = setTimeout(() => this.connect(), 2000);
+    this.reconnectTimeout = setTimeout(() => this.connect(), this.retryMs);
   }
 
   public sendCommand(command: string, ...args: any[]) {
