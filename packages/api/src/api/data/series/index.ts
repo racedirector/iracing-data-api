@@ -18,9 +18,45 @@ export class SeriesAPI extends NetworkClientProvider {
     });
   }
 
-  seasons({ includeSeries }: { includeSeries?: boolean }) {
+  seasons({
+    includeSeries,
+    seasonYear,
+    seasonQuarter,
+  }: {
+    includeSeries?: boolean;
+    seasonYear?: number;
+    seasonQuarter?: number;
+  } = {}) {
     return this.client.get<IRacingAPIResponse>("/data/series/seasons", {
-      params: { include_series: includeSeries },
+      params: {
+        include_series: includeSeries,
+        season_year: seasonYear,
+        season_quarter: seasonQuarter,
+      },
+    });
+  }
+
+  seasonList({
+    includeSeries,
+    seasonYear,
+    seasonQuarter,
+  }: {
+    includeSeries?: boolean;
+    seasonYear?: number;
+    seasonQuarter?: number;
+  } = {}) {
+    return this.client.get<IRacingAPIResponse>("/data/series/season_list", {
+      params: {
+        include_series: includeSeries,
+        season_year: seasonYear,
+        season_quarter: seasonQuarter,
+      },
+    });
+  }
+
+  seasonSchedule({ seasonId }: { seasonId: number }) {
+    return this.client.get<IRacingAPIResponse>("/data/series/season_schedule", {
+      params: { season_id: seasonId },
     });
   }
 

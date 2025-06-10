@@ -1,18 +1,6 @@
 import { NetworkClientProvider, IRacingAPIResponse } from "../../types";
 
 export class LookupAPI extends NetworkClientProvider {
-  clubHistory({
-    seasonYear,
-    seasonQuarter,
-  }: {
-    seasonYear: number;
-    seasonQuarter: number;
-  }) {
-    return this.client.get<IRacingAPIResponse>("/data/lookup/club_history", {
-      params: { season_year: seasonYear, season_quarter: seasonQuarter },
-    });
-  }
-
   countries() {
     return this.client.get<IRacingAPIResponse>("/data/lookup/countries");
   }
@@ -21,6 +9,10 @@ export class LookupAPI extends NetworkClientProvider {
     return this.client.get<IRacingAPIResponse>("/data/lookup/drivers", {
       params: { search_term: searchTerm, league_id: leagueId },
     });
+  }
+
+  flairs() {
+    return this.client.get<IRacingAPIResponse>("/data/lookup/flairs");
   }
 
   get(params: Record<string, string>) {

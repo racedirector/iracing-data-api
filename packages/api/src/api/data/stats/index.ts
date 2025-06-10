@@ -82,20 +82,17 @@ export class StatsAPI extends NetworkClientProvider {
     seasonId,
     carClassId,
     raceWeekNumber,
-    clubId,
     division,
   }: {
     seasonId: number;
     carClassId: number;
     raceWeekNumber?: number;
-    clubId?: number;
     division?: Division;
   }) {
     return this.client.get("/data/stats/season_driver_standings", {
       params: {
         season_id: seasonId,
         car_class_id: carClassId,
-        club_id: clubId,
         division,
         race_week_num: raceWeekNumber,
       },
@@ -106,20 +103,17 @@ export class StatsAPI extends NetworkClientProvider {
     seasonId,
     carClassId,
     raceWeekNumber,
-    clubId,
     division,
   }: {
     seasonId: number;
     carClassId: number;
     raceWeekNumber?: number;
-    clubId?: number;
     division?: Division;
   }) {
     return this.client.get("/data/stats/season_supersession_standings", {
       params: {
         season_id: seasonId,
         car_class_id: carClassId,
-        club_id: clubId,
         division,
         race_week_num: raceWeekNumber,
       },
@@ -148,20 +142,17 @@ export class StatsAPI extends NetworkClientProvider {
     seasonId,
     carClassId,
     raceWeekNumber,
-    clubId,
     division,
   }: {
     seasonId: number;
     carClassId: number;
     raceWeekNumber?: number;
-    clubId?: number;
     division?: Division;
   }) {
     return this.client.get("/data/stats/season_time_trial_standings", {
       params: {
         season_id: seasonId,
         car_class_id: carClassId,
-        club_id: clubId,
         division,
         race_week_num: raceWeekNumber,
       },
@@ -172,13 +163,11 @@ export class StatsAPI extends NetworkClientProvider {
     seasonId,
     carClassId,
     raceWeekNumber,
-    clubId,
     division,
   }: {
     seasonId: number;
     carClassId: number;
     raceWeekNumber: number;
-    clubId?: number;
     division?: Division;
   }) {
     return this.client.get("/data/stats/season_time_trial_results", {
@@ -186,7 +175,6 @@ export class StatsAPI extends NetworkClientProvider {
         season_id: seasonId,
         car_class_id: carClassId,
         race_week_num: raceWeekNumber,
-        club_id: clubId,
         division,
       },
     });
@@ -196,13 +184,11 @@ export class StatsAPI extends NetworkClientProvider {
     seasonId,
     carClassId,
     raceWeekNumber,
-    clubId,
     division,
   }: {
     seasonId: number;
     carClassId: number;
     raceWeekNumber: number;
-    clubId?: number;
     division?: Division;
   }) {
     return this.client.get("/data/stats/season_qualify_results", {
@@ -210,7 +196,6 @@ export class StatsAPI extends NetworkClientProvider {
         season_id: seasonId,
         car_class_id: carClassId,
         race_week_num: raceWeekNumber,
-        club_id: clubId,
         division,
       },
     });
