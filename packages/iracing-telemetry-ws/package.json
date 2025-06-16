@@ -12,7 +12,7 @@
     "ws": "^8.18.1"
   },
   "devDependencies": {
-    "@types/node": "^20.6.0",
+    "@types/node": "^24.0.3",
     "@types/ws": "^8.5.4",
     "ts-invariant": "^0.2.0"
   }
