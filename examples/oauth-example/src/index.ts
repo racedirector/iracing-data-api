@@ -78,7 +78,8 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
       },
     });
 
-    console.info("User identified as:", response);
+    const userData = await response.json();
+    console.info("User identified as:", userData);
   } catch (error) {
     next(error);
   }
