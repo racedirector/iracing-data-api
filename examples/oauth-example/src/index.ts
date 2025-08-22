@@ -12,6 +12,8 @@ const client = await OAuthClient.create({
   stateStore: new InMemoryStore(),
 });
 
+const PORT = process.env.PORT || "3000";
+
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
@@ -63,4 +65,8 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+});
+
+app.listen(PORT, () => {
+  console.info(`Example app listening on port ${PORT}`);
 });

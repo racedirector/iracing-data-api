@@ -1,10 +1,11 @@
 {
   "name": "iracing-oauth-example",
   "version": "0.0.1",
+  "type": "module",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
-    "dev": "tsx watch --tsconfig tsconfig.build.json src/index.ts"
+    "dev": "tsx watch --tsconfig tsconfig.build.json --env-file=.env src/index.ts"
   },
   "dependencies": {
     "@iracing-data/oauth-client": "workspace:*",
