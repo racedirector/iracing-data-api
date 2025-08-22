@@ -8,7 +8,6 @@ export class InMemoryStore implements StateStore {
   }
   set(key, value) {
     this.state[key] = value;
-  }
   private state = new Map<string, any>();
 
   get(key, options) {
