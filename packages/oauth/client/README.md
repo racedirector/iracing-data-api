@@ -44,11 +44,12 @@ const client = new OAuthClient({
   stateStore: new InMemoryStore()
 });
 
+// Invoke authorize and redirect to the provided URL
 const { url } = await client.authorize();
 
 redirect(url)
 
-// Some time passes...
+// Some time passes and the callback is invoked...
 const params = new URLSearchParams(req.url.split("?")[1]);
 const { access_token } = await client.callback(params);
 
