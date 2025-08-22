@@ -1,9 +1,9 @@
-import { OAuthClient } from "@iracing-data/oauth-client";
+import { OAuthClient, BASE_URL } from "@iracing-data/oauth-client";
 import express from "express";
 import { page } from "./page";
 import { InMemoryStore } from "./storage/memory";
 
-const client = await OAuthClient.create({
+const client = new OAuthClient({
   clientMetadata: {
     clientId: process.env.IRACING_CLIENT_ID!,
     redirectUri: "http://127.0.0.1:3001/oauth/iracing/callback",
@@ -58,10 +58,27 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
   try {
     const params = new URLSearchParams(req.url.split("?")[1]);
 
-    await client.callback(params);
+    const { access_token } = await client.callback(params);
 
-    // console.info("authorize() was called with state:", state);
-    // console.info("User authenticated as:");
+    /**
+     * In a standard application, we'd store the token result in some sort of
+     * session store/cookie so the user can make subsequent calls, however,
+     * iRacing does not support more than identity verification at this time.
+     *
+     * In their own guide, they suggest using the access token to request `/iracing/profile`,
+     * and then discarding the access token.
+     *
+     * See: https://oauth.iracing.com/oauth2/book/identity_verification_workflow.html#steps
+     */
+
+    const response = fetch(`${BASE_URL}/iracing/profile`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${access_token}`,
+      },
+    });
+
+    console.info("User identified as:", response);
   } catch (error) {
     next(error);
   }

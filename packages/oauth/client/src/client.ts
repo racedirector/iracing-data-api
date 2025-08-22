@@ -1,36 +1,12 @@
 import * as oauth from "oauth4webapi";
 import { discover } from "./discovery";
 import { OAuthCallbackError } from "./oauth-callback-error";
-import { IRacingOAuthEndpoints } from "./schema/iracing-oauth-endpoints-schema";
 import {
   OAuthClientMetadata,
   OAuthClientMetadataInput,
   OAuthClientMetadataSchema,
 } from "./schema/oauth-client-metadata-schema";
 import { StateStore } from "./schema/state-store";
-
-async function extractEndpointsOrDiscover(
-  metadata: Pick<
-    OAuthClientMetadata,
-    "authorizationUrl" | "tokenUrl" | "issuer"
-  >
-): Promise<IRacingOAuthEndpoints> {
-  if (metadata.authorizationUrl && metadata.tokenUrl) {
-    return {
-      authorization: metadata.authorizationUrl,
-      token: metadata.tokenUrl,
-    };
-  }
-
-  // The zod `.parse` call ensures that this is set if authorizationUrl and tokenUrl are not.
-  const as = await discover(metadata.issuer!);
-
-  // `discover` will throw if either of these endpoints are missing.
-  return {
-    authorization: as.authorization_endpoint!,
-    token: as.token_endpoint!,
-  };
-}
 
 type OAuthClientOptions = {
   // Config
@@ -44,18 +20,15 @@ type OAuthClientOptions = {
 };
 
 export class OAuthClient {
-  private clientMetadata!: OAuthClientMetadata;
-  private stateStore!: StateStore;
+  private readonly clientMetadata: OAuthClientMetadata;
+  private readonly stateStore: StateStore;
 
-  static async create(options: OAuthClientOptions) {
+  constructor(options: OAuthClientOptions) {
     const { clientMetadata, stateStore, fetch = globalThis.fetch } = options;
 
     const normalizedMetadata = OAuthClientMetadataSchema.parse(clientMetadata);
-    const client = new OAuthClient();
-    client.clientMetadata = normalizedMetadata;
-    client.stateStore = stateStore;
-
-    return client;
+    this.clientMetadata = normalizedMetadata;
+    this.stateStore = stateStore;
   }
 
   async authorize({ signal }: { signal: AbortSignal }) {
@@ -72,13 +45,20 @@ export class OAuthClient {
       appState: state,
     });
 
-    const { authorization } = await extractEndpointsOrDiscover(
-      this.clientMetadata
-    );
-
     signal?.throwIfAborted();
 
-    const authorizationUrl = new URL(authorization);
+    /**
+     * Get the authorization URL from client metadata or discovery.
+     */
+    let authorizationUrl: URL;
+    if (!this.clientMetadata.authorizationUrl) {
+      const as = await discover(this.clientMetadata.issuer);
+      // Discover will throw if authorization_endpoint is null or undefined.
+      authorizationUrl = new URL(as.authorization_endpoint!);
+    } else {
+      authorizationUrl = new URL(this.clientMetadata.authorizationUrl);
+    }
+
     authorizationUrl.searchParams.set("response_type", "code");
     authorizationUrl.searchParams.set(
       "client_id",
@@ -101,46 +81,6 @@ export class OAuthClient {
   }
 
   async callback(params: URLSearchParams) {
-    const stateParam = params.get("state");
-    const codeParam = params.get("code");
-    const errorParam = params.get("error");
-    const errorDescriptionParam = params.get("error_description");
-    const errorUriParam = params.get("error_uri");
-
-    if (!stateParam) {
-      throw new OAuthCallbackError(params, 'Missing "state" parameter.');
-    }
-
-    const stateData = await this.stateStore.get(stateParam);
-    if (stateData) {
-      // Prevent replay
-      await this.stateStore.del(stateParam);
-    } else {
-      throw new OAuthCallbackError(
-        params,
-        `Unknown authorization session "${stateParam}"`
-      );
-    }
-
-    if (!codeParam) {
-      throw new OAuthCallbackError(
-        params,
-        'Missing "code" query parameter.',
-        stateData.appState
-      );
-    }
-
-    const { token } = await extractEndpointsOrDiscover(this.clientMetadata);
-
-    const tokenUrl = new URL(token);
-    tokenUrl.searchParams.set("grant_type", "authorization_code");
-    tokenUrl.searchParams.set("client_id", this.clientMetadata.clientId);
-    tokenUrl.searchParams.set("code", codeParam);
-    tokenUrl.searchParams.set("redirect_uri", this.clientMetadata.redirectUri);
-    tokenUrl.searchParams.set("code_verifier", stateData.verifier!);
-  }
-
-  async _callback(params: URLSearchParams) {
     const stateParam = params.get("state");
     const codeParam = params.get("code");
     const errorParam = params.get("error");
@@ -179,6 +119,14 @@ export class OAuthClient {
       );
     }
 
+    if (!codeParam) {
+      throw new OAuthCallbackError(
+        params,
+        'Missing "code" query parameter.',
+        stateData.appState
+      );
+    }
+
     let codeGrantParams: URLSearchParams;
     try {
       codeGrantParams = oauth.validateAuthResponse(
@@ -200,7 +148,7 @@ export class OAuthClient {
       throw error;
     }
 
-    const codeGrantResponse = await oauth.authorizationCodeGrantRequest(
+    const response = await oauth.authorizationCodeGrantRequest(
       authorizationServer,
       client,
       clientAuth,
@@ -209,6 +157,12 @@ export class OAuthClient {
       stateData.verifier!
     );
 
-    console.log("Got code grant response:", codeGrantResponse);
+    const result = await oauth.processAuthorizationCodeResponse(
+      authorizationServer,
+      client,
+      response
+    );
+
+    return result;
   }
 }
