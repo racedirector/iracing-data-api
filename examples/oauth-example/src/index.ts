@@ -71,7 +71,7 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
      * See: https://oauth.iracing.com/oauth2/book/identity_verification_workflow.html#steps
      */
 
-    const response = fetch(`${BASE_URL}/iracing/profile`, {
+    const response = await fetch(`${BASE_URL}/iracing/profile`, {
       method: "GET",
       headers: {
         Authorization: `Bearer ${access_token}`,
