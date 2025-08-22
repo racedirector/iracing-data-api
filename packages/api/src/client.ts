@@ -174,13 +174,6 @@ export class IRacingAPIClient extends NetworkClientProvider {
 
   // /data/lookup
 
-  async lookupClubHistory(
-    input: Parameters<IRacingAPI["data"]["lookup"]["clubHistory"]>[0]
-  ) {
-    const response = await this.api.data.lookup.clubHistory(input);
-    return fetchValidLinkData(response.data);
-  }
-
   async lookupCountries() {
     const response = await this.api.data.lookup.countries();
     return fetchValidLinkData(response.data);
