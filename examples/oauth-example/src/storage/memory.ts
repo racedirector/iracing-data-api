@@ -4,7 +4,6 @@ export class InMemoryStore implements StateStore {
 
   get(key, options) {
     return this.state[key];
-  }
   set(key, value) {
     this.state[key] = value;
   private state = new Map<string, any>();
