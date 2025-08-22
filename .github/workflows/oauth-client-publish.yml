@@ -39,4 +39,12 @@ jobs:
         uses: actions/cache@v4
         with:
           path: packages/oauth/client/dist
-          key: ${{ runner.os }}-api-build-${{ github.sha }}
+          cd packages/oauth/client
+          pnpm publish --access public
+
+      # Cache build artifacts (for subsequent workflow runs)
+      - name: Cache Build Artifacts
+        uses: actions/cache@v4
+        with:
+          path: packages/oauth/client/dist
+          key: ${{ runner.os }}-oauth-client-build-${{ github.sha }}
