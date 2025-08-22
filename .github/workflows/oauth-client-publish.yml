@@ -31,7 +31,7 @@ jobs:
 
       - name: Publish
         run: |
-          cd packages/api
+          cd packages/oauth/client
           pnpm publish --access public
 
       # Cache build artifacts (for subsequent workflow runs)
