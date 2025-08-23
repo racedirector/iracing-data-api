@@ -80,7 +80,7 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
 
     const userData = await response.json();
     console.info("User identified as:", userData);
-    res.redirect("/");
+    res.status(200).send()
   } catch (error) {
     next(error);
   }
