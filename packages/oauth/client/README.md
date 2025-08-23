@@ -15,24 +15,7 @@ pnpm i @iracing-data/oauth-client
 _See [oauth-example](../../../examples/oauth-example) for usage example._
 
 ```typescript
-import { OAuthClient, StateStore } from "@iracing-data/oauth-client"
-
-export class InMemoryStore implements StateStore {
-  private state = new Map();
-
-  get(key, options) {
-    return this.state[key];
-  }
-  set(key, value) {
-    this.state[key] = value;
-  }
-  del(key) {
-    delete this.state[key];
-  }
-  clear() {
-    this.state.clear();
-  }
-}
+import { OAuthClient } from "@iracing-data/oauth-client"
 
 
 const client = new OAuthClient({

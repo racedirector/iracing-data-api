@@ -14,9 +14,6 @@ type OAuthClientOptions = {
 
   // Stores
   stateStore: StateStore;
-
-  // Services
-  fetch?: typeof globalThis.fetch;
 };
 
 export class OAuthClient {
@@ -24,10 +21,9 @@ export class OAuthClient {
   private readonly stateStore: StateStore;
 
   constructor(options: OAuthClientOptions) {
-    const { clientMetadata, stateStore, fetch = globalThis.fetch } = options;
+    const { clientMetadata, stateStore } = options;
 
-    const normalizedMetadata = OAuthClientMetadataSchema.parse(clientMetadata);
-    this.clientMetadata = normalizedMetadata;
+    this.clientMetadata = OAuthClientMetadataSchema.parse(clientMetadata);
     this.stateStore = stateStore;
   }
 
