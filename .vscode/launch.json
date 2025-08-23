@@ -18,6 +18,15 @@
       "program": "node",
       "args": ["--inspect", "services/irsdk-native/index.js"],
       "cwd": "${workspaceRoot}"
+    },
+    {
+      "request": "launch",
+      "type": "cppvsdbg",
+      "name": "(cppvsdbg) Debug irsdk-native service",
+      "preLaunchTask": "npm: build:cpp:debug - packages/irsdk/native",
+      "program": "node",
+      "args": ["--inspect", "services/irsdk-native/index.js"],
+      "cwd": "${workspaceRoot}"
     }
   ]
 }

@@ -1,5 +1,5 @@
 /* eslint-env node */
-import { NativeSDK } from "@iracing-data/irsdk-native";
+import { NativeSDK, TelemetryVariable } from "@iracing-data/irsdk-native";
 
 const waitAsync = async (sdk, timeout) => {
   console.time("waitForDataAsync");
@@ -23,10 +23,12 @@ const waitSessionDataAsync = async (sdk) => {
 const main = async () => {
   console.info("Starting iRacing SDK");
   const sdk = new NativeSDK();
+  const sessionTick = new TelemetryVariable("SessionTick");
 
   // Wait up to 1s for data to be available
   if (sdk.waitForData(10 * 1000)) {
     console.log("Data is available");
+    console.debug("Tick:", sessionTick.getInt());
   } else {
     console.log("Data is not available");
   }
@@ -48,5 +50,4 @@ const main = async () => {
   process.on("disconnect", shutdown);
 };
 
-throw new Error("Not implemented");
 main();

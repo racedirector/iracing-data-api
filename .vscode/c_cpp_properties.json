@@ -1,0 +1,27 @@
+{
+    "configurations": [
+        {
+            "name": "Mac",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "~/.node-gyp/22.11.0/include/node"
+            ],
+            "compilerPath": "/usr/bin/clang",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "intelliSenseMode": "macos-clang-arm64"
+        },
+        {
+            "name": "Win32",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${userHome}\\AppData\\Local\\node-gyp\\Cache\\22.14.0\\include\\node"
+            ],
+            "intelliSenseMode": "windows-clang-x64",
+            "cStandard": "c17",
+            "cppStandard": "c++17",
+            "compilerPath": "C:/Program Files/LLVM/bin/clang.exe"
+        }
+    ],
+    "version": 4
+}

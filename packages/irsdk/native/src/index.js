@@ -2,11 +2,11 @@
 /* eslint-disable import/order */
 import bindings from "bindings";
 
-const addon = bindings("irsdk");
+const irsdk = bindings("irsdk");
 
-const NativeSDK = addon.irsdkNode;
-const TelemetryVariable = addon.TelemetryVariable;
-const TelemetryGenerator = addon.TelemetryGenerator;
+const NativeSDK = irsdk.irsdkNode;
+const TelemetryVariable = irsdk.TelemetryVariable;
+const TelemetryGenerator = irsdk.TelemetryGenerator;
 
 async function* telemetryStream() {
   const generator = new TelemetryGenerator();
