@@ -10,6 +10,7 @@
   "devDependencies": {
     "@iracing-data/grpc-node": "workspace:*",
     "@iracing-data/telemetry-types": "workspace:*",
+    "@iracing-data/sync-telemetry-json-schema": "workspace:*",
     "@grpc/grpc-js": "^1.8.10",
     "json-schema-to-typescript": "15.0.4",
     "tsx": "^4.20.4"
