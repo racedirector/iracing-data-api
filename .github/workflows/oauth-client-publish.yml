@@ -39,7 +39,6 @@ jobs:
         uses: actions/cache@v4
         with:
           path: packages/oauth/client/dist
-          pnpm publish --access public
 
       # Cache build artifacts (for subsequent workflow runs)
       - name: Cache Build Artifacts
