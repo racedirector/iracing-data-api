@@ -270,6 +270,7 @@ export interface Telemetry {
   PitsOpen?: boolean;
   VidCapEnabled?: boolean;
   VidCapActive?: boolean;
+  PlayerIncidents?: number;
   PitRepairLeft?: number;
   PitOptRepairLeft?: number;
   PitstopActive?: boolean;
@@ -310,6 +311,7 @@ export interface Telemetry {
   ClutchRaw?: number;
   HandbrakeRaw?: number;
   BrakeABSactive?: boolean;
+  Shifter?: number;
   /**
    * Bitwise field for `EngineWarnings`
    */
@@ -454,6 +456,7 @@ export interface Telemetry {
   Engine0_RPM?: number;
   RFbrakeLinePress?: number;
   RFcoldPressure?: number;
+  RFodometer?: number;
   RFtempCL?: number;
   RFtempCM?: number;
   RFtempCR?: number;
@@ -462,6 +465,7 @@ export interface Telemetry {
   RFwearR?: number;
   LFbrakeLinePress?: number;
   LFcoldPressure?: number;
+  LFodometer?: number;
   LFtempCL?: number;
   LFtempCM?: number;
   LFtempCR?: number;
@@ -470,6 +474,7 @@ export interface Telemetry {
   LFwearR?: number;
   RRbrakeLinePress?: number;
   RRcoldPressure?: number;
+  RRodometer?: number;
   RRtempCL?: number;
   RRtempCM?: number;
   RRtempCR?: number;
@@ -478,6 +483,7 @@ export interface Telemetry {
   RRwearR?: number;
   LRbrakeLinePress?: number;
   LRcoldPressure?: number;
+  LRodometer?: number;
   LRtempCL?: number;
   LRtempCM?: number;
   LRtempCR?: number;

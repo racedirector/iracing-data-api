@@ -3,8 +3,8 @@ import * as empty from "google-protobuf/google/protobuf/empty_pb";
 import {
   GetTelemetryRequest,
   TelemetrySubscriptionRequest,
-} from "./constants/proto/telemetry_pb";
-import { TelemetryClient as TelemetryServiceClient } from "./constants/proto/TelemetryServiceClientPb";
+} from "./constants/iracing-proto/telemetry_pb";
+import { TelemetryClient as TelemetryServiceClient } from "./constants/iracing-proto/TelemetryServiceClientPb";
 
 export class TelemetryClient {
   private _client: TelemetryServiceClient;

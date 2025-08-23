@@ -22,8 +22,8 @@ import {
   TelemetryCommandRequest,
   VideoCaptureMode as VideoCaptureModePb,
   VideoCaptureRequest,
-} from "./constants/proto/broadcast_pb";
-import { BroadcastClient as BroadcastServiceClient } from "./constants/proto/BroadcastServiceClientPb";
+} from "./constants/iracing-proto/broadcast_pb";
+import { BroadcastClient as BroadcastServiceClient } from "./constants/iracing-proto/BroadcastServiceClientPb";
 
 type CameraState = Exclude<CameraStatePb, CameraStatePb.CAMERA_STATE_UNKNOWN>;
 type PitCommandMode = Exclude<

@@ -71,7 +71,7 @@ export interface Session {
       NumStarters: number;
       StartingGrid: string;
       QualifyScoring: string;
-      CourseCautions: string;
+      CourseCautions: boolean;
       StandingStart: number;
       ShortParadeLap: number;
       Restarts: string;
@@ -93,7 +93,7 @@ export interface Session {
       HasOpenRegistration: number;
       HardcoreLevel: number;
       NumJokerLaps: number;
-      IncidentLimit: number;
+      IncidentLimit: string;
       FastRepairsLimit: number;
       GreenWhiteCheckeredLimit: number;
     };
@@ -105,7 +105,7 @@ export interface Session {
     CurrentSessionNum: number;
     Sessions: {
       SessionNum: number;
-      SessionLaps: number | string;
+      SessionLaps: string;
       SessionTime: string;
       SessionNumLapsToAvg: number;
       SessionType: string;
@@ -143,15 +143,6 @@ export interface Session {
       ResultsNumLeadChanges: number;
       ResultsLapsComplete: number;
       ResultsOfficial: number;
-    }[];
-  };
-  QualifyResultsInfo: {
-    Results: {
-      Position: number;
-      ClassPosition: number;
-      CarIdx: number;
-      FastestLap: number;
-      FastestTime: number;
     }[];
   };
   CameraInfo: {
@@ -205,6 +196,9 @@ export interface Session {
     DriverCarGearNumForward: number;
     DriverCarGearNeutral: number;
     DriverCarGearReverse: number;
+    DriverGearboxType: string;
+    DriverGearboxControlType: string;
+    DriverCarShiftAid: string;
     DriverCarSLFirstRPM: number;
     DriverCarSLShiftRPM: number;
     DriverCarSLLastRPM: number;
@@ -218,11 +212,15 @@ export interface Session {
     DriverSetupPassedTech: number;
     DriverIncidentCount: number;
     DriverBrakeCurvingFactor: number;
+    DriverTires: {
+      TireIndex: number;
+      TireCompoundType: string;
+    }[];
     Drivers: {
       CarIdx: number;
       UserName: string;
-      AbbrevName: null | string;
-      Initials: null | string;
+      AbbrevName: string;
+      Initials: string;
       UserID: number;
       TeamID: number;
       TeamName: string;
@@ -236,7 +234,10 @@ export interface Session {
       CarIsElectric: number;
       CarScreenName: string;
       CarScreenNameShort: string;
-      CarClassShortName: null | string;
+      CarCfg: number;
+      CarCfgName: null;
+      CarCfgCustomPaintExt: null;
+      CarClassShortName: string;
       CarClassRelSpeed: number;
       CarClassLicenseLevel: number;
       CarClassMaxFuelPct: string;
@@ -246,7 +247,10 @@ export interface Session {
       CarClassColor: number;
       CarClassEstLapTime: number;
       IRating: number;
+      LicLevel: number;
+      LicSubLevel: number;
       LicString: string;
+      LicColor: number;
       IsSpectator: number;
       CarDesignStr: string;
       HelmetDesignStr: string;
@@ -259,6 +263,8 @@ export interface Session {
       CarSponsor_2: number;
       ClubName: string;
       ClubID: number;
+      FlairName: string;
+      FlairID: number;
       DivisionName: string;
       DivisionID: number;
       CurDriverIncidentCount: number;

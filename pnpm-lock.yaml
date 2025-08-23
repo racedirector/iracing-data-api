@@ -333,6 +333,9 @@ importers:
       json-schema-to-typescript:
         specifier: 15.0.4
         version: 15.0.4
+      tsx:
+        specifier: ^4.20.4
+        version: 4.20.4
 
   packages/iracing-telemetry-ws:
     dependencies:
