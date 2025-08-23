@@ -2,6 +2,7 @@ protoc:
 	make protoc-codegen
 	make protoc-web
 	make protoc-node
+	make protoc-json-schema
 
 protoc-web:
 	# Make the directory if it doesn't exist
@@ -33,4 +34,14 @@ protoc-codegen:
 		--ts_opt=unary_rpc_promise=true \
 		--ts_opt=target=node \
 		--ts_out=./packages/iracing-telemetry-types/scripts/constants \
+		./iracing-proto/schema.proto 
+
+protoc-json-schema:
+	# Make the directory if it doesn't exist
+	mkdir -p ./packages/helpers/sync-telemetry-json-schema/src/constants/iracing-proto
+
+	protoc --plugin=protoc-gen-ts=./node_modules/.bin/protoc-gen-ts \
+		--ts_opt=unary_rpc_promise=true \
+		--ts_opt=target=node \
+		--ts_out=./packages/helpers/sync-telemetry-json-schema/src/constants \
 		./iracing-proto/schema.proto 

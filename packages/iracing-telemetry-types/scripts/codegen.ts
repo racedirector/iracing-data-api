@@ -1,6 +1,7 @@
 #!/usr/bin/env ts-node
 import path from "node:path";
-import { downloadSchema } from "./download-schema";
+// import { downloadSchema } from "./download-schema";
+import { downloadSchema } from "@iracing-data/sync-telemetry-json-schema";
 import { generateTypes } from "./generate-types";
 
 const API_URL = process.env.API_URL || "localhost:50051";

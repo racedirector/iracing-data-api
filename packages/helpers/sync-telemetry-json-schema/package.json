@@ -1,0 +1,11 @@
+{
+  "name": "@iracing-data/sync-telemetry-json-schema",
+  "version": "0.0.0-alpha.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@grpc/grpc-js": "^1.13.4"
+  }
+}
