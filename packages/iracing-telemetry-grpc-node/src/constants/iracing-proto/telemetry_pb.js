@@ -1,4 +1,4 @@
-// source: proto/telemetry.proto
+// source: iracing-proto/telemetry.proto
 /**
  * @fileoverview
  * @enhanceable

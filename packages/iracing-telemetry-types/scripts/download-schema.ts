@@ -2,7 +2,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import * as grpc from "@grpc/grpc-js";
-import { iracing } from "./constants/proto/schema";
+import { iracing } from "./constants/iracing-proto/schema";
 
 export const downloadSchema = async ({
   serverUrl,

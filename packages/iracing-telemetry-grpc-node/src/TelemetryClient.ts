@@ -2,7 +2,7 @@ import { EventEmitter } from "stream";
 import { credentials } from "@grpc/grpc-js";
 import { TelemetryKey } from "@iracing-data/telemetry-types";
 import { google } from "./constants/google/protobuf/empty";
-import { iracing } from "./constants/proto/telemetry";
+import { iracing } from "./constants/iracing-proto/telemetry";
 
 export class TelemetryClient {
   private _client: iracing.telemetry.TelemetryClient;
