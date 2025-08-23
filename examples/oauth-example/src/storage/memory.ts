@@ -1,0 +1,21 @@
+import {
+  InternalState,
+  StateStore,
+} from "@iracing-data/oauth-client/dist/schema/state-store";
+
+export class InMemoryStore implements StateStore {
+  private state = new Map<string, InternalState>();
+
+  get(key, options) {
+    return this.state.get(key);
+  }
+  set(key, value) {
+    this.state.set(key, value);
+  }
+  del(key) {
+    this.state.delete(key);
+  }
+  clear() {
+    this.state.clear();
+  }
+}
