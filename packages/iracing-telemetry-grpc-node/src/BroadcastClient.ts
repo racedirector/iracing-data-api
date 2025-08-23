@@ -1,5 +1,5 @@
 import * as grpc from "@grpc/grpc-js";
-import { iracing } from "./constants/proto/broadcast";
+import { iracing } from "./constants/iracing-proto/broadcast";
 
 export class BroadcastClient {
   private _client: iracing.broadcast.BroadcastClient;

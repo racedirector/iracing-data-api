@@ -8,7 +8,7 @@
 // versions:
 // 	protoc-gen-grpc-web v1.5.0
 // 	protoc              v5.29.3
-// source: proto/broadcast.proto
+// source: iracing-proto/broadcast.proto
 
 
 /* eslint-disable */
@@ -18,7 +18,7 @@
 import * as grpcWeb from 'grpc-web';
 
 import * as google_protobuf_empty_pb from 'google-protobuf/google/protobuf/empty_pb'; // proto import: "google/protobuf/empty.proto"
-import * as proto_broadcast_pb from '../proto/broadcast_pb'; // proto import: "proto/broadcast.proto"
+import * as iracing$proto_broadcast_pb from '../iracing-proto/broadcast_pb'; // proto import: "iracing-proto/broadcast.proto"
 
 
 export class BroadcastClient {
@@ -44,28 +44,28 @@ export class BroadcastClient {
     '/iracing.broadcast.Broadcast/GetAvailableCameras',
     grpcWeb.MethodType.UNARY,
     google_protobuf_empty_pb.Empty,
-    proto_broadcast_pb.GetAvailableCamerasResponse,
+    iracing$proto_broadcast_pb.GetAvailableCamerasResponse,
     (request: google_protobuf_empty_pb.Empty) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.GetAvailableCamerasResponse.deserializeBinary
+    iracing$proto_broadcast_pb.GetAvailableCamerasResponse.deserializeBinary
   );
 
   getAvailableCameras(
     request: google_protobuf_empty_pb.Empty,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.GetAvailableCamerasResponse>;
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.GetAvailableCamerasResponse>;
 
   getAvailableCameras(
     request: google_protobuf_empty_pb.Empty,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.GetAvailableCamerasResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.GetAvailableCamerasResponse>;
+               response: iracing$proto_broadcast_pb.GetAvailableCamerasResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.GetAvailableCamerasResponse>;
 
   getAvailableCameras(
     request: google_protobuf_empty_pb.Empty,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.GetAvailableCamerasResponse) => void) {
+               response: iracing$proto_broadcast_pb.GetAvailableCamerasResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -86,29 +86,29 @@ export class BroadcastClient {
   methodDescriptorCameraSwitchPosition = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/CameraSwitchPosition',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.CameraSwitchPositionRequest,
-    proto_broadcast_pb.CameraSwitchPositionResponse,
-    (request: proto_broadcast_pb.CameraSwitchPositionRequest) => {
+    iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
+    iracing$proto_broadcast_pb.CameraSwitchPositionResponse,
+    (request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.CameraSwitchPositionResponse.deserializeBinary
+    iracing$proto_broadcast_pb.CameraSwitchPositionResponse.deserializeBinary
   );
 
   cameraSwitchPosition(
-    request: proto_broadcast_pb.CameraSwitchPositionRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.CameraSwitchPositionResponse>;
+    request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.CameraSwitchPositionResponse>;
 
   cameraSwitchPosition(
-    request: proto_broadcast_pb.CameraSwitchPositionRequest,
+    request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.CameraSwitchPositionResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.CameraSwitchPositionResponse>;
+               response: iracing$proto_broadcast_pb.CameraSwitchPositionResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSwitchPositionResponse>;
 
   cameraSwitchPosition(
-    request: proto_broadcast_pb.CameraSwitchPositionRequest,
+    request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.CameraSwitchPositionResponse) => void) {
+               response: iracing$proto_broadcast_pb.CameraSwitchPositionResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -129,29 +129,29 @@ export class BroadcastClient {
   methodDescriptorCameraSwitchNumber = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/CameraSwitchNumber',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.CameraSwitchNumberRequest,
-    proto_broadcast_pb.CameraSwitchNumberResponse,
-    (request: proto_broadcast_pb.CameraSwitchNumberRequest) => {
+    iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
+    iracing$proto_broadcast_pb.CameraSwitchNumberResponse,
+    (request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.CameraSwitchNumberResponse.deserializeBinary
+    iracing$proto_broadcast_pb.CameraSwitchNumberResponse.deserializeBinary
   );
 
   cameraSwitchNumber(
-    request: proto_broadcast_pb.CameraSwitchNumberRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.CameraSwitchNumberResponse>;
+    request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.CameraSwitchNumberResponse>;
 
   cameraSwitchNumber(
-    request: proto_broadcast_pb.CameraSwitchNumberRequest,
+    request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.CameraSwitchNumberResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.CameraSwitchNumberResponse>;
+               response: iracing$proto_broadcast_pb.CameraSwitchNumberResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSwitchNumberResponse>;
 
   cameraSwitchNumber(
-    request: proto_broadcast_pb.CameraSwitchNumberRequest,
+    request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.CameraSwitchNumberResponse) => void) {
+               response: iracing$proto_broadcast_pb.CameraSwitchNumberResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -172,29 +172,29 @@ export class BroadcastClient {
   methodDescriptorCameraSetState = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/CameraSetState',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.CameraSetStateRequest,
-    proto_broadcast_pb.CameraSetStateResponse,
-    (request: proto_broadcast_pb.CameraSetStateRequest) => {
+    iracing$proto_broadcast_pb.CameraSetStateRequest,
+    iracing$proto_broadcast_pb.CameraSetStateResponse,
+    (request: iracing$proto_broadcast_pb.CameraSetStateRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.CameraSetStateResponse.deserializeBinary
+    iracing$proto_broadcast_pb.CameraSetStateResponse.deserializeBinary
   );
 
   cameraSetState(
-    request: proto_broadcast_pb.CameraSetStateRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.CameraSetStateResponse>;
+    request: iracing$proto_broadcast_pb.CameraSetStateRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.CameraSetStateResponse>;
 
   cameraSetState(
-    request: proto_broadcast_pb.CameraSetStateRequest,
+    request: iracing$proto_broadcast_pb.CameraSetStateRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.CameraSetStateResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.CameraSetStateResponse>;
+               response: iracing$proto_broadcast_pb.CameraSetStateResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSetStateResponse>;
 
   cameraSetState(
-    request: proto_broadcast_pb.CameraSetStateRequest,
+    request: iracing$proto_broadcast_pb.CameraSetStateRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.CameraSetStateResponse) => void) {
+               response: iracing$proto_broadcast_pb.CameraSetStateResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -215,29 +215,29 @@ export class BroadcastClient {
   methodDescriptorReplaySetPlaySpeed = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ReplaySetPlaySpeed',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ReplaySetPlaySpeedRequest,
-    proto_broadcast_pb.ReplaySetPlaySpeedResponse,
-    (request: proto_broadcast_pb.ReplaySetPlaySpeedRequest) => {
+    iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
+    iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse,
+    (request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ReplaySetPlaySpeedResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse.deserializeBinary
   );
 
   replaySetPlaySpeed(
-    request: proto_broadcast_pb.ReplaySetPlaySpeedRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
+    request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
 
   replaySetPlaySpeed(
-    request: proto_broadcast_pb.ReplaySetPlaySpeedRequest,
+    request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySetPlaySpeedResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
+               response: iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
 
   replaySetPlaySpeed(
-    request: proto_broadcast_pb.ReplaySetPlaySpeedRequest,
+    request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySetPlaySpeedResponse) => void) {
+               response: iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -258,29 +258,29 @@ export class BroadcastClient {
   methodDescriptorReplaySetPlayPosition = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ReplaySetPlayPosition',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ReplaySetPlayPositionRequest,
-    proto_broadcast_pb.ReplaySetPlayPositionResponse,
-    (request: proto_broadcast_pb.ReplaySetPlayPositionRequest) => {
+    iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
+    iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse,
+    (request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ReplaySetPlayPositionResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse.deserializeBinary
   );
 
   replaySetPlayPosition(
-    request: proto_broadcast_pb.ReplaySetPlayPositionRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ReplaySetPlayPositionResponse>;
+    request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse>;
 
   replaySetPlayPosition(
-    request: proto_broadcast_pb.ReplaySetPlayPositionRequest,
+    request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySetPlayPositionResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ReplaySetPlayPositionResponse>;
+               response: iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse>;
 
   replaySetPlayPosition(
-    request: proto_broadcast_pb.ReplaySetPlayPositionRequest,
+    request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySetPlayPositionResponse) => void) {
+               response: iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -301,29 +301,29 @@ export class BroadcastClient {
   methodDescriptorReplaySearch = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ReplaySearch',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ReplaySearchRequest,
-    proto_broadcast_pb.ReplaySearchResponse,
-    (request: proto_broadcast_pb.ReplaySearchRequest) => {
+    iracing$proto_broadcast_pb.ReplaySearchRequest,
+    iracing$proto_broadcast_pb.ReplaySearchResponse,
+    (request: iracing$proto_broadcast_pb.ReplaySearchRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ReplaySearchResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ReplaySearchResponse.deserializeBinary
   );
 
   replaySearch(
-    request: proto_broadcast_pb.ReplaySearchRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ReplaySearchResponse>;
+    request: iracing$proto_broadcast_pb.ReplaySearchRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySearchResponse>;
 
   replaySearch(
-    request: proto_broadcast_pb.ReplaySearchRequest,
+    request: iracing$proto_broadcast_pb.ReplaySearchRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySearchResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ReplaySearchResponse>;
+               response: iracing$proto_broadcast_pb.ReplaySearchResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySearchResponse>;
 
   replaySearch(
-    request: proto_broadcast_pb.ReplaySearchRequest,
+    request: iracing$proto_broadcast_pb.ReplaySearchRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySearchResponse) => void) {
+               response: iracing$proto_broadcast_pb.ReplaySearchResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -344,29 +344,29 @@ export class BroadcastClient {
   methodDescriptorReplaySetState = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ReplaySetState',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ReplaySetStateRequest,
-    proto_broadcast_pb.ReplaySetStateResponse,
-    (request: proto_broadcast_pb.ReplaySetStateRequest) => {
+    iracing$proto_broadcast_pb.ReplaySetStateRequest,
+    iracing$proto_broadcast_pb.ReplaySetStateResponse,
+    (request: iracing$proto_broadcast_pb.ReplaySetStateRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ReplaySetStateResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ReplaySetStateResponse.deserializeBinary
   );
 
   replaySetState(
-    request: proto_broadcast_pb.ReplaySetStateRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ReplaySetStateResponse>;
+    request: iracing$proto_broadcast_pb.ReplaySetStateRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySetStateResponse>;
 
   replaySetState(
-    request: proto_broadcast_pb.ReplaySetStateRequest,
+    request: iracing$proto_broadcast_pb.ReplaySetStateRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySetStateResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ReplaySetStateResponse>;
+               response: iracing$proto_broadcast_pb.ReplaySetStateResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetStateResponse>;
 
   replaySetState(
-    request: proto_broadcast_pb.ReplaySetStateRequest,
+    request: iracing$proto_broadcast_pb.ReplaySetStateRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySetStateResponse) => void) {
+               response: iracing$proto_broadcast_pb.ReplaySetStateResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -387,29 +387,29 @@ export class BroadcastClient {
   methodDescriptorReloadTextures = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ReloadTextures',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ReloadTexturesRequest,
-    proto_broadcast_pb.ReloadTexturesResponse,
-    (request: proto_broadcast_pb.ReloadTexturesRequest) => {
+    iracing$proto_broadcast_pb.ReloadTexturesRequest,
+    iracing$proto_broadcast_pb.ReloadTexturesResponse,
+    (request: iracing$proto_broadcast_pb.ReloadTexturesRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ReloadTexturesResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ReloadTexturesResponse.deserializeBinary
   );
 
   reloadTextures(
-    request: proto_broadcast_pb.ReloadTexturesRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ReloadTexturesResponse>;
+    request: iracing$proto_broadcast_pb.ReloadTexturesRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReloadTexturesResponse>;
 
   reloadTextures(
-    request: proto_broadcast_pb.ReloadTexturesRequest,
+    request: iracing$proto_broadcast_pb.ReloadTexturesRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReloadTexturesResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ReloadTexturesResponse>;
+               response: iracing$proto_broadcast_pb.ReloadTexturesResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReloadTexturesResponse>;
 
   reloadTextures(
-    request: proto_broadcast_pb.ReloadTexturesRequest,
+    request: iracing$proto_broadcast_pb.ReloadTexturesRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReloadTexturesResponse) => void) {
+               response: iracing$proto_broadcast_pb.ReloadTexturesResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -430,29 +430,29 @@ export class BroadcastClient {
   methodDescriptorChatCommand = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ChatCommand',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ChatCommandRequest,
-    proto_broadcast_pb.ChatCommandResponse,
-    (request: proto_broadcast_pb.ChatCommandRequest) => {
+    iracing$proto_broadcast_pb.ChatCommandRequest,
+    iracing$proto_broadcast_pb.ChatCommandResponse,
+    (request: iracing$proto_broadcast_pb.ChatCommandRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ChatCommandResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ChatCommandResponse.deserializeBinary
   );
 
   chatCommand(
-    request: proto_broadcast_pb.ChatCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ChatCommandResponse>;
+    request: iracing$proto_broadcast_pb.ChatCommandRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ChatCommandResponse>;
 
   chatCommand(
-    request: proto_broadcast_pb.ChatCommandRequest,
+    request: iracing$proto_broadcast_pb.ChatCommandRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ChatCommandResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ChatCommandResponse>;
+               response: iracing$proto_broadcast_pb.ChatCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ChatCommandResponse>;
 
   chatCommand(
-    request: proto_broadcast_pb.ChatCommandRequest,
+    request: iracing$proto_broadcast_pb.ChatCommandRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ChatCommandResponse) => void) {
+               response: iracing$proto_broadcast_pb.ChatCommandResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -473,29 +473,29 @@ export class BroadcastClient {
   methodDescriptorPitCommand = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/PitCommand',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.PitCommandRequest,
-    proto_broadcast_pb.PitCommandResponse,
-    (request: proto_broadcast_pb.PitCommandRequest) => {
+    iracing$proto_broadcast_pb.PitCommandRequest,
+    iracing$proto_broadcast_pb.PitCommandResponse,
+    (request: iracing$proto_broadcast_pb.PitCommandRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.PitCommandResponse.deserializeBinary
+    iracing$proto_broadcast_pb.PitCommandResponse.deserializeBinary
   );
 
   pitCommand(
-    request: proto_broadcast_pb.PitCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.PitCommandResponse>;
+    request: iracing$proto_broadcast_pb.PitCommandRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.PitCommandResponse>;
 
   pitCommand(
-    request: proto_broadcast_pb.PitCommandRequest,
+    request: iracing$proto_broadcast_pb.PitCommandRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.PitCommandResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.PitCommandResponse>;
+               response: iracing$proto_broadcast_pb.PitCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.PitCommandResponse>;
 
   pitCommand(
-    request: proto_broadcast_pb.PitCommandRequest,
+    request: iracing$proto_broadcast_pb.PitCommandRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.PitCommandResponse) => void) {
+               response: iracing$proto_broadcast_pb.PitCommandResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -516,29 +516,29 @@ export class BroadcastClient {
   methodDescriptorTelemetryCommand = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/TelemetryCommand',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.TelemetryCommandRequest,
-    proto_broadcast_pb.TelemetryCommandResponse,
-    (request: proto_broadcast_pb.TelemetryCommandRequest) => {
+    iracing$proto_broadcast_pb.TelemetryCommandRequest,
+    iracing$proto_broadcast_pb.TelemetryCommandResponse,
+    (request: iracing$proto_broadcast_pb.TelemetryCommandRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.TelemetryCommandResponse.deserializeBinary
+    iracing$proto_broadcast_pb.TelemetryCommandResponse.deserializeBinary
   );
 
   telemetryCommand(
-    request: proto_broadcast_pb.TelemetryCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.TelemetryCommandResponse>;
+    request: iracing$proto_broadcast_pb.TelemetryCommandRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.TelemetryCommandResponse>;
 
   telemetryCommand(
-    request: proto_broadcast_pb.TelemetryCommandRequest,
+    request: iracing$proto_broadcast_pb.TelemetryCommandRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.TelemetryCommandResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.TelemetryCommandResponse>;
+               response: iracing$proto_broadcast_pb.TelemetryCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.TelemetryCommandResponse>;
 
   telemetryCommand(
-    request: proto_broadcast_pb.TelemetryCommandRequest,
+    request: iracing$proto_broadcast_pb.TelemetryCommandRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.TelemetryCommandResponse) => void) {
+               response: iracing$proto_broadcast_pb.TelemetryCommandResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -559,29 +559,29 @@ export class BroadcastClient {
   methodDescriptorForceFeedbackCommand = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ForceFeedbackCommand',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ForceFeedbackCommandRequest,
-    proto_broadcast_pb.ForceFeedbackCommandResponse,
-    (request: proto_broadcast_pb.ForceFeedbackCommandRequest) => {
+    iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
+    iracing$proto_broadcast_pb.ForceFeedbackCommandResponse,
+    (request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ForceFeedbackCommandResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ForceFeedbackCommandResponse.deserializeBinary
   );
 
   forceFeedbackCommand(
-    request: proto_broadcast_pb.ForceFeedbackCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ForceFeedbackCommandResponse>;
+    request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ForceFeedbackCommandResponse>;
 
   forceFeedbackCommand(
-    request: proto_broadcast_pb.ForceFeedbackCommandRequest,
+    request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ForceFeedbackCommandResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ForceFeedbackCommandResponse>;
+               response: iracing$proto_broadcast_pb.ForceFeedbackCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ForceFeedbackCommandResponse>;
 
   forceFeedbackCommand(
-    request: proto_broadcast_pb.ForceFeedbackCommandRequest,
+    request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ForceFeedbackCommandResponse) => void) {
+               response: iracing$proto_broadcast_pb.ForceFeedbackCommandResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -602,29 +602,29 @@ export class BroadcastClient {
   methodDescriptorReplaySearchSessionTime = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/ReplaySearchSessionTime',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.ReplaySearchSessionTimeRequest,
-    proto_broadcast_pb.ReplaySearchSessionTimeResponse,
-    (request: proto_broadcast_pb.ReplaySearchSessionTimeRequest) => {
+    iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
+    iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse,
+    (request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.ReplaySearchSessionTimeResponse.deserializeBinary
+    iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse.deserializeBinary
   );
 
   replaySearchSessionTime(
-    request: proto_broadcast_pb.ReplaySearchSessionTimeRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
+    request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
 
   replaySearchSessionTime(
-    request: proto_broadcast_pb.ReplaySearchSessionTimeRequest,
+    request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySearchSessionTimeResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
+               response: iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
 
   replaySearchSessionTime(
-    request: proto_broadcast_pb.ReplaySearchSessionTimeRequest,
+    request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.ReplaySearchSessionTimeResponse) => void) {
+               response: iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -645,29 +645,29 @@ export class BroadcastClient {
   methodDescriptorVideoCapture = new grpcWeb.MethodDescriptor(
     '/iracing.broadcast.Broadcast/VideoCapture',
     grpcWeb.MethodType.UNARY,
-    proto_broadcast_pb.VideoCaptureRequest,
-    proto_broadcast_pb.VideoCaptureResponse,
-    (request: proto_broadcast_pb.VideoCaptureRequest) => {
+    iracing$proto_broadcast_pb.VideoCaptureRequest,
+    iracing$proto_broadcast_pb.VideoCaptureResponse,
+    (request: iracing$proto_broadcast_pb.VideoCaptureRequest) => {
       return request.serializeBinary();
     },
-    proto_broadcast_pb.VideoCaptureResponse.deserializeBinary
+    iracing$proto_broadcast_pb.VideoCaptureResponse.deserializeBinary
   );
 
   videoCapture(
-    request: proto_broadcast_pb.VideoCaptureRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<proto_broadcast_pb.VideoCaptureResponse>;
+    request: iracing$proto_broadcast_pb.VideoCaptureRequest,
+    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.VideoCaptureResponse>;
 
   videoCapture(
-    request: proto_broadcast_pb.VideoCaptureRequest,
+    request: iracing$proto_broadcast_pb.VideoCaptureRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.VideoCaptureResponse) => void): grpcWeb.ClientReadableStream<proto_broadcast_pb.VideoCaptureResponse>;
+               response: iracing$proto_broadcast_pb.VideoCaptureResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.VideoCaptureResponse>;
 
   videoCapture(
-    request: proto_broadcast_pb.VideoCaptureRequest,
+    request: iracing$proto_broadcast_pb.VideoCaptureRequest,
     metadata?: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: proto_broadcast_pb.VideoCaptureResponse) => void) {
+               response: iracing$proto_broadcast_pb.VideoCaptureResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +

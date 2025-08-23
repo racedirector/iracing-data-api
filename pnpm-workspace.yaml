@@ -1,5 +1,6 @@
 packages:
-  - 'examples/*'
-  - 'packages/*'
-  - 'packages/helpers/*'
-  - 'services/*'
+  - "examples/*"
+  - "packages/*"
+  - "packages/helpers/*"
+  - "packages/oauth/*"
+  - "services/*"

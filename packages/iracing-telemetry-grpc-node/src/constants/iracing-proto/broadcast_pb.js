@@ -1,4 +1,4 @@
-// source: proto/broadcast.proto
+// source: iracing-proto/broadcast.proto
 /**
  * @fileoverview
  * @enhanceable
