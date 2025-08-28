@@ -1,2 +1,3 @@
 export * from "./client";
-export { BASE_URL } from "./constants";
+export * from "./constants";
+export * from "./schema";

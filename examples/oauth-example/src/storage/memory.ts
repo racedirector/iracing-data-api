@@ -1,7 +1,4 @@
-import {
-  InternalState,
-  StateStore,
-} from "@iracing-data/oauth-client/dist/schema/state-store";
+import { InternalState, StateStore } from "@iracing-data/oauth-client";
 
 export class InMemoryStore implements StateStore {
   private state = new Map<string, InternalState>();
