@@ -6,8 +6,8 @@ import { InMemoryStore } from "./storage/memory";
 const client = new OAuthClient({
   clientMetadata: {
     clientId: process.env.IRACING_CLIENT_ID!,
-    redirectUri: "http://127.0.0.1:3001/oauth/iracing/callback",
-    scopes: "iracing.profile iracing.auth",
+    redirectUri: "http://127.0.0.1:3000/oauth/iracing/callback",
+    scopes: ["iracing.profile", "iracing.auth"],
   },
   stateStore: new InMemoryStore(),
 });
@@ -79,8 +79,7 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
     });
 
     const userData = await response.json();
-    console.info("User identified as:", userData);
-    res.status(200).send()
+    res.status(200).type("json").send(userData);
   } catch (error) {
     next(error);
   }

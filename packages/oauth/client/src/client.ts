@@ -1,29 +1,29 @@
 import * as oauth from "oauth4webapi";
-import { discover } from "./discovery";
 import { OAuthCallbackError } from "./oauth-callback-error";
 import {
-  OAuthClientMetadata,
-  OAuthClientMetadataInput,
-  OAuthClientMetadataSchema,
-} from "./schema/oauth-client-metadata-schema";
-import { StateStore } from "./schema/state-store";
+  IRacingOAuthClientMetadata,
+  IRacingOAuthClientMetadataInput,
+  IRacingOAuthClientMetadataSchema,
+  StateStore,
+} from "./schema";
 
 type OAuthClientOptions = {
   // Config
-  clientMetadata: Readonly<OAuthClientMetadataInput>;
+  clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
 
   // Stores
   stateStore: StateStore;
 };
 
 export class OAuthClient {
-  private readonly clientMetadata: OAuthClientMetadata;
+  private readonly clientMetadata: IRacingOAuthClientMetadata;
   private readonly stateStore: StateStore;
 
   constructor(options: OAuthClientOptions) {
     const { clientMetadata, stateStore } = options;
 
-    this.clientMetadata = OAuthClientMetadataSchema.parse(clientMetadata);
+    this.clientMetadata =
+      IRacingOAuthClientMetadataSchema.parse(clientMetadata);
     this.stateStore = stateStore;
   }
 
@@ -43,17 +43,7 @@ export class OAuthClient {
 
     signal?.throwIfAborted();
 
-    /**
-     * Get the authorization URL from client metadata or discovery.
-     */
-    let authorizationUrl: URL;
-    if (!this.clientMetadata.authorizationUrl) {
-      const as = await discover(this.clientMetadata.issuer);
-      // Discover will throw if authorization_endpoint is null or undefined.
-      authorizationUrl = new URL(as.authorization_endpoint!);
-    } else {
-      authorizationUrl = new URL(this.clientMetadata.authorizationUrl);
-    }
+    const authorizationUrl = new URL(this.clientMetadata.authorizationUrl);
 
     authorizationUrl.searchParams.set("response_type", "code");
     authorizationUrl.searchParams.set(
@@ -66,7 +56,10 @@ export class OAuthClient {
     );
 
     if (this.clientMetadata.scopes) {
-      authorizationUrl.searchParams.set("scope", this.clientMetadata.scopes);
+      authorizationUrl.searchParams.set(
+        "scope",
+        this.clientMetadata.scopes.join(" ")
+      );
     }
 
     authorizationUrl.searchParams.set("state", state);
@@ -87,16 +80,10 @@ export class OAuthClient {
       throw new OAuthCallbackError(params, 'Missing "state" parameter.');
     }
 
-    let authorizationServer: oauth.AuthorizationServer;
-    if (!this.clientMetadata.tokenUrl) {
-      // TODO: Make a discovery request
-      authorizationServer = await discover(this.clientMetadata.issuer);
-    } else {
-      authorizationServer = {
-        issuer: this.clientMetadata.issuer,
-        token_endpoint: this.clientMetadata.tokenUrl,
-      };
-    }
+    const authorizationServer: oauth.AuthorizationServer = {
+      issuer: this.clientMetadata.issuer,
+      token_endpoint: this.clientMetadata.tokenUrl,
+    };
 
     const client: oauth.Client = {
       client_id: this.clientMetadata.clientId,
