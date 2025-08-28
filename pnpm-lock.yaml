@@ -4,6 +4,11 @@ settings:
   autoInstallPeers: true
   excludeLinksFromLockfile: false
 
+patchedDependencies:
+  oauth4webapi@3.7.0:
+    hash: gxj6isameblr57lfx7x5czpiua
+    path: patches/oauth4webapi@3.7.0.patch
+
 importers:
 
   .:
@@ -372,7 +377,7 @@ importers:
     dependencies:
       oauth4webapi:
         specifier: ^3.7.0
-        version: 3.7.0
+        version: 3.7.0(patch_hash=gxj6isameblr57lfx7x5czpiua)
       zod:
         specifier: ^4.0.17
         version: 4.0.17
@@ -9315,9 +9320,10 @@ packages:
     resolution: {integrity: sha512-/ieB+mDe4MrrKMT8z+mQL8klXydZWGR5Dowt4RAGKbJ3kIGEx3X4ljUo+6V73IXtUPWgfOlU5B9MlGxFO5T+cA==}
     dev: true
 
-  /oauth4webapi@3.7.0:
+  /oauth4webapi@3.7.0(patch_hash=gxj6isameblr57lfx7x5czpiua):
     resolution: {integrity: sha512-Q52wTPUWPsVLVVmTViXPQFMW2h2xv2jnDGxypjpelCFKaOjLsm7AxYuOk1oQgFm95VNDbuggasu9htXrz6XwKw==}
     dev: false
+    patched: true
 
   /ob1@0.81.4:
     resolution: {integrity: sha512-EZLYM8hfPraC2SYOR5EWLFAPV5e6g+p83m2Jth9bzCpFxP1NDQJYXdmXRB2bfbaWQSmm6NkIQlbzk7uU5lLfgg==}

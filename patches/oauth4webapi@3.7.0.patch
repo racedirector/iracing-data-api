@@ -1,0 +1,13 @@
+diff --git a/build/index.js b/build/index.js
+index 5fbd2a347ee02b2a6264dbd3431b4ddf7d7b52b7..7c10549beafce6efec1a68dddc180fce897b39e6 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -1181,7 +1181,7 @@ async function processGenericAccessTokenResponse(as, client, response, additiona
+         });
+         json.expires_in = expiresIn;
+     }
+-    if (json.refresh_token !== undefined) {
++    if (json.refresh_token !== undefined && json.refresh_token !== null) {
+         assertString(json.refresh_token, '"response" body "refresh_token" property', INVALID_RESPONSE, {
+             body: json,
+         });
