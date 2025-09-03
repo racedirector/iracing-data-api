@@ -3,16 +3,16 @@ import express from "express";
 import { page } from "./page";
 import { InMemoryStore } from "./storage/memory";
 
+const PORT = process.env.PORT || "3000";
+
 const client = new OAuthClient({
   clientMetadata: {
     clientId: process.env.IRACING_CLIENT_ID!,
-    redirectUri: "http://127.0.0.1:3000/oauth/iracing/callback",
+    redirectUri: `http://127.0.0.1:${PORT}/oauth/iracing/callback`,
     scopes: ["iracing.profile", "iracing.auth"],
   },
   stateStore: new InMemoryStore(),
 });
-
-const PORT = process.env.PORT || "3000";
 
 const app = express();
 

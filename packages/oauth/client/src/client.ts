@@ -6,6 +6,7 @@ import {
   IRacingOAuthClientMetadataSchema,
   StateStore,
 } from "./schema";
+import { sanitizeTokenResponse } from "./utils";
 
 type OAuthClientOptions = {
   // Config
@@ -140,10 +141,12 @@ export class OAuthClient {
       stateData.verifier!
     );
 
+    const normalizedResponse = await sanitizeTokenResponse(response);
+
     const result = await oauth.processAuthorizationCodeResponse(
       authorizationServer,
       client,
-      response
+      normalizedResponse
     );
 
     return result;
