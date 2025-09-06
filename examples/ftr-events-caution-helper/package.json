@@ -1,0 +1,17 @@
+{
+  "name": "telemetry-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file-if-exists .env ."
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@iracing-data/grpc-node": "workspace:*",
+    "luxon": "^3.7.1"
+  }
+}
