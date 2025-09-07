@@ -20,9 +20,9 @@ import { OAuthClient } from "@iracing-data/oauth-client"
 
 const client = new OAuthClient({
   clientMetadata: {
-    clientId: process.env.IRACING_AUTH_CLIENT_ID!
-    redirectUri: "http://localhost:3000/oauth/callback/iracing"
-    scopes: "iracing.auth iracing.profile"
+    clientId: process.env.IRACING_AUTH_CLIENT_ID!,
+    redirectUri: "http://localhost:3000/oauth/callback/iracing",
+    scopes: ["iracing.profile", "iracing.auth"]
   },
   stateStore: new InMemoryStore()
 });
