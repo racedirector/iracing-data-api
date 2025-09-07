@@ -3,13 +3,10 @@
   "compilerOptions": {
     "outDir": "./dist",
     "rootDir": "./src",
-    "declarationMap": false,
-    "sourceMap": false,
     "noEmitOnError": true,
-    "strict": true,
     "module": "esnext",
     "target": "esnext"
   },
-  "include": ["src/**/*.ts"],
+  "include": ["src/index.ts", "src/session.ts", "src/telemetry.ts"],
   "exclude": ["node_modules", "dist"]
 }

@@ -5,13 +5,22 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "node --env-file-if-exists .env ."
+    "start": "npx tsx --env-file-if-exists .env ./index.ts"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@iracing-data/grpc-node": "workspace:*",
-    "luxon": "^3.7.1"
+    "@iracing-data/telemetry-types": "workspace:*",
+    "lodash": "^4.17.21",
+    "luxon": "^3.7.1",
+    "pino": "^9.9.4",
+    "pino-pretty": "^13.1.1"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }
