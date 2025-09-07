@@ -33,7 +33,7 @@
     "protoc-gen-grpc-web": "^1.5.0",
     "protoc-gen-ts": "0.8.7",
     "ts-node": "^10.9.2",
-    "typescript": "^5.7.3"
+    "typescript": "^5.9.2"
   },
   "workspaces": [
     "packages/*",
