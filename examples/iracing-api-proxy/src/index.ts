@@ -7,14 +7,15 @@ const IRACING_USERNAME = process.env.IRACING_USERNAME;
 const IRACING_PASSWORD = process.env.IRACING_PASSWORD;
 
 async function main() {
-  if (!IRACING_USERNAME || !IRACING_PASSWORD) {
-    throw new Error("Missing iRacing credentials.");
+  if (!IRACING_USERNAME) {
+    throw new Error("Missing iRacing username.");
   }
 
   const iracing = new IRacingAPISessionClient();
   await iracing.authenticate({
     username: IRACING_USERNAME,
-    password: await hashPassword(IRACING_USERNAME, IRACING_PASSWORD),
+    password: process.env.IRACING_PASSWORD,
+    hashedPassword: process.env.IRACING_HASHED_PASSWORD,
   });
 
   const app = express();
