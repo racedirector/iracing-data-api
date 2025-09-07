@@ -6,11 +6,11 @@ const PORT = process.env.PORT || "3000";
 const IRACING_USERNAME = process.env.IRACING_USERNAME;
 const IRACING_PASSWORD = process.env.IRACING_PASSWORD;
 
-if (!IRACING_USERNAME || !IRACING_PASSWORD) {
-  throw new Error("Missing iRacing credentials.");
-}
-
 async function main() {
+  if (!IRACING_USERNAME || !IRACING_PASSWORD) {
+    throw new Error("Missing iRacing credentials.");
+  }
+
   const iracing = new IRacingAPISessionClient();
   await iracing.authenticate({
     username: IRACING_USERNAME,
@@ -18,8 +18,6 @@ async function main() {
   });
 
   const app = express();
-
-  app.use(express.urlencoded({ extended: true }));
 
   app.get(
     "/driver",
