@@ -1,13 +1,54 @@
 import _ from "lodash";
-import { logger as parentLogger } from "./logger";
+import { EventEmitter } from "node:events";
 
-const logger = parentLogger.child({
-  module: "PitLaneManager",
-});
+export type PitLaneEventMap = {
+  /** Fired when pit lane transitions to open. */
+  "pitlane:opened": {
+    sessionTime: string;
+    sessionTimeOfDay: string;
+  };
+  /** Fired when pit lane transitions to closed. */
+  "pitlane:closed": {
+    sessionTime: string;
+    sessionTimeOfDay: string;
+  };
+  /** Fired when a car enters pit road. */
+  "pitroad:entered": {
+    sessionTime: string;
+    sessionTimeOfDay: string;
+    carIndex: number;
+    isPaceCar: boolean;
+    isPitLaneOpen: boolean;
+  };
+  /** Fired when a car exits pit road. */
+  "pitroad:exited": {
+    sessionTime: string;
+    sessionTimeOfDay: string;
+    carIndex: number;
+    isPaceCar: boolean;
+    isPitLaneOpen: boolean;
+  };
+};
 
-export class PitLaneManager {
+type Payload<E extends keyof PitLaneEventMap> = PitLaneEventMap[E];
+
+export class PitLaneManager extends EventEmitter {
   private previousIsPitLaneOpen = false;
   private previousIsOnPitRoad: boolean[] = [];
+
+  // Typed helpers for safer .on/.emit usage
+  on<E extends keyof PitLaneEventMap>(
+    event: E,
+    listener: (payload: Payload<E>) => void
+  ): this {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return super.on(event, listener as any);
+  }
+
+  emit<E extends keyof PitLaneEventMap>(event: E, payload: Payload<E>): boolean {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return super.emit(event, payload as any);
+  }
 
   process(
     isPitLaneOpen: boolean,
@@ -17,38 +58,47 @@ export class PitLaneManager {
     sessionTimeOfDay: string,
     length: number = isOnPitRoad.length
   ) {
-    // Update pit lane open state
+    // Pit lane open/close transition
     if (isPitLaneOpen !== this.previousIsPitLaneOpen) {
-      logger.info(
-        {
-          sessionTime,
-          sessionTimeOfDay,
-        },
-        `Pit lane ${isPitLaneOpen ? "opened" : "closed"}`
-      );
-
+      if (isPitLaneOpen) {
+        this.emit("pitlane:opened", { sessionTime, sessionTimeOfDay });
+      } else {
+        this.emit("pitlane:closed", { sessionTime, sessionTimeOfDay });
+      }
       this.previousIsPitLaneOpen = isPitLaneOpen;
     }
 
+    // Car-by-car pit road transitions
     if (!_.isEqual(this.previousIsOnPitRoad, isOnPitRoad)) {
       for (let i = 0; i < length; i++) {
-        const previousIsOnPitRoad = this.previousIsOnPitRoad[i];
-        const currentIsOnPitRoad = isOnPitRoad[i];
+        const prev = this.previousIsOnPitRoad[i];
+        const curr = isOnPitRoad[i];
 
-        if (previousIsOnPitRoad !== currentIsOnPitRoad) {
-          const actor = i === paceCarIndex ? "Pace car" : `Car index ${i}`;
-          logger.info(
-            {
+        if (prev !== curr) {
+          const isPaceCar = i === paceCarIndex;
+
+          if (curr) {
+            this.emit("pitroad:entered", {
               sessionTime,
               sessionTimeOfDay,
               carIndex: i,
-            },
-            `${actor} ${currentIsOnPitRoad ? "entered" : "exited"} ${isPitLaneOpen ? "open" : "closed"} pit road.`
-          );
+              isPaceCar,
+              isPitLaneOpen,
+            });
+          } else {
+            this.emit("pitroad:exited", {
+              sessionTime,
+              sessionTimeOfDay,
+              carIndex: i,
+              isPaceCar,
+              isPitLaneOpen,
+            });
+          }
         }
-
-        this.previousIsOnPitRoad = isOnPitRoad;
       }
+
+      // IMPORTANT: update after processing, and copy the array
+      this.previousIsOnPitRoad = [...isOnPitRoad];
     }
   }
 }
