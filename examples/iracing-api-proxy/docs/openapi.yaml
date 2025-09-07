@@ -1,0 +1,119 @@
+openapi: 3.1.0
+
+info:
+  title: iRacing Proxy API
+  version: 0.0.0
+  description: An iRacing Proxy API implemented using @iracing-data/api
+  contact:
+    name: Justin Makaila
+    email: justin@treehousetechnology.io
+
+servers:
+  - url: http://localhost:{port}
+    variables:
+      port:
+        enum:
+          - "3000"
+          - "3001"
+          - "3002"
+          - "8000"
+          - "8001"
+          - "8081"
+        default: "3000"
+
+paths:
+  /driver:
+    get:
+      summary: Fetch a driver from iRacing.
+      operationId: fetchDriver
+      tags:
+        - driver
+      parameters:
+        - name: iracingId
+          in: query
+          description: The iRacing customer ID to fetch.
+          required: true
+          schema:
+            type: integer
+            example: 378767
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Invalid or missing customer ID.
+
+  /team:
+    get:
+      summary: Fetch a team from iRacing.
+      operationId: fetchTeam
+      tags:
+        - team
+      parameters:
+        - name: iracingId
+          in: query
+          description: The iRacing team ID to fetch.
+          required: true
+          schema:
+            type: integer
+            example: 129452
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Invalid or missing team ID.
+
+  /league:
+    get:
+      summary: Fetch a league from iRacing.
+      operationId: fetchLeague
+      tags:
+        - league
+      parameters:
+        - name: iracingId
+          in: query
+          description: The iRacing league ID to fetch.
+          required: true
+          schema:
+            type: integer
+            example: 6529
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Invalid or missing league ID.
+
+  /league-membership:
+    get:
+      summary: Fetch the league membership for a given iRacing user.
+      operationId: fetchLeagueMembership
+      tags:
+        - driver
+      parameters:
+        - name: iracingId
+          in: query
+          description: The iRacing customer ID to fetch league membership of.
+          required: true
+          schema:
+            type: integer
+            example: 378767
+      responses:
+        "200":
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+        "400":
+          description: Invalid or missing customer ID.
