@@ -33,7 +33,6 @@ export class IRacingAPIClient extends NetworkClientProvider {
    */
   async authenticate(input: Parameters<IRacingAPI["auth"]["auth"]>[0]) {
     const response = await this.api.auth.auth(input);
-
     if (response.status === 200) {
       return response.data;
     }
@@ -316,9 +315,8 @@ export class IRacingAPIClient extends NetworkClientProvider {
       IRacingAPI["data"]["season"]["spectatorSubsessionIdsDetail"]
     >[0]
   ) {
-    const response = await this.api.data.season.spectatorSubsessionIdsDetail(
-      input
-    );
+    const response =
+      await this.api.data.season.spectatorSubsessionIdsDetail(input);
     return fetchValidLinkData(response.data);
   }
 
@@ -416,9 +414,8 @@ export class IRacingAPIClient extends NetworkClientProvider {
       IRacingAPI["data"]["stats"]["seasonSupersessionStandings"]
     >[0]
   ) {
-    const response = await this.api.data.stats.seasonSupersessionStandings(
-      input
-    );
+    const response =
+      await this.api.data.stats.seasonSupersessionStandings(input);
     return fetchValidLinkData(response.data);
   }
 

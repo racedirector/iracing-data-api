@@ -1,5 +1,5 @@
-import { hashPassword } from "@/util";
 import { NetworkClientProvider } from "../types";
+import { hashPassword } from "../../util";
 import assert from "node:assert";
 
 export class AuthAPI extends NetworkClientProvider {
@@ -18,10 +18,12 @@ export class AuthAPI extends NetworkClientProvider {
     );
 
     let normalizedPassword = hashedPassword;
-    if (!normalizedPassword && password) {
-      normalizedPassword = await hashPassword(username, password);
-    } else {
-      throw new Error("`password` is missing.");
+    if (!normalizedPassword) {
+      if (password) {
+        normalizedPassword = await hashPassword(username, password);
+      } else {
+        throw new Error("`password` is missing.");
+      }
     }
 
     return this.client.post("/auth", {
