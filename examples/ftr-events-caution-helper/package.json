@@ -11,7 +11,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@iracing-data/car-session-flag-events": "workspace:*",
     "@iracing-data/grpc-node": "workspace:*",
+    "@iracing-data/pace-flag-events": "workspace:*",
+    "@iracing-data/pit-lane-events": "workspace:*",
+    "@iracing-data/session-flag-events": "workspace:*",
     "@iracing-data/telemetry-types": "workspace:*",
     "lodash": "^4.17.21",
     "luxon": "^3.7.1",

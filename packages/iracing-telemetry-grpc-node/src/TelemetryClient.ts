@@ -10,11 +10,6 @@ export class TelemetryClient {
     return this._client;
   }
 
-  private _telemetryEmitter?: EventEmitter;
-  get telemetryEmitter() {
-    return this._telemetryEmitter;
-  }
-
   constructor(url: string) {
     this._client = new iracing.telemetry.TelemetryClient(
       url,
@@ -36,11 +31,7 @@ export class TelemetryClient {
     return JSON.parse(response.telemetry);
   }
 
-  /**
-   * Subscribes to telemetry updates. Updates are emitted on the `telemetryEmitter` EventEmitter.
-   */
   subscribeTelemetry(fps: number, keys: TelemetryKey[]) {
-    // Create a new stream
     const request = new iracing.telemetry.TelemetrySubscriptionRequest({
       fps,
       keys,

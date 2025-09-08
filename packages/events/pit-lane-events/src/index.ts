@@ -5,17 +5,14 @@ export type PitLaneEventMap = {
   /** Fired when pit lane transitions to open. */
   "pitlane:opened": {
     sessionTime: string;
-    sessionTimeOfDay: string;
   };
   /** Fired when pit lane transitions to closed. */
   "pitlane:closed": {
     sessionTime: string;
-    sessionTimeOfDay: string;
   };
   /** Fired when a car enters pit road. */
   "pitroad:entered": {
     sessionTime: string;
-    sessionTimeOfDay: string;
     carIndex: number;
     isPaceCar: boolean;
     isPitLaneOpen: boolean;
@@ -23,7 +20,6 @@ export type PitLaneEventMap = {
   /** Fired when a car exits pit road. */
   "pitroad:exited": {
     sessionTime: string;
-    sessionTimeOfDay: string;
     carIndex: number;
     isPaceCar: boolean;
     isPitLaneOpen: boolean;
@@ -32,8 +28,8 @@ export type PitLaneEventMap = {
 
 type Payload<E extends keyof PitLaneEventMap> = PitLaneEventMap[E];
 
-export class PitLaneManager extends EventEmitter {
-  private previousIsPitLaneOpen = false;
+export class PitLaneEventEmitter extends EventEmitter {
+  private previousIsPitLaneOpen?: boolean;
   private previousIsOnPitRoad: boolean[] = [];
 
   // Typed helpers for safer .on/.emit usage
@@ -45,7 +41,10 @@ export class PitLaneManager extends EventEmitter {
     return super.on(event, listener as any);
   }
 
-  emit<E extends keyof PitLaneEventMap>(event: E, payload: Payload<E>): boolean {
+  emit<E extends keyof PitLaneEventMap>(
+    event: E,
+    payload: Payload<E>
+  ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
   }
@@ -55,21 +54,24 @@ export class PitLaneManager extends EventEmitter {
     isOnPitRoad: boolean[],
     paceCarIndex: number,
     sessionTime: string,
-    sessionTimeOfDay: string,
     length: number = isOnPitRoad.length
   ) {
     // Pit lane open/close transition
-    if (isPitLaneOpen !== this.previousIsPitLaneOpen) {
+    if (this.previousIsPitLaneOpen === undefined) {
+      this.previousIsPitLaneOpen = isPitLaneOpen;
+    } else if (isPitLaneOpen !== this.previousIsPitLaneOpen) {
       if (isPitLaneOpen) {
-        this.emit("pitlane:opened", { sessionTime, sessionTimeOfDay });
+        this.emit("pitlane:opened", { sessionTime });
       } else {
-        this.emit("pitlane:closed", { sessionTime, sessionTimeOfDay });
+        this.emit("pitlane:closed", { sessionTime });
       }
       this.previousIsPitLaneOpen = isPitLaneOpen;
     }
 
     // Car-by-car pit road transitions
-    if (!_.isEqual(this.previousIsOnPitRoad, isOnPitRoad)) {
+    if (_.isEmpty(this.previousIsOnPitRoad)) {
+      this.previousIsOnPitRoad = [...isOnPitRoad];
+    } else if (!_.isEqual(this.previousIsOnPitRoad, isOnPitRoad)) {
       for (let i = 0; i < length; i++) {
         const prev = this.previousIsOnPitRoad[i];
         const curr = isOnPitRoad[i];
@@ -80,7 +82,6 @@ export class PitLaneManager extends EventEmitter {
           if (curr) {
             this.emit("pitroad:entered", {
               sessionTime,
-              sessionTimeOfDay,
               carIndex: i,
               isPaceCar,
               isPitLaneOpen,
@@ -88,7 +89,6 @@ export class PitLaneManager extends EventEmitter {
           } else {
             this.emit("pitroad:exited", {
               sessionTime,
-              sessionTimeOfDay,
               carIndex: i,
               isPaceCar,
               isPitLaneOpen,
@@ -103,4 +103,4 @@ export class PitLaneManager extends EventEmitter {
   }
 }
 
-export default PitLaneManager;
+export default PitLaneEventEmitter;
