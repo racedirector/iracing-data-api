@@ -32,6 +32,30 @@ const shutdown = () => {
 
 const paceFlagManager = new PaceFlagManager();
 const pitLaneManager = new PitLaneManager();
+pitLaneManager
+  .on("pitlane:opened", ({ sessionTime }) => {
+    logger.info(`[${sessionTime}] Pit lane opened`);
+  })
+  .on("pitlane:closed", ({ sessionTime }) => {
+    logger.info(`[${sessionTime}] Pit lane closed`);
+  })
+  .on(
+    "pitroad:entered",
+    ({ sessionTime, carIndex, isPaceCar, isPitLaneOpen }) => {
+      logger.info(
+        `[${sessionTime}] ${isPaceCar ? "Pace car" : `Car ${carIndex}`} entered ${isPitLaneOpen ? "open" : "closed"} pit lane`
+      );
+    }
+  )
+  .on(
+    "pitroad:exited",
+    ({ sessionTime, carIndex, isPaceCar, isPitLaneOpen }) => {
+      logger.info(
+        `[${sessionTime}] ${isPaceCar ? "Pace car" : `Car ${carIndex}`} exited ${isPitLaneOpen ? "open" : "closed"} pit lane`
+      );
+    }
+  );
+
 const paceOrderManager = new PaceOrderManager();
 
 // Global race state
