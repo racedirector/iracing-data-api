@@ -1,6 +1,9 @@
 import { Session } from "./session";
 import { Flags, PaceFlags, PitServiceStatus, Telemetry } from "./telemetry";
 
+export * from "./telemetry";
+export * from "./session";
+
 export type TelemetryData = Telemetry & Partial<Session>;
 export type TelemetryKey = keyof TelemetryData;
 export type TelemetryValue<K extends TelemetryKey = TelemetryKey> =
