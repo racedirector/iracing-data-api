@@ -153,8 +153,8 @@ importers:
         specifier: ~0.2.2
         version: 0.2.2(expo@52.0.46)
       expo-system-ui:
-        specifier: ~4.0.9
-        version: 4.0.9(expo@52.0.46)(react-native-web@0.19.13)(react-native@0.76.9)
+        specifier: ~5.0.10
+        version: 5.0.10(expo@52.0.46)(react-native-web@0.19.13)(react-native@0.76.9)
       expo-web-browser:
         specifier: ~14.0.2
         version: 14.0.2(expo@52.0.46)(react-native@0.76.9)
@@ -2287,7 +2287,7 @@ packages:
       '@babel/parser': 7.27.0
       '@babel/template': 7.27.0
       '@babel/types': 7.27.0
-      debug: 4.4.0
+      debug: 4.4.1
       globals: 11.12.0
     transitivePeerDependencies:
       - supports-color
@@ -3902,10 +3902,6 @@ packages:
     resolution: {integrity: sha512-qoMMXddVKVhZ8PA1AbUCk83trpd6N+1nF2A6k1i6LsQObyS92fELuk8kU/lQs6M7BsMHwqyLCpQJ1uFgNvIQXg==}
     dev: false
 
-  /@react-native/normalize-colors@0.76.8:
-    resolution: {integrity: sha512-FRjRvs7RgsXjkbGSOjYSxhX5V70c0IzA/jy3HXeYpATMwD9fOR1DbveLW497QGsVdCa0vThbJUtR8rIzAfpHQA==}
-    dev: false
-
   /@react-native/normalize-colors@0.76.9:
     resolution: {integrity: sha512-TUdMG2JGk72M9d8DYbubdOlrzTYjw+YMe/xOnLU4viDgWRHsCbtRS9x0IAxRjs3amj/7zmK3Atm8jUPvdAc8qw==}
 
@@ -5133,7 +5129,7 @@ packages:
     dependencies:
       bytes: 3.1.2
       content-type: 1.0.5
-      debug: 4.4.0
+      debug: 4.4.1
       http-errors: 2.0.0
       iconv-lite: 0.6.3
       on-finished: 2.4.1
@@ -6701,8 +6697,8 @@ packages:
       sf-symbols-typescript: 2.1.0
     dev: false
 
-  /expo-system-ui@4.0.9(expo@52.0.46)(react-native-web@0.19.13)(react-native@0.76.9):
-    resolution: {integrity: sha512-hqBc0EWeK/BTB8i4H84vqNjje8GgxhapYrcWdg5qriaRA/u+bNNxhmpZXdAjFuhonOP4SmAbF+gjoJJWsTrhUg==}
+  /expo-system-ui@5.0.10(expo@52.0.46)(react-native-web@0.19.13)(react-native@0.76.9):
+    resolution: {integrity: sha512-BTXbSyJr80yuN6VO4XQKZj7BjesZQLHgOYZ0bWyf4VB19GFZq7ZnZOEc/eoKk1B3eIocOMKUfNCrg/Wn8Kfcuw==}
     peerDependencies:
       expo: '*'
       react-native: '*'
@@ -6711,8 +6707,8 @@ packages:
       react-native-web:
         optional: true
     dependencies:
-      '@react-native/normalize-colors': 0.76.8
-      debug: 4.4.0
+      '@react-native/normalize-colors': 0.79.5
+      debug: 4.4.1
       expo: 52.0.46(@babel/core@7.26.10)(@babel/preset-env@7.28.3)(react-native-webview@13.12.5)(react-native@0.76.9)(react@18.3.1)
       react-native: 0.76.9(@babel/core@7.26.10)(@babel/preset-env@7.28.3)(@types/react@18.3.20)(react@18.3.1)
       react-native-web: 0.19.13(react-dom@18.3.1)(react@18.3.1)
@@ -7000,7 +6996,7 @@ packages:
     resolution: {integrity: sha512-/t88Ty3d5JWQbWYgaOGCCYfXRwV1+be02WqYYlL6h0lEiUAMPM8o8qKGO01YIkOHzka2up08wvgYD0mDiI+q3Q==}
     engines: {node: '>= 0.8'}
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.1
       encodeurl: 2.0.0
       escape-html: 1.0.3
       on-finished: 2.4.1
@@ -10498,7 +10494,7 @@ packages:
     resolution: {integrity: sha512-nLTrUKm2UyiL7rlhapu/Zl45FwNgkZGaCpZbIHajDYgwlJCOzLSk+cIPAnsEqV955GjILJnKbdQC1nVPz+gAYQ==}
     engines: {node: '>= 18'}
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.1
       depd: 2.0.0
       is-promise: 4.0.0
       parseurl: 1.3.3
@@ -10683,7 +10679,7 @@ packages:
     resolution: {integrity: sha512-uaW0WwXKpL9blXE2o0bRhoL2EGXIrZxQ2ZQ4mgcfoBxdFmQold+qWsD2jLrfZ0trjKL6vOw0j//eAwcALFjKSw==}
     engines: {node: '>= 18'}
     dependencies:
-      debug: 4.4.0
+      debug: 4.4.1
       encodeurl: 2.0.0
       escape-html: 1.0.3
       etag: 1.8.1
