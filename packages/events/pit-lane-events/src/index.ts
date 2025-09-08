@@ -57,14 +57,11 @@ export class PitLaneEventEmitter extends EventEmitter {
     length: number = isOnPitRoad.length
   ) {
     // Pit lane open/close transition
-    if (this.previousIsPitLaneOpen === undefined) {
-      this.previousIsPitLaneOpen = isPitLaneOpen;
-    } else if (isPitLaneOpen !== this.previousIsPitLaneOpen) {
-      if (isPitLaneOpen) {
-        this.emit("pitlane:opened", { sessionTime });
-      } else {
-        this.emit("pitlane:closed", { sessionTime });
-      }
+    if (isPitLaneOpen !== this.previousIsPitLaneOpen) {
+      this.emit(`pitlane:${isPitLaneOpen ? "opened" : "closed"}`, {
+        sessionTime,
+      });
+
       this.previousIsPitLaneOpen = isPitLaneOpen;
     }
 

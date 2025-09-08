@@ -29,6 +29,7 @@ type SessionFlagEventPayload = {
 };
 
 export type SessionFlagEventMap = {
+  changed: SessionFlagEventPayload;
   checkered: SessionFlagEventPayload;
   white: SessionFlagEventPayload;
   green: SessionFlagEventPayload;
@@ -73,7 +74,17 @@ export class SessionFlagEventEmitter extends EventEmitter {
 
   process(sessionFlags: Flags, sessionTime: string) {
     if (this.previousSessionFlags !== sessionFlags) {
-      if (isCheckered(sessionFlags)) {
+      // Emit the "changed" event on any detected change
+      this.emit("changed", {
+        sessionTime,
+        previousFlags: this.previousSessionFlags,
+        flags: sessionFlags,
+      });
+
+      if (
+        isCheckered(sessionFlags) &&
+        !isCheckered(this.previousSessionFlags)
+      ) {
         this.emit("checkered", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -81,7 +92,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isWhite(sessionFlags)) {
+      if (isWhite(sessionFlags) && !isWhite(this.previousSessionFlags)) {
         this.emit("white", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -89,7 +100,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isGreen(sessionFlags)) {
+      if (isGreen(sessionFlags) && !isGreen(this.previousSessionFlags)) {
         this.emit("green", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -97,7 +108,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isRed(sessionFlags)) {
+      if (isRed(sessionFlags) && !isRed(this.previousSessionFlags)) {
         this.emit("red", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -105,7 +116,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isYellow(sessionFlags)) {
+      if (isYellow(sessionFlags) && !isYellow(this.previousSessionFlags)) {
         this.emit("yellow", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -113,7 +124,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isCrossed(sessionFlags)) {
+      if (isCrossed(sessionFlags) && !isCrossed(this.previousSessionFlags)) {
         this.emit("crossed", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -121,7 +132,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isYellowWaving(sessionFlags)) {
+      if (
+        isYellowWaving(sessionFlags) &&
+        !isYellowWaving(this.previousSessionFlags)
+      ) {
         this.emit("yellowWaving", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -129,7 +143,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isOneToGreen(sessionFlags)) {
+      if (
+        isOneToGreen(sessionFlags) &&
+        !isOneToGreen(this.previousSessionFlags)
+      ) {
         this.emit("oneToGreen", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -137,7 +154,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isGreenHeld(sessionFlags)) {
+      if (
+        isGreenHeld(sessionFlags) &&
+        !isGreenHeld(this.previousSessionFlags)
+      ) {
         this.emit("greenHeld", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -145,7 +165,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isTenToGo(sessionFlags)) {
+      if (isTenToGo(sessionFlags) && !isTenToGo(this.previousSessionFlags)) {
         this.emit("tenToGo", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -153,7 +173,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isFiveToGo(sessionFlags)) {
+      if (isFiveToGo(sessionFlags) && !isFiveToGo(this.previousSessionFlags)) {
         this.emit("fiveToGo", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -161,7 +181,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isRandomWaving(sessionFlags)) {
+      if (
+        isRandomWaving(sessionFlags) &&
+        !isRandomWaving(this.previousSessionFlags)
+      ) {
         this.emit("randomWaving", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -169,7 +192,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isCaution(sessionFlags)) {
+      if (isCaution(sessionFlags) && !isCaution(this.previousSessionFlags)) {
         this.emit("caution", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -177,7 +200,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isCautionWaving(sessionFlags)) {
+      if (
+        isCautionWaving(sessionFlags) &&
+        !isCautionWaving(this.previousSessionFlags)
+      ) {
         this.emit("cautionWaving", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -185,7 +211,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isStartHidden(sessionFlags)) {
+      if (
+        isStartHidden(sessionFlags) &&
+        !isStartHidden(this.previousSessionFlags)
+      ) {
         this.emit("startHidden", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -193,7 +222,10 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isStartReady(sessionFlags)) {
+      if (
+        isStartReady(sessionFlags) &&
+        !isStartReady(this.previousSessionFlags)
+      ) {
         this.emit("startReady", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -201,7 +233,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isStartSet(sessionFlags)) {
+      if (isStartSet(sessionFlags) && !isStartSet(this.previousSessionFlags)) {
         this.emit("startSet", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
@@ -209,7 +241,7 @@ export class SessionFlagEventEmitter extends EventEmitter {
         });
       }
 
-      if (isStartGo(sessionFlags)) {
+      if (isStartGo(sessionFlags) && !isStartGo(this.previousSessionFlags)) {
         this.emit("startGo", {
           sessionTime,
           previousFlags: this.previousSessionFlags,
