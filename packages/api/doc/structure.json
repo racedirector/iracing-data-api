@@ -661,12 +661,13 @@
           "type": "boolean"
         },
         "season_year": {
-          "type": "number"
+          "type": "number",
+          "note": "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned."
         },
         "season_quarter": {
-          "type": "number"
-        },
-        "note": {}
+          "type": "number",
+          "note": "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned."
+        }
       },
       "expirationSeconds": 900
     },
@@ -956,6 +957,11 @@
           "note": "For faster responses, only request when necessary."
         }
       },
+      "expirationSeconds": 900
+    },
+    "membership": {
+      "link": "https://members-ng.iracing.com/data/team/membership",
+      "note": "Results for the authenticated member, if any.",
       "expirationSeconds": 900
     }
   },

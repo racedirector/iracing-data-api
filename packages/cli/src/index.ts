@@ -186,27 +186,6 @@ program
   });
 
 /**
- * club-history command
- */
-program
-  .command("club-history")
-  .argument("<seasonYear>", "Season year", parseInt)
-  .argument("<seasonQuarter>", "Season quarter", parseInt)
-  .description("Fetch club history")
-  .option("-o, --output <path>", "Output path")
-  .action(async (seasonYear, seasonQuarter, _, command) => {
-    const { credentials, output } = command.optsWithGlobals();
-    const api = createAPI(credentials);
-    console.log(`Fetching club history for ${seasonYear} ${seasonQuarter}...`);
-    const clubHistory = await api.lookupClubHistory({
-      seasonYear,
-      seasonQuarter,
-    });
-
-    handleOutput(clubHistory, output);
-  });
-
-/**
  * countries command
  */
 program
@@ -820,7 +799,6 @@ program
     const seasonDriverStandings = await api.statsSeasonDriverStandings({
       seasonId,
       carClassId,
-      clubId,
       division,
       raceWeekNumber,
     });
