@@ -1,0 +1,38 @@
+name: Publish @iracing-data tag release.
+
+on:
+  push:
+    tags:
+      - "@iracing-data/*@*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Setup Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: 20
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Parse tag -> package + version
+        id: parse
+        run: |
+          TAG="${GITHUB_REF_NAME}"
+          # Expecting TAG like @iracing-data/api@1.2.3
+          PKG="${TAG%@*}"      # @iracing-data/api
+          VER="${TAG##*@}"     # 1.2.3
+          echo "pkg=$PKG" >> "$GITHUB_OUTPUT"
+          echo "ver=$VER" >> "$GITHUB_OUTPUT"
+
+      - name: Install dependencies (workspace)
+        run: pnpm install --frozen-lockfile
