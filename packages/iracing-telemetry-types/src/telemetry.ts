@@ -350,6 +350,7 @@ export interface Telemetry {
   SteeringWheelPeakForceNm?: number;
   SteeringWheelUseLinear?: boolean;
   ShiftIndicatorPct?: number;
+  IsGarageVisible?: boolean;
   ReplayPlaySpeed?: number;
   ReplayPlaySlowMotion?: boolean;
   ReplaySessionTime?: number;
@@ -358,7 +359,6 @@ export interface Telemetry {
   TireRF_RumblePitch?: number;
   TireLR_RumblePitch?: number;
   TireRR_RumblePitch?: number;
-  IsGarageVisible?: boolean;
   /**
    * @minItems 6
    * @maxItems 6
@@ -420,9 +420,9 @@ export interface Telemetry {
   LatAccel?: number;
   LongAccel?: number;
   dcStarter?: boolean;
-  dcTractionControlToggle?: boolean;
   dcPitSpeedLimiterToggle?: boolean;
   dcHeadlightFlash?: boolean;
+  dcLowFuelAccept?: boolean;
   dpRFTireChange?: number;
   dpLFTireChange?: number;
   dpRRTireChange?: number;
@@ -547,14 +547,14 @@ export enum SessionState {
   parade_laps = 3,
   racing = 4,
   checkered = 5,
-  cool_down = 6,
+  cool_down = 6
 }
 export enum TrackLocation {
   not_in_world = -1,
   off_track = 0,
   in_pit_stall = 1,
   aproaching_pits = 2,
-  on_track = 3,
+  on_track = 3
 }
 export enum TrackSurface {
   not_in_world = -1,
@@ -585,7 +585,7 @@ export enum TrackSurface {
   gravel_1 = 24,
   gravel_2 = 25,
   grasscrete = 26,
-  astroturf = 27,
+  astroturf = 27
 }
 export enum PitServiceStatus {
   none = 0,
@@ -596,7 +596,7 @@ export enum PitServiceStatus {
   too_far_forward = 102,
   too_far_back = 103,
   bad_angle = 104,
-  cant_fix_that = 105,
+  cant_fix_that = 105
 }
 export enum Flags {
   checkered = 1,
@@ -623,19 +623,19 @@ export enum Flags {
   start_hidden = 268435456,
   start_ready = 536870912,
   start_set = 1073741824,
-  start_go = 2147483648,
+  start_go = 2147483648
 }
 export enum PaceMode {
   single_file_start = 0,
   double_file_start = 1,
   single_file_restart = 2,
   double_file_restart = 3,
-  not_pacing = 4,
+  not_pacing = 4
 }
 export enum PaceFlags {
   end_of_line = 1,
   free_pass = 2,
-  waved_around = 4,
+  waved_around = 4
 }
 export enum TrackWetness {
   unknown = 0,
@@ -645,7 +645,7 @@ export enum TrackWetness {
   lightly_wet = 4,
   moderately_wet = 5,
   very_wet = 6,
-  extremely_wet = 7,
+  extremely_wet = 7
 }
 export enum CarLeftRight {
   off = 0,
@@ -654,5 +654,5 @@ export enum CarLeftRight {
   car_right = 3,
   car_left_right = 4,
   two_cars_left = 5,
-  two_cars_right = 6,
+  two_cars_right = 6
 }

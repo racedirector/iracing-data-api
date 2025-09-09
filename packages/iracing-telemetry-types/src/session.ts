@@ -183,6 +183,7 @@ export interface Session {
     DriverCarIdx: number;
     DriverUserID: number;
     PaceCarIdx: number;
+    DriverIsAdmin: number;
     DriverHeadPosX: number;
     DriverHeadPosY: number;
     DriverHeadPosZ: number;
@@ -219,8 +220,8 @@ export interface Session {
     Drivers: {
       CarIdx: number;
       UserName: string;
-      AbbrevName: string;
-      Initials: string;
+      AbbrevName: null | string;
+      Initials: null | string;
       UserID: number;
       TeamID: number;
       TeamName: string;
@@ -309,9 +310,10 @@ export interface Session {
       };
     };
     Chassis: {
-      Front: {
+      FrontBrakes: {
         ArbSetting: number;
         ToeIn: string;
+        BrakePads: string;
         CrossWeight: string;
         NoseWeight: string;
       };
@@ -336,7 +338,6 @@ export interface Session {
       InCarDials: {
         DashDisplayPage: string;
         BrakePressureBias: string;
-        BrakePads: string;
         AbsSetting: string;
         TcSetting: string;
       };
@@ -360,9 +361,9 @@ export interface Session {
       };
       Rear: {
         FuelLevel: string;
+        FuelLowWarning: string;
         ArbSetting: number;
-        WingSetting: number;
-        DiffClutches: number;
+        WingAngle: string;
       };
     };
   };
