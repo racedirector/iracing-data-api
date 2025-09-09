@@ -1,5 +1,4 @@
 import { EventEmitter } from "node:events";
-import _ from "lodash";
 import {
   Flags,
   isCaution,
