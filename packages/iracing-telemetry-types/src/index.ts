@@ -10,8 +10,6 @@ import {
 export * from "./telemetry";
 export * from "./session";
 
-export * from "./session";
-export * from "./telemetry";
 
 export type TelemetryData = Telemetry & Partial<Session>;
 export type TelemetryKey = keyof TelemetryData;
