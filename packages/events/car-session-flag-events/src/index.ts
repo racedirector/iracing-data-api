@@ -150,7 +150,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isDebris(currentFlag) && !isDebris(currentFlag)) {
+          if (isDebris(currentFlag) && !isDebris(previousFlag)) {
             this.emit("debris", {
               sessionTime,
               flags: currentFlag,
