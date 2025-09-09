@@ -1,20 +1,23 @@
-import { IRacingAPISessionClient, hashPassword } from "@iracing-data/api";
+import { IRacingAPISessionClient } from "@iracing-data/api";
 import express from "express";
 import type { Request, Response } from "express";
+import { AddressInfo } from "node:net";
 
 const PORT = process.env.PORT || "3000";
 const IRACING_USERNAME = process.env.IRACING_USERNAME;
-const IRACING_PASSWORD = process.env.IRACING_PASSWORD;
 
 async function main() {
-  if (!IRACING_USERNAME || !IRACING_PASSWORD) {
-    throw new Error("Missing iRacing credentials.");
+  if (!IRACING_USERNAME) {
+    throw new Error("Missing iRacing username.");
   }
 
   const iracing = new IRacingAPISessionClient();
   await iracing.authenticate({
     username: IRACING_USERNAME,
-    password: await hashPassword(IRACING_USERNAME, IRACING_PASSWORD),
+    // If you provide a password via env, it will be hashed under-the-hood
+    password: process.env.IRACING_PASSWORD,
+    // ...Otherwise, provide a pre-hashed password.
+    hashedPassword: process.env.IRACING_HASHED_PASSWORD,
   });
 
   const app = express();
@@ -99,8 +102,11 @@ async function main() {
     }
   );
 
-  app.listen(PORT, () => {
-    console.info(`Example app listening on port ${PORT}`);
+  const server = app.listen(PORT, () => {
+    console.info(
+      "Example app listening on",
+      (server.address() as AddressInfo).port
+    );
   });
 }
 
