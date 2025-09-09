@@ -6,6 +6,8 @@
     "noUnusedLocals": false,
     "declarationMap": false,
     "sourceMap": false,
+
+    "composite": true,
     "paths": {
       "@/*": ["./src/*"]
     }

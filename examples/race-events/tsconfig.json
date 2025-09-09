@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig/node.json",
+  "compilerOptions": {
+    "rootDir": ".",
+    "lib": ["dom"],
+    "noUnusedLocals": true,
+    "isolatedModules": false
+  },
+  "exclude": ["node_modules", "bin", "dist"]
+}
