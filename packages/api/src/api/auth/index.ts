@@ -18,12 +18,8 @@ export class AuthAPI extends NetworkClientProvider {
     );
 
     let normalizedPassword = hashedPassword;
-    if (!normalizedPassword) {
-      if (password) {
-        normalizedPassword = await hashPassword(username, password);
-      } else {
-        throw new Error("`password` is missing.");
-      }
+    if (!normalizedPassword && password) {
+      normalizedPassword = await hashPassword(username, password);
     }
 
     return this.client.post("/auth", {
