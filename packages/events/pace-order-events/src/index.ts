@@ -124,7 +124,7 @@ export class PaceOrderEventEmitter extends EventEmitter {
       this._paceMode = paceMode;
     }
 
-    if (length === 0) return;
+    if (length === 0 || this._paceMode === PaceMode.not_pacing) return;
 
     const prevLen = Math.min(
       this.previousPaceLines.length,

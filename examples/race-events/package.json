@@ -13,9 +13,12 @@
   "dependencies": {
     "@iracing-data/car-session-flag-events": "workspace:*",
     "@iracing-data/grpc-node": "workspace:*",
+    "@iracing-data/car-track-location-events": "workspace:*",
     "@iracing-data/pace-flag-events": "workspace:*",
+    "@iracing-data/pace-order-events": "workspace:*",
     "@iracing-data/pit-lane-events": "workspace:*",
     "@iracing-data/session-flag-events": "workspace:*",
+    "@iracing-data/session-state-events": "workspace:*",
     "@iracing-data/telemetry-types": "workspace:*",
     "ascii-table3": "^1.0.1",
     "lodash": "^4.17.21",
