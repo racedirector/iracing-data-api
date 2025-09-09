@@ -1,16 +1,16 @@
 {
-  "name": "@iracing-data/sync-telemetry-json-schema",
+  "name": "@iracing-data/iracing-json-schema-to-typescript",
   "version": "0.0.0-alpha.0",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
   "bin": {
-    "sync-iracing-telemetry-json-schema": "dist/cli.js"
+    "iracing-json-codegen": "dist/cli.js"
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@grpc/grpc-js": "^1.13.4",
+    "json-schema-to-typescript": "15.0.4",
     "commander": "^14.0.0"
   },
   "devDependencies": {

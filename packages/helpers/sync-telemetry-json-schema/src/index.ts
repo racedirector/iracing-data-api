@@ -13,7 +13,7 @@ export const downloadSchema = async ({
   telemetrySchemaPath: string;
   sessionSchemaPath: string;
 }> => {
-  console.info("Downloading schema to ", outputDir);
+  console.info("Downloading schema to", outputDir);
 
   const client = new iracing.telemetry.SchemaClient(
     serverUrl,
