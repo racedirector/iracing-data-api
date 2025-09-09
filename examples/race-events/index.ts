@@ -90,24 +90,6 @@ const sessionFlagObserver = new SessionFlagEventEmitter()
   });
 
 const carFlagObserver = new CarSessionFlagEventEmitter()
-  .on("checkered", ({ sessionTime, carIndex }) => {
-    flagLogger.info(
-      { sessionTime },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the checkered flag.`
-    );
-  })
-  .on("white", ({ sessionTime, carIndex }) => {
-    flagLogger.info(
-      { sessionTime },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the white flag.`
-    );
-  })
-  .on("blue", ({ sessionTime, carIndex }) => {
-    flagLogger.info(
-      { sessionTime },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the blue flag.`
-    );
-  })
   .on("blue:cleared", ({ sessionTime, carIndex }) => {
     flagLogger.info(
       { sessionTime },
