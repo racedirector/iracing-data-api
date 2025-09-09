@@ -5,12 +5,11 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "codegen": "tsx --env-file=.env ./scripts/codegen.ts"
+    "codegen": "tsx --env-file-if-exists=.env ./scripts/codegen.ts"
   },
   "devDependencies": {
     "@iracing-data/sync-telemetry-json-schema": "workspace:*",
-    "@grpc/grpc-js": "^1.8.10",
-    "json-schema-to-typescript": "15.0.4",
+    "@iracing-data/iracing-json-schema-to-typescript": "workspace:*",
     "tsx": "^4.20.4"
   }
 }
