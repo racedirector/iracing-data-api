@@ -1,0 +1,31 @@
+{
+  "name": "telemetry-client",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx --env-file-if-exists .env ./index.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@iracing-data/car-session-flag-events": "workspace:*",
+    "@iracing-data/grpc-node": "workspace:*",
+    "@iracing-data/pace-flag-events": "workspace:*",
+    "@iracing-data/pit-lane-events": "workspace:*",
+    "@iracing-data/session-flag-events": "workspace:*",
+    "@iracing-data/telemetry-types": "workspace:*",
+    "ascii-table3": "^1.0.1",
+    "lodash": "^4.17.21",
+    "luxon": "^3.7.1",
+    "pino": "^9.9.4",
+    "pino-pretty": "^13.1.1"
+  },
+  "devDependencies": {
+    "@types/luxon": "^3.7.1",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}

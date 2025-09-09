@@ -1,8 +1,15 @@
 import { Session } from "./session";
-import { Flags, PaceFlags, PitServiceStatus, Telemetry } from "./telemetry";
+import {
+  Flags,
+  PaceFlags,
+  PaceMode,
+  PitServiceStatus,
+  Telemetry,
+} from "./telemetry";
 
-export * from "./session";
 export * from "./telemetry";
+export * from "./session";
+
 
 export type TelemetryData = Telemetry & Partial<Session>;
 export type TelemetryKey = keyof TelemetryData;
@@ -45,6 +52,26 @@ export const isEndOfLine = (flags: number) => !!(flags & PaceFlags.end_of_line);
 export const isFreePass = (flags: number) => !!(flags & PaceFlags.free_pass);
 export const isWavedAround = (flags: number) =>
   !!(flags & PaceFlags.waved_around);
+
+// Pace Mode
+export const isSingleFileRestart = (mode: number) =>
+  !!(mode & PaceMode.single_file_restart);
+export const isSingleFileStart = (mode: number) =>
+  !!(mode & PaceMode.single_file_start);
+export const isDoubleFileRestart = (mode: number) =>
+  !!(mode & PaceMode.double_file_restart);
+export const isDoubleFileStart = (mode: number) =>
+  !!(mode & PaceMode.double_file_start);
+export const isNotPacing = (mode: number) => !!(mode & PaceMode.not_pacing);
+export const isSingleFile = (mode: number) =>
+  isSingleFileRestart(mode) || isSingleFileStart(mode);
+export const isDoubleFile = (mode: number) =>
+  isDoubleFileRestart(mode) || isDoubleFileStart(mode);
+
+// Pace line
+export const isLeftLine = (value: number) => value === 0;
+export const isRightLine = (value: number) => value === 1;
+export const isNoLine = (value: number) => value === -1;
 
 // Pit Service Status
 export const isNone = (status: number) => !!(status & PitServiceStatus.none);
