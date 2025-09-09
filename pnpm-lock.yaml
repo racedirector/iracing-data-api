@@ -61,7 +61,29 @@ importers:
         specifier: ^5.7.3
         version: 5.7.3
 
-  examples/ftr-events-caution-helper:
+  examples/kapps-hello-world:
+    dependencies:
+      '@iracing-data/ws':
+        specifier: workspace:*
+        version: link:../../packages/iracing-telemetry-ws
+
+  examples/oauth-example:
+    dependencies:
+      '@iracing-data/oauth-client':
+        specifier: workspace:*
+        version: link:../../packages/oauth/client
+      express:
+        specifier: ^5.1.0
+        version: 5.1.0
+    devDependencies:
+      '@types/express':
+        specifier: ^5.0.3
+        version: 5.0.3
+      tsx:
+        specifier: ^4.19.0
+        version: 4.20.4
+
+  examples/race-events:
     dependencies:
       '@iracing-data/car-session-flag-events':
         specifier: workspace:*
@@ -106,28 +128,6 @@ importers:
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
-
-  examples/kapps-hello-world:
-    dependencies:
-      '@iracing-data/ws':
-        specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-ws
-
-  examples/oauth-example:
-    dependencies:
-      '@iracing-data/oauth-client':
-        specifier: workspace:*
-        version: link:../../packages/oauth/client
-      express:
-        specifier: ^5.1.0
-        version: 5.1.0
-    devDependencies:
-      '@types/express':
-        specifier: ^5.0.3
-        version: 5.0.3
-      tsx:
-        specifier: ^4.19.0
-        version: 4.20.4
 
   examples/telemetry-client:
     dependencies:
@@ -298,6 +298,19 @@ importers:
         version: 5.9.2
 
   packages/events/pace-flag-events:
+    dependencies:
+      '@iracing-data/telemetry-types':
+        specifier: workspace:*
+        version: link:../../iracing-telemetry-types
+    devDependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
+  packages/events/pace-order-events:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
