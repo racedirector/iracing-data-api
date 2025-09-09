@@ -26,6 +26,7 @@ type CarSessionFlagEventPayload = {
 };
 
 export type CarSessionFlagEventMap = {
+  changed: CarSessionFlagEventPayload;
   checkered: CarSessionFlagEventPayload;
   white: CarSessionFlagEventPayload;
   yellow: CarSessionFlagEventPayload;
@@ -77,18 +78,20 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
     sessionTime: string,
     length: number = indexedSessionFlags.length
   ) {
-    if (_.isEmpty(this.previousSessionFlags)) {
-      this.previousSessionFlags = indexedSessionFlags;
-      return;
-    }
-
     if (!_.isEqual(this.previousSessionFlags, indexedSessionFlags)) {
       for (let i = 0; i < length; i++) {
         const previousFlag = this.previousSessionFlags[i];
         const currentFlag = indexedSessionFlags[i];
 
         if (previousFlag !== currentFlag) {
-          if (isCheckered(currentFlag)) {
+          this.emit("changed", {
+            sessionTime,
+            flags: currentFlag,
+            previousFlags: previousFlag,
+            carIndex: i,
+          });
+
+          if (isCheckered(currentFlag) && !isCheckered(previousFlag)) {
             this.emit("checkered", {
               sessionTime,
               flags: currentFlag,
@@ -97,7 +100,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isWhite(currentFlag)) {
+          if (isWhite(currentFlag) && !isWhite(previousFlag)) {
             this.emit("white", {
               sessionTime,
               flags: currentFlag,
@@ -106,7 +109,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isYellow(currentFlag)) {
+          if (isYellow(currentFlag) && !isYellow(previousFlag)) {
             this.emit("yellow", {
               sessionTime,
               flags: currentFlag,
@@ -115,14 +118,14 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isBlack(currentFlag)) {
+          if (isBlack(currentFlag) && !isBlack(previousFlag)) {
             this.emit("black", {
               sessionTime,
               flags: currentFlag,
               previousFlags: previousFlag,
               carIndex: i,
             });
-          } else if (isBlack(previousFlag)) {
+          } else if (!isBlack(currentFlag) && isBlack(previousFlag)) {
             this.emit("black:cleared", {
               sessionTime,
               flags: currentFlag,
@@ -131,14 +134,14 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isBlue(currentFlag)) {
+          if (isBlue(currentFlag) && !isBlue(previousFlag)) {
             this.emit("blue", {
               sessionTime,
               flags: currentFlag,
               previousFlags: previousFlag,
               carIndex: i,
             });
-          } else if (isBlue(previousFlag)) {
+          } else if (!isBlue(currentFlag) && isBlue(previousFlag)) {
             this.emit("blue:cleared", {
               sessionTime,
               flags: currentFlag,
@@ -147,7 +150,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isDebris(currentFlag)) {
+          if (isDebris(currentFlag) && !isDebris(currentFlag)) {
             this.emit("debris", {
               sessionTime,
               flags: currentFlag,
@@ -156,7 +159,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isCrossed(currentFlag)) {
+          if (isCrossed(currentFlag) && !isCrossed(previousFlag)) {
             this.emit("crossed", {
               sessionTime,
               flags: currentFlag,
@@ -165,7 +168,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isYellowWaving(currentFlag)) {
+          if (isYellowWaving(currentFlag) && !isYellowWaving(previousFlag)) {
             this.emit("yellowWaving", {
               sessionTime,
               flags: currentFlag,
@@ -174,7 +177,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isTenToGo(currentFlag)) {
+          if (isTenToGo(currentFlag) && !isTenToGo(previousFlag)) {
             this.emit("tenToGo", {
               sessionTime,
               flags: currentFlag,
@@ -183,7 +186,7 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isFiveToGo(currentFlag)) {
+          if (isFiveToGo(currentFlag) && !isFiveToGo(previousFlag)) {
             this.emit("fiveToGo", {
               sessionTime,
               flags: currentFlag,
@@ -192,14 +195,14 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isDisqualify(currentFlag)) {
+          if (isDisqualify(currentFlag) && !isDisqualify(previousFlag)) {
             this.emit("disqualify", {
               sessionTime,
               flags: currentFlag,
               previousFlags: previousFlag,
               carIndex: i,
             });
-          } else if (isDisqualify(previousFlag)) {
+          } else if (!isDisqualify(currentFlag) && isDisqualify(previousFlag)) {
             this.emit("disqualify:cleared", {
               sessionTime,
               flags: currentFlag,
@@ -208,14 +211,14 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isServicible(currentFlag)) {
+          if (isServicible(currentFlag) && !isServicible(previousFlag)) {
             this.emit("servicible", {
               sessionTime,
               flags: currentFlag,
               previousFlags: previousFlag,
               carIndex: i,
             });
-          } else if (isServicible(previousFlag)) {
+          } else if (!isServicible(currentFlag) && isServicible(previousFlag)) {
             this.emit("servicible:cleared", {
               sessionTime,
               flags: currentFlag,
@@ -224,14 +227,14 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isFurled(currentFlag)) {
+          if (isFurled(currentFlag) && !isFurled(previousFlag)) {
             this.emit("furled", {
               sessionTime,
               flags: currentFlag,
               previousFlags: previousFlag,
               carIndex: i,
             });
-          } else if (isFurled(previousFlag)) {
+          } else if (!isFurled(currentFlag) && isFurled(previousFlag)) {
             this.emit("furled:cleared", {
               sessionTime,
               flags: currentFlag,
@@ -240,14 +243,14 @@ export class CarSessionFlagEventEmitter extends EventEmitter {
             });
           }
 
-          if (isRepair(currentFlag)) {
+          if (isRepair(currentFlag) && !isRepair(previousFlag)) {
             this.emit("repair", {
               sessionTime,
               flags: currentFlag,
               previousFlags: previousFlag,
               carIndex: i,
             });
-          } else if (isRepair(previousFlag)) {
+          } else if (!isRepair(currentFlag) && isRepair(previousFlag)) {
             this.emit("repair:cleared", {
               sessionTime,
               flags: currentFlag,

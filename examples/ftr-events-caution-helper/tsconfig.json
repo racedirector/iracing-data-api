@@ -3,7 +3,8 @@
   "compilerOptions": {
     "rootDir": ".",
     "lib": ["dom"],
-    "noUnusedLocals": true
+    "noUnusedLocals": true,
+    "isolatedModules": false
   },
   "exclude": ["node_modules", "bin", "dist"]
 }

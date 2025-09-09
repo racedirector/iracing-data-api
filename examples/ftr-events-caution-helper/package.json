@@ -17,6 +17,7 @@
     "@iracing-data/pit-lane-events": "workspace:*",
     "@iracing-data/session-flag-events": "workspace:*",
     "@iracing-data/telemetry-types": "workspace:*",
+    "ascii-table3": "^1.0.1",
     "lodash": "^4.17.21",
     "luxon": "^3.7.1",
     "pino": "^9.9.4",
