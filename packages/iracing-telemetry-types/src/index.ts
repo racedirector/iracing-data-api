@@ -4,12 +4,13 @@ import {
   PaceFlags,
   PaceMode,
   PitServiceStatus,
+  SessionState,
   Telemetry,
+  TrackLocation,
 } from "./telemetry";
 
 export * from "./telemetry";
 export * from "./session";
-
 
 export type TelemetryData = Telemetry & Partial<Session>;
 export type TelemetryKey = keyof TelemetryData;
@@ -91,3 +92,28 @@ export const isBadAngle = (status: number) =>
   !!(status & PitServiceStatus.bad_angle);
 export const isTooMuchDamage = (status: number) =>
   !!(status & PitServiceStatus.cant_fix_that);
+
+// Track Location
+export const isOnTrack = (location: number) =>
+  location === TrackLocation.on_track;
+export const isOffTrack = (location: number) =>
+  location === TrackLocation.off_track;
+export const isApproachingPits = (location: number) =>
+  location === TrackLocation.aproaching_pits;
+export const isInPitStall = (location: number) =>
+  location === TrackLocation.in_pit_stall;
+export const isNotInWorld = (location: number) =>
+  location === TrackLocation.not_in_world;
+
+// TODO: Add a tow detection...
+
+// Session State
+export const isInvalid = (state: number) => state === SessionState.invalid;
+export const isGetInCar = (state: number) => state === SessionState.get_in_car;
+export const isWarmup = (state: number) => state === SessionState.warmup;
+export const isParadeLap = (state: number) =>
+  state === SessionState.parade_laps;
+export const isRacing = (state: number) => state === SessionState.racing;
+export const isCheckeredState = (state: number) =>
+  state === SessionState.checkered;
+export const isCoolDown = (state: number) => state === SessionState.cool_down;
