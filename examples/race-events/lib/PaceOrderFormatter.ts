@@ -1,9 +1,8 @@
 import { EventEmitter } from "node:events";
 import {
-  isDoubleFileRestart,
+  isDoubleFile,
   isLeftLine,
   isRightLine,
-  isSingleFileRestart,
   PaceMode,
   Session,
 } from "@iracing-data/telemetry-types";
@@ -107,7 +106,7 @@ export class PaceOrderFormatter extends EventEmitter {
   formatPaceOrderTable(title: string = "Pace Order") {
     const table = new AsciiTable3(title);
 
-    if (isDoubleFileRestart(this._paceMode)) {
+    if (isDoubleFile(this._paceMode)) {
       return table
         .setHeading("Row", "Line", "Car Number", "Name")
         .addRowMatrix(
@@ -118,7 +117,7 @@ export class PaceOrderFormatter extends EventEmitter {
             displayName,
           ])
         );
-    } else if (isSingleFileRestart(this._paceMode)) {
+    } else {
       return table
         .setHeading("Row", "Car Number", "Name")
         .addRowMatrix(

@@ -198,14 +198,25 @@ const pitLaneManager = new PitLaneEventEmitter()
   );
 
 const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
-  console.log(paceOrderFormatter.formatPaceOrderTable()?.toString());
-  console.log(paceOrderFormatter.formatUnassignedTable().toString());
+  const paceOrderTable = paceOrderFormatter.formatPaceOrderTable();
+  const unassignedTable = paceOrderFormatter.formatUnassignedTable();
+
+  // Log the table JSON to the log file
+  paceOrderLogger.info({
+    paceOrderTable: paceOrderTable.toJSON(),
+    unassignedTable: unassignedTable.toJSON(),
+    type: "pace-order-table",
+  });
+
+  // Log the table as a visual to stdout
+  console.log(
+    `Pace order:\n\n\n${paceOrderTable.toString()}\n${unassignedTable.toString()}`
+  );
 });
 
 const paceOrderManager = new PaceOrderEventEmitter().on(
   "change",
   ({ currentLines, currentRows, paceMode }) => {
-    // ???: Do we want a previous pace order format as well?
     paceOrderFormatter.update(
       currentRows,
       currentLines,
@@ -323,6 +334,8 @@ const shutdown = () => {
   carFlagObserver.removeAllListeners();
   pitLaneManager.removeAllListeners();
   paceFlagManager.removeAllListeners();
+  paceOrderManager.removeAllListeners();
+  paceOrderFormatter.removeAllListeners();
 
   stream.cancel();
 };
