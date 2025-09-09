@@ -12,7 +12,7 @@ const program = new Command("sync-iracing-telemetry-json-schema")
   )
   .option(
     "--to, --telemetry-output <telemetryTypesPath>",
-    "Telmetry types output"
+    "Telemetry types output"
   )
   .option(
     "--si, --session-input <sessionSchemaPath>",
