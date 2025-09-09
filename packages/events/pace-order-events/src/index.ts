@@ -184,48 +184,49 @@ export class PaceOrderEventEmitter extends EventEmitter {
     }
 
     // Emit per-car changes if we have listeners
+    if (this._hasPerCarListeners) {
+      for (let i = 0; i < length; i++) {
+        const previousLine = this.previousPaceLines[i];
+        const previousRow = this.previousPaceRows[i];
+        const currentLine = paceLines[i];
+        const currentRow = paceRows[i];
 
-    for (let i = 0; i < length; i++) {
-      const previousLine = this.previousPaceLines[i];
-      const previousRow = this.previousPaceRows[i];
-      const currentLine = paceLines[i];
-      const currentRow = paceRows[i];
+        const lineChanged = previousLine !== currentLine;
+        const rowChanged = previousRow !== currentRow;
 
-      const lineChanged = previousLine !== currentLine;
-      const rowChanged = previousRow !== currentRow;
+        if (!lineChanged && !rowChanged) continue;
 
-      if (!lineChanged && !rowChanged) continue;
+        if (this.listenerCount("lineChange") && lineChanged) {
+          this.emit("lineChange", {
+            sessionTime,
+            previousLine,
+            currentLine,
+            carIndex: i,
+            paceMode: this.paceMode,
+          });
+        }
 
-      if (this.listenerCount("lineChange") && lineChanged) {
-        this.emit("lineChange", {
-          sessionTime,
-          previousLine,
-          currentLine,
-          carIndex: i,
-          paceMode: this.paceMode,
-        });
-      }
+        if (this.listenerCount("rowChange") && rowChanged) {
+          this.emit("rowChange", {
+            sessionTime,
+            previousRow,
+            currentRow,
+            carIndex: i,
+            paceMode: this.paceMode,
+          });
+        }
 
-      if (this.listenerCount("rowChange") && rowChanged) {
-        this.emit("rowChange", {
-          sessionTime,
-          previousRow,
-          currentRow,
-          carIndex: i,
-          paceMode: this.paceMode,
-        });
-      }
-
-      if (this.listenerCount("carMoved") && (lineChanged || rowChanged)) {
-        this.emit("carMoved", {
-          sessionTime,
-          previousLine,
-          currentLine,
-          previousRow,
-          currentRow,
-          carIndex: i,
-          paceMode: this.paceMode,
-        });
+        if (this.listenerCount("carMoved") && (lineChanged || rowChanged)) {
+          this.emit("carMoved", {
+            sessionTime,
+            previousLine,
+            currentLine,
+            previousRow,
+            currentRow,
+            carIndex: i,
+            paceMode: this.paceMode,
+          });
+        }
       }
     }
 
