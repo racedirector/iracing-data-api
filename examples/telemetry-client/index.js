@@ -27,9 +27,6 @@ const main = async () => {
       } = JSON.parse(data);
 
       // TODO: DO something with the data
-    })
-    .on("error", (error) => {
-      logger.error(error);
     });
 
   const shutdown = () => {
