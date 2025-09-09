@@ -9,11 +9,7 @@
   "dependencies": {
     "@iracing-data/telemetry-types": "workspace:*"
   },
-  "peerDependencies": {
-    "lodash": "^4.17.21"
-  },
   "devDependencies": {
-    "lodash": "^4.17.21",
     "typescript": "^5.9.2"
   }
 }
