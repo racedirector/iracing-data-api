@@ -13,7 +13,7 @@ pnpm i @iracing-data/car-session-flag-events
 ## Usage
 
 ```typescript
-const carFlagObserver = new CarSessionFlagEvenEmitter()
+const carFlagObserver = new CarSessionFlagEventEmitter()
   .on("checkered", ({ sessionTime, carIndex }) => {
     flagLogger.info(
       { sessionTime },
