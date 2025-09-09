@@ -1,13 +1,27 @@
 import { CarSessionFlagEventEmitter } from "@iracing-data/car-session-flag-events";
 import { TelemetryClient } from "@iracing-data/grpc-node";
+import { CarTrackLocationEventEmitter } from "@iracing-data/car-track-location-events";
 import { PaceFlagEventEmitter } from "@iracing-data/pace-flag-events";
+import { PaceOrderEventEmitter } from "@iracing-data/pace-order-events";
 import { PitLaneEventEmitter } from "@iracing-data/pit-lane-events";
 import { SessionFlagEventEmitter } from "@iracing-data/session-flag-events";
-import { Session, TelemetryData } from "@iracing-data/telemetry-types";
+import { SessionStateEventEmitter } from "@iracing-data/session-state-events";
+import {
+  isCheckeredState,
+  isCoolDown,
+  isGetInCar,
+  isInvalid,
+  isParadeLap,
+  isRacing,
+  isWarmup,
+  PaceMode,
+  Session,
+  SessionState,
+  TelemetryData,
+} from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
 import pino from "pino";
-import PaceOrderEventEmitter from "./lib/PaceOrderEventEmitter";
 import PaceOrderFormatter from "./lib/PaceOrderFormatter";
 
 const apiUrl = process.env.API_URL || "localhost:50051";
@@ -32,6 +46,8 @@ const flagLogger = logger.child({ service: "flag" });
 const paceFlagLogger = logger.child({ service: "pace-flag" });
 const paceOrderLogger = logger.child({ service: "pace-order" });
 const pitLaneLogger = logger.child({ service: "pit-lane" });
+const trackLocationLogger = logger.child({ service: "track-location" });
+const sessionStateLogger = logger.child({ service: "session-state" });
 
 // Global state
 let numberOfDrivers = -1;
@@ -209,6 +225,81 @@ const paceOrderManager = new PaceOrderEventEmitter().on(
   }
 );
 
+const trackLocationEmitter = new CarTrackLocationEventEmitter()
+  .on(
+    "notInWorld",
+    ({ sessionTime, carIndex, previousTrackLocation, currenTrackLocation }) => {
+      trackLocationLogger.info(
+        { sessionTime, carIndex, previousTrackLocation, currenTrackLocation },
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is not in world.`
+      );
+    }
+  )
+  .on(
+    "offTrack",
+    ({ sessionTime, carIndex, previousTrackLocation, currenTrackLocation }) => {
+      trackLocationLogger.info(
+        { sessionTime, carIndex, previousTrackLocation, currenTrackLocation },
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is off track.`
+      );
+    }
+  )
+  .on(
+    "onTrack",
+    ({ sessionTime, carIndex, previousTrackLocation, currenTrackLocation }) => {
+      trackLocationLogger.info(
+        { sessionTime, carIndex, previousTrackLocation, currenTrackLocation },
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is on track.`
+      );
+    }
+  )
+  .on(
+    "approachingPits",
+    ({ sessionTime, carIndex, previousTrackLocation, currenTrackLocation }) => {
+      trackLocationLogger.info(
+        { sessionTime, carIndex, previousTrackLocation, currenTrackLocation },
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is approaching pit lane.`
+      );
+    }
+  )
+  .on(
+    "inPitStall",
+    ({ sessionTime, carIndex, previousTrackLocation, currenTrackLocation }) => {
+      trackLocationLogger.info(
+        { sessionTime, carIndex, previousTrackLocation, currenTrackLocation },
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) entered their pit stall.`
+      );
+    }
+  );
+
+function stringForSessionState(state: number) {
+  if (isGetInCar(state)) {
+    return "get-in-car";
+  } else if (isWarmup(state)) {
+    return "warmup";
+  } else if (isParadeLap(state)) {
+    return "parade lap";
+  } else if (isRacing(state)) {
+    return "racing";
+  } else if (isCheckeredState(state)) {
+    return "checkered";
+  } else if (isCoolDown(state)) {
+    return "cool down";
+  }
+
+  return "invalid";
+}
+
+const sessionStateEmitter = new SessionStateEventEmitter().on(
+  "change",
+  ({ sessionTime, previousSessionState, currentSessionState }) => {
+    sessionStateLogger.info(
+      { sessionTime, previousSessionState, currentSessionState },
+      `Session state did change from ${stringForSessionState(previousSessionState)} to ${stringForSessionState(currentSessionState)}`
+    );
+  }
+);
+
 const client = new TelemetryClient(apiUrl);
 const stream = client
   .subscribeTelemetry(30, [
@@ -217,11 +308,13 @@ const stream = client
     "CarIdxPaceLine",
     "CarIdxPaceRow",
     "CarIdxSessionFlags",
+    "CarIdxTrackSurface",
     "DriverInfo",
     "PaceMode",
     "PitsOpen",
     "PlayerCarIdx",
     "SessionFlags",
+    "SessionState",
     "SessionTick",
     "SessionTime",
     "WeekendInfo",
@@ -246,10 +339,12 @@ const stream = client
       CarIdxPaceLine: paceLines = [],
       CarIdxPaceRow: paceRows = [],
       CarIdxSessionFlags: flags = [],
+      CarIdxTrackSurface: trackLocations = [],
       DriverInfo: { PaceCarIdx = -1, Drivers: drivers = [] } = {},
-      PaceMode: paceMode = 4, // Isolated modules enabled, use the raw value.
+      PaceMode: paceMode = PaceMode.not_pacing,
       PitsOpen: isPitLaneOpen = false,
       SessionFlags: sessionFlags = 0x0,
+      SessionState: sessionState = SessionState.invalid,
       SessionTime: sessionTime,
       WeekendInfo: { TeamRacing: teamRacingRaw } = {},
     } = JSON.parse(data) as TelemetryData;
@@ -265,7 +360,7 @@ const stream = client
     // Update timestamps
     const sessionTimeDurationString = Duration.fromObject({
       seconds: sessionTime,
-    }).toFormat("hh:mm:ss");
+    }).toFormat("hh:mm:ss.SSS");
 
     if (!_.isEqual(cachedDrivers, drivers)) {
       if (numberOfDrivers !== drivers.length) {
@@ -309,6 +404,13 @@ const stream = client
 
     sessionFlagObserver.process(sessionFlags, sessionTimeDurationString);
     carFlagObserver.process(flags, sessionTimeDurationString, numberOfDrivers);
+    trackLocationEmitter.process(
+      trackLocations,
+      sessionTimeDurationString,
+      numberOfDrivers
+    );
+
+    sessionStateEmitter.process(sessionState, sessionTimeDurationString);
   });
 
 const shutdown = () => {

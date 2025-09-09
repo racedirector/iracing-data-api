@@ -1,0 +1,15 @@
+{
+  "name": "@iracing-data/session-state-events",
+  "version": "0.0.1-alpha.0",
+  "description": "EventEmitter for session state telemetry events from iRacing.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@iracing-data/telemetry-types": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.2"
+  }
+}

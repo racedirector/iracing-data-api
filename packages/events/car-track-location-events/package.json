@@ -1,0 +1,19 @@
+{
+  "name": "@iracing-data/car-track-location-events",
+  "version": "0.0.1-alpha.0",
+  "description": "EventEmitter for per-car track location telemetry events from iRacing.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@iracing-data/telemetry-types": "workspace:*"
+  },
+  "peerDependencies": {
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "lodash": "^4.17.21",
+    "typescript": "^5.9.2"
+  }
+}
