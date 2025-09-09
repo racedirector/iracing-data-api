@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 import fs from "node:fs";
 import path from "node:path";
 import { compileFromFile } from "json-schema-to-typescript";
@@ -35,6 +34,8 @@ export const generateTypes = async ({
     const schema = await compileFromFile(telemetrySchemaPath, {
       additionalProperties: false,
       ignoreMinAndMaxItems: true,
+      enableConstEnums: false,
+      inferStringEnumKeysFromValues: true,
     });
     // If the file already exists, remove it
     if (fs.existsSync(telemetryTypesPath)) {
@@ -47,6 +48,8 @@ export const generateTypes = async ({
   if (sessionSchemaPath) {
     const schema = await compileFromFile(sessionSchemaPath, {
       additionalProperties: false,
+      enableConstEnums: false,
+      inferStringEnumKeysFromValues: true,
     });
 
     // If the file already exists, remove it

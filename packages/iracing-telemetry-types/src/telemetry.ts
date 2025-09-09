@@ -540,23 +540,23 @@ export interface Telemetry {
   RFshockVel_ST?: number[];
 }
 
-export const enum SessionState {
+export enum SessionState {
   invalid = 0,
   get_in_car = 1,
   warmup = 2,
   parade_laps = 3,
   racing = 4,
   checkered = 5,
-  cool_down = 6
+  cool_down = 6,
 }
-export const enum TrackLocation {
+export enum TrackLocation {
   not_in_world = -1,
   off_track = 0,
   in_pit_stall = 1,
   aproaching_pits = 2,
-  on_track = 3
+  on_track = 3,
 }
-export const enum TrackSurface {
+export enum TrackSurface {
   not_in_world = -1,
   undefined = 0,
   asphalt_1 = 1,
@@ -585,9 +585,9 @@ export const enum TrackSurface {
   gravel_1 = 24,
   gravel_2 = 25,
   grasscrete = 26,
-  astroturf = 27
+  astroturf = 27,
 }
-export const enum PitServiceStatus {
+export enum PitServiceStatus {
   none = 0,
   in_progress = 1,
   complete = 2,
@@ -596,9 +596,9 @@ export const enum PitServiceStatus {
   too_far_forward = 102,
   too_far_back = 103,
   bad_angle = 104,
-  cant_fix_that = 105
+  cant_fix_that = 105,
 }
-export const enum Flags {
+export enum Flags {
   checkered = 1,
   white = 2,
   green = 4,
@@ -623,21 +623,21 @@ export const enum Flags {
   start_hidden = 268435456,
   start_ready = 536870912,
   start_set = 1073741824,
-  start_go = 2147483648
+  start_go = 2147483648,
 }
-export const enum PaceMode {
+export enum PaceMode {
   single_file_start = 0,
   double_file_start = 1,
   single_file_restart = 2,
   double_file_restart = 3,
-  not_pacing = 4
+  not_pacing = 4,
 }
-export const enum PaceFlags {
+export enum PaceFlags {
   end_of_line = 1,
   free_pass = 2,
-  waved_around = 4
+  waved_around = 4,
 }
-export const enum TrackWetness {
+export enum TrackWetness {
   unknown = 0,
   dry = 1,
   mostly_dry = 2,
@@ -645,14 +645,14 @@ export const enum TrackWetness {
   lightly_wet = 4,
   moderately_wet = 5,
   very_wet = 6,
-  extremely_wet = 7
+  extremely_wet = 7,
 }
-export const enum CarLeftRight {
+export enum CarLeftRight {
   off = 0,
   clear = 1,
   car_left = 2,
   car_right = 3,
   car_left_right = 4,
   two_cars_left = 5,
-  two_cars_right = 6
+  two_cars_right = 6,
 }
