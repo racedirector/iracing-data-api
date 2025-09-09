@@ -58,7 +58,7 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
   try {
     const params = new URLSearchParams(req.url.split("?")[1]);
 
-    const { access_token } = await client.callback(params);
+    const token = await client.callback(params);
 
     /**
      * In a standard application, we'd store the token result in some sort of
@@ -74,7 +74,7 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
     const response = await fetch(`${BASE_URL}/iracing/profile`, {
       method: "GET",
       headers: {
-        Authorization: `Bearer ${access_token}`,
+        Authorization: `Bearer ${token.access_token}`,
       },
     });
 
