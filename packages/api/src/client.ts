@@ -2,7 +2,7 @@ import axios, { AxiosInstance } from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import { CookieJar } from "tough-cookie";
 import { IRacingAPI, NetworkClientProvider } from "./api";
-import { IRacingAuthenticationError } from "./types";
+import { IRacingAuthenticationError, Store } from "./types";
 import { allCookiesValid, fetchValidLinkData } from "./util";
 
 const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
@@ -527,6 +527,36 @@ export class IRacingAPISessionClient extends IRacingAPIClient {
     }
 
     return null;
+  }
+}
+
+export interface IRacingAPIOAuthClientOptions {
+  client?: AxiosInstance;
+  sessionStore: Store<string, string>;
+}
+
+export class IRacingAPIOAuthClient extends IRacingAPIClient {
+  constructor(options: IRacingAPIOAuthClientOptions) {
+    const {
+      client = axios.create({
+        baseURL: DEFAULT_IRACING_DATA_API_URL,
+      }),
+      sessionStore,
+    } = options;
+
+    client.interceptors.request.use(async (config) => {
+      const accessToken = await sessionStore.get("access_token");
+
+      // TODO: If token is expired, refresh it.
+
+      if (accessToken) {
+        config.headers["Authorization"] = `Bearer ${accessToken}`;
+      }
+
+      return config;
+    });
+
+    super(client);
   }
 }
 

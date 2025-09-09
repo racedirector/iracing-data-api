@@ -1,5 +1,3 @@
-export * from "./api/types";
-
 export class IRacingAuthenticationError extends Error {
   constructor() {
     super("Failed to authenticate with iRacing.");
