@@ -54,14 +54,14 @@ export const isWavedAround = (flags: number) =>
 
 // Pace Mode
 export const isSingleFileRestart = (mode: number) =>
-  !!(mode && PaceMode.single_file_restart);
+  !!(mode & PaceMode.single_file_restart);
 export const isSingleFileStart = (mode: number) =>
-  !!(mode && PaceMode.single_file_start);
+  !!(mode & PaceMode.single_file_start);
 export const isDoubleFileRestart = (mode: number) =>
-  !!(mode && PaceMode.double_file_restart);
+  !!(mode & PaceMode.double_file_restart);
 export const isDoubleFileStart = (mode: number) =>
-  !!(mode && PaceMode.double_file_start);
-export const isNotPacing = (mode: number) => !!(mode && PaceMode.not_pacing);
+  !!(mode & PaceMode.double_file_start);
+export const isNotPacing = (mode: number) => !!(mode & PaceMode.not_pacing);
 export const isSingleFile = (mode: number) =>
   isSingleFileRestart(mode) || isSingleFileStart(mode);
 export const isDoubleFile = (mode: number) =>
