@@ -540,6 +540,10 @@ export interface Telemetry {
   RFshockVel_ST?: number[];
 }
 
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "SessionState".
+ */
 export enum SessionState {
   invalid = 0,
   get_in_car = 1,
@@ -549,6 +553,10 @@ export enum SessionState {
   checkered = 5,
   cool_down = 6
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "TrackLocation".
+ */
 export enum TrackLocation {
   not_in_world = -1,
   off_track = 0,
@@ -556,6 +564,10 @@ export enum TrackLocation {
   aproaching_pits = 2,
   on_track = 3
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "TrackSurface".
+ */
 export enum TrackSurface {
   not_in_world = -1,
   undefined = 0,
@@ -587,6 +599,10 @@ export enum TrackSurface {
   grasscrete = 26,
   astroturf = 27
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "PitServiceStatus".
+ */
 export enum PitServiceStatus {
   none = 0,
   in_progress = 1,
@@ -598,6 +614,10 @@ export enum PitServiceStatus {
   bad_angle = 104,
   cant_fix_that = 105
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "Flags".
+ */
 export enum Flags {
   checkered = 1,
   white = 2,
@@ -625,6 +645,10 @@ export enum Flags {
   start_set = 1073741824,
   start_go = 2147483648
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "PaceMode".
+ */
 export enum PaceMode {
   single_file_start = 0,
   double_file_start = 1,
@@ -632,11 +656,19 @@ export enum PaceMode {
   double_file_restart = 3,
   not_pacing = 4
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "PaceFlags".
+ */
 export enum PaceFlags {
   end_of_line = 1,
   free_pass = 2,
   waved_around = 4
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "TrackWetness".
+ */
 export enum TrackWetness {
   unknown = 0,
   dry = 1,
@@ -647,6 +679,10 @@ export enum TrackWetness {
   very_wet = 6,
   extremely_wet = 7
 }
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "CarLeftRight".
+ */
 export enum CarLeftRight {
   off = 0,
   clear = 1,
@@ -655,4 +691,45 @@ export enum CarLeftRight {
   car_left_right = 4,
   two_cars_left = 5,
   two_cars_right = 6
+}
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "EngineWarnings".
+ */
+export enum EngineWarnings {
+  water_temp_warning = "0x1",
+  pit_speed_limiter = "0x10",
+  fuel_pressure_warning = "0x2",
+  rev_limiter_active = "0x20",
+  oil_pressure_warning = "0x4",
+  oil_temp_warning = "0x40",
+  engine_stalled = "0x8"
+}
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "CameraState".
+ */
+export enum CameraState {
+  is_session_screen = 1,
+  is_scenic_active = 2,
+  cam_tool_active = 4,
+  ui_hidden = 8,
+  use_auto_shot_selection = 16,
+  use_temporary_edits = 32,
+  use_key_acceleration = 64,
+  use_key10x_acceleration = 128,
+  use_mouse_aim_mode = 256
+}
+/**
+ * This interface was referenced by `Telemetry`'s JSON-Schema
+ * via the `definition` "PitServiceFlags".
+ */
+export enum PitServiceFlags {
+  lf_tire_change = 1,
+  rf_tire_change = 2,
+  lr_tire_change = 4,
+  rr_tire_change = 8,
+  fuel_fill = 16,
+  windshield_tearoff = 32,
+  fast_repair = 64
 }
