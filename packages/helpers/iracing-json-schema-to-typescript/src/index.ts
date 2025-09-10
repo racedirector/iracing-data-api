@@ -35,7 +35,7 @@ export const generateTypes = async ({
       additionalProperties: false,
       ignoreMinAndMaxItems: true,
       enableConstEnums: false,
-      inferStringEnumKeysFromValues: true,
+      unreachableDefinitions: true,
     });
     // If the file already exists, remove it
     if (fs.existsSync(telemetryTypesPath)) {
@@ -50,6 +50,7 @@ export const generateTypes = async ({
       additionalProperties: false,
       enableConstEnums: false,
       inferStringEnumKeysFromValues: true,
+      unreachableDefinitions: true,
     });
 
     // If the file already exists, remove it
