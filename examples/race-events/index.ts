@@ -10,7 +10,6 @@ import {
   isCheckeredState,
   isCoolDown,
   isGetInCar,
-  isInvalid,
   isParadeLap,
   isRacing,
   isWarmup,
@@ -18,15 +17,18 @@ import {
   Session,
   SessionState,
   TelemetryData,
+  TrackLocation,
 } from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
 import pino from "pino";
 import PaceOrderFormatter from "./lib/PaceOrderFormatter";
+import { PlayerPitStopEventEmitter } from "@iracing-data/player-pit-stop-events";
 
 const apiUrl = process.env.API_URL || "localhost:50051";
 
 const logger = pino({
+  base: undefined,
   level: "debug",
   transport: {
     targets: [
@@ -42,7 +44,6 @@ const logger = pino({
 });
 
 logger.info(`Connecting telemetry client to ${apiUrl}`);
-const flagLogger = logger.child({ service: "flag" });
 const paceFlagLogger = logger.child({ service: "pace-flag" });
 const paceOrderLogger = logger.child({ service: "pace-order" });
 const pitLaneLogger = logger.child({ service: "pit-lane" });
@@ -70,6 +71,10 @@ function carIdentifierForIndex(carIndex: number) {
     .join(", ");
 }
 
+/**
+ * Session flags
+ */
+const flagLogger = logger.child({ service: "flag" });
 const sessionFlagObserver = new SessionFlagEventEmitter()
   .on("oneToGreen", ({ sessionTime }) => {
     flagLogger.info({ sessionTime }, "One to green.");
@@ -149,6 +154,9 @@ const carFlagObserver = new CarSessionFlagEventEmitter()
     );
   });
 
+/**
+ * Pace flags
+ */
 const paceFlagManager = new PaceFlagEventEmitter()
   .on("waveAround", ({ sessionTime, carIndex }) => {
     paceFlagLogger.info(
@@ -169,6 +177,61 @@ const paceFlagManager = new PaceFlagEventEmitter()
     );
   });
 
+const playerPitStopLogger = logger.child({ service: "player-pit-stop" });
+const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
+  .on("pitlane:opened", ({ sessionTime }) => {
+    playerPitStopLogger.info(
+      { sessionTime, type: "pit-open" },
+      "Pit lane opened"
+    );
+  })
+  .on("pitlane:closed", ({ sessionTime }) => {
+    playerPitStopLogger.info(
+      { sessionTime, type: "pit-close" },
+      "Pit lane closed"
+    );
+  })
+  .on("pitroad:entered", ({ sessionTime, isPitLaneOpen }) => {
+    playerPitStopLogger.info(
+      { sessionTime, type: "pit-road-enter" },
+      `Player entered ${isPitLaneOpen ? "open" : "closed"} pit road`
+    );
+  })
+  .on("pitroad:exited", ({ sessionTime, isPitLaneOpen }) => {
+    playerPitStopLogger.info(
+      { sessionTime, type: "pit-road-enter" },
+      `Player exited ${isPitLaneOpen ? "open" : "closed"} pit road`
+    );
+  })
+  .on("pitstall:entered", ({ sessionTime, trackLocation }) => {
+    playerPitStopLogger.info({
+      sessionTime,
+      type: "pitstall-enter",
+      trackLocation,
+    });
+  })
+  .on("pitstall:exited", ({ sessionTime, trackLocation }) => {
+    playerPitStopLogger.info({
+      sessionTime,
+      type: "pitstall-exit",
+      trackLocation,
+    });
+  })
+  .on(
+    "service:change",
+    ({ sessionTime, previousServiceStatus, currentServiceStatus }) => {
+      playerPitStopLogger.info({
+        sessionTime,
+        type: "service",
+        previousServiceStatus,
+        currentServiceStatus,
+      });
+    }
+  );
+
+/**
+ * Pit lane
+ */
 const pitLaneManager = new PitLaneEventEmitter()
   .on("pitlane:opened", ({ sessionTime }) => {
     pitLaneLogger.info({ sessionTime, type: "pit-open" }, "Pit lane opened");
@@ -195,6 +258,9 @@ const pitLaneManager = new PitLaneEventEmitter()
     }
   );
 
+/**
+ * Pace order
+ */
 const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
   const paceOrderTable = paceOrderFormatter.formatPaceOrderTable();
   const unassignedTable = paceOrderFormatter.formatUnassignedTable();
@@ -205,11 +271,6 @@ const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
     unassignedTable: unassignedTable.toJSON(),
     type: "pace-order-table",
   });
-
-  // Log the table as a visual to stdout
-  console.log(
-    `Pace order:\n\n\n${paceOrderTable.toString()}\n${unassignedTable.toString()}`
-  );
 });
 
 const paceOrderManager = new PaceOrderEventEmitter().on(
@@ -225,6 +286,9 @@ const paceOrderManager = new PaceOrderEventEmitter().on(
   }
 );
 
+/**
+ * Track location
+ */
 const trackLocationEmitter = new CarTrackLocationEventEmitter()
   .on(
     "notInWorld",
@@ -272,6 +336,10 @@ const trackLocationEmitter = new CarTrackLocationEventEmitter()
     }
   );
 
+/**
+ * Session state
+ */
+
 function stringForSessionState(state: number) {
   if (isGetInCar(state)) {
     return "get-in-car";
@@ -295,11 +363,14 @@ const sessionStateEmitter = new SessionStateEventEmitter().on(
   ({ sessionTime, previousSessionState, currentSessionState }) => {
     sessionStateLogger.info(
       { sessionTime, previousSessionState, currentSessionState },
-      `Session state did change from ${stringForSessionState(previousSessionState)} to ${stringForSessionState(currentSessionState)}`
+      `Session state did change from '${stringForSessionState(previousSessionState)}' to '${stringForSessionState(currentSessionState)}'`
     );
   }
 );
 
+/**
+ * gRPC client stream
+ */
 const client = new TelemetryClient(apiUrl);
 const stream = client
   .subscribeTelemetry(30, [
@@ -312,7 +383,14 @@ const stream = client
     "DriverInfo",
     "PaceMode",
     "PitsOpen",
+    "PitstopActive",
     "PlayerCarIdx",
+    "PlayerCarInPitStall",
+    "PlayerCarPitSvStatus",
+    "PlayerTrackSurface",
+    "PitOptRepairLeft",
+    "PitRepairLeft",
+    "PitSvFlags",
     "SessionFlags",
     "SessionState",
     "SessionTick",
@@ -343,6 +421,10 @@ const stream = client
       DriverInfo: { PaceCarIdx = -1, Drivers: drivers = [] } = {},
       PaceMode: paceMode = PaceMode.not_pacing,
       PitsOpen: isPitLaneOpen = false,
+      PitstopActive: isPitStopActive = false,
+      PlayerCarInPitStall: isPlayerCarInPitStall = false,
+      PlayerCarPitSvStatus: playerPitServiceStatus = 0x0,
+      PlayerTrackSurface: playerTrackSurface = TrackLocation.not_in_world,
       SessionFlags: sessionFlags = 0x0,
       SessionState: sessionState = SessionState.invalid,
       SessionTime: sessionTime,
@@ -365,13 +447,6 @@ const stream = client
     if (!_.isEqual(cachedDrivers, drivers)) {
       if (numberOfDrivers !== drivers.length) {
         numberOfDrivers = drivers.length;
-        logger.info(
-          {
-            numberOfDrivers,
-            sessionTime: sessionTimeDurationString,
-          },
-          "Number of drivers update"
-        );
       }
 
       cachedDrivers = drivers;
@@ -411,14 +486,25 @@ const stream = client
     );
 
     sessionStateEmitter.process(sessionState, sessionTimeDurationString);
+    playerPitStopEventEmitter.process(
+      isPitLaneOpen,
+      isPlayerCarInPitStall,
+      isPitStopActive,
+      playerTrackSurface,
+      playerPitServiceStatus,
+      sessionTimeDurationString
+    );
   });
 
 const shutdown = () => {
+  playerPitStopEventEmitter.removeAllListeners();
   sessionFlagObserver.removeAllListeners();
   carFlagObserver.removeAllListeners();
-  pitLaneManager.removeAllListeners();
-  paceFlagManager.removeAllListeners();
+  trackLocationEmitter.removeAllListeners();
+  sessionStateEmitter.removeAllListeners();
   paceOrderManager.removeAllListeners();
+  paceFlagManager.removeAllListeners();
+  pitLaneManager.removeAllListeners();
   paceOrderFormatter.removeAllListeners();
 
   stream.cancel();

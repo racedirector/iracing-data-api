@@ -1,5 +1,5 @@
 {
-  "name": "telemetry-client",
+  "name": "race-events",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -17,6 +17,7 @@
     "@iracing-data/pace-flag-events": "workspace:*",
     "@iracing-data/pace-order-events": "workspace:*",
     "@iracing-data/pit-lane-events": "workspace:*",
+    "@iracing-data/player-pit-stop-events": "workspace:*",
     "@iracing-data/session-flag-events": "workspace:*",
     "@iracing-data/session-state-events": "workspace:*",
     "@iracing-data/telemetry-types": "workspace:*",
