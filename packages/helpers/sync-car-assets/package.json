@@ -6,9 +6,11 @@
     "sync-iracing-car-assets": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsc --build tsconfig.build.json",
+    "build:executable:macos": "./scripts/build-executable-macos.sh"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^13.1.0",
     "@iracing-data/api": "workspace:*",
     "commander": "^14.0.0",
     "dotenv": "16.4.7"
@@ -20,8 +22,5 @@
     "inquirer": {
       "optional": true
     }
-  },
-  "devDependencies": {
-    "@commander-js/extra-typings": "^13.1.0"
   }
 }

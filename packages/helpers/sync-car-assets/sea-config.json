@@ -1,0 +1,4 @@
+{
+  "main": "dist/cli.js",
+  "output": "build/sync-car-assets.blob"
+}
