@@ -21,6 +21,7 @@
     "tough-cookie": "^5.1.1"
   },
   "devDependencies": {
-    "@commander-js/extra-typings": "^13.1.0"
+    "@commander-js/extra-typings": "^13.1.0",
+    "typescript": "^5.9.2"
   }
 }
