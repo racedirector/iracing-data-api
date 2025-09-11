@@ -60,17 +60,6 @@ app.get("/oauth/iracing/callback", async (req, res, next) => {
 
     const token = await client.callback(params);
 
-    /**
-     * In a standard application, we'd store the token result in some sort of
-     * session store/cookie so the user can make subsequent calls, however,
-     * iRacing does not support more than identity verification at this time.
-     *
-     * In their own guide, they suggest using the access token to request `/iracing/profile`,
-     * and then discarding the access token.
-     *
-     * See: https://oauth.iracing.com/oauth2/book/identity_verification_workflow.html#steps
-     */
-
     const response = await fetch(`${BASE_URL}/iracing/profile`, {
       method: "GET",
       headers: {
