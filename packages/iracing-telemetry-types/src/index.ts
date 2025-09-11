@@ -68,6 +68,10 @@ export const isSingleFile = (mode: number) =>
   isSingleFileRestart(mode) || isSingleFileStart(mode);
 export const isDoubleFile = (mode: number) =>
   isDoubleFileRestart(mode) || isDoubleFileStart(mode);
+export const isRaceStart = (mode: number) =>
+  isSingleFileStart(mode) || isDoubleFileStart(mode);
+export const isRestart = (mode: number) =>
+  isSingleFileRestart(mode) || isDoubleFileRestart(mode);
 
 // Pace line
 export const isLeftLine = (value: number) => value === 0;
@@ -105,7 +109,28 @@ export const isInPitStall = (location: number) =>
 export const isNotInWorld = (location: number) =>
   location === TrackLocation.not_in_world;
 
-// TODO: Add a tow detection...
+export const isOnPitRoad = (location: number) =>
+  isApproachingPits(location) || isInPitStall(location);
+
+export const didLeaveWorld = (
+  previousLocation: number,
+  currentLocation: number
+) =>
+  previousLocation > TrackLocation.not_in_world &&
+  isNotInWorld(currentLocation);
+
+export const didReturnToWorld = (
+  previousLocation: number,
+  currentLocation: number
+) =>
+  isNotInWorld(previousLocation) &&
+  currentLocation > TrackLocation.not_in_world;
+
+export const didReturnToLocation = (
+  previousLocation: number,
+  currentLocation: number,
+  location: TrackLocation
+) => isNotInWorld(previousLocation) && currentLocation === location;
 
 // Session State
 export const isInvalid = (state: number) => state === SessionState.invalid;
