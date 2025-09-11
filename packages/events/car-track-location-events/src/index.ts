@@ -89,53 +89,36 @@ export class CarTrackLocationEventEmitter extends EventEmitter {
             carIndex: i,
           });
 
-          if (isOnTrack(currentLocation) && !isOnTrack(previousLocation)) {
-            this.emit("onTrack", {
+          if (isNotInWorld(currentLocation)) {
+            this.emit("notInWorld", {
               sessionTime,
               currenTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
-          }
-
-          if (isOffTrack(currentLocation) && !isOffTrack(previousLocation)) {
+          } else if (isOffTrack(currentLocation)) {
             this.emit("offTrack", {
               sessionTime,
               currenTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
-          }
-
-          if (
-            isApproachingPits(currentLocation) &&
-            !isApproachingPits(previousLocation)
-          ) {
-            this.emit("approachingPits", {
-              sessionTime,
-              currenTrackLocation: currentLocation,
-              previousTrackLocation: previousLocation,
-              carIndex: i,
-            });
-          }
-
-          if (
-            isInPitStall(currentLocation) &&
-            !isInPitStall(previousLocation)
-          ) {
+          } else if (isInPitStall(currentLocation)) {
             this.emit("inPitStall", {
               sessionTime,
               currenTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
-          }
-
-          if (
-            isNotInWorld(currentLocation) &&
-            !isNotInWorld(previousLocation)
-          ) {
-            this.emit("notInWorld", {
+          } else if (isApproachingPits(currentLocation)) {
+            this.emit("approachingPits", {
+              sessionTime,
+              currenTrackLocation: currentLocation,
+              previousTrackLocation: previousLocation,
+              carIndex: i,
+            });
+          } else if (isOnTrack(currentLocation)) {
+            this.emit("onTrack", {
               sessionTime,
               currenTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
