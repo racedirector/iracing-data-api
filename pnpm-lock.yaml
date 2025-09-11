@@ -102,6 +102,64 @@ importers:
         specifier: ^4.19.0
         version: 4.20.4
 
+  examples/player-pit-stop-events:
+    dependencies:
+      '@iracing-data/car-session-flag-events':
+        specifier: workspace:*
+        version: link:../../packages/events/car-session-flag-events
+      '@iracing-data/car-track-location-events':
+        specifier: workspace:*
+        version: link:../../packages/events/car-track-location-events
+      '@iracing-data/grpc-node':
+        specifier: workspace:*
+        version: link:../../packages/iracing-telemetry-grpc-node
+      '@iracing-data/pace-flag-events':
+        specifier: workspace:*
+        version: link:../../packages/events/pace-flag-events
+      '@iracing-data/pace-order-events':
+        specifier: workspace:*
+        version: link:../../packages/events/pace-order-events
+      '@iracing-data/pit-lane-events':
+        specifier: workspace:*
+        version: link:../../packages/events/pit-lane-events
+      '@iracing-data/player-pit-stop-events':
+        specifier: workspace:*
+        version: link:../../packages/events/player-pit-stop-events
+      '@iracing-data/session-flag-events':
+        specifier: workspace:*
+        version: link:../../packages/events/session-flag-events
+      '@iracing-data/session-state-events':
+        specifier: workspace:*
+        version: link:../../packages/events/session-state-events
+      '@iracing-data/telemetry-types':
+        specifier: workspace:*
+        version: link:../../packages/iracing-telemetry-types
+      ascii-table3:
+        specifier: ^1.0.1
+        version: 1.0.1
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      luxon:
+        specifier: ^3.7.1
+        version: 3.7.1
+      pino:
+        specifier: ^9.9.4
+        version: 9.9.4
+      pino-pretty:
+        specifier: ^13.1.1
+        version: 13.1.1
+    devDependencies:
+      '@types/luxon':
+        specifier: ^3.7.1
+        version: 3.7.1
+      tsx:
+        specifier: ^4.20.5
+        version: 4.20.5
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
   examples/race-events:
     dependencies:
       '@iracing-data/car-session-flag-events':
@@ -122,6 +180,9 @@ importers:
       '@iracing-data/pit-lane-events':
         specifier: workspace:*
         version: link:../../packages/events/pit-lane-events
+      '@iracing-data/player-pit-stop-events':
+        specifier: workspace:*
+        version: link:../../packages/events/player-pit-stop-events
       '@iracing-data/session-flag-events':
         specifier: workspace:*
         version: link:../../packages/events/session-flag-events
@@ -260,6 +321,16 @@ importers:
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
+      typescript:
+        specifier: ^5.9.2
+        version: 5.9.2
+
+  packages/events/player-pit-stop-events:
+    dependencies:
+      '@iracing-data/telemetry-types':
+        specifier: workspace:*
+        version: link:../../iracing-telemetry-types
+    devDependencies:
       typescript:
         specifier: ^5.9.2
         version: 5.9.2
