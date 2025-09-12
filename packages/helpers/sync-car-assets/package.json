@@ -9,6 +9,7 @@
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
     "build:executable:macos": "./scripts/build-executable-macos.sh",
+    "build:executable:windows": "./scripts/build-executable-windows.sh",
     "bundle": "esbuild src/cli.ts --bundle --platform=node --tsconfig=tsconfig.build.json --outfile=build/cli.cjs --format=cjs"
   },
   "dependencies": {
