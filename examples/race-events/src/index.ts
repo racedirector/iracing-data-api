@@ -196,11 +196,15 @@ const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
   const unassignedTable = paceOrderFormatter.formatUnassignedTable();
 
   // Log the table JSON to the log file
-  paceOrderLogger.info({
+  paceOrderLogger.debug({
     paceOrderTable: paceOrderTable.toJSON(),
     unassignedTable: unassignedTable.toJSON(),
     type: "pace-order-table",
   });
+
+  paceOrderLogger.info(
+    `\n${paceOrderTable.toString()}\n${unassignedTable.toString()}`
+  );
 });
 
 const paceOrderManager = new PaceOrderEventEmitter().on(

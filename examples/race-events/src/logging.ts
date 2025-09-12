@@ -9,7 +9,7 @@ const prettyStream = pretty({
 const fileStream = fs.createWriteStream(`${Date.now()}.log`, { flags: "a" });
 
 const stream = pino.multistream([
-  { stream: prettyStream },
+  { stream: prettyStream, level: "info" },
   { stream: fileStream },
 ]);
 
