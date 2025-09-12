@@ -8,8 +8,8 @@
     "build": "tsc",
     "build:executable:macos": "./scripts/build-executable-macos.sh",
     "build:executable:windows": "./scripts/build-executable-windows.sh",
-    "bundle": "esbuild index.ts --bundle --platform=node --outfile=build/index.cjs --format=cjs",
-    "start": "npx tsx --env-file-if-exists .env ./index.ts"
+    "bundle": "esbuild ./src/index.ts --bundle --platform=node --outfile=build/index.cjs --format=cjs",
+    "start": "npx tsx --env-file-if-exists .env ./src/index.ts"
   },
   "keywords": [],
   "author": "",

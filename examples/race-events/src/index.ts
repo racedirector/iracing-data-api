@@ -20,26 +20,10 @@ import {
 } from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
-import pino from "pino";
-import PaceOrderFormatter from "./lib/PaceOrderFormatter";
+import PaceOrderFormatter from "./PaceOrderFormatter";
+import { logger } from "./logging";
 
 const apiUrl = process.env.API_URL || "localhost:50051";
-
-const logger = pino({
-  base: undefined,
-  level: "debug",
-  transport: {
-    targets: [
-      { target: "pino-pretty", options: { colorize: true } },
-      {
-        target: "pino/file",
-        options: {
-          destination: `${new Date().getTime()}.log`,
-        },
-      },
-    ],
-  },
-});
 
 logger.info(`Connecting telemetry client to ${apiUrl}`);
 const paceFlagLogger = logger.child({ service: "pace-flag" });
