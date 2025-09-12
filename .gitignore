@@ -133,3 +133,6 @@ dist
 
 # Default cookie-store from `iracing-data` CLI
 packages/cli/bin/*.json
+
+# SEA build directories
+build/

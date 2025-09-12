@@ -7,5 +7,6 @@
     "noUnusedLocals": true,
     "isolatedModules": false
   },
+  "include": ["index.ts"],
   "exclude": ["node_modules", "bin", "dist"]
 }

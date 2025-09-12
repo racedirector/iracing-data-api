@@ -211,6 +211,9 @@ importers:
       '@types/luxon':
         specifier: ^3.7.1
         version: 3.7.1
+      esbuild:
+        specifier: ^0.25.9
+        version: 0.25.9
       tsx:
         specifier: ^4.20.5
         version: 4.20.5
