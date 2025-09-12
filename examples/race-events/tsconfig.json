@@ -2,6 +2,7 @@
   "extends": "../../tsconfig/node.json",
   "compilerOptions": {
     "rootDir": ".",
+    "outDir": "dist",
     "lib": ["dom"],
     "noUnusedLocals": true,
     "isolatedModules": false

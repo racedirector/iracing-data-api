@@ -5,7 +5,8 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "start": "npx tsx --env-file-if-exists .env ./index.ts"
+    "start": "npx tsx --env-file-if-exists .env ./index.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
@@ -17,7 +18,6 @@
     "@iracing-data/pace-flag-events": "workspace:*",
     "@iracing-data/pace-order-events": "workspace:*",
     "@iracing-data/pit-lane-events": "workspace:*",
-    "@iracing-data/player-pit-stop-events": "workspace:*",
     "@iracing-data/session-flag-events": "workspace:*",
     "@iracing-data/session-state-events": "workspace:*",
     "@iracing-data/telemetry-types": "workspace:*",

@@ -17,13 +17,11 @@ import {
   Session,
   SessionState,
   TelemetryData,
-  TrackLocation,
 } from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
 import pino from "pino";
 import PaceOrderFormatter from "./lib/PaceOrderFormatter";
-import { PlayerPitStopEventEmitter } from "@iracing-data/player-pit-stop-events";
 
 const apiUrl = process.env.API_URL || "localhost:50051";
 
@@ -176,58 +174,6 @@ const paceFlagManager = new PaceFlagEventEmitter()
       `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was given EOL.`
     );
   });
-
-const playerPitStopLogger = logger.child({ service: "player-pit-stop" });
-const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
-  .on("pitlane:opened", ({ sessionTime }) => {
-    playerPitStopLogger.info(
-      { sessionTime, type: "pit-open" },
-      "Pit lane opened"
-    );
-  })
-  .on("pitlane:closed", ({ sessionTime }) => {
-    playerPitStopLogger.info(
-      { sessionTime, type: "pit-close" },
-      "Pit lane closed"
-    );
-  })
-  .on("pitroad:entered", ({ sessionTime, isPitLaneOpen }) => {
-    playerPitStopLogger.info(
-      { sessionTime, type: "pit-road-enter" },
-      `Player entered ${isPitLaneOpen ? "open" : "closed"} pit road`
-    );
-  })
-  .on("pitroad:exited", ({ sessionTime, isPitLaneOpen }) => {
-    playerPitStopLogger.info(
-      { sessionTime, type: "pit-road-enter" },
-      `Player exited ${isPitLaneOpen ? "open" : "closed"} pit road`
-    );
-  })
-  .on("pitstall:entered", ({ sessionTime, trackLocation }) => {
-    playerPitStopLogger.info({
-      sessionTime,
-      type: "pitstall-enter",
-      trackLocation,
-    });
-  })
-  .on("pitstall:exited", ({ sessionTime, trackLocation }) => {
-    playerPitStopLogger.info({
-      sessionTime,
-      type: "pitstall-exit",
-      trackLocation,
-    });
-  })
-  .on(
-    "service:change",
-    ({ sessionTime, previousServiceStatus, currentServiceStatus }) => {
-      playerPitStopLogger.info({
-        sessionTime,
-        type: "service",
-        previousServiceStatus,
-        currentServiceStatus,
-      });
-    }
-  );
 
 /**
  * Pit lane
@@ -421,10 +367,6 @@ const stream = client
       DriverInfo: { PaceCarIdx = -1, Drivers: drivers = [] } = {},
       PaceMode: paceMode = PaceMode.not_pacing,
       PitsOpen: isPitLaneOpen = false,
-      PitstopActive: isPitStopActive = false,
-      PlayerCarInPitStall: isPlayerCarInPitStall = false,
-      PlayerCarPitSvStatus: playerPitServiceStatus = 0x0,
-      PlayerTrackSurface: playerTrackSurface = TrackLocation.not_in_world,
       SessionFlags: sessionFlags = 0x0,
       SessionState: sessionState = SessionState.invalid,
       SessionTime: sessionTime,
@@ -486,18 +428,9 @@ const stream = client
     );
 
     sessionStateEmitter.process(sessionState, sessionTimeDurationString);
-    playerPitStopEventEmitter.process(
-      isPitLaneOpen,
-      isPlayerCarInPitStall,
-      isPitStopActive,
-      playerTrackSurface,
-      playerPitServiceStatus,
-      sessionTimeDurationString
-    );
   });
 
 const shutdown = () => {
-  playerPitStopEventEmitter.removeAllListeners();
   sessionFlagObserver.removeAllListeners();
   carFlagObserver.removeAllListeners();
   trackLocationEmitter.removeAllListeners();
