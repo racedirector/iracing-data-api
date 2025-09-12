@@ -2,7 +2,7 @@ import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import { IRacingAPISessionClient, hashPassword } from "@iracing-data/api";
 import * as dotenv from "dotenv";
-import { exists, getIRacingCredentials } from "./util";
+import { exists, getIRacingCredentials } from "./util.js";
 
 dotenv.config();
 
@@ -70,7 +70,7 @@ export async function syncCarAssets(
     console.log("No credentials found. Authenticating with iRacing API.");
     const { username, password } = await getIRacingCredentials(usernameProp);
     const hashedPassword = await hashPassword(username, password);
-    await client.authenticate({ username, password: hashedPassword });
+    await client.authenticate({ username, hashedPassword });
     console.log("Authenticated with user:", client.whoami());
   }
 
@@ -102,7 +102,7 @@ export async function syncCarAssets(
 
   if (writeFullInfo) {
     const carInfoPath = path.join(outputDir, "car-info.json");
-    console.log("Writing full track info to:", carInfoPath);
+    console.log("Writing full car info to:", carInfoPath);
     await writeFile(carInfoPath, JSON.stringify(carInfo), "utf8");
   }
 

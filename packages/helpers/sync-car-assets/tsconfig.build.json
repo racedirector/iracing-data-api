@@ -3,6 +3,8 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
+    "module": "esnext",
+    "moduleResolution": "bundler",
     "noUnusedLocals": false,
     "declarationMap": false,
     "sourceMap": false,
@@ -10,5 +12,6 @@
       "@/*": ["./src/*"]
     }
   },
+  "include": ["src"],
   "exclude": ["node_modules", "dist"]
 }

@@ -1,15 +1,6 @@
 import assert from "node:assert";
 import { access, constants } from "node:fs/promises";
 
-async function getInquirer() {
-  try {
-    const inquirerPath = require.resolve("inquirer");
-    return await import(inquirerPath);
-  } catch (_error) {
-    return null;
-  }
-}
-
 /**
  * Checks if a file exists.
  * @param path the path of the file
@@ -34,7 +25,7 @@ export async function getIRacingCredentials(usernameProp?: string) {
    * The provided username, or the username from the environment variable, or undefined.
    */
   const usernameOption =
-    usernameProp ?? process.env.IRACING_USERNAME
+    (usernameProp ?? process.env.IRACING_USERNAME)
       ? `${process.env.IRACING_USERNAME}`
       : undefined;
 
@@ -49,8 +40,8 @@ export async function getIRacingCredentials(usernameProp?: string) {
    * If inquirer is available, prompt the user for their credentials,
    * else assert the credentials are provided and return them.
    */
-  const inquirer = await getInquirer();
-  if (inquirer) {
+  try {
+    let { default: inquirer } = require("inquirer");
     const { username = usernameOption, password = passwordOption } =
       await inquirer.prompt([
         {
@@ -78,7 +69,8 @@ export async function getIRacingCredentials(usernameProp?: string) {
     );
 
     return { username, password };
-  } else {
+  } catch (error) {
+    console.error(error);
     assert(
       usernameOption && usernameOption.length > 0,
       "Please provide username via environment variable (IRACING_USERNAME)."
