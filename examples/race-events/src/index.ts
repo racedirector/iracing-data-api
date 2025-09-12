@@ -26,11 +26,6 @@ import { logger } from "./logging";
 const apiUrl = process.env.API_URL || "localhost:50051";
 
 logger.info(`Connecting telemetry client to ${apiUrl}`);
-const paceFlagLogger = logger.child({ service: "pace-flag" });
-const paceOrderLogger = logger.child({ service: "pace-order" });
-const pitLaneLogger = logger.child({ service: "pit-lane" });
-const trackLocationLogger = logger.child({ service: "track-location" });
-const sessionStateLogger = logger.child({ service: "session-state" });
 
 // Global state
 let numberOfDrivers = -1;
@@ -139,6 +134,7 @@ const carFlagObserver = new CarSessionFlagEventEmitter()
 /**
  * Pace flags
  */
+const paceFlagLogger = logger.child({ service: "pace-flag" });
 const paceFlagManager = new PaceFlagEventEmitter()
   .on("waveAround", ({ sessionTime, carIndex }) => {
     paceFlagLogger.info(
@@ -162,6 +158,7 @@ const paceFlagManager = new PaceFlagEventEmitter()
 /**
  * Pit lane
  */
+const pitLaneLogger = logger.child({ service: "pit-lane" });
 const pitLaneManager = new PitLaneEventEmitter()
   .on("pitlane:opened", ({ sessionTime }) => {
     pitLaneLogger.info({ sessionTime, type: "pit-open" }, "Pit lane opened");
@@ -191,6 +188,7 @@ const pitLaneManager = new PitLaneEventEmitter()
 /**
  * Pace order
  */
+const paceOrderLogger = logger.child({ service: "pace-order" });
 const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
   const paceOrderTable = paceOrderFormatter.formatPaceOrderTable();
   const unassignedTable = paceOrderFormatter.formatUnassignedTable();
@@ -223,6 +221,7 @@ const paceOrderManager = new PaceOrderEventEmitter().on(
 /**
  * Track location
  */
+const trackLocationLogger = logger.child({ service: "track-location" });
 const trackLocationEmitter = new CarTrackLocationEventEmitter()
   .on(
     "notInWorld",
@@ -292,6 +291,7 @@ function stringForSessionState(state: number) {
   return "invalid";
 }
 
+const sessionStateLogger = logger.child({ service: "session-state" });
 const sessionStateEmitter = new SessionStateEventEmitter().on(
   "change",
   ({ sessionTime, previousSessionState, currentSessionState }) => {
