@@ -151,4 +151,8 @@ export class OAuthClient {
 
     return result;
   }
+
+  async restore() {}
+
+  async revoke() {}
 }

@@ -1,11 +1,7 @@
-import axios, { AxiosInstance } from "axios";
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
-import { IRacingAPI, NetworkClientProvider } from "./api";
-import { IRacingAuthenticationError, Store } from "./types";
-import { allCookiesValid, fetchValidLinkData } from "./util";
-
-const DEFAULT_IRACING_DATA_API_URL = "https://members-ng.iracing.com/";
+import { AxiosInstance } from "axios";
+import { IRacingAPI, NetworkClientProvider } from "@/api";
+import { IRacingAuthenticationError } from "@/types";
+import { fetchValidLinkData } from "@/util";
 
 /**
  * A wrapper class for the IRacingAPI that provides convenience methods for
@@ -484,79 +480,6 @@ export class IRacingAPIClient extends NetworkClientProvider {
   async trackGet() {
     const response = await this.api.data.track.get();
     return fetchValidLinkData(response.data);
-  }
-}
-
-export class IRacingAPISessionClient extends IRacingAPIClient {
-  get cookieJar() {
-    return this._cookieJar;
-  }
-
-  constructor(private _cookieJar: CookieJar = new CookieJar()) {
-    const client = wrapper(
-      axios.create({
-        baseURL: DEFAULT_IRACING_DATA_API_URL,
-        withCredentials: true,
-        jar: _cookieJar,
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
-
-    super(client);
-  }
-
-  /**
-   * Checks if we have a valid session and returns the email of the currently logged in user.
-   * @returns the email of the currently logged in user or null
-   */
-  whoami(): string | null {
-    const cookies = this.cookieJar.getCookiesSync(DEFAULT_IRACING_DATA_API_URL);
-    if (allCookiesValid(cookies)) {
-      const authTokenCookie = cookies.find(
-        (cookie) => cookie.key === "authtoken_members"
-      );
-
-      if (authTokenCookie) {
-        const { authtoken: { email = null } = {} } =
-          JSON.parse(decodeURIComponent(authTokenCookie.value)) || {};
-
-        return email;
-      }
-    }
-
-    return null;
-  }
-}
-
-export interface IRacingAPIOAuthClientOptions {
-  client?: AxiosInstance;
-  sessionStore: Store<string, string>;
-}
-
-export class IRacingAPIOAuthClient extends IRacingAPIClient {
-  constructor(options: IRacingAPIOAuthClientOptions) {
-    const {
-      client = axios.create({
-        baseURL: DEFAULT_IRACING_DATA_API_URL,
-      }),
-      sessionStore,
-    } = options;
-
-    client.interceptors.request.use(async (config) => {
-      const accessToken = await sessionStore.get("access_token");
-
-      // TODO: If token is expired, refresh it.
-
-      if (accessToken) {
-        config.headers["Authorization"] = `Bearer ${accessToken}`;
-      }
-
-      return config;
-    });
-
-    super(client);
   }
 }
 
