@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Command } from "@commander-js/extra-typings";
-import { syncCarAssets } from "./";
+import { syncCarAssets } from "./index.js";
 
 const program = new Command("sync-iracing-car-assets")
   .description("Downloads the latest car assets.")

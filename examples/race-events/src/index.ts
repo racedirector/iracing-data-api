@@ -20,33 +20,12 @@ import {
 } from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
-import pino from "pino";
-import PaceOrderFormatter from "./lib/PaceOrderFormatter";
+import PaceOrderFormatter from "./PaceOrderFormatter";
+import { logger } from "./logging";
 
 const apiUrl = process.env.API_URL || "localhost:50051";
 
-const logger = pino({
-  base: undefined,
-  level: "debug",
-  transport: {
-    targets: [
-      { target: "pino-pretty", options: { colorize: true } },
-      {
-        target: "pino/file",
-        options: {
-          destination: `${new Date().getTime()}.log`,
-        },
-      },
-    ],
-  },
-});
-
 logger.info(`Connecting telemetry client to ${apiUrl}`);
-const paceFlagLogger = logger.child({ service: "pace-flag" });
-const paceOrderLogger = logger.child({ service: "pace-order" });
-const pitLaneLogger = logger.child({ service: "pit-lane" });
-const trackLocationLogger = logger.child({ service: "track-location" });
-const sessionStateLogger = logger.child({ service: "session-state" });
 
 // Global state
 let numberOfDrivers = -1;
@@ -155,6 +134,7 @@ const carFlagObserver = new CarSessionFlagEventEmitter()
 /**
  * Pace flags
  */
+const paceFlagLogger = logger.child({ service: "pace-flag" });
 const paceFlagManager = new PaceFlagEventEmitter()
   .on("waveAround", ({ sessionTime, carIndex }) => {
     paceFlagLogger.info(
@@ -178,6 +158,7 @@ const paceFlagManager = new PaceFlagEventEmitter()
 /**
  * Pit lane
  */
+const pitLaneLogger = logger.child({ service: "pit-lane" });
 const pitLaneManager = new PitLaneEventEmitter()
   .on("pitlane:opened", ({ sessionTime }) => {
     pitLaneLogger.info({ sessionTime, type: "pit-open" }, "Pit lane opened");
@@ -207,16 +188,21 @@ const pitLaneManager = new PitLaneEventEmitter()
 /**
  * Pace order
  */
+const paceOrderLogger = logger.child({ service: "pace-order" });
 const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
   const paceOrderTable = paceOrderFormatter.formatPaceOrderTable();
   const unassignedTable = paceOrderFormatter.formatUnassignedTable();
 
   // Log the table JSON to the log file
-  paceOrderLogger.info({
+  paceOrderLogger.debug({
     paceOrderTable: paceOrderTable.toJSON(),
     unassignedTable: unassignedTable.toJSON(),
     type: "pace-order-table",
   });
+
+  paceOrderLogger.info(
+    `\n${paceOrderTable.toString()}\n${unassignedTable.toString()}`
+  );
 });
 
 const paceOrderManager = new PaceOrderEventEmitter().on(
@@ -235,6 +221,7 @@ const paceOrderManager = new PaceOrderEventEmitter().on(
 /**
  * Track location
  */
+const trackLocationLogger = logger.child({ service: "track-location" });
 const trackLocationEmitter = new CarTrackLocationEventEmitter()
   .on(
     "notInWorld",
@@ -304,6 +291,7 @@ function stringForSessionState(state: number) {
   return "invalid";
 }
 
+const sessionStateLogger = logger.child({ service: "session-state" });
 const sessionStateEmitter = new SessionStateEventEmitter().on(
   "change",
   ({ sessionTime, previousSessionState, currentSessionState }) => {

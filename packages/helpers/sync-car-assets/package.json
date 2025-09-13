@@ -1,14 +1,19 @@
 {
   "name": "@iracing-data/sync-car-assets",
   "version": "0.0.2-alpha.2",
+  "type": "module",
   "main": "dist/index.js",
   "bin": {
     "sync-iracing-car-assets": "dist/cli.js"
   },
   "scripts": {
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsc --build tsconfig.build.json",
+    "build:executable:macos": "./scripts/build-executable-macos.sh",
+    "build:executable:windows": "./scripts/build-executable-windows.sh",
+    "bundle": "esbuild src/cli.ts --bundle --platform=node --tsconfig=tsconfig.build.json --outfile=build/cli.cjs --format=cjs"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^13.1.0",
     "@iracing-data/api": "workspace:*",
     "commander": "^14.0.0",
     "dotenv": "16.4.7"
@@ -22,6 +27,7 @@
     }
   },
   "devDependencies": {
-    "@commander-js/extra-typings": "^13.1.0"
+    "esbuild": "^0.25.9",
+    "inquirer": "^12.9.4"
   }
 }
