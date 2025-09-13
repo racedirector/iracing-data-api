@@ -9,8 +9,10 @@ const prettyStream = pretty({
 const fileStream = fs.createWriteStream(`${Date.now()}.log`, { flags: "a" });
 
 const stream = pino.multistream([
+  /** Only show info or higher in pretty print*/
   { stream: prettyStream, level: "info" },
-  { stream: fileStream },
+  /** Show trace and higher in file */
+  { stream: fileStream, level: "trace" },
 ]);
 
 export const logger = pino(
