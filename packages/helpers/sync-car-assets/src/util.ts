@@ -26,7 +26,7 @@ export async function getIRacingCredentials(usernameProp?: string) {
    */
   const usernameOption =
     (usernameProp ?? process.env.IRACING_USERNAME)
-      ? `${process.env.IRACING_USERNAME}`
+      ? `${usernameProp ?? process.env.IRACING_USERNAME}`
       : undefined;
 
   /**
