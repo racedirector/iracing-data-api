@@ -1,5 +1,6 @@
 import { OAuthClient, BASE_URL } from "@iracing-data/oauth-client";
 import express from "express";
+import cookieParser from "cookie-parser";
 import { page } from "./page";
 import { InMemoryStore } from "./storage/memory";
 
@@ -17,6 +18,7 @@ const client = new OAuthClient({
 const app = express();
 
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.get("/", (req, res) => {
   const hasToken = Boolean(req.headers.cookie?.includes("iracing_token="));
