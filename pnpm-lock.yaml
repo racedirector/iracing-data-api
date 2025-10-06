@@ -183,9 +183,6 @@ importers:
       '@iracing-data/pit-lane-events':
         specifier: workspace:*
         version: link:../../packages/events/pit-lane-events
-      '@iracing-data/player-pit-stop-events':
-        specifier: workspace:*
-        version: link:../../packages/events/player-pit-stop-events
       '@iracing-data/session-flag-events':
         specifier: workspace:*
         version: link:../../packages/events/session-flag-events
