@@ -463,6 +463,11 @@ export class IRacingAPIClient extends NetworkClientProvider {
     return fetchValidLinkData(response.data);
   }
 
+  async teamMembership() {
+    const response = await this.api.data.team.membership();
+    return fetchValidLinkData(response.data);
+  }
+
   // /data/time_attack
 
   async timeAttackMemberSeasonResults(

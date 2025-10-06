@@ -12,6 +12,10 @@ export class TeamAPI extends NetworkClientProvider {
       params: { team_id: teamId, include_licenses: includeLicenses },
     });
   }
+
+  membership() {
+    return this.client.get("/data/team/membership");
+  }
 }
 
 export default TeamAPI;
