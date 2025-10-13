@@ -16,7 +16,7 @@
     "@iracing-data/sync-car-assets": "workspace:*",
     "@iracing-data/sync-track-assets": "workspace:*",
     "commander": "13.1.0",
-    "inquirer": "^12.4.1",
+    "inquirer": "^12.9.6",
     "lodash": "^4.17.21",
     "tough-cookie": "^5.1.1"
   },
