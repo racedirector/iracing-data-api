@@ -18,31 +18,31 @@ export type CarTrackLocationEventMap = {
   };
   offTrack: {
     previousTrackLocation: TrackLocation;
-    currenTrackLocation: TrackLocation;
+    currentTrackLocation: TrackLocation;
     sessionTime: string;
     carIndex: number;
   };
   inPitStall: {
     previousTrackLocation: TrackLocation;
-    currenTrackLocation: TrackLocation;
+    currentTrackLocation: TrackLocation;
     sessionTime: string;
     carIndex: number;
   };
   approachingPits: {
     previousTrackLocation: TrackLocation;
-    currenTrackLocation: TrackLocation;
+    currentTrackLocation: TrackLocation;
     sessionTime: string;
     carIndex: number;
   };
   onTrack: {
     previousTrackLocation: TrackLocation;
-    currenTrackLocation: TrackLocation;
+    currentTrackLocation: TrackLocation;
     sessionTime: string;
     carIndex: number;
   };
   notInWorld: {
     previousTrackLocation: TrackLocation;
-    currenTrackLocation: TrackLocation;
+    currentTrackLocation: TrackLocation;
     sessionTime: string;
     carIndex: number;
   };
@@ -92,35 +92,35 @@ export class CarTrackLocationEventEmitter extends EventEmitter {
           if (isNotInWorld(currentLocation)) {
             this.emit("notInWorld", {
               sessionTime,
-              currenTrackLocation: currentLocation,
+              currentTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
           } else if (isOffTrack(currentLocation)) {
             this.emit("offTrack", {
               sessionTime,
-              currenTrackLocation: currentLocation,
+              currentTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
           } else if (isInPitStall(currentLocation)) {
             this.emit("inPitStall", {
               sessionTime,
-              currenTrackLocation: currentLocation,
+              currentTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
           } else if (isApproachingPits(currentLocation)) {
             this.emit("approachingPits", {
               sessionTime,
-              currenTrackLocation: currentLocation,
+              currentTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
           } else if (isOnTrack(currentLocation)) {
             this.emit("onTrack", {
               sessionTime,
-              currenTrackLocation: currentLocation,
+              currentTrackLocation: currentLocation,
               previousTrackLocation: previousLocation,
               carIndex: i,
             });
