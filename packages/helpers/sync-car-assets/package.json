@@ -28,6 +28,6 @@
   },
   "devDependencies": {
     "esbuild": "^0.25.9",
-    "inquirer": "^12.9.4"
+    "inquirer": "^12.10.0"
   }
 }
