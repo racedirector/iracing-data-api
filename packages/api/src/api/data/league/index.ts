@@ -1,4 +1,4 @@
-import { NetworkClientProvider } from "../../types";
+import { IRacingAPIResponse, NetworkClientProvider } from "../../types";
 
 export class LeagueAPI extends NetworkClientProvider {
   directory({
@@ -28,7 +28,7 @@ export class LeagueAPI extends NetworkClientProvider {
     sort?: "relevance" | "leaguename" | "displayname" | "rostercount";
     order?: "asc" | "desc";
   } = {}) {
-    return this.client.get("/data/league/directory", {
+    return this.client.get<IRacingAPIResponse>("/data/league/directory", {
       params: {
         search,
         tag,
@@ -53,9 +53,12 @@ export class LeagueAPI extends NetworkClientProvider {
     mine?: boolean;
     packageId?: number;
   } = {}) {
-    return this.client.get("/data/league/cust_league_sessions", {
-      params: { mine, package_id: packageId },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/league/cust_league_sessions",
+      {
+        params: { mine, package_id: packageId },
+      }
+    );
   }
 
   get({
@@ -65,7 +68,7 @@ export class LeagueAPI extends NetworkClientProvider {
     leagueId: number;
     includeLicenses?: boolean;
   }) {
-    return this.client.get("/data/league/get", {
+    return this.client.get<IRacingAPIResponse>("/data/league/get", {
       params: { league_id: leagueId, include_licenses: includeLicenses },
     });
   }
@@ -77,16 +80,19 @@ export class LeagueAPI extends NetworkClientProvider {
     leagueId: number;
     seasonId?: number;
   }) {
-    return this.client.get("/data/league/get_points_systems", {
-      params: { league_id: leagueId, season_id: seasonId },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/league/get_points_systems",
+      {
+        params: { league_id: leagueId, season_id: seasonId },
+      }
+    );
   }
 
   membership({
     customerId,
     includeLeague,
   }: { customerId?: number; includeLeague?: boolean } = {}) {
-    return this.client.get("/data/league/membership", {
+    return this.client.get<IRacingAPIResponse>("/data/league/membership", {
       params: { cust_id: customerId, include_league: includeLeague },
     });
   }
@@ -98,13 +104,13 @@ export class LeagueAPI extends NetworkClientProvider {
     leagueId: number;
     includeLicenses?: boolean;
   }) {
-    return this.client.get("/data/league/roster", {
+    return this.client.get<IRacingAPIResponse>("/data/league/roster", {
       params: { league_id: leagueId, include_licenses: includeLicenses },
     });
   }
 
   seasons({ leagueId, retired }: { leagueId: number; retired?: boolean }) {
-    return this.client.get("/data/league/seasons", {
+    return this.client.get<IRacingAPIResponse>("/data/league/seasons", {
       params: { league_id: leagueId, retired: retired },
     });
   }
@@ -120,14 +126,17 @@ export class LeagueAPI extends NetworkClientProvider {
     carClassId?: number;
     carId?: number;
   }) {
-    return this.client.get("/data/league/season_standings", {
-      params: {
-        league_id: leagueId,
-        season_id: seasonId,
-        car_class_id: carClassId,
-        car_id: carId,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/league/season_standings",
+      {
+        params: {
+          league_id: leagueId,
+          season_id: seasonId,
+          car_class_id: carClassId,
+          car_id: carId,
+        },
+      }
+    );
   }
 
   seasonSessions({
@@ -139,7 +148,7 @@ export class LeagueAPI extends NetworkClientProvider {
     seasonId: number;
     resultsOnly?: boolean;
   }) {
-    return this.client.get("/data/league/season_sessions", {
+    return this.client.get<IRacingAPIResponse>("/data/league/season_sessions", {
       params: {
         league_id: leagueId,
         season_id: seasonId,

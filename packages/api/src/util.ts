@@ -17,10 +17,10 @@ export async function hashPassword(email: string, password: string) {
 export const allCookiesValid = (cookies: Cookie[]) =>
   cookies.every((cookie) => cookie.TTL() > 0);
 
-export const fetchValidLinkData = async (
+export async function fetchValidLinkData<T>(
   response: IRacingAPIResponse,
   client: AxiosInstance = axios
-) => {
+) {
   if (!response || !response.link || !response.expires) {
     throw new InvalidResponseData();
   }
@@ -32,9 +32,9 @@ export const fetchValidLinkData = async (
     throw new CacheExpiredError();
   }
 
-  const data = await client.get(response.link, {
+  const data = await client.get<T>(response.link, {
     responseType: "json",
   });
 
   return data.data;
-};
+}

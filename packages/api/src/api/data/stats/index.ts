@@ -1,11 +1,15 @@
-import { Division, NetworkClientProvider } from "../../types";
+import {
+  Division,
+  IRacingAPIResponse,
+  NetworkClientProvider,
+} from "../../types";
 
 export class StatsAPI extends NetworkClientProvider {
   memberBests({
     customerId,
     carId,
   }: { customerId?: number; carId?: number } = {}) {
-    return this.client.get("/data/stats/member_bests", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/member_bests", {
       params: {
         cust_id: customerId,
         car_id: carId,
@@ -14,7 +18,7 @@ export class StatsAPI extends NetworkClientProvider {
   }
 
   memberCareer({ customerId }: { customerId?: number } = {}) {
-    return this.client.get("/data/stats/member_career", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/member_career", {
       params: {
         cust_id: customerId,
       },
@@ -28,7 +32,7 @@ export class StatsAPI extends NetworkClientProvider {
     seasonId: number;
     eventType: 4 | 5;
   }) {
-    return this.client.get("/data/stats/member_division", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/member_division", {
       params: {
         season_id: seasonId,
         event_type: eventType,
@@ -45,7 +49,7 @@ export class StatsAPI extends NetworkClientProvider {
     year?: number;
     season?: 1 | 2 | 3 | 4;
   }) {
-    return this.client.get("/data/stats/member_recap", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/member_recap", {
       params: {
         cust_id: customerId,
         year,
@@ -55,15 +59,18 @@ export class StatsAPI extends NetworkClientProvider {
   }
 
   memberRecentRaces({ customerId }: { customerId?: number } = {}) {
-    return this.client.get("/data/stats/member_recent_races", {
-      params: {
-        cust_id: customerId,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/member_recent_races",
+      {
+        params: {
+          cust_id: customerId,
+        },
+      }
+    );
   }
 
   memberSummary({ customerId }: { customerId?: number } = {}) {
-    return this.client.get("/data/stats/member_summary", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/member_summary", {
       params: {
         cust_id: customerId,
       },
@@ -71,7 +78,7 @@ export class StatsAPI extends NetworkClientProvider {
   }
 
   memberYearly({ customerId }: { customerId?: number } = {}) {
-    return this.client.get("/data/stats/member_yearly", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/member_yearly", {
       params: {
         cust_id: customerId,
       },
@@ -89,14 +96,17 @@ export class StatsAPI extends NetworkClientProvider {
     raceWeekNumber?: number;
     division?: Division;
   }) {
-    return this.client.get("/data/stats/season_driver_standings", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        division,
-        race_week_num: raceWeekNumber,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/season_driver_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          division,
+          race_week_num: raceWeekNumber,
+        },
+      }
+    );
   }
 
   seasonSupersessionStandings({
@@ -110,14 +120,17 @@ export class StatsAPI extends NetworkClientProvider {
     raceWeekNumber?: number;
     division?: Division;
   }) {
-    return this.client.get("/data/stats/season_supersession_standings", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        division,
-        race_week_num: raceWeekNumber,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/season_supersession_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          division,
+          race_week_num: raceWeekNumber,
+        },
+      }
+    );
   }
 
   seasonTeamStandings({
@@ -129,13 +142,16 @@ export class StatsAPI extends NetworkClientProvider {
     carClassId: number;
     raceWeekNumber?: number;
   }) {
-    return this.client.get("/data/stats/season_team_standings", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        race_week_num: raceWeekNumber,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/season_team_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          race_week_num: raceWeekNumber,
+        },
+      }
+    );
   }
 
   seasonTimeTrialStandings({
@@ -149,14 +165,17 @@ export class StatsAPI extends NetworkClientProvider {
     raceWeekNumber?: number;
     division?: Division;
   }) {
-    return this.client.get("/data/stats/season_time_trial_standings", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        division,
-        race_week_num: raceWeekNumber,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/season_time_trial_standings",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          division,
+          race_week_num: raceWeekNumber,
+        },
+      }
+    );
   }
 
   seasonTimeTrialResults({
@@ -170,14 +189,17 @@ export class StatsAPI extends NetworkClientProvider {
     raceWeekNumber: number;
     division?: Division;
   }) {
-    return this.client.get("/data/stats/season_time_trial_results", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        race_week_num: raceWeekNumber,
-        division,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/season_time_trial_results",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          race_week_num: raceWeekNumber,
+          division,
+        },
+      }
+    );
   }
 
   seasonQualifyResults({
@@ -191,14 +213,17 @@ export class StatsAPI extends NetworkClientProvider {
     raceWeekNumber: number;
     division?: Division;
   }) {
-    return this.client.get("/data/stats/season_qualify_results", {
-      params: {
-        season_id: seasonId,
-        car_class_id: carClassId,
-        race_week_num: raceWeekNumber,
-        division,
-      },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      "/data/stats/season_qualify_results",
+      {
+        params: {
+          season_id: seasonId,
+          car_class_id: carClassId,
+          race_week_num: raceWeekNumber,
+          division,
+        },
+      }
+    );
   }
 
   worldRecords({
@@ -212,7 +237,7 @@ export class StatsAPI extends NetworkClientProvider {
     seasonYear?: number;
     seasonQuarter?: number;
   }) {
-    return this.client.get("/data/stats/world_records", {
+    return this.client.get<IRacingAPIResponse>("/data/stats/world_records", {
       params: {
         carId,
         trackId,

@@ -1,6 +1,7 @@
 import {
   CategoryIdValue,
   ChartTypeValue,
+  IRacingAPIResponse,
   NetworkClientProvider,
 } from "../../types";
 
@@ -18,7 +19,7 @@ export class MemberAPI extends NetworkClientProvider {
     customerId?: number;
     awardId: number;
   }) {
-    return this.client.get("/data/member/award_instances", {
+    return this.client.get<IRacingAPIResponse>("/data/member/award_instances", {
       params: { cust_id: customerId, award_id: awardId },
     });
   }
@@ -32,7 +33,7 @@ export class MemberAPI extends NetworkClientProvider {
     categoryId: CategoryIdValue;
     chartType: ChartTypeValue;
   }) {
-    return this.client.get("/data/member/chart_data", {
+    return this.client.get<IRacingAPIResponse>("/data/member/chart_data", {
       params: {
         cust_id: customerId,
         category_id: categoryId,
@@ -48,21 +49,23 @@ export class MemberAPI extends NetworkClientProvider {
     customerIds: number[];
     includeLicenses?: boolean;
   }) {
-    return this.client.get("/data/member/get", {
+    return this.client.get<IRacingAPIResponse>("/data/member/get", {
       params: { cust_ids: customerIds, include_licenses: includeLicenses },
     });
   }
 
   info() {
-    return this.client.get("/data/member/info");
+    return this.client.get<IRacingAPIResponse>("/data/member/info");
   }
 
   participationCredits() {
-    return this.client.get("/data/member/participation_credits");
+    return this.client.get<IRacingAPIResponse>(
+      "/data/member/participation_credits"
+    );
   }
 
   profile({ customerId }: { customerId?: number } = {}) {
-    return this.client.get("/data/member/profile", {
+    return this.client.get<IRacingAPIResponse>("/data/member/profile", {
       params: { cust_id: customerId },
     });
   }

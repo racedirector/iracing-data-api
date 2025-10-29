@@ -1,4 +1,4 @@
-import { NetworkClientProvider } from "../../types";
+import { IRacingAPIResponse, NetworkClientProvider } from "../../types";
 
 export class HostedAPI extends NetworkClientProvider {
   /**
@@ -6,9 +6,12 @@ export class HostedAPI extends NetworkClientProvider {
    * non-league pending sessions for the user.
    */
   combinedSessions({ packageId }: { packageId?: number } = {}) {
-    return this.client.get(`/data/hosted/combined_sessions`, {
-      params: { package_id: packageId },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      `/data/hosted/combined_sessions`,
+      {
+        params: { package_id: packageId },
+      }
+    );
   }
 
   /**
@@ -16,7 +19,7 @@ export class HostedAPI extends NetworkClientProvider {
    * pending sessions for the user.
    */
   sessions() {
-    return this.client.get("/data/hosted/sessions");
+    return this.client.get<IRacingAPIResponse>("/data/hosted/sessions");
   }
 }
 

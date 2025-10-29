@@ -1,6 +1,7 @@
 import {
   CategoryIdValue,
   EventTypeValue,
+  IRacingAPIResponse,
   NetworkClientProvider,
 } from "../../types";
 
@@ -12,7 +13,7 @@ export class ResultsAPI extends NetworkClientProvider {
     subsessionId: number;
     includeLicenses?: boolean;
   }) {
-    return this.client.get("/data/results/get", {
+    return this.client.get<IRacingAPIResponse>("/data/results/get", {
       params: {
         subsession_id: subsessionId,
         include_licenses: includeLicenses,
@@ -27,7 +28,7 @@ export class ResultsAPI extends NetworkClientProvider {
     subsessionId: number;
     simsessionNumber: number;
   }) {
-    return this.client.get("/data/results/event_log", {
+    return this.client.get<IRacingAPIResponse>("/data/results/event_log", {
       params: {
         subsession_id: subsessionId,
         simsession_number: simsessionNumber,
@@ -42,7 +43,7 @@ export class ResultsAPI extends NetworkClientProvider {
     subsessionId: number;
     simsessionNumber: number;
   }) {
-    return this.client.get("/data/results/lap_chart_data", {
+    return this.client.get<IRacingAPIResponse>("/data/results/lap_chart_data", {
       params: {
         subsession_id: subsessionId,
         simsession_number: simsessionNumber,
@@ -61,7 +62,7 @@ export class ResultsAPI extends NetworkClientProvider {
     customerId?: number;
     teamId?: number;
   }) {
-    return this.client.get("/data/results/lap_data", {
+    return this.client.get<IRacingAPIResponse>("/data/results/lap_data", {
       params: {
         subsession_id: subsessionId,
         simsession_number: simsessionNumber,
@@ -100,7 +101,7 @@ export class ResultsAPI extends NetworkClientProvider {
     trackId?: number;
     categoryIds?: CategoryIdValue[];
   } = {}) {
-    return this.client.get("/data/results/search_hosted", {
+    return this.client.get<IRacingAPIResponse>("/data/results/search_hosted", {
       params: {
         start_range_begin: startRangeBegin?.toUTCString(),
         start_range_end: startRangeEnd?.toUTCString(),
@@ -148,7 +149,7 @@ export class ResultsAPI extends NetworkClientProvider {
     eventTypes?: EventTypeValue[];
     categoryIds?: CategoryIdValue[];
   }) {
-    return this.client.get("/data/results/search_series", {
+    return this.client.get<IRacingAPIResponse>("/data/results/search_series", {
       params: {
         season_year: seasonYear,
         season_quarter: seasonQuarter,
@@ -176,7 +177,7 @@ export class ResultsAPI extends NetworkClientProvider {
     eventType?: EventTypeValue;
     raceWeekNumber: number;
   }) {
-    return this.client.get("/data/results/season_results", {
+    return this.client.get<IRacingAPIResponse>("/data/results/season_results", {
       params: {
         season_id: seasonId,
         event_type: eventType,

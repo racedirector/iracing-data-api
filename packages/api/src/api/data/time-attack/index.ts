@@ -1,10 +1,13 @@
-import { NetworkClientProvider } from "../../types";
+import { IRacingAPIResponse, NetworkClientProvider } from "../../types";
 
 export class TimeAttackAPI extends NetworkClientProvider {
   memberSeasonResults({ seasonId }: { seasonId: number }) {
-    return this.client.get(`/data/time_attack/member_season_results`, {
-      params: { ta_comp_season_id: seasonId },
-    });
+    return this.client.get<IRacingAPIResponse>(
+      `/data/time_attack/member_season_results`,
+      {
+        params: { ta_comp_season_id: seasonId },
+      }
+    );
   }
 }
 
