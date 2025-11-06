@@ -76,6 +76,20 @@ export const IRacingOAuthClientMetadataSchema = z
     description: "Metadata the user must provide to use the client.",
   });
 
+export const IRacingOAuthCallbackSchema = z.object({
+  state: z.string(),
+  code: z.string(),
+});
+
+export const IRacingOAuthTokenResponseSchema = z.object({
+  access_token: z.string(),
+  token_type: z.literal("bearer"),
+  expires_in: z.number(),
+  refresh_token: z.string().optional(),
+  refresh_token_expires_in: z.number().optional(),
+  scope: z.string().trim(),
+});
+
 /**
  * Type exports
  */
@@ -88,4 +102,12 @@ export type IRacingOAuthClientMetadataInput = z.input<
 
 export type IRacingOAuthClientMetadata = z.infer<
   typeof IRacingOAuthClientMetadataSchema
+>;
+
+export type IRacingOAuthCallbackInput = z.infer<
+  typeof IRacingOAuthCallbackSchema
+>;
+
+export type IRacingOAuthCallbackResponse = z.infer<
+  typeof IRacingOAuthTokenResponseSchema
 >;

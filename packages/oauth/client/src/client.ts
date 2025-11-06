@@ -4,6 +4,7 @@ import {
   IRacingOAuthClientMetadata,
   IRacingOAuthClientMetadataInput,
   IRacingOAuthClientMetadataSchema,
+  IRacingOAuthTokenResponseSchema,
   StateStore,
 } from "./schema";
 import { sanitizeTokenResponse } from "./utils";
@@ -28,7 +29,7 @@ export class OAuthClient {
     this.stateStore = stateStore;
   }
 
-  async authorize({ signal }: { signal: AbortSignal }) {
+  async authorize({ signal }: { signal?: AbortSignal } = {}) {
     const verifier = oauth.generateRandomCodeVerifier();
     const challenge = await oauth.calculatePKCECodeChallenge(verifier);
 
@@ -149,6 +150,6 @@ export class OAuthClient {
       normalizedResponse
     );
 
-    return result;
+    return await IRacingOAuthTokenResponseSchema.parseAsync(result);
   }
 }

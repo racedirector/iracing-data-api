@@ -3,8 +3,9 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "module": "esnext",
-    "target": "esnext",
+    "module": "preserve",
+    "target": "es2022",
+    "moduleResolution": "bundler",
     "noUnusedLocals": false,
     "paths": {
       "@/*": ["./src/*"]
