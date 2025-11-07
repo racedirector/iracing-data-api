@@ -11,7 +11,8 @@ export const awards = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.member.awards(query);
+    const response = await iracing.api.data.member.awards(query);
+    return response.data;
   }
 );
 
@@ -26,7 +27,8 @@ export const awardInstances = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.member.awardInstances(query);
+    const response = await iracing.api.data.member.awardInstances(query);
+    return response.data;
   }
 );
 
@@ -58,7 +60,8 @@ export const info = createEndpoint(
   "/data/member/info",
   { method: "GET" },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.member.info();
+    const response = await iracing.api.data.member.info();
+    return response.data;
   }
 );
 
@@ -66,7 +69,8 @@ export const participationCredits = createEndpoint(
   "/data/member/info",
   { method: "GET" },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.member.participationCredits();
+    const response = await iracing.api.data.member.participationCredits();
+    return response.data;
   }
 );
 
@@ -79,6 +83,7 @@ export const profile = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.member.profile(query);
+    const response = await iracing.api.data.member.profile(query);
+    return response.data;
   }
 );

@@ -7,7 +7,8 @@ export const countries = createEndpoint(
     method: "GET",
   },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.lookup.countries();
+    const response = await iracing.api.data.lookup.countries();
+    return response.data;
   }
 );
 
@@ -17,7 +18,8 @@ export const flairs = createEndpoint(
     method: "GET",
   },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.lookup.flairs();
+    const response = await iracing.api.data.lookup.flairs();
+    return response.data;
   }
 );
 
@@ -27,7 +29,8 @@ export const licenses = createEndpoint(
     method: "GET",
   },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.lookup.licenses();
+    const response = await iracing.api.data.lookup.licenses();
+    return response.data;
   }
 );
 
@@ -41,7 +44,8 @@ export const drivers = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.lookup.drivers(query);
+    const response = await iracing.api.data.lookup.drivers(query);
+    return response.data;
   }
 );
 
@@ -49,6 +53,7 @@ export const getLookup = createEndpoint(
   "/data/lookup/get",
   { method: "GET", query: z.record(z.string(), z.string()) },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.lookup.get(query);
+    const response = await iracing.api.data.lookup.get(query);
+    return response.data;
   }
 );

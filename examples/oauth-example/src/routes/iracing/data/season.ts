@@ -11,7 +11,8 @@ export const list = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.season.list(query);
+    const response = await iracing.api.data.season.list(query);
+    return response.data;
   }
 );
 
@@ -25,7 +26,8 @@ export const raceGuide = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.season.raceGuide(query);
+    const response = await iracing.api.data.season.raceGuide(query);
+    return response.data;
   }
 );
 

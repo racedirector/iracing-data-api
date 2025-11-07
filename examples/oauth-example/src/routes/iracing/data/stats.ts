@@ -12,7 +12,8 @@ export const memberBests = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberBests(query);
+    const response = await iracing.api.data.stats.memberBests(query);
+    return response.data;
   }
 );
 
@@ -25,7 +26,8 @@ export const memberCareer = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberCareer(query);
+    const response = await iracing.api.data.stats.memberCareer(query);
+    return response.data;
   }
 );
 
@@ -39,7 +41,8 @@ export const memberDivision = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberDivision(query);
+    const response = await iracing.api.data.stats.memberDivision(query);
+    return response.data;
   }
 );
 
@@ -54,7 +57,8 @@ export const memberRecap = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberRecap(query);
+    const response = await iracing.api.data.stats.memberRecap(query);
+    return response.data;
   }
 );
 
@@ -67,7 +71,8 @@ export const memberRecentRaces = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberRecentRaces(query);
+    const response = await iracing.api.data.stats.memberRecentRaces(query);
+    return response.data;
   }
 );
 
@@ -80,7 +85,8 @@ export const memberSummary = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberSummary(query);
+    const response = await iracing.api.data.stats.memberSummary(query);
+    return response.data;
   }
 );
 
@@ -93,7 +99,8 @@ export const memberYearly = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.memberYearly(query);
+    const response = await iracing.api.data.stats.memberYearly(query);
+    return response.data;
   }
 );
 
@@ -109,7 +116,8 @@ export const seasonDriverStandings = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.seasonDriverStandings(query);
+    const response = await iracing.api.data.stats.seasonDriverStandings(query);
+    return response.data;
   }
 );
 
@@ -125,7 +133,9 @@ export const seasonSupersessionStandings = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.seasonSupersessionStandings(query);
+    const response =
+      await iracing.api.data.stats.seasonSupersessionStandings(query);
+    return response.data;
   }
 );
 
@@ -140,7 +150,8 @@ export const seasonTeamStandings = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.seasonTeamStandings(query);
+    const response = await iracing.api.data.stats.seasonTeamStandings(query);
+    return response.data;
   }
 );
 
@@ -156,7 +167,9 @@ export const seasonTimeTrialStandings = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.seasonTimeTrialStandings(query);
+    const response =
+      await iracing.api.data.stats.seasonTimeTrialStandings(query);
+    return response.data;
   }
 );
 
@@ -172,7 +185,8 @@ export const seasonTimeTrialResults = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.seasonTimeTrialResults(query);
+    const response = await iracing.api.data.stats.seasonTimeTrialResults(query);
+    return response.data;
   }
 );
 
@@ -188,7 +202,8 @@ export const seasonQualifyResults = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.seasonQualifyResults(query);
+    const response = await iracing.api.data.stats.seasonQualifyResults(query);
+    return response.data;
   }
 );
 
@@ -204,6 +219,7 @@ export const worldRecords = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.stats.worldRecords(query);
+    const response = await iracing.api.data.stats.worldRecords(query);
+    return response.data;
   }
 );

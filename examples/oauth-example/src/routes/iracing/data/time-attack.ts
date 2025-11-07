@@ -11,6 +11,8 @@ export const memberSeasonResults = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.timeAttack.memberSeasonResults(query);
+    const response =
+      await iracing.api.data.timeAttack.memberSeasonResults(query);
+    return response.data;
   }
 );

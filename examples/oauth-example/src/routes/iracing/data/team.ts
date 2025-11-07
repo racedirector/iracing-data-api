@@ -11,7 +11,8 @@ export const getTeam = createEndpoint(
     }),
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.team.get(query);
+    const response = await iracing.api.data.team.get(query);
+    return response.data;
   }
 );
 
@@ -21,6 +22,7 @@ export const membership = createEndpoint(
     method: "GET",
   },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.team.membership();
+    const response = await iracing.api.data.team.membership();
+    return response.data;
   }
 );

@@ -2,9 +2,7 @@ import { createRouter } from "better-call";
 import * as routes from "./routes";
 
 export const router = createRouter(
-  {
-    ...routes,
-  },
+  { ...routes },
   {
     openapi: {
       scalar: {

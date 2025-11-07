@@ -37,6 +37,7 @@ export const category = createEndpoint(
     // },
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.driverStats.category(query);
+    const response = await iracing.api.data.driverStats.category(query);
+    return response.data;
   }
 );

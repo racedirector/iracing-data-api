@@ -7,7 +7,8 @@ export const trackAssets = createEndpoint(
     requireHeaders: true,
   },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.track.assets();
+    const response = await iracing.api.data.track.assets();
+    return response.data;
   }
 );
 
@@ -18,6 +19,7 @@ export const getTrack = createEndpoint(
     requireHeaders: true,
   },
   async ({ context: { iracing } }) => {
-    return iracing.api.data.track.get();
+    const response = await iracing.api.data.track.get();
+    return response.data;
   }
 );
