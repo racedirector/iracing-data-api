@@ -1,4 +1,4 @@
-import { createEndpoint } from "./utils";
+import { createEndpoint } from "../utils";
 
 export const getCarClass = createEndpoint(
   "/data/carclass/get",

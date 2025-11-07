@@ -1,4 +1,4 @@
-import { createEndpoint } from "./utils";
+import { createEndpoint } from "../utils";
 import { z } from "zod";
 
 export const countries = createEndpoint(

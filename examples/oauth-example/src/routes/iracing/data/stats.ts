@@ -1,5 +1,5 @@
-import { DivisionSchema } from "./schema";
-import { createEndpoint } from "./utils";
+import { DivisionSchema } from "../schema";
+import { createEndpoint } from "../utils";
 import { z } from "zod";
 
 export const memberBests = createEndpoint(

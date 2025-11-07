@@ -5,14 +5,11 @@ import {
   createMiddleware,
 } from "better-call";
 
-export const iracingSessionMiddleware = createMiddleware(async (context) => {
-  return {
-    iracingSession: context.getCookie("iracing-token"),
-  };
-});
-
 export const iracingClientMiddleware = createMiddleware(async (context) => {
-  const { iracingSession } = context.context;
+  const accessToken =
+    context.getHeader("X-IRACING-ACCESS-TOKEN") ||
+    context.getCookie("iracing-token");
+
   const network = axios.create({
     baseURL: "https://members-ng.iracing.com/",
   });
@@ -21,8 +18,8 @@ export const iracingClientMiddleware = createMiddleware(async (context) => {
     /**
      * Only sign requests if an access token is provided
      */
-    if (iracingSession) {
-      config.headers.Authorization = `Bearer ${iracingSession}`;
+    if (accessToken) {
+      config.headers.Authorization = `Bearer ${accessToken}`;
     }
 
     return config;
@@ -36,5 +33,5 @@ export const iracingClientMiddleware = createMiddleware(async (context) => {
 });
 
 export const createEndpoint = createEndpointFn.create({
-  use: [iracingSessionMiddleware, iracingClientMiddleware],
+  use: [iracingClientMiddleware],
 });
