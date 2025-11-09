@@ -15,26 +15,6 @@ export const category = createEndpoint(
         z.literal("formula_car"),
       ]),
     }),
-    // metadata: {
-    // openapi: {
-    // requestBody: {
-    //   content: {
-    //     "application/json": {
-    //       schema: {
-    //         type: "object",
-    //         properties: {
-    //           category: {
-    //             type: "string",
-    //             description:
-    //               "The category to look up for the current driver.",
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // },
-    // },
-    // },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.driverStats.category(query);

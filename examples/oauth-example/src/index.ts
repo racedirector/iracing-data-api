@@ -1,11 +1,27 @@
-import { toNodeHandler } from "better-call/node";
+import { createNodeHandler } from "@iracing-data/api-router";
 import express from "express";
 import cookieParser from "cookie-parser";
 import { page } from "./page";
 import { PORT } from "./config";
-import router from "./router";
+
+const iracingRouter = createNodeHandler({
+  basePath: "/iracing",
+  openapi: {
+    path: "/reference",
+  },
+  onRequest: (request) => {
+    console.debug("Making request:", request);
+  },
+  onResponse: (response) => {
+    console.debug("Response", response);
+  },
+  onError: (error) => {
+    console.debug("Error!", error);
+  },
+});
 
 const app = express();
+
 app.use(express.urlencoded({ extended: true }), cookieParser());
 
 app.get("/", (req, res) => {
@@ -17,12 +33,12 @@ app.get("/", (req, res) => {
       page(
         hasToken
           ? `<h1>Authenticated with iRacing</h1><a href="/logout">Sign out</a>`
-          : `<h1>Login</h1><a href="/login">Login with iRacing</a>`
+          : `<h1>Login</h1><a href="/oauth/iracing/login">Login with iRacing</a>`
       )
     );
 });
 
-app.use(toNodeHandler(router.handler));
+app.use("/iracing", iracingRouter);
 
 app.listen(PORT, () => {
   console.info(`Example app listening on port ${PORT}`);
