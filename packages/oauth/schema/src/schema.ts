@@ -170,3 +170,36 @@ export const IRacingOAuthRevokeCurrentSessionInputSchema = z.object({
 export const IRacingOAuthRevokeSessionsInputSchema = z.object({
   sessionIds: z.array(z.string()),
 });
+
+// Types
+export type IRacingOAuthClientId = z.infer<typeof IRacingOAuthClientIdSchema>;
+export type IRacingOAuthRequestIdHeader = z.infer<
+  typeof IRacingOAuthRequestIdHeaderSchema
+>;
+export type IRacingOAuthHeaders = z.infer<typeof IRacingOAuthHeadersSchema>;
+export type IRacingOAuthAuthorizeParameters = z.infer<
+  typeof IRacingOAuthAuthorizeParametersSchema
+>;
+export type IRacingOAuthTokenAuthorizationCodeGrantParameters = z.infer<
+  typeof IRacingOAuthTokenAuthorizationCodeGrantParametersSchema
+>;
+export type IRacingOAuthTokenRefreshGrantParameters = z.infer<
+  typeof IRacingOAuthTokenRefreshGrantParametersSchema
+>;
+export type IRacingOAuthTokenParameters = z.infer<
+  typeof IRacingOAuthTokenParametersSchema
+>;
+export type IRacingOAuthTokenResponse = z.infer<
+  typeof IRacingOAuthTokenResponseSchema
+>;
+export type IRacingOAuthSession = z.infer<typeof IRacingOAuthSessionSchema>;
+export type IRacingOAuthSessions = z.infer<typeof IRacingOAuthSessionsSchema>;
+export type IRacingOAuthProfileResponse = z.infer<
+  typeof IRacingOAuthProfileResponseSchema
+>;
+export type IRacingOAuthRevokeCurrentSessionParameters = z.infer<
+  typeof IRacingOAuthRevokeCurrentSessionInputSchema
+>;
+export type IRacingOAuthRevokeSessionsParameters = z.infer<
+  typeof IRacingOAuthRevokeSessionsInputSchema
+>;
