@@ -5,10 +5,26 @@ export const list = createEndpoint(
   "/data/season/list",
   {
     method: "GET",
+    requireHeaders: true,
     query: z.object({
       seasonYear: z.number(),
       seasonQuarter: z.number(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.season.list(query);
@@ -20,10 +36,26 @@ export const raceGuide = createEndpoint(
   "/data/season/race_guide",
   {
     method: "GET",
+    requireHeaders: true,
     query: z.object({
       from: z.date(),
       includeEndAfterFrom: z.boolean().optional(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.season.raceGuide(query);

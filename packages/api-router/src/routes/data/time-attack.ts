@@ -9,6 +9,21 @@ export const memberSeasonResults = createEndpoint(
     query: z.object({
       seasonId: z.number(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response =

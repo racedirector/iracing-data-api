@@ -5,6 +5,22 @@ export const countries = createEndpoint(
   "/data/lookup/countries",
   {
     method: "GET",
+    requireHeaders: true,
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing } }) => {
     const response = await iracing.api.data.lookup.countries();
@@ -16,6 +32,22 @@ export const flairs = createEndpoint(
   "/data/lookup/flairs",
   {
     method: "GET",
+    requireHeaders: true,
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing } }) => {
     const response = await iracing.api.data.lookup.flairs();
@@ -27,6 +59,22 @@ export const licenses = createEndpoint(
   "/data/lookup/licenses",
   {
     method: "GET",
+    requireHeaders: true,
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing } }) => {
     const response = await iracing.api.data.lookup.licenses();
@@ -38,10 +86,26 @@ export const drivers = createEndpoint(
   "/data/lookup/drivers",
   {
     method: "GET",
+    requireHeaders: true,
     query: z.object({
       searchTerm: z.string(),
       leagueId: z.number().optional(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.lookup.drivers(query);
@@ -51,7 +115,26 @@ export const drivers = createEndpoint(
 
 export const getLookup = createEndpoint(
   "/data/lookup/get",
-  { method: "GET", query: z.record(z.string(), z.string()) },
+  {
+    method: "GET",
+    requireHeaders: true,
+    query: z.record(z.string(), z.string()),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
+  },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.lookup.get(query);
     return response.data;

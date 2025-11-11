@@ -9,6 +9,21 @@ export const awards = createEndpoint(
     query: z.object({
       customerId: z.coerce.number().optional(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.member.awards(query);
@@ -25,6 +40,21 @@ export const awardInstances = createEndpoint(
       customerId: z.coerce.number().optional(),
       awardId: z.number(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.member.awardInstances(query);
@@ -58,7 +88,25 @@ export const awardInstances = createEndpoint(
 
 export const info = createEndpoint(
   "/data/member/info",
-  { method: "GET" },
+  {
+    method: "GET",
+    requireHeaders: true,
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
+  },
   async ({ context: { iracing } }) => {
     const response = await iracing.api.data.member.info();
     return response.data;
@@ -66,7 +114,7 @@ export const info = createEndpoint(
 );
 
 export const participationCredits = createEndpoint(
-  "/data/member/info",
+  "/data/member/participation_credits",
   { method: "GET" },
   async ({ context: { iracing } }) => {
     const response = await iracing.api.data.member.participationCredits();
@@ -78,9 +126,25 @@ export const profile = createEndpoint(
   "/data/member/profile",
   {
     method: "GET",
+    requireHeaders: true,
     query: z.object({
       customerId: z.coerce.number().optional(),
     }),
+    metadata: {
+      openapi: {
+        parameters: [
+          {
+            in: "header",
+            name: "X-IRACING-ACCESS-TOKEN",
+            schema: {
+              type: "string",
+            },
+            required: true,
+            description: "The JWT token to sign the request with.",
+          },
+        ],
+      },
+    },
   },
   async ({ context: { iracing }, query }) => {
     const response = await iracing.api.data.member.profile(query);
