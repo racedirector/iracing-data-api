@@ -80,6 +80,11 @@ export async function generateOpenAPISpec({
       version: "0.0.1",
     },
     servers: [{ url: "https://members-ng.iracing.com/" }],
+    externalDocs: {
+      url: "/data/doc",
+      description:
+        "Find more information on available services here. Requires authentication.",
+    },
     components: {
       headers: {
         rateLimitLimit: IRacingRateLimitLimitHeaderSchema,
