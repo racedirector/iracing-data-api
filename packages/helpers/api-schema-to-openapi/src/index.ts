@@ -129,6 +129,21 @@ export async function generateOpenAPISpec({
           bearerFormat: "JWT",
           description: "JWT Authentication",
         },
+        oAuth2: {
+          type: "oauth2",
+          description:
+            "OAuth service for obtaining a JWT. For more information, see https://oauth.iracing.com/oauth2/book/introduction.html",
+          flows: {
+            authorizationCode: {
+              authorizationUrl: "https://oauth.iracing.com/oauth2/authorize",
+              tokenUrl: "https://oauth.iracing.com/oauth2/token",
+              scopes: {
+                "iracing.auth": "Authorization for iRacing services.",
+                "iracing.profile": "Access to the iRacing profile.",
+              },
+            },
+          },
+        },
       },
     },
     security: [
