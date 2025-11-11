@@ -723,6 +723,9 @@ export type IRacingCustomerId = z.infer<typeof IRacingCustomerIdSchema>;
 export type IRacingCategory = z.infer<typeof IRacingCategorySchema>;
 export type IRacingDivision = z.infer<typeof IRacingDivisionSchema>;
 export type IRacingAPIResponse = z.infer<typeof IRacingAPIResponseSchema>;
+export type IRacingDriverStatsByCategoryPath = z.infer<
+  typeof IRacingDriverStatsByCategoryPathSchema
+>;
 
 export type IRacingErrorResponse = z.infer<typeof IRacingErrorResponseSchema>;
 export type IRacingMaintenanceResponse = z.infer<
