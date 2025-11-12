@@ -1,49 +1,25 @@
+import {
+  IRacingLeagueCustomerSessionsParametersSchema,
+  IRacingLeagueDirectoryParametersSchema,
+  IRacingLeagueGetParametersSchema,
+  IRacingLeagueGetPointsSystemsParametersSchema,
+  IRacingLeagueMembershipParametersSchema,
+  IRacingLeagueRosterParametersSchema,
+  IRacingLeagueSeasonSessionsParametersSchema,
+  IRacingLeagueSeasonsParametersSchema,
+  IRacingLeagueSeasonStandingsParametersSchema,
+} from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
-import { z } from "zod";
 
 export const directory = createEndpoint(
   "/data/league/directory",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      search: z.string().optional(),
-      tag: z.string().optional(),
-      restrictToMember: z.boolean().optional(),
-      restrictToRecruiting: z.boolean().optional(),
-      restrictToFriends: z.boolean().optional(),
-      restrictToWatched: z.boolean().optional(),
-      minimumRosterCount: z.number().optional(),
-      maximumRosterCount: z.number().optional(),
-      lowerbound: z.number().optional(),
-      upperbound: z.number().optional(),
-      sort: z
-        .union([
-          z.literal("relevance"),
-          z.literal("leaguename"),
-          z.literal("displayname"),
-        ])
-        .optional(),
-      order: z.union([z.literal("asc"), z.literal("desc")]),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueDirectoryParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.directory(query);
+    const response = await iracing.league.getLeagueDirectory(query);
+    return response.data;
   }
 );
 
@@ -51,29 +27,12 @@ export const customerLeagueSessions = createEndpoint(
   "/data/league/cust_league_sessions",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      mine: z.boolean().optional(),
-      packageId: z.number().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueCustomerSessionsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.customerLeagueSessions(query);
+    const response =
+      await iracing.league.getLeagueCustomerLeagueSessions(query);
+    return response.data;
   }
 );
 
@@ -81,59 +40,23 @@ export const getLeague = createEndpoint(
   "/data/league/get",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      leagueId: z.number(),
-      includeLicenses: z.boolean().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueGetParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.get(query);
+    const response = await iracing.league.getLeague(query);
+    return response.data;
   }
 );
 
-export const getPointsSystem = createEndpoint(
+export const getPointsSystems = createEndpoint(
   "/data/league/get_points_systems",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      leagueId: z.number(),
-      seasonId: z.number().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueGetPointsSystemsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.getPointsSystems(query);
+    const response = await iracing.league.getLeaguePointsSystems(query);
+    return response.data;
   }
 );
 
@@ -141,29 +64,11 @@ export const leagueMembership = createEndpoint(
   "/data/league/membership",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      customerId: z.number().optional(),
-      includeLeague: z.boolean().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueMembershipParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.membership(query);
+    const response = await iracing.league.getLeagueMembership(query);
+    return response.data;
   }
 );
 
@@ -171,29 +76,11 @@ export const leagueRoster = createEndpoint(
   "/data/league/roster",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      leagueId: z.number(),
-      includeLicenses: z.boolean().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueRosterParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.roster(query);
+    const response = await iracing.league.getLeagueRoster(query);
+    return response.data;
   }
 );
 
@@ -201,29 +88,11 @@ export const leagueSeasons = createEndpoint(
   "/data/league/seasons",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      leagueId: z.number(),
-      retired: z.boolean().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueSeasonsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.seasons(query);
+    const response = await iracing.league.getLeagueSeasons(query);
+    return response.data;
   }
 );
 
@@ -231,31 +100,11 @@ export const seasonStandings = createEndpoint(
   "/data/league/season_standings",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      leagueId: z.number(),
-      seasonId: z.number(),
-      carClassId: z.number().optional(),
-      carId: z.number().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueSeasonStandingsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.seasonStandings(query);
+    const response = await iracing.league.getLeagueSeasonStandings(query);
+    return response.data;
   }
 );
 
@@ -263,29 +112,10 @@ export const seasonSessions = createEndpoint(
   "/data/league/season_sessions",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      leagueId: z.number(),
-      seasonId: z.number(),
-      resultsOnly: z.boolean().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingLeagueSeasonSessionsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    return iracing.api.data.league.seasonSessions(query);
+    const response = await iracing.league.getLeagueSeasonSessions(query);
+    return response.data;
   }
 );

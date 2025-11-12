@@ -7,10 +7,8 @@
     "build": "tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@iracing-data/api": "workspace:*",
+    "@iracing-data/api-client": "workspace:*",
     "@iracing-data/api-schema": "workspace:*",
-    "axios": "^1.7.9",
-    "better-call": "^1.0.26",
-    "zod": "^4.1.12"
+    "better-call": "^1.0.26"
   }
 }

@@ -3,7 +3,13 @@
   "version": "0.0.0-alpha.0",
   "main": "dist/index.js",
   "scripts": {
-    "codegen:openapi": "iracing-api-openapi -o ./openapi"
+    "codegen": "pnpm codegen:openapi && pnpm codegen:client",
+    "codegen:openapi": "iracing-api-openapi -o ./openapi",
+    "codegen:client": "openapi-generator-cli generate -g typescript-axios -i openapi/openapi.json -o src/client --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client'",
+    "build": "pnpm codegen && tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "axios": "^1.13.2"
   },
   "devDependencies": {
     "@iracing-data/api-schema-to-openapi": "workspace:*",

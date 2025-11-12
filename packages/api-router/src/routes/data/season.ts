@@ -1,33 +1,17 @@
+import {
+  IRacingSeasonListParametersSchema,
+  IRacingSeasonRaceGuideParametersSchema,
+} from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
-import { z } from "zod";
 
 export const list = createEndpoint(
   "/data/season/list",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      seasonYear: z.number(),
-      seasonQuarter: z.number(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingSeasonListParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    const response = await iracing.api.data.season.list(query);
+    const response = await iracing.season.getSeasonList(query);
     return response.data;
   }
 );
@@ -36,29 +20,10 @@ export const raceGuide = createEndpoint(
   "/data/season/race_guide",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      from: z.date(),
-      includeEndAfterFrom: z.boolean().optional(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingSeasonRaceGuideParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
-    const response = await iracing.api.data.season.raceGuide(query);
+    const response = await iracing.season.getSeasonRaceGuide(query);
     return response.data;
   }
 );

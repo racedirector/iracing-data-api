@@ -4,25 +4,9 @@ export const categories = createEndpoint(
   "/data/constants/categories",
   {
     method: "GET",
-    requireHeaders: true,
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
   },
   async ({ context: { iracing } }) => {
-    const response = await iracing.api.data.constants.categories();
+    const response = await iracing.constants.getConstantsCategories();
     return response.data;
   }
 );
@@ -31,25 +15,9 @@ export const divisions = createEndpoint(
   "/data/constants/divisions",
   {
     method: "GET",
-    requireHeaders: true,
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
   },
   async ({ context: { iracing } }) => {
-    const response = await iracing.api.data.constants.divisions();
+    const response = await iracing.constants.getConstantsDivisions();
     return response.data;
   }
 );
@@ -58,25 +26,9 @@ export const eventTypes = createEndpoint(
   "/data/constants/event_types",
   {
     method: "GET",
-    requireHeaders: true,
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
   },
   async ({ context: { iracing } }) => {
-    const response = await iracing.api.data.constants.eventTypes();
+    const response = await iracing.constants.getConstantsEventTypes();
     return response.data;
   }
 );

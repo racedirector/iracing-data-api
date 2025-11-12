@@ -1,8 +1,8 @@
 import { OAuthClient } from "@iracing-data/oauth-client";
-import { InMemoryStore } from "./storage/memory";
 import { IRACING_CLIENT_ID, PORT } from "./config";
+import { InMemoryStore } from "./storage/memory";
 
-export const client = new OAuthClient({
+export const oauthClient = new OAuthClient({
   clientMetadata: {
     clientId: IRACING_CLIENT_ID,
     redirectUri: `http://127.0.0.1:${PORT}/oauth/iracing/callback`,
@@ -11,4 +11,4 @@ export const client = new OAuthClient({
   stateStore: new InMemoryStore(),
 });
 
-export default client;
+export default oauthClient;

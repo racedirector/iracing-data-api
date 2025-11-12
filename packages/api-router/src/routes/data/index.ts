@@ -1,6 +1,7 @@
 export * from "./car";
 export * from "./car-class";
 export * from "./constants";
+export * from "./doc";
 export * from "./driver-stats";
 export * from "./hosted";
 export * from "./league";

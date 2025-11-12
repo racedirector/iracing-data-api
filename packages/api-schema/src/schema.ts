@@ -702,27 +702,45 @@ export const IRacingTimeAttackMemberSeasonResultsParametersSchema = z.object({
   ta_comp_season_id: z.number(),
 });
 
-export const IRacingParametersDocsResponseSchema = z.object({
-  type: z.string(),
-  note: z.string().optional(),
-  required: z.boolean().optional(),
-});
+export const IRacingServiceMethodParametersDocsResponseSchema = z
+  .object({
+    type: z.string(),
+    note: z.string().optional(),
+    required: z.boolean().optional(),
+  })
+  .meta({
+    description: "An iRacing API Service Method Parameters object.",
+    id: "iracingServiceMethodParametersDocs",
+  });
 
-export const IRacingServiceMethodDocsResponseSchema = z.object({
-  link: z.url(),
-  parameters: z.record(z.string(), IRacingParametersDocsResponseSchema),
-  expirationSeconds: z.number().optional(),
-});
+export const IRacingServiceMethodDocsResponseSchema = z
+  .object({
+    link: z.url(),
+    parameters: z.record(
+      z.string(),
+      IRacingServiceMethodParametersDocsResponseSchema
+    ),
+    expirationSeconds: z.number().optional(),
+  })
+  .meta({
+    description: "An iRacing API Service Method object.",
+    id: "iracingServiceMethodDocs",
+  });
 
-export const IRacingServiceDocsResponseSchema = z.record(
-  z.string(),
-  IRacingServiceMethodDocsResponseSchema
-);
+export const IRacingServiceDocsResponseSchema = z
+  .record(z.string(), IRacingServiceMethodDocsResponseSchema)
+  .meta({
+    description:
+      "An index of service methods available for the requested service.",
+    id: "iracingServiceDocs",
+  });
 
-export const IRacingServicesDocsResponseSchema = z.record(
-  z.string(),
-  IRacingServiceDocsResponseSchema
-);
+export const IRacingServicesDocsResponseSchema = z
+  .record(z.string(), IRacingServiceDocsResponseSchema)
+  .meta({
+    description: "An index of available services on the iRacing API.",
+    id: "iracingServicesDocs",
+  });
 
 /**
  * Types
@@ -913,8 +931,8 @@ export type IRacingTeamGetParameters = z.infer<
 export type IRacingTimeAttackMemberSeasonResultsParameters = z.infer<
   typeof IRacingTimeAttackMemberSeasonResultsParametersSchema
 >;
-export type IRacingParametersDocsResponse = z.infer<
-  typeof IRacingParametersDocsResponseSchema
+export type IRacingServiceMethodParametersDocsResponse = z.infer<
+  typeof IRacingServiceMethodParametersDocsResponseSchema
 >;
 export type IRacingServiceMethodDocsResponse = z.infer<
   typeof IRacingServiceMethodDocsResponseSchema

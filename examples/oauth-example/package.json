@@ -9,16 +9,20 @@
   },
   "dependencies": {
     "@iracing-data/api": "workspace:*",
+    "@iracing-data/api-client": "workspace:*",
     "@iracing-data/api-router": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "axios": "^1.7.9",
     "better-call": "^1.0.24",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",
+    "express-jwt": "^8.5.1",
+    "jwt-decode": "^4.0.0",
     "zod": "^4.0.17"
   },
   "devDependencies": {
-    "@types/express": "^5.0.3",
+    "@types/express": "^5.0.5",
     "@types/node": "^24.10.0",
     "tsx": "^4.19.0"
   }

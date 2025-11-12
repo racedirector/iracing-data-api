@@ -1,33 +1,15 @@
+import { IRacingTimeAttackMemberSeasonResultsParametersSchema } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
-import { z } from "zod";
 
 export const memberSeasonResults = createEndpoint(
   "/data/time_attack/member_season_results",
   {
     method: "GET",
-    requireHeaders: true,
-    query: z.object({
-      seasonId: z.number(),
-    }),
-    metadata: {
-      openapi: {
-        parameters: [
-          {
-            in: "header",
-            name: "X-IRACING-ACCESS-TOKEN",
-            schema: {
-              type: "string",
-            },
-            required: true,
-            description: "The JWT token to sign the request with.",
-          },
-        ],
-      },
-    },
+    query: IRacingTimeAttackMemberSeasonResultsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     const response =
-      await iracing.api.data.timeAttack.memberSeasonResults(query);
+      await iracing.timeAttack.getTimeAttackMemberSeasonResults(query);
     return response.data;
   }
 );
