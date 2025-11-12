@@ -4,101 +4,13 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**dataDocSeasonSpectatorSubsessionidsDetailGet**](#datadocseasonspectatorsubsessionidsdetailget) | **GET** /data/doc/season/spectator_subsessionids_detail | |
-|[**dataDocSeasonSpectatorSubsessionidsGet**](#datadocseasonspectatorsubsessionidsget) | **GET** /data/doc/season/spectator_subsessionids | |
 |[**getSeasonDocs**](#getseasondocs) | **GET** /data/doc/season | |
 |[**getSeasonList**](#getseasonlist) | **GET** /data/season/list | |
 |[**getSeasonListDocs**](#getseasonlistdocs) | **GET** /data/doc/season/list | |
 |[**getSeasonRaceGuide**](#getseasonraceguide) | **GET** /data/season/race_guide | |
 |[**getSeasonRaceGuideDocs**](#getseasonraceguidedocs) | **GET** /data/doc/season/race_guide | |
-
-# **dataDocSeasonSpectatorSubsessionidsDetailGet**
-> IracingServiceMethodDocs dataDocSeasonSpectatorSubsessionidsDetailGet()
-
-
-### Example
-
-```typescript
-import {
-    SeasonApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new SeasonApi(configuration);
-
-const { status, data } = await apiInstance.dataDocSeasonSpectatorSubsessionidsDetailGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocSeasonSpectatorSubsessionidsGet**
-> IracingServiceMethodDocs dataDocSeasonSpectatorSubsessionidsGet()
-
-
-### Example
-
-```typescript
-import {
-    SeasonApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new SeasonApi(configuration);
-
-const { status, data } = await apiInstance.dataDocSeasonSpectatorSubsessionidsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+|[**getSeasonSpectatorSubsessionIdsDetailDocs**](#getseasonspectatorsubsessionidsdetaildocs) | **GET** /data/doc/season/spectator_subsessionids_detail | |
+|[**getSeasonSpectatorSubsessionIdsDocs**](#getseasonspectatorsubsessionidsdocs) | **GET** /data/doc/season/spectator_subsessionids | |
 
 # **getSeasonDocs**
 > { [key: string]: IracingServiceMethodDocs; } getSeasonDocs()
@@ -316,6 +228,94 @@ const configuration = new Configuration();
 const apiInstance = new SeasonApi(configuration);
 
 const { status, data } = await apiInstance.getSeasonRaceGuideDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getSeasonSpectatorSubsessionIdsDetailDocs**
+> IracingServiceMethodDocs getSeasonSpectatorSubsessionIdsDetailDocs()
+
+
+### Example
+
+```typescript
+import {
+    SeasonApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new SeasonApi(configuration);
+
+const { status, data } = await apiInstance.getSeasonSpectatorSubsessionIdsDetailDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getSeasonSpectatorSubsessionIdsDocs**
+> IracingServiceMethodDocs getSeasonSpectatorSubsessionIdsDocs()
+
+
+### Example
+
+```typescript
+import {
+    SeasonApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new SeasonApi(configuration);
+
+const { status, data } = await apiInstance.getSeasonSpectatorSubsessionIdsDocs();
 ```
 
 ### Parameters

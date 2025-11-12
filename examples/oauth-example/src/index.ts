@@ -16,8 +16,7 @@ const iracingRouter = createRouter({
 });
 
 const app = express();
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }), cookieParser());
+app.use(express.json(), express.urlencoded({ extended: true }), cookieParser());
 
 app.get("/", getIRacingSession, (req: IRacingSessionRequest, res) => {
   res

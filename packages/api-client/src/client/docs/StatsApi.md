@@ -4,38 +4,38 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
-|[**dataDocStatsGet**](#datadocstatsget) | **GET** /data/doc/stats | |
-|[**dataDocStatsMemberBestsGet**](#datadocstatsmemberbestsget) | **GET** /data/doc/stats/member_bests | |
-|[**dataDocStatsMemberCareerGet**](#datadocstatsmembercareerget) | **GET** /data/doc/stats/member_career | |
-|[**dataDocStatsMemberDivisionGet**](#datadocstatsmemberdivisionget) | **GET** /data/doc/stats/member_division | |
-|[**dataDocStatsMemberRecapGet**](#datadocstatsmemberrecapget) | **GET** /data/doc/stats/member_recap | |
-|[**dataDocStatsMemberRecentRacesGet**](#datadocstatsmemberrecentracesget) | **GET** /data/doc/stats/member_recent_races | |
-|[**dataDocStatsMemberSummaryGet**](#datadocstatsmembersummaryget) | **GET** /data/doc/stats/member_summary | |
-|[**dataDocStatsMemberYearlyGet**](#datadocstatsmemberyearlyget) | **GET** /data/doc/stats/member_yearly | |
-|[**dataDocStatsSeasonDriverStandingsGet**](#datadocstatsseasondriverstandingsget) | **GET** /data/doc/stats/season_driver_standings | |
-|[**dataDocStatsSeasonQualifyResultsGet**](#datadocstatsseasonqualifyresultsget) | **GET** /data/doc/stats/season_qualify_results | |
-|[**dataDocStatsSeasonSupersessionStandingsGet**](#datadocstatsseasonsupersessionstandingsget) | **GET** /data/doc/stats/season_supersession_standings | |
-|[**dataDocStatsSeasonTeamStandingsGet**](#datadocstatsseasonteamstandingsget) | **GET** /data/doc/stats/season_team_standings | |
-|[**dataDocStatsSeasonTtResultsGet**](#datadocstatsseasonttresultsget) | **GET** /data/doc/stats/season_tt_results | |
-|[**dataDocStatsSeasonTtStandingsGet**](#datadocstatsseasonttstandingsget) | **GET** /data/doc/stats/season_tt_standings | |
-|[**dataDocStatsWorldRecordsGet**](#datadocstatsworldrecordsget) | **GET** /data/doc/stats/world_records | |
+|[**getStatsDocs**](#getstatsdocs) | **GET** /data/doc/stats | |
 |[**getStatsMemberBests**](#getstatsmemberbests) | **GET** /data/stats/member_bests | |
+|[**getStatsMemberBestsDocs**](#getstatsmemberbestsdocs) | **GET** /data/doc/stats/member_bests | |
 |[**getStatsMemberCareer**](#getstatsmembercareer) | **GET** /data/stats/member_career | |
+|[**getStatsMemberCareerDocs**](#getstatsmembercareerdocs) | **GET** /data/doc/stats/member_career | |
 |[**getStatsMemberDivision**](#getstatsmemberdivision) | **GET** /data/stats/member_division | |
+|[**getStatsMemberDivisionDocs**](#getstatsmemberdivisiondocs) | **GET** /data/doc/stats/member_division | |
 |[**getStatsMemberRecap**](#getstatsmemberrecap) | **GET** /data/stats/member_recap | |
+|[**getStatsMemberRecapDocs**](#getstatsmemberrecapdocs) | **GET** /data/doc/stats/member_recap | |
 |[**getStatsMemberRecentRaces**](#getstatsmemberrecentraces) | **GET** /data/stats/member_recent_races | |
+|[**getStatsMemberRecentRacesDocs**](#getstatsmemberrecentracesdocs) | **GET** /data/doc/stats/member_recent_races | |
 |[**getStatsMemberSummary**](#getstatsmembersummary) | **GET** /data/stats/member_summary | |
+|[**getStatsMemberSummaryDocs**](#getstatsmembersummarydocs) | **GET** /data/doc/stats/member_summary | |
 |[**getStatsMemberYearly**](#getstatsmemberyearly) | **GET** /data/stats/member_yearly | |
+|[**getStatsMemberYearlyDocs**](#getstatsmemberyearlydocs) | **GET** /data/doc/stats/member_yearly | |
 |[**getStatsSeasonDriverStandings**](#getstatsseasondriverstandings) | **GET** /data/stats/season_driver_standings | |
+|[**getStatsSeasonDriverStandingsDocs**](#getstatsseasondriverstandingsdocs) | **GET** /data/doc/stats/season_driver_standings | |
 |[**getStatsSeasonQualifyResults**](#getstatsseasonqualifyresults) | **GET** /data/stats/season_qualify_results | |
+|[**getStatsSeasonQualifyResultsDocs**](#getstatsseasonqualifyresultsdocs) | **GET** /data/doc/stats/season_qualify_results | |
 |[**getStatsSeasonSupersessionStandings**](#getstatsseasonsupersessionstandings) | **GET** /data/stats/season_supersession_standings | |
+|[**getStatsSeasonSupersessionStandingsDocs**](#getstatsseasonsupersessionstandingsdocs) | **GET** /data/doc/stats/season_supersession_standings | |
+|[**getStatsSeasonTTResultsDocs**](#getstatsseasonttresultsdocs) | **GET** /data/doc/stats/season_tt_results | |
+|[**getStatsSeasonTTStandingsDocs**](#getstatsseasonttstandingsdocs) | **GET** /data/doc/stats/season_tt_standings | |
 |[**getStatsSeasonTeamStandings**](#getstatsseasonteamstandings) | **GET** /data/stats/season_team_standings | |
+|[**getStatsSeasonTeamStandingsDocs**](#getstatsseasonteamstandingsdocs) | **GET** /data/doc/stats/season_team_standings | |
 |[**getStatsSeasonTimeTrialResults**](#getstatsseasontimetrialresults) | **GET** /data/stats/season_time_trial_results | |
 |[**getStatsSeasonTimeTrialStandings**](#getstatsseasontimetrialstandings) | **GET** /data/stats/season_time_trial_standings | |
 |[**getStatsWorldRecords**](#getstatsworldrecords) | **GET** /data/stats/world_records | |
+|[**getStatsWorldRecordsDocs**](#getstatsworldrecordsdocs) | **GET** /data/doc/stats/world_records | |
 
-# **dataDocStatsGet**
-> { [key: string]: IracingServiceMethodDocs; } dataDocStatsGet()
+# **getStatsDocs**
+> { [key: string]: IracingServiceMethodDocs; } getStatsDocs()
 
 
 ### Example
@@ -49,7 +49,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new StatsApi(configuration);
 
-const { status, data } = await apiInstance.dataDocStatsGet();
+const { status, data } = await apiInstance.getStatsDocs();
 ```
 
 ### Parameters
@@ -59,622 +59,6 @@ This endpoint does not have any parameters.
 ### Return type
 
 **{ [key: string]: IracingServiceMethodDocs; }**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberBestsGet**
-> IracingServiceMethodDocs dataDocStatsMemberBestsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberBestsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberCareerGet**
-> IracingServiceMethodDocs dataDocStatsMemberCareerGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberCareerGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberDivisionGet**
-> IracingServiceMethodDocs dataDocStatsMemberDivisionGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberDivisionGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberRecapGet**
-> IracingServiceMethodDocs dataDocStatsMemberRecapGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberRecapGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberRecentRacesGet**
-> IracingServiceMethodDocs dataDocStatsMemberRecentRacesGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberRecentRacesGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberSummaryGet**
-> IracingServiceMethodDocs dataDocStatsMemberSummaryGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberSummaryGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsMemberYearlyGet**
-> IracingServiceMethodDocs dataDocStatsMemberYearlyGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsMemberYearlyGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsSeasonDriverStandingsGet**
-> IracingServiceMethodDocs dataDocStatsSeasonDriverStandingsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsSeasonDriverStandingsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsSeasonQualifyResultsGet**
-> IracingServiceMethodDocs dataDocStatsSeasonQualifyResultsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsSeasonQualifyResultsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsSeasonSupersessionStandingsGet**
-> IracingServiceMethodDocs dataDocStatsSeasonSupersessionStandingsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsSeasonSupersessionStandingsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsSeasonTeamStandingsGet**
-> IracingServiceMethodDocs dataDocStatsSeasonTeamStandingsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsSeasonTeamStandingsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsSeasonTtResultsGet**
-> IracingServiceMethodDocs dataDocStatsSeasonTtResultsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsSeasonTtResultsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsSeasonTtStandingsGet**
-> IracingServiceMethodDocs dataDocStatsSeasonTtStandingsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsSeasonTtStandingsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
-
-### Authorization
-
-[bearerAuth](../README.md#bearerAuth)
-
-### HTTP request headers
-
- - **Content-Type**: Not defined
- - **Accept**: application/json
-
-
-### HTTP response details
-| Status code | Description | Response headers |
-|-------------|-------------|------------------|
-|**200** | Success |  -  |
-|**401** | Access token is missing or invalid. |  -  |
-
-[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
-# **dataDocStatsWorldRecordsGet**
-> IracingServiceMethodDocs dataDocStatsWorldRecordsGet()
-
-
-### Example
-
-```typescript
-import {
-    StatsApi,
-    Configuration
-} from '@iracing-data/api-client';
-
-const configuration = new Configuration();
-const apiInstance = new StatsApi(configuration);
-
-const { status, data } = await apiInstance.dataDocStatsWorldRecordsGet();
-```
-
-### Parameters
-This endpoint does not have any parameters.
-
-
-### Return type
-
-**IracingServiceMethodDocs**
 
 ### Authorization
 
@@ -750,6 +134,50 @@ const { status, data } = await apiInstance.getStatsMemberBests(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getStatsMemberBestsDocs**
+> IracingServiceMethodDocs getStatsMemberBestsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberBestsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStatsMemberCareer**
 > IracingAPIResponse getStatsMemberCareer()
 
@@ -800,6 +228,50 @@ const { status, data } = await apiInstance.getStatsMemberCareer(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsMemberCareerDocs**
+> IracingServiceMethodDocs getStatsMemberCareerDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberCareerDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -856,6 +328,50 @@ const { status, data } = await apiInstance.getStatsMemberDivision(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsMemberDivisionDocs**
+> IracingServiceMethodDocs getStatsMemberDivisionDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberDivisionDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -918,6 +434,50 @@ const { status, data } = await apiInstance.getStatsMemberRecap(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getStatsMemberRecapDocs**
+> IracingServiceMethodDocs getStatsMemberRecapDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberRecapDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStatsMemberRecentRaces**
 > IracingAPIResponse getStatsMemberRecentRaces()
 
@@ -968,6 +528,50 @@ const { status, data } = await apiInstance.getStatsMemberRecentRaces(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsMemberRecentRacesDocs**
+> IracingServiceMethodDocs getStatsMemberRecentRacesDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberRecentRacesDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -1024,6 +628,50 @@ const { status, data } = await apiInstance.getStatsMemberSummary(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getStatsMemberSummaryDocs**
+> IracingServiceMethodDocs getStatsMemberSummaryDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberSummaryDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStatsMemberYearly**
 > IracingAPIResponse getStatsMemberYearly()
 
@@ -1074,6 +722,50 @@ const { status, data } = await apiInstance.getStatsMemberYearly(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsMemberYearlyDocs**
+> IracingServiceMethodDocs getStatsMemberYearlyDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsMemberYearlyDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -1139,6 +831,50 @@ const { status, data } = await apiInstance.getStatsSeasonDriverStandings(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getStatsSeasonDriverStandingsDocs**
+> IracingServiceMethodDocs getStatsSeasonDriverStandingsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsSeasonDriverStandingsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStatsSeasonQualifyResults**
 > IracingAPIResponse getStatsSeasonQualifyResults()
 
@@ -1198,6 +934,50 @@ const { status, data } = await apiInstance.getStatsSeasonQualifyResults(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsSeasonQualifyResultsDocs**
+> IracingServiceMethodDocs getStatsSeasonQualifyResultsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsSeasonQualifyResultsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -1263,6 +1043,138 @@ const { status, data } = await apiInstance.getStatsSeasonSupersessionStandings(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getStatsSeasonSupersessionStandingsDocs**
+> IracingServiceMethodDocs getStatsSeasonSupersessionStandingsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsSeasonSupersessionStandingsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsSeasonTTResultsDocs**
+> IracingServiceMethodDocs getStatsSeasonTTResultsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsSeasonTTResultsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsSeasonTTStandingsDocs**
+> IracingServiceMethodDocs getStatsSeasonTTStandingsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsSeasonTTStandingsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getStatsSeasonTeamStandings**
 > IracingAPIResponse getStatsSeasonTeamStandings()
 
@@ -1319,6 +1231,50 @@ const { status, data } = await apiInstance.getStatsSeasonTeamStandings(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsSeasonTeamStandingsDocs**
+> IracingServiceMethodDocs getStatsSeasonTeamStandingsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsSeasonTeamStandingsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
@@ -1505,6 +1461,50 @@ const { status, data } = await apiInstance.getStatsWorldRecords(
 |**401** | Access token is missing or invalid. |  -  |
 |**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
 |**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getStatsWorldRecordsDocs**
+> IracingServiceMethodDocs getStatsWorldRecordsDocs()
+
+
+### Example
+
+```typescript
+import {
+    StatsApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new StatsApi(configuration);
+
+const { status, data } = await apiInstance.getStatsWorldRecordsDocs();
+```
+
+### Parameters
+This endpoint does not have any parameters.
+
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  -  |
+|**401** | Access token is missing or invalid. |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

@@ -741,6 +741,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/season/spectator_subsessionids": {
         get: {
+          operationId: "getSeasonSpectatorSubsessionIdsDocs",
           tags: ["doc", "season"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -750,6 +751,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/season/spectator_subsessionids_detail": {
         get: {
+          operationId: "getSeasonSpectatorSubsessionIdsDetailDocs",
           tags: ["doc", "season"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -759,6 +761,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series": {
         get: {
+          operationId: "getSeriesDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
@@ -768,6 +771,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/assets": {
         get: {
+          operationId: "getSeriesAssetsDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -777,6 +781,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/get": {
         get: {
+          operationId: "getSeriesGetDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -786,6 +791,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/past_seasons": {
         get: {
+          operationId: "getSeriesPastSeasonsDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -795,6 +801,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/seasons": {
         get: {
+          operationId: "getSeriesSeasonsDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -804,6 +811,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/season_list": {
         get: {
+          operationId: "getSeriesSeasonListDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -813,6 +821,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/season_schedule": {
         get: {
+          operationId: "getSeriesSeasonScheduleDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -822,6 +831,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/series/stats_series": {
         get: {
+          operationId: "getSeriesStatsSeriesDocs",
           tags: ["doc", "series"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -831,6 +841,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats": {
         get: {
+          operationId: "getStatsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
@@ -840,6 +851,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_bests": {
         get: {
+          operationId: "getStatsMemberBestsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -849,6 +861,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_career": {
         get: {
+          operationId: "getStatsMemberCareerDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -858,6 +871,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_division": {
         get: {
+          operationId: "getStatsMemberDivisionDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -867,6 +881,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_recap": {
         get: {
+          operationId: "getStatsMemberRecapDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -876,6 +891,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_recent_races": {
         get: {
+          operationId: "getStatsMemberRecentRacesDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -885,6 +901,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_summary": {
         get: {
+          operationId: "getStatsMemberSummaryDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -894,6 +911,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/member_yearly": {
         get: {
+          operationId: "getStatsMemberYearlyDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -903,6 +921,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/season_driver_standings": {
         get: {
+          operationId: "getStatsSeasonDriverStandingsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -912,6 +931,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/season_supersession_standings": {
         get: {
+          operationId: "getStatsSeasonSupersessionStandingsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -921,6 +941,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/season_team_standings": {
         get: {
+          operationId: "getStatsSeasonTeamStandingsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -930,6 +951,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/season_tt_standings": {
         get: {
+          operationId: "getStatsSeasonTTStandingsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -939,6 +961,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/season_tt_results": {
         get: {
+          operationId: "getStatsSeasonTTResultsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -948,6 +971,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/season_qualify_results": {
         get: {
+          operationId: "getStatsSeasonQualifyResultsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -957,6 +981,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/stats/world_records": {
         get: {
+          operationId: "getStatsWorldRecordsDocs",
           tags: ["doc", "stats"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -996,6 +1021,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/time_attack": {
         get: {
+          operationId: "getTimeAttackDocs",
           tags: ["doc", "time_attack"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
@@ -1005,6 +1031,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/time_attack/member_season_results": {
         get: {
+          operationId: "getTimeAttackMemberSeasonResultsDocs",
           tags: ["doc", "time_attack"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -1014,6 +1041,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/track": {
         get: {
+          operationId: "getTrackDocs",
           tags: ["doc", "track"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
@@ -1023,6 +1051,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/track/assets": {
         get: {
+          operationId: "getTrackAssetsDocs",
           tags: ["doc", "track"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -1032,6 +1061,7 @@ export async function generateOpenAPISpec({
       },
       "/data/doc/track/get": {
         get: {
+          operationId: "getTrackGetDocs",
           tags: ["doc", "track"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
