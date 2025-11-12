@@ -1076,6 +1076,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getCar",
           tags: ["car"],
+          externalDocs: {
+            url: "/data/doc/car/get",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1089,6 +1092,9 @@ export async function generateOpenAPISpec({
           operationId: "getConstantsCategories",
           description: "Constant; returned directly as an array of objects",
           tags: ["constants"],
+          externalDocs: {
+            url: "/data/doc/constants/categories",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1102,6 +1108,9 @@ export async function generateOpenAPISpec({
           operationId: "getConstantsDivisions",
           description: "Constant; returned directly as an array of objects",
           tags: ["constants"],
+          externalDocs: {
+            url: "/data/doc/constants/divisions",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1115,6 +1124,9 @@ export async function generateOpenAPISpec({
           operationId: "getConstantsEventTypes",
           description: "Constant; returned directly as an array of objects",
           tags: ["constants"],
+          externalDocs: {
+            url: "/data/doc/constants/event_types",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1130,6 +1142,9 @@ export async function generateOpenAPISpec({
             path: IRacingDriverStatsByCategoryPathSchema,
           },
           tags: ["driver_stats"],
+          externalDocs: {
+            url: "/data/doc/driver_stats_by_category/{category}",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1147,6 +1162,9 @@ export async function generateOpenAPISpec({
             query: IRacingHostedCombinedSessionsParametersSchema,
           },
           tags: ["hosted"],
+          externalDocs: {
+            url: "/data/doc/hosted/combined_sessions",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1161,6 +1179,9 @@ export async function generateOpenAPISpec({
           description:
             "Sessions that can be joined as a driver. Without spectator and non-league pending sessions for the user.",
           tags: ["hosted"],
+          externalDocs: {
+            url: "/data/doc/hosted/sessions",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1175,6 +1196,9 @@ export async function generateOpenAPISpec({
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueCustomerSessionsParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/league/cust_league_sessions",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1191,6 +1215,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingLeagueDirectoryParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/league/directory",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1205,6 +1232,9 @@ export async function generateOpenAPISpec({
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueGetParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/league/get",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1221,6 +1251,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingLeagueGetPointsSystemsParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/league/get_points_systems",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1235,6 +1268,9 @@ export async function generateOpenAPISpec({
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueMembershipParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/league/membership",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1251,6 +1287,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingLeagueRosterParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/league/roster",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1265,6 +1304,9 @@ export async function generateOpenAPISpec({
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueSeasonsParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/league/seasons",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1281,6 +1323,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingLeagueSeasonStandingsParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/league/season_standings",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1296,6 +1341,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingLeagueSeasonSessionsParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/league/season_sessions",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1308,6 +1356,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getLookupCountries",
           tags: ["lookup"],
+          externalDocs: {
+            url: "/data/doc/lookup/countries",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1320,6 +1371,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getLookupFlairs",
           tags: ["lookup"],
+          externalDocs: {
+            url: "/data/doc/lookup/flairs",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1332,6 +1386,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getLookupLicenses",
           tags: ["lookup"],
+          externalDocs: {
+            url: "/data/doc/lookup/licenses",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1347,6 +1404,9 @@ export async function generateOpenAPISpec({
             query: IRacingLookupDriversParametersSchema,
           },
           tags: ["lookup"],
+          externalDocs: {
+            url: "/data/doc/lookup/drivers",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1362,6 +1422,9 @@ export async function generateOpenAPISpec({
           // query: z.record(z.string(), z.string()),
           // },
           tags: ["lookup"],
+          externalDocs: {
+            url: "/data/doc/lookup/get",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1377,6 +1440,9 @@ export async function generateOpenAPISpec({
             query: IRacingMemberAwardsParametersSchema,
           },
           tags: ["member"],
+          externalDocs: {
+            url: "/data/doc/member/awards",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1392,6 +1458,9 @@ export async function generateOpenAPISpec({
             query: IRacingMemberAwardInstancesParametersSchema,
           },
           tags: ["member"],
+          externalDocs: {
+            url: "/data/doc/member/award_instances",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1406,6 +1475,9 @@ export async function generateOpenAPISpec({
           tags: ["member"],
           requestParams: {
             query: IRacingMemberChartDataParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/member/chart_data",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1437,6 +1509,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getMemberInfo",
           tags: ["member"],
+          externalDocs: {
+            url: "/data/doc/member/info",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1449,6 +1524,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getMemberParticipationCredits",
           tags: ["member"],
+          externalDocs: {
+            url: "/data/doc/member/participation_credits",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1465,6 +1543,9 @@ export async function generateOpenAPISpec({
             query: IRacingMemberProfileParametersSchema,
           },
           tags: ["member"],
+          externalDocs: {
+            url: "/data/doc/member/profile",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1479,6 +1560,9 @@ export async function generateOpenAPISpec({
           tags: ["results"],
           requestParams: {
             query: IRacingResultsGetParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/results/get",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1495,6 +1579,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingResultsEventLogParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/results/event_log",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1509,6 +1596,9 @@ export async function generateOpenAPISpec({
           tags: ["results"],
           requestParams: {
             query: IRacingResultsLapChartDataParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/results/lap_chart_data",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1525,6 +1615,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingResultsLapDataParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/results/lap_data",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1539,6 +1632,9 @@ export async function generateOpenAPISpec({
           tags: ["results"],
           requestParams: {
             query: IRacingResultsSearchHostedParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/results/search_hosted",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1555,6 +1651,9 @@ export async function generateOpenAPISpec({
           requestParams: {
             query: IRacingResultsSearchSeriesParametersSchema,
           },
+          externalDocs: {
+            url: "/data/doc/results/search_series",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1569,6 +1668,9 @@ export async function generateOpenAPISpec({
           tags: ["results"],
           requestParams: {
             query: IRacingResultsSeasonResultsParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/results/season_results",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1585,6 +1687,9 @@ export async function generateOpenAPISpec({
             query: IRacingSeasonListParametersSchema,
           },
           tags: ["season"],
+          externalDocs: {
+            url: "/data/doc/season/list",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1600,6 +1705,9 @@ export async function generateOpenAPISpec({
             query: IRacingSeasonRaceGuideParametersSchema,
           },
           tags: ["season"],
+          externalDocs: {
+            url: "/data/doc/season/race_guide",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1612,6 +1720,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeriesAssets",
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/assets",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1624,6 +1735,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeries",
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/get",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1639,6 +1753,9 @@ export async function generateOpenAPISpec({
             query: IRacingSeriesPastSeasonsParametersSchema,
           },
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/past_seasons",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1654,6 +1771,9 @@ export async function generateOpenAPISpec({
             query: IRacingSeriesSeasonsParametersSchema,
           },
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/seasons",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1669,6 +1789,9 @@ export async function generateOpenAPISpec({
             query: IRacingSeriesSeasonListParametersSchema,
           },
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/season_list",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1684,6 +1807,9 @@ export async function generateOpenAPISpec({
             query: IRacingSeriesSeasonScheduleParametersSchema,
           },
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/season_schedule",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1696,6 +1822,9 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeriesStatsSeries",
           tags: ["series"],
+          externalDocs: {
+            url: "/data/doc/series/stats_series",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1711,6 +1840,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberBestsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_bests",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1726,6 +1858,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberCareerParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_career",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1741,6 +1876,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberDivisionParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_division",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1756,6 +1894,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberRecapParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_recap",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1771,6 +1912,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberRecentRacesParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_recent_races",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1786,6 +1930,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberSummaryParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_summary",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1801,6 +1948,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsMemberYearlyParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/member_yearly",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1816,6 +1966,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsSeasonDriverStandingsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/season_driver_standings",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1831,6 +1984,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsSeasonSupersessionStandingsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/season_supersession_standings",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1846,6 +2002,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsSeasonTeamStandingsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/season_team_standings",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1861,6 +2020,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsSeasonTTStandingsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/season_time_trial_standings",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1876,6 +2038,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsSeasonTTResultsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/season_time_trial_results",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
@@ -1891,6 +2056,9 @@ export async function generateOpenAPISpec({
             query: IRacingStatsSeasonQualifyResultsParametersSchema,
           },
           tags: ["stats"],
+          externalDocs: {
+            url: "/data/doc/stats/season_qualify_results",
+          },
           responses: {
             200: { $ref: "#/components/responses/Success" },
             429: { $ref: "#/components/responses/RateLimited" },
