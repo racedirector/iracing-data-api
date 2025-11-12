@@ -13,6 +13,9 @@ import { toNodeHandler } from "better-call/node";
 
 const iracingRouter = createRouter({
   basePath: "/iracing",
+  openapi: {
+    path: "/reference",
+  },
 });
 
 const app = express();
