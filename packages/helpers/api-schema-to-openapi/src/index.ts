@@ -15,7 +15,6 @@ import {
   IRacingLeagueSeasonsParametersSchema,
   IRacingLeagueSeasonStandingsParametersSchema,
   IRacingLookupDriversParametersSchema,
-  IRacingMaintenanceResponseSchema,
   IRacingMemberAwardInstancesParametersSchema,
   IRacingMemberAwardsParametersSchema,
   IRacingMemberChartDataParametersSchema,
@@ -38,6 +37,9 @@ import {
   IRacingSeriesSeasonListParametersSchema,
   IRacingSeriesSeasonScheduleParametersSchema,
   IRacingSeriesSeasonsParametersSchema,
+  IRacingServiceDocsResponseSchema,
+  IRacingServiceMethodDocsResponseSchema,
+  IRacingServicesDocsResponseSchema,
   IRacingStatsMemberBestsParametersSchema,
   IRacingStatsMemberCareerParametersSchema,
   IRacingStatsMemberDivisionParametersSchema,
@@ -101,6 +103,26 @@ export async function generateOpenAPISpec({
             },
           },
         },
+        Docs: {
+          description: "Success",
+          content: {
+            "application/json": { schema: IRacingServicesDocsResponseSchema },
+          },
+        },
+        ServiceDocs: {
+          description: "Success",
+          content: {
+            "application/json": { schema: IRacingServiceDocsResponseSchema },
+          },
+        },
+        ServiceMethodDocs: {
+          description: "Success",
+          content: {
+            "application/json": {
+              schema: IRacingServiceMethodDocsResponseSchema,
+            },
+          },
+        },
         RateLimited: {
           description: "Rate limited",
           headers: IRacingRateLimitHeadersSchema,
@@ -114,7 +136,7 @@ export async function generateOpenAPISpec({
           description: "Maintenance",
           content: {
             "application/json": {
-              schema: IRacingMaintenanceResponseSchema,
+              schema: IRacingErrorResponseSchema,
             },
           },
         },
@@ -216,645 +238,753 @@ export async function generateOpenAPISpec({
     paths: {
       "/data/doc": {
         get: {
+          operationId: "getDocs",
           tags: ["doc"],
           responses: {
+            200: { $ref: "#/components/responses/Docs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/carclass": {
         get: {
+          operationId: "getCarClassDocs",
           tags: ["doc", "carclass"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/carclass/get": {
         get: {
-          tags: ["doc"],
+          operationId: "getCarClassGetDocs",
+          tags: ["doc", "carclass"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/car": {
         get: {
-          tags: ["doc"],
+          operationId: "getCarDocs",
+          tags: ["doc", "car"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/car/assets": {
         get: {
-          tags: ["doc"],
+          operationId: "getCarAssetsDocs",
+          tags: ["doc", "car"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/car/get": {
         get: {
-          tags: ["doc"],
+          operationId: "getCarGetDocs",
+          tags: ["doc", "car"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/constants": {
         get: {
-          tags: ["doc"],
+          operationId: "getConstantsDocs",
+          tags: ["doc", "constants"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/constants/categories": {
         get: {
-          tags: ["doc"],
+          operationId: "getConstantsCategoriesDocs",
+          tags: ["doc", "constants"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/constants/divisions": {
         get: {
-          tags: ["doc"],
+          operationId: "getConstantsDivisionsDocs",
+          tags: ["doc", "constants"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/constants/event_types": {
         get: {
-          tags: ["doc"],
+          operationId: "getConstantsEventTypesDocs",
+          tags: ["doc", "constants"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category": {
         get: {
-          tags: ["doc"],
+          operationId: "getDriverStatsByCategoryDocs",
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
+            401: { $ref: "#/components/responses/Unauthorized" },
+          },
+        },
+      },
+      "/data/doc/driver_stats_by_category/{category}": {
+        get: {
+          operationId: "getDriverStatsByCategoryCategoryDocs",
+          tags: ["doc", "driver_stats"],
+          requestParams: {
+            path: IRacingDriverStatsByCategoryPathSchema,
+          },
+          responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category/oval": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category/sports_car": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category/formula_car": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category/road": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category/dirt_oval": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/driver_stats_by_category/dirt_road": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "driver_stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/hosted": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "hosted"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/hosted/combined_sessions": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "hosted"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/hosted/sessions": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "hosted"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/cust_league_sessions": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/directory": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/get": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/get_points_systems": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/membership": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/roster": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/seasons": {
         get: {
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/season_standings": {
         get: {
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/league/season_sessions": {
         get: {
+          tags: ["doc", "league"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/lookup": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "lookup"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/lookup/countries": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "lookup"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/lookup/drivers": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "lookup"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/lookup/flairs": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "lookup"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/lookup/get": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "lookup"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/lookup/licenses": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "lookup"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/awards": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/award_instances": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/chart_data": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/get": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/info": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/participation_credits": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/member/profile": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "member"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/get": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/event_log": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/lap_chart_data": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/lap_data": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/search_hosted": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/search_series": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/results/season_results": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "results"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/season": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "season"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/season/list": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "season"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/season/race_guide": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "season"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/season/spectator_subsessionids": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "season"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/season/spectator_subsessionids_detail": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "season"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/assets": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/get": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/past_seasons": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/seasons": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/season_list": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/season_schedule": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/series/stats_series": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "series"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_bests": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_career": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_division": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_recap": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_recent_races": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_summary": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/member_yearly": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/season_driver_standings": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/season_supersession_standings": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/season_team_standings": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/season_tt_standings": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/season_tt_results": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/season_qualify_results": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/stats/world_records": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "stats"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
       "/data/doc/team": {
         get: {
-          tags: ["doc"],
+          tags: ["doc", "team"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -863,6 +993,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "team"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -871,6 +1002,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "team"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -879,6 +1011,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "time_attack"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -887,6 +1020,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "time_attack"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -895,6 +1029,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "track"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -903,6 +1038,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "track"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -911,6 +1047,7 @@ export async function generateOpenAPISpec({
         get: {
           tags: ["doc", "track"],
           responses: {
+            200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
@@ -930,6 +1067,7 @@ export async function generateOpenAPISpec({
       },
       "/data/car/assets": {
         get: {
+          operationId: "getCarAssets",
           description:
             "image paths are relative to https://images-static.iracing.com/",
           tags: ["car"],
@@ -943,6 +1081,7 @@ export async function generateOpenAPISpec({
       },
       "/data/car/get": {
         get: {
+          operationId: "getCar",
           tags: ["car"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -954,6 +1093,7 @@ export async function generateOpenAPISpec({
       },
       "/data/constants/categories": {
         get: {
+          operationId: "getConstantsCategories",
           description: "Constant; returned directly as an array of objects",
           tags: ["constants"],
           responses: {
@@ -966,6 +1106,7 @@ export async function generateOpenAPISpec({
       },
       "/data/constants/divisions": {
         get: {
+          operationId: "getConstantsDivisions",
           description: "Constant; returned directly as an array of objects",
           tags: ["constants"],
           responses: {
@@ -978,6 +1119,7 @@ export async function generateOpenAPISpec({
       },
       "/data/constants/event_types": {
         get: {
+          operationId: "getConstantsEventTypes",
           description: "Constant; returned directly as an array of objects",
           tags: ["constants"],
           responses: {
@@ -990,6 +1132,7 @@ export async function generateOpenAPISpec({
       },
       "/data/driver_stats_by_category/{category}": {
         get: {
+          operationId: "getDriverStatsByCategory",
           requestParams: {
             path: IRacingDriverStatsByCategoryPathSchema,
           },
@@ -1004,6 +1147,7 @@ export async function generateOpenAPISpec({
       },
       "/data/hosted/combined_sessions": {
         get: {
+          operationId: "getHostedCombinedSessions",
           description:
             "Sessions that can be joined as a driver or spectator, and also includes non-league pending sessions for the user.",
           requestParams: {
@@ -1020,6 +1164,7 @@ export async function generateOpenAPISpec({
       },
       "/data/hosted/sessions": {
         get: {
+          operationId: "getHostedSessions",
           description:
             "Sessions that can be joined as a driver. Without spectator and non-league pending sessions for the user.",
           tags: ["hosted"],
@@ -1033,6 +1178,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/cust_league_sessions": {
         get: {
+          operationId: "getLeagueCustomerLeagueSessions",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueCustomerSessionsParametersSchema,
@@ -1047,6 +1193,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/directory": {
         get: {
+          operationId: "getLeagueDirectory",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueDirectoryParametersSchema,
@@ -1061,6 +1208,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/get": {
         get: {
+          operationId: "getLeague",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueGetParametersSchema,
@@ -1075,6 +1223,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/get_points_systems": {
         get: {
+          operationId: "getLeaguePointsSystems",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueGetPointsSystemsParametersSchema,
@@ -1089,6 +1238,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/membership": {
         get: {
+          operationId: "getLeagueMembership",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueMembershipParametersSchema,
@@ -1103,6 +1253,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/roster": {
         get: {
+          operationId: "getLeagueRoster",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueRosterParametersSchema,
@@ -1117,6 +1268,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/seasons": {
         get: {
+          operationId: "getLeagueSeasons",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueSeasonsParametersSchema,
@@ -1131,6 +1283,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/season_standings": {
         get: {
+          operationId: "getLeagueSeasonStandings",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueSeasonStandingsParametersSchema,
@@ -1145,6 +1298,7 @@ export async function generateOpenAPISpec({
       },
       "/data/league/season_sessions": {
         get: {
+          operationId: "getLeagueSeasonSessions",
           tags: ["league"],
           requestParams: {
             query: IRacingLeagueSeasonSessionsParametersSchema,
@@ -1159,6 +1313,7 @@ export async function generateOpenAPISpec({
       },
       "/data/lookup/countries": {
         get: {
+          operationId: "getLookupCountries",
           tags: ["lookup"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1170,6 +1325,7 @@ export async function generateOpenAPISpec({
       },
       "/data/lookup/flairs": {
         get: {
+          operationId: "getLookupFlairs",
           tags: ["lookup"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1181,6 +1337,7 @@ export async function generateOpenAPISpec({
       },
       "/data/lookup/licenses": {
         get: {
+          operationId: "getLookupLicenses",
           tags: ["lookup"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1192,6 +1349,7 @@ export async function generateOpenAPISpec({
       },
       "/data/lookup/drivers": {
         get: {
+          operationId: "getLookupDrivers",
           requestParams: {
             query: IRacingLookupDriversParametersSchema,
           },
@@ -1206,6 +1364,7 @@ export async function generateOpenAPISpec({
       },
       "/data/lookup/get": {
         get: {
+          operationId: "getLookup",
           // requestParams: {
           // query: z.record(z.string(), z.string()),
           // },
@@ -1220,6 +1379,7 @@ export async function generateOpenAPISpec({
       },
       "/data/member/awards": {
         get: {
+          operationId: "getMemberAwards",
           requestParams: {
             query: IRacingMemberAwardsParametersSchema,
           },
@@ -1234,6 +1394,7 @@ export async function generateOpenAPISpec({
       },
       "/data/member/award_instances": {
         get: {
+          operationId: "getMemberAwardInstances",
           requestParams: {
             query: IRacingMemberAwardInstancesParametersSchema,
           },
@@ -1248,6 +1409,7 @@ export async function generateOpenAPISpec({
       },
       "/data/member/chart_data": {
         get: {
+          operationId: "getMemberChartData",
           tags: ["member"],
           requestParams: {
             query: IRacingMemberChartDataParametersSchema,
@@ -1262,7 +1424,11 @@ export async function generateOpenAPISpec({
       },
       "/data/member/get": {
         get: {
+          operationId: "getMember",
           tags: ["member"],
+          externalDocs: {
+            url: "/data/doc/member/get",
+          },
           requestParams: {
             query: IRacingMemberGetParametersSchema,
           },
@@ -1276,6 +1442,7 @@ export async function generateOpenAPISpec({
       },
       "/data/member/info": {
         get: {
+          operationId: "getMemberInfo",
           tags: ["member"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1287,6 +1454,7 @@ export async function generateOpenAPISpec({
       },
       "/data/member/participation_credits": {
         get: {
+          operationId: "getMemberParticipationCredits",
           tags: ["member"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1298,7 +1466,7 @@ export async function generateOpenAPISpec({
       },
       "/data/member/profile": {
         get: {
-          operationId: "getProfile",
+          operationId: "getMemberProfile",
           summary: "Gets a requested user's profile.",
           requestParams: {
             query: IRacingMemberProfileParametersSchema,
@@ -1314,6 +1482,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/get": {
         get: {
+          operationId: "getResults",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsGetParametersSchema,
@@ -1328,6 +1497,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/event_log": {
         get: {
+          operationId: "getResultsEventLog",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsEventLogParametersSchema,
@@ -1342,6 +1512,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/lap_chart_data": {
         get: {
+          operationId: "getResultsLapChartData",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsLapChartDataParametersSchema,
@@ -1356,6 +1527,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/lap_data": {
         get: {
+          operationId: "getResultsLapData",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsLapDataParametersSchema,
@@ -1370,6 +1542,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/search_hosted": {
         get: {
+          operationId: "getResultsSearchHosted",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsSearchHostedParametersSchema,
@@ -1384,6 +1557,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/search_series": {
         get: {
+          operationId: "getResultsSearchSeries",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsSearchSeriesParametersSchema,
@@ -1398,6 +1572,7 @@ export async function generateOpenAPISpec({
       },
       "/data/results/season_results": {
         get: {
+          operationId: "getResultsSeasonResults",
           tags: ["results"],
           requestParams: {
             query: IRacingResultsSeasonResultsParametersSchema,
@@ -1412,6 +1587,7 @@ export async function generateOpenAPISpec({
       },
       "/data/season/list": {
         get: {
+          operationId: "getSeasonList",
           requestParams: {
             query: IRacingSeasonListParametersSchema,
           },
@@ -1426,6 +1602,7 @@ export async function generateOpenAPISpec({
       },
       "/data/season/race_guide": {
         get: {
+          operationId: "getSeasonRaceGuide",
           requestParams: {
             query: IRacingSeasonRaceGuideParametersSchema,
           },
@@ -1440,6 +1617,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/assets": {
         get: {
+          operationId: "getSeriesAssets",
           tags: ["series"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1451,6 +1629,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/get": {
         get: {
+          operationId: "getSeries",
           tags: ["series"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1462,6 +1641,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/past_seasons": {
         get: {
+          operationId: "getSeriesPastSeasons",
           requestParams: {
             query: IRacingSeriesPastSeasonsParametersSchema,
           },
@@ -1476,6 +1656,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/seasons": {
         get: {
+          operationId: "getSeriesSeasons",
           requestParams: {
             query: IRacingSeriesSeasonsParametersSchema,
           },
@@ -1490,6 +1671,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/season_list": {
         get: {
+          operationId: "getSeriesSeasonList",
           requestParams: {
             query: IRacingSeriesSeasonListParametersSchema,
           },
@@ -1504,6 +1686,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/season_schedule": {
         get: {
+          operationId: "getSeriesSeasonSchedule",
           requestParams: {
             query: IRacingSeriesSeasonScheduleParametersSchema,
           },
@@ -1518,6 +1701,7 @@ export async function generateOpenAPISpec({
       },
       "/data/series/stats_series": {
         get: {
+          operationId: "getSeriesStatsSeries",
           tags: ["series"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1529,6 +1713,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_bests": {
         get: {
+          operationId: "getStatsMemberBests",
           requestParams: {
             query: IRacingStatsMemberBestsParametersSchema,
           },
@@ -1543,6 +1728,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_career": {
         get: {
+          operationId: "getStatsMemberCareer",
           requestParams: {
             query: IRacingStatsMemberCareerParametersSchema,
           },
@@ -1557,6 +1743,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_division": {
         get: {
+          operationId: "getStatsMemberDivision",
           requestParams: {
             query: IRacingStatsMemberDivisionParametersSchema,
           },
@@ -1571,6 +1758,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_recap": {
         get: {
+          operationId: "getStatsMemberRecap",
           requestParams: {
             query: IRacingStatsMemberRecapParametersSchema,
           },
@@ -1585,6 +1773,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_recent_races": {
         get: {
+          operationId: "getStatsMemberRecentRaces",
           requestParams: {
             query: IRacingStatsMemberRecentRacesParametersSchema,
           },
@@ -1599,6 +1788,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_summary": {
         get: {
+          operationId: "getStatsMemberSummary",
           requestParams: {
             query: IRacingStatsMemberSummaryParametersSchema,
           },
@@ -1613,6 +1803,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/member_yearly": {
         get: {
+          operationId: "getStatsMemberYearly",
           requestParams: {
             query: IRacingStatsMemberYearlyParametersSchema,
           },
@@ -1627,6 +1818,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/season_driver_standings": {
         get: {
+          operationId: "getStatsSeasonDriverStandings",
           requestParams: {
             query: IRacingStatsSeasonDriverStandingsParametersSchema,
           },
@@ -1641,6 +1833,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/season_supersession_standings": {
         get: {
+          operationId: "getStatsSeasonSupersessionStandings",
           requestParams: {
             query: IRacingStatsSeasonSupersessionStandingsParametersSchema,
           },
@@ -1655,6 +1848,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/season_team_standings": {
         get: {
+          operationId: "getStatsSeasonTeamStandings",
           requestParams: {
             query: IRacingStatsSeasonTeamStandingsParametersSchema,
           },
@@ -1669,6 +1863,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/season_time_trial_standings": {
         get: {
+          operationId: "getStatsSeasonTimeTrialStandings",
           requestParams: {
             query: IRacingStatsSeasonTTStandingsParametersSchema,
           },
@@ -1683,6 +1878,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/season_time_trial_results": {
         get: {
+          operationId: "getStatsSeasonTimeTrialResults",
           requestParams: {
             query: IRacingStatsSeasonTTResultsParametersSchema,
           },
@@ -1697,6 +1893,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/season_qualify_results": {
         get: {
+          operationId: "getStatsSeasonQualifyResults",
           requestParams: {
             query: IRacingStatsSeasonQualifyResultsParametersSchema,
           },
@@ -1711,6 +1908,7 @@ export async function generateOpenAPISpec({
       },
       "/data/stats/world_records": {
         get: {
+          operationId: "getStatsWorldRecords",
           requestParams: {
             query: IRacingStatsWorldRecordsParametersSchema,
           },
@@ -1725,6 +1923,7 @@ export async function generateOpenAPISpec({
       },
       "/data/team/get": {
         get: {
+          operationId: "getTeam",
           requestParams: {
             query: IRacingTeamGetParametersSchema,
           },
@@ -1739,6 +1938,7 @@ export async function generateOpenAPISpec({
       },
       "/data/team/membership": {
         get: {
+          operationId: "getTeamMembership",
           tags: ["team"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1750,6 +1950,7 @@ export async function generateOpenAPISpec({
       },
       "/data/time_attack/member_season_results": {
         get: {
+          operationId: "getTimeAttackMemberSeasonResults",
           requestParams: {
             query: IRacingTimeAttackMemberSeasonResultsParametersSchema,
           },
@@ -1764,6 +1965,7 @@ export async function generateOpenAPISpec({
       },
       "/data/track/assets": {
         get: {
+          operationId: "getTrackAssets",
           tags: ["track"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1775,6 +1977,7 @@ export async function generateOpenAPISpec({
       },
       "/data/track/get": {
         get: {
+          operationId: "getTrack",
           tags: ["track"],
           responses: {
             200: { $ref: "#/components/responses/Success" },
