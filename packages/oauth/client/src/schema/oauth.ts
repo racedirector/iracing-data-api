@@ -108,6 +108,6 @@ export type IRacingOAuthCallbackInput = z.infer<
   typeof IRacingOAuthCallbackSchema
 >;
 
-export type IRacingOAuthCallbackResponse = z.infer<
+export type IRacingOAuthTokenResponse = z.infer<
   typeof IRacingOAuthTokenResponseSchema
 >;

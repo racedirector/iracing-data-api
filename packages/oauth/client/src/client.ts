@@ -4,6 +4,7 @@ import {
   IRacingOAuthClientMetadata,
   IRacingOAuthClientMetadataInput,
   IRacingOAuthClientMetadataSchema,
+  IRacingOAuthTokenResponse,
   IRacingOAuthTokenResponseSchema,
   StateStore,
 } from "./schema";
@@ -29,12 +30,13 @@ export class OAuthClient {
     this.stateStore = stateStore;
   }
 
-  async authorize({ signal }: { signal?: AbortSignal } = {}) {
+  /**
+   * Generates an Authorization URL for kicking off the OAuth flow.
+   * @returns The URL, verifier, and state parameter.
+   */
+  async authorize() {
     const verifier = oauth.generateRandomCodeVerifier();
     const challenge = await oauth.calculatePKCECodeChallenge(verifier);
-
-    signal?.throwIfAborted();
-
     const state = oauth.generateRandomState();
 
     await this.stateStore.set(state, {
@@ -42,8 +44,6 @@ export class OAuthClient {
       iss: this.clientMetadata.issuer!,
       appState: state,
     });
-
-    signal?.throwIfAborted();
 
     const authorizationUrl = new URL(this.clientMetadata.authorizationUrl);
 
@@ -71,6 +71,12 @@ export class OAuthClient {
     return { url: authorizationUrl, verifier, state };
   }
 
+  /**
+   * Given the parameters from the authorization server,
+   * fetches the token.
+   * @param params The query parameters from the authorization server.
+   * @returns The auth token.
+   */
   async callback(params: URLSearchParams) {
     const stateParam = params.get("state");
     const codeParam = params.get("code");
@@ -148,6 +154,32 @@ export class OAuthClient {
       authorizationServer,
       client,
       normalizedResponse
+    );
+
+    return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+  }
+
+  async refresh(token: string) {
+    const authorizationServer: oauth.AuthorizationServer = {
+      issuer: this.clientMetadata.issuer,
+      token_endpoint: this.clientMetadata.tokenUrl,
+    };
+
+    const client: oauth.Client = {
+      client_id: this.clientMetadata.clientId,
+    };
+
+    const response = await oauth.refreshTokenGrantRequest(
+      authorizationServer,
+      client,
+      oauth.None(),
+      token
+    );
+
+    const result = await oauth.processRefreshTokenResponse(
+      authorizationServer,
+      client,
+      response
     );
 
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
