@@ -76,6 +76,21 @@ export const IRacingGetCarResponseSchema = z.array(
   })
 );
 
+export const IRacingGetTrackAssetsResponseSchema = z.record(
+  z.number(),
+  z.object({
+    track_id: z.number(),
+    track_map: z.string(),
+    track_map_layers: z.record(z.string(), z.string()),
+  })
+);
+
+export const IRacingGetTrackResponseSchema = z.array(
+  z.object({
+    track_id: z.number(),
+  })
+);
+
 /**
  * Types
  */
@@ -100,3 +115,9 @@ export type IRacingGetCarAssetsResponse = z.infer<
   typeof IRacingGetCarAssetsResponseSchema
 >;
 export type IRacingGetCarResponse = z.infer<typeof IRacingGetCarResponseSchema>;
+export type IRacingGetTrackAssetsResponse = z.infer<
+  typeof IRacingGetTrackAssetsResponseSchema
+>;
+export type IRacingGetTrackResponse = z.infer<
+  typeof IRacingGetTrackResponseSchema
+>;

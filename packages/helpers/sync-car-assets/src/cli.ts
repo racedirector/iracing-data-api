@@ -47,7 +47,7 @@ const program = new Command("sync-iracing-car-assets")
     const auth = new AuthApi(undefined, undefined, client);
     const { username, password } = await getIRacingCredentials();
     const hashedPassword = await hashPassword(username, password);
-    const response = await auth.postAuth({
+    await auth.postAuth({
       post_auth_request: {
         email: username,
         password: hashedPassword,

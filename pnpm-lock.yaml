@@ -507,9 +507,21 @@ importers:
 
   packages/helpers/sync-track-assets:
     dependencies:
-      '@iracing-data/api':
+      '@commander-js/extra-typings':
+        specifier: ^13.1.0
+        version: 13.1.0(commander@14.0.0)
+      '@iracing-data/api-client':
         specifier: workspace:*
-        version: link:../../api
+        version: link:../../api-client
+      '@iracing-data/api-schema':
+        specifier: workspace:*
+        version: link:../../api-schema
+      axios:
+        specifier: ^1.7.9
+        version: 1.13.2
+      axios-cookiejar-support:
+        specifier: ^6.0.4
+        version: 6.0.4(axios@1.13.2)(tough-cookie@5.1.1)
       commander:
         specifier: ^14.0.0
         version: 14.0.0
@@ -519,10 +531,9 @@ importers:
       inquirer:
         specifier: ^12.4.1
         version: 12.4.2(@types/node@24.3.1)
-    devDependencies:
-      '@commander-js/extra-typings':
-        specifier: ^13.1.0
-        version: 13.1.0(commander@14.0.0)
+      tough-cookie:
+        specifier: ^5.1.1
+        version: 5.1.1
 
   packages/iracing-telemetry-grpc-node:
     dependencies:

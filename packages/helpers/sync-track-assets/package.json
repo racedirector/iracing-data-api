@@ -9,9 +9,14 @@
     "build": "tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@iracing-data/api": "workspace:*",
+    "@commander-js/extra-typings": "^13.1.0",
+    "@iracing-data/api-client": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
+    "axios": "^1.7.9",
+    "axios-cookiejar-support": "^6.0.4",
     "commander": "^14.0.0",
-    "dotenv": "16.4.7"
+    "dotenv": "16.4.7",
+    "tough-cookie": "^5.1.1"
   },
   "peerDependencies": {
     "inquirer": "^12.4.1"

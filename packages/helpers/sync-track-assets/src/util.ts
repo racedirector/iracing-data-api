@@ -1,3 +1,4 @@
+import { IracingAPIResponse } from "@iracing-data/api-client";
 import assert from "node:assert";
 import { access, constants } from "node:fs/promises";
 
@@ -34,8 +35,8 @@ export async function getIRacingCredentials(usernameProp?: string) {
    * The provided username, or the username from the environment variable, or undefined.
    */
   const usernameOption =
-    usernameProp ?? process.env.IRACING_USERNAME
-      ? `${process.env.IRACING_USERNAME}`
+    (usernameProp ?? process.env.IRACING_USERNAME)
+      ? `${usernameProp ?? process.env.IRACING_USERNAME}`
       : undefined;
 
   /**
@@ -48,7 +49,7 @@ export async function getIRacingCredentials(usernameProp?: string) {
   const inquirer = await getInquirer();
   if (inquirer) {
     const { username = usernameOption, password = passwordOption } =
-      await inquirer.prompt([
+      await inquirer.default.prompt([
         {
           type: "input",
           name: "username",
@@ -86,4 +87,17 @@ export async function getIRacingCredentials(usernameProp?: string) {
 
     return { username: usernameOption, password: passwordOption };
   }
+}
+
+export async function fetchAPIResponseData<T extends unknown>({
+  expires,
+  link,
+}: IracingAPIResponse) {
+  const expirationDate = new Date(expires);
+  if (expirationDate.getTime() < Date.now()) {
+    throw new Error("Data is expired!");
+  }
+
+  const data = await fetch(link);
+  return (await data.json()) as T;
 }

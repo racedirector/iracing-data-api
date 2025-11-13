@@ -2,6 +2,15 @@ import { IracingAPIResponse } from "@iracing-data/api-client";
 import assert from "node:assert";
 import { access, constants } from "node:fs/promises";
 
+async function getInquirer() {
+  try {
+    const inquirerPath = require.resolve("inquirer");
+    return await import(inquirerPath);
+  } catch (_error) {
+    return null;
+  }
+}
+
 /**
  * Checks if a file exists.
  * @param path the path of the file
@@ -38,20 +47,13 @@ export async function getIRacingCredentials(usernameProp?: string) {
     : undefined;
 
   /**
-   * Return the username and password if provided via env
-   */
-  if (usernameOption && passwordOption) {
-    return { usernameOption, passwordOption };
-  }
-
-  /**
    * If inquirer is available, prompt the user for their credentials,
    * else assert the credentials are provided and return them.
    */
-  try {
-    let { default: inquirer } = require("inquirer");
+  const inquirer = await getInquirer();
+  if (inquirer) {
     const { username = usernameOption, password = passwordOption } =
-      await inquirer.prompt([
+      await inquirer.default.prompt([
         {
           type: "input",
           name: "username",
@@ -77,8 +79,7 @@ export async function getIRacingCredentials(usernameProp?: string) {
     );
 
     return { username, password };
-  } catch (error) {
-    console.error(error);
+  } else {
     assert(
       usernameOption && usernameOption.length > 0,
       "Please provide username via environment variable (IRACING_USERNAME)."
