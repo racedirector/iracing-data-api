@@ -14,20 +14,12 @@
   },
   "dependencies": {
     "@commander-js/extra-typings": "^13.1.0",
-    "@iracing-data/api": "workspace:*",
+    "@iracing-data/api-client": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
     "commander": "^14.0.0",
     "dotenv": "16.4.7"
   },
-  "peerDependencies": {
-    "inquirer": "^12.4.1"
-  },
-  "peerDependenciesMeta": {
-    "inquirer": {
-      "optional": true
-    }
-  },
   "devDependencies": {
-    "esbuild": "^0.25.9",
-    "inquirer": "^12.9.4"
+    "esbuild": "^0.25.9"
   }
 }

@@ -10,7 +10,6 @@ const program = new Command("sync-iracing-car-assets")
   .option("--skip-info", "Skip writing car info", false)
   .option("-a, --write-full-assets", "Write full car assets", false)
   .option("--skip-assets", "Skip writing car asset", false)
-  .option("-u, --username <username>", "iRacing username")
   .action(async (_, command) => {
     console.log("Downloading car assets...");
 
@@ -20,7 +19,6 @@ const program = new Command("sync-iracing-car-assets")
       writeFullInfo,
       skipInfo: skipCarInfo,
       skipAssets: skipCarAssets,
-      username,
     } = command.optsWithGlobals();
 
     await syncCarAssets({
@@ -29,7 +27,6 @@ const program = new Command("sync-iracing-car-assets")
       writeFullInfo,
       skipCarAssets,
       skipCarInfo,
-      username,
     });
 
     console.log("Done!");
