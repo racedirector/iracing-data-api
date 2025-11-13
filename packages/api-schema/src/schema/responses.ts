@@ -70,7 +70,11 @@ export const IRacingGetCarAssetsResponseSchema = z.record(
   z.unknown()
 );
 
-export const IRacingGetCarResponseSchema = z.array(z.unknown());
+export const IRacingGetCarResponseSchema = z.array(
+  z.object({
+    car_id: z.number(),
+  })
+);
 
 /**
  * Types
