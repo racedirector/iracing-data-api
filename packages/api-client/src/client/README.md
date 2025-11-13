@@ -51,6 +51,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 Class | Method | HTTP request | Description
 ------------ | ------------- | ------------- | -------------
+*AuthApi* | [**postAuth**](docs/AuthApi.md#postauth) | **POST** /auth | 
 *CarApi* | [**getCar**](docs/CarApi.md#getcar) | **GET** /data/car/get | 
 *CarApi* | [**getCarAssets**](docs/CarApi.md#getcarassets) | **GET** /data/car/assets | 
 *CarApi* | [**getCarAssetsDocs**](docs/CarApi.md#getcarassetsdocs) | **GET** /data/doc/car/assets | 
@@ -294,6 +295,7 @@ Class | Method | HTTP request | Description
  - [IracingEventType](docs/IracingEventType.md)
  - [IracingServiceMethodDocs](docs/IracingServiceMethodDocs.md)
  - [IracingServiceMethodParametersDocs](docs/IracingServiceMethodParametersDocs.md)
+ - [PostAuthRequest](docs/PostAuthRequest.md)
 
 
 <a id="documentation-for-authorization"></a>

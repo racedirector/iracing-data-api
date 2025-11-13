@@ -20,6 +20,10 @@
   ],
   "tags": [
     {
+      "name": "auth",
+      "description": "Auth endpoint."
+    },
+    {
       "name": "doc",
       "description": "A documentation endpoint."
     },
@@ -85,6 +89,38 @@
     }
   ],
   "paths": {
+    "/auth": {
+      "post": {
+        "operationId": "postAuth",
+        "tags": [
+          "auth"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?!\\.)(?!.*\\.\\.)([A-Za-z0-9_'+\\-\\.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "password": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {}
+      }
+    },
     "/data/doc": {
       "get": {
         "operationId": "getDocs",

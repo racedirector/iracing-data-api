@@ -5,6 +5,7 @@ api.ts
 base.ts
 common.ts
 configuration.ts
+docs/AuthApi.md
 docs/CarApi.md
 docs/CarclassApi.md
 docs/ConstantsApi.md
@@ -21,6 +22,7 @@ docs/IracingServiceMethodParametersDocs.md
 docs/LeagueApi.md
 docs/LookupApi.md
 docs/MemberApi.md
+docs/PostAuthRequest.md
 docs/ResultsApi.md
 docs/SeasonApi.md
 docs/SeriesApi.md

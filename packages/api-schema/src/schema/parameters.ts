@@ -11,6 +11,11 @@ import {
   IRacingDivisionSchema,
 } from "./primitives";
 
+export const IRacingAuthParametersSchema = z.object({
+  email: z.email(),
+  password: z.string(),
+});
+
 export const IRacingDriverStatsByCategoryPathSchema = z.object({
   category: IRacingCategorySchema,
 });

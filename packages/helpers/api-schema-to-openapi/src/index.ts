@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import {
   IRacingAPIResponseSchema,
+  IRacingAuthParametersSchema,
   IRacingDriverStatsByCategoryPathSchema,
   IRacingErrorResponseSchema,
   IRacingHostedCombinedSessionsParametersSchema,
@@ -182,6 +183,10 @@ export async function generateOpenAPISpec({
     ],
     tags: [
       {
+        name: "auth",
+        description: "Auth endpoint.",
+      },
+      {
         name: "doc",
         description: "A documentation endpoint.",
       },
@@ -238,6 +243,20 @@ export async function generateOpenAPISpec({
       { name: "track", description: "Track metadata and asset endpoints." },
     ],
     paths: {
+      "/auth": {
+        post: {
+          operationId: "postAuth",
+          tags: ["auth"],
+          requestBody: {
+            content: {
+              "application/json": {
+                schema: IRacingAuthParametersSchema,
+              },
+            },
+          },
+          responses: {},
+        },
+      },
       "/data/doc": {
         get: {
           operationId: "getDocs",
