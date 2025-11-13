@@ -222,6 +222,8 @@ Class | Method | HTTP request | Description
 *SeasonApi* | [**getSeasonListDocs**](docs/SeasonApi.md#getseasonlistdocs) | **GET** /data/doc/season/list | 
 *SeasonApi* | [**getSeasonRaceGuide**](docs/SeasonApi.md#getseasonraceguide) | **GET** /data/season/race_guide | 
 *SeasonApi* | [**getSeasonRaceGuideDocs**](docs/SeasonApi.md#getseasonraceguidedocs) | **GET** /data/doc/season/race_guide | 
+*SeasonApi* | [**getSeasonSpectatorSubsessionIds**](docs/SeasonApi.md#getseasonspectatorsubsessionids) | **GET** /data/season/spectator_subsessionids | 
+*SeasonApi* | [**getSeasonSpectatorSubsessionIdsDetail**](docs/SeasonApi.md#getseasonspectatorsubsessionidsdetail) | **GET** /data/season/spectator_subsessionids_detail | 
 *SeasonApi* | [**getSeasonSpectatorSubsessionIdsDetailDocs**](docs/SeasonApi.md#getseasonspectatorsubsessionidsdetaildocs) | **GET** /data/doc/season/spectator_subsessionids_detail | 
 *SeasonApi* | [**getSeasonSpectatorSubsessionIdsDocs**](docs/SeasonApi.md#getseasonspectatorsubsessionidsdocs) | **GET** /data/doc/season/spectator_subsessionids | 
 *SeriesApi* | [**getSeries**](docs/SeriesApi.md#getseries) | **GET** /data/series/get | 
@@ -288,7 +290,6 @@ Class | Method | HTTP request | Description
  - [ErrorResponse](docs/ErrorResponse.md)
  - [IracingAPIResponse](docs/IracingAPIResponse.md)
  - [IracingCategory](docs/IracingCategory.md)
- - [IracingChartType](docs/IracingChartType.md)
  - [IracingDivision](docs/IracingDivision.md)
  - [IracingEventType](docs/IracingEventType.md)
  - [IracingServiceMethodDocs](docs/IracingServiceMethodDocs.md)

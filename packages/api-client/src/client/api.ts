@@ -73,28 +73,6 @@ export type IracingCategory = typeof IracingCategory[keyof typeof IracingCategor
 
 
 /**
- * iRacing Chart Type
- */
-
-export const IracingChartType = {
-    /**
-    * iRating
-    */
-    NUMBER_1: 1,
-    /**
-    * Time trial rating
-    */
-    NUMBER_2: 2,
-    /**
-    * License rating
-    */
-    NUMBER_3: 3
-} as const;
-
-export type IracingChartType = typeof IracingChartType[keyof typeof IracingChartType];
-
-
-/**
  * iRacing Divisions. Divisions are 0-based: 0 is Division 1, 10 is Rookie. See /data/constants/divisons for more information.
  */
 
@@ -9252,12 +9230,12 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
     return {
         /**
          * 
-         * @param {Array<number>} cust_ids ?cust_ids&#x3D;2,3,4
+         * @param {string} cust_ids Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
          * @param {boolean} [include_licenses] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMember: async (cust_ids: Array<number>, include_licenses?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMember: async (cust_ids: string, include_licenses?: boolean, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'cust_ids' is not null or undefined
             assertParamExists('getMember', 'cust_ids', cust_ids)
             const localVarPath = `/data/member/get`;
@@ -9276,7 +9254,7 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
             // http bearer authentication required
             await setBearerAuthToObject(localVarHeaderParameter, configuration)
 
-            if (cust_ids) {
+            if (cust_ids !== undefined) {
                 localVarQueryParameter['cust_ids'] = cust_ids;
             }
 
@@ -9447,12 +9425,12 @@ export const MemberApiAxiosParamCreator = function (configuration?: Configuratio
         /**
          * 
          * @param {number} category_id 1 - Oval; 2 - Road; 3 - Dirt oval; 4 - Dirt road
-         * @param {IracingChartType} chart_type 1 - iRating; 2 - TT Rating; 3 - License/SR
+         * @param {number} chart_type 1 - iRating; 2 - TT Rating; 3 - License/SR
          * @param {number} [cust_id] Defaults to the authenticated member.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getMemberChartData: async (category_id: number, chart_type: IracingChartType, cust_id?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getMemberChartData: async (category_id: number, chart_type: number, cust_id?: number, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             // verify required parameter 'category_id' is not null or undefined
             assertParamExists('getMemberChartData', 'category_id', category_id)
             // verify required parameter 'chart_type' is not null or undefined
@@ -9810,12 +9788,12 @@ export const MemberApiFp = function(configuration?: Configuration) {
     return {
         /**
          * 
-         * @param {Array<number>} cust_ids ?cust_ids&#x3D;2,3,4
+         * @param {string} cust_ids Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
          * @param {boolean} [include_licenses] 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMember(cust_ids: Array<number>, include_licenses?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
+        async getMember(cust_ids: string, include_licenses?: boolean, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMember(cust_ids, include_licenses, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MemberApi.getMember']?.[localVarOperationServerIndex]?.url;
@@ -9871,12 +9849,12 @@ export const MemberApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @param {number} category_id 1 - Oval; 2 - Road; 3 - Dirt oval; 4 - Dirt road
-         * @param {IracingChartType} chart_type 1 - iRating; 2 - TT Rating; 3 - License/SR
+         * @param {number} chart_type 1 - iRating; 2 - TT Rating; 3 - License/SR
          * @param {number} [cust_id] Defaults to the authenticated member.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getMemberChartData(category_id: number, chart_type: IracingChartType, cust_id?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
+        async getMemberChartData(category_id: number, chart_type: number, cust_id?: number, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getMemberChartData(category_id, chart_type, cust_id, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['MemberApi.getMemberChartData']?.[localVarOperationServerIndex]?.url;
@@ -10126,9 +10104,9 @@ export const MemberApiFactory = function (configuration?: Configuration, basePat
  */
 export interface MemberApiGetMemberRequest {
     /**
-     * ?cust_ids&#x3D;2,3,4
+     * Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
      */
-    readonly cust_ids: Array<number>
+    readonly cust_ids: string
 
     readonly include_licenses?: boolean
 }
@@ -10167,7 +10145,7 @@ export interface MemberApiGetMemberChartDataRequest {
     /**
      * 1 - iRating; 2 - TT Rating; 3 - License/SR
      */
-    readonly chart_type: IracingChartType
+    readonly chart_type: number
 
     /**
      * Defaults to the authenticated member.
@@ -10713,11 +10691,11 @@ export const ResultsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {number} [league_season_id] Include only results for the league season with this ID.
          * @param {number} [car_id] One of the cars used by the session.
          * @param {number} [track_id] The ID of the track used by the session.
-         * @param {Array<number>} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+         * @param {string} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResultsSearchHosted: async (start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, host_cust_id?: number, session_name?: string, league_id?: number, league_season_id?: number, car_id?: number, track_id?: number, category_ids?: Array<number>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResultsSearchHosted: async (start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, host_cust_id?: number, session_name?: string, league_id?: number, league_season_id?: number, car_id?: number, track_id?: number, category_ids?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/data/results/search_hosted`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10790,7 +10768,7 @@ export const ResultsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['track_id'] = track_id;
             }
 
-            if (category_ids) {
+            if (category_ids !== undefined) {
                 localVarQueryParameter['category_ids'] = category_ids;
             }
 
@@ -10851,12 +10829,12 @@ export const ResultsApiAxiosParamCreator = function (configuration?: Configurati
          * @param {number} [series_id] Include only sessions for series with this ID.
          * @param {number} [race_week_num] Include only sessions with this race week number.
          * @param {boolean} [official_only] If true, include only sessions earning championship points. Defaults to all.
-         * @param {Array<number>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
-         * @param {Array<number>} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+         * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+         * @param {string} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        getResultsSearchSeries: async (season_year?: number, season_quarter?: number, start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, series_id?: number, race_week_num?: number, official_only?: boolean, event_types?: Array<number>, category_ids?: Array<number>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+        getResultsSearchSeries: async (season_year?: number, season_quarter?: number, start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, series_id?: number, race_week_num?: number, official_only?: boolean, event_types?: string, category_ids?: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/data/results/search_series`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -10925,11 +10903,11 @@ export const ResultsApiAxiosParamCreator = function (configuration?: Configurati
                 localVarQueryParameter['official_only'] = official_only;
             }
 
-            if (event_types) {
+            if (event_types !== undefined) {
                 localVarQueryParameter['event_types'] = event_types;
             }
 
-            if (category_ids) {
+            if (category_ids !== undefined) {
                 localVarQueryParameter['category_ids'] = category_ids;
             }
 
@@ -11192,11 +11170,11 @@ export const ResultsApiFp = function(configuration?: Configuration) {
          * @param {number} [league_season_id] Include only results for the league season with this ID.
          * @param {number} [car_id] One of the cars used by the session.
          * @param {number} [track_id] The ID of the track used by the session.
-         * @param {Array<number>} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+         * @param {string} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResultsSearchHosted(start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, host_cust_id?: number, session_name?: string, league_id?: number, league_season_id?: number, car_id?: number, track_id?: number, category_ids?: Array<number>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
+        async getResultsSearchHosted(start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, host_cust_id?: number, session_name?: string, league_id?: number, league_season_id?: number, car_id?: number, track_id?: number, category_ids?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResultsSearchHosted(start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, host_cust_id, session_name, league_id, league_season_id, car_id, track_id, category_ids, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ResultsApi.getResultsSearchHosted']?.[localVarOperationServerIndex]?.url;
@@ -11226,12 +11204,12 @@ export const ResultsApiFp = function(configuration?: Configuration) {
          * @param {number} [series_id] Include only sessions for series with this ID.
          * @param {number} [race_week_num] Include only sessions with this race week number.
          * @param {boolean} [official_only] If true, include only sessions earning championship points. Defaults to all.
-         * @param {Array<number>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
-         * @param {Array<number>} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+         * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+         * @param {string} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async getResultsSearchSeries(season_year?: number, season_quarter?: number, start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, series_id?: number, race_week_num?: number, official_only?: boolean, event_types?: Array<number>, category_ids?: Array<number>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
+        async getResultsSearchSeries(season_year?: number, season_quarter?: number, start_range_begin?: string, start_range_end?: string, finish_range_begin?: string, finish_range_end?: string, cust_id?: number, team_id?: number, series_id?: number, race_week_num?: number, official_only?: boolean, event_types?: string, category_ids?: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.getResultsSearchSeries(season_year, season_quarter, start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, series_id, race_week_num, official_only, event_types, category_ids, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['ResultsApi.getResultsSearchSeries']?.[localVarOperationServerIndex]?.url;
@@ -11534,7 +11512,7 @@ export interface ResultsApiGetResultsSearchHostedRequest {
     /**
      * Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
      */
-    readonly category_ids?: Array<number>
+    readonly category_ids?: string
 }
 
 /**
@@ -11599,12 +11577,12 @@ export interface ResultsApiGetResultsSearchSeriesRequest {
     /**
      * Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
      */
-    readonly event_types?: Array<number>
+    readonly event_types?: string
 
     /**
      * License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
      */
-    readonly category_ids?: Array<number>
+    readonly category_ids?: string
 }
 
 /**
@@ -11971,6 +11949,87 @@ export const SeasonApiAxiosParamCreator = function (configuration?: Configuratio
         },
         /**
          * 
+         * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSeasonSpectatorSubsessionIds: async (event_types?: Array<IracingEventType>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/data/season/spectator_subsessionids`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (event_types) {
+                localVarQueryParameter['event_types'] = event_types;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
+         * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+         * @param {Array<number>} [season_ids] Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSeasonSpectatorSubsessionIdsDetail: async (event_types?: Array<IracingEventType>, season_ids?: Array<number>, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/data/season/spectator_subsessionids_detail`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication bearerAuth required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            if (event_types) {
+                localVarQueryParameter['event_types'] = event_types;
+            }
+
+            if (season_ids) {
+                localVarQueryParameter['season_ids'] = season_ids;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -12105,6 +12164,31 @@ export const SeasonApiFp = function(configuration?: Configuration) {
         },
         /**
          * 
+         * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getSeasonSpectatorSubsessionIds(event_types?: Array<IracingEventType>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSeasonSpectatorSubsessionIds(event_types, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SeasonApi.getSeasonSpectatorSubsessionIds']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
+         * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+         * @param {Array<number>} [season_ids] Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getSeasonSpectatorSubsessionIdsDetail(event_types?: Array<IracingEventType>, season_ids?: Array<number>, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<IracingAPIResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getSeasonSpectatorSubsessionIdsDetail(event_types, season_ids, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['SeasonApi.getSeasonSpectatorSubsessionIdsDetail']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -12178,6 +12262,24 @@ export const SeasonApiFactory = function (configuration?: Configuration, basePat
         },
         /**
          * 
+         * @param {SeasonApiGetSeasonSpectatorSubsessionIdsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSeasonSpectatorSubsessionIds(requestParameters: SeasonApiGetSeasonSpectatorSubsessionIdsRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<IracingAPIResponse> {
+            return localVarFp.getSeasonSpectatorSubsessionIds(requestParameters.event_types, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
+         * @param {SeasonApiGetSeasonSpectatorSubsessionIdsDetailRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getSeasonSpectatorSubsessionIdsDetail(requestParameters: SeasonApiGetSeasonSpectatorSubsessionIdsDetailRequest = {}, options?: RawAxiosRequestConfig): AxiosPromise<IracingAPIResponse> {
+            return localVarFp.getSeasonSpectatorSubsessionIdsDetail(requestParameters.event_types, requestParameters.season_ids, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -12217,6 +12319,31 @@ export interface SeasonApiGetSeasonRaceGuideRequest {
      * Include sessions which start before \&#39;from\&#39; but end after.
      */
     readonly include_end_after_from?: boolean
+}
+
+/**
+ * Request parameters for getSeasonSpectatorSubsessionIds operation in SeasonApi.
+ */
+export interface SeasonApiGetSeasonSpectatorSubsessionIdsRequest {
+    /**
+     * Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     */
+    readonly event_types?: Array<IracingEventType>
+}
+
+/**
+ * Request parameters for getSeasonSpectatorSubsessionIdsDetail operation in SeasonApi.
+ */
+export interface SeasonApiGetSeasonSpectatorSubsessionIdsDetailRequest {
+    /**
+     * Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     */
+    readonly event_types?: Array<IracingEventType>
+
+    /**
+     * Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
+     */
+    readonly season_ids?: Array<number>
 }
 
 /**
@@ -12268,6 +12395,26 @@ export class SeasonApi extends BaseAPI {
      */
     public getSeasonRaceGuideDocs(options?: RawAxiosRequestConfig) {
         return SeasonApiFp(this.configuration).getSeasonRaceGuideDocs(options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {SeasonApiGetSeasonSpectatorSubsessionIdsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getSeasonSpectatorSubsessionIds(requestParameters: SeasonApiGetSeasonSpectatorSubsessionIdsRequest = {}, options?: RawAxiosRequestConfig) {
+        return SeasonApiFp(this.configuration).getSeasonSpectatorSubsessionIds(requestParameters.event_types, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * 
+     * @param {SeasonApiGetSeasonSpectatorSubsessionIdsDetailRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getSeasonSpectatorSubsessionIdsDetail(requestParameters: SeasonApiGetSeasonSpectatorSubsessionIdsDetailRequest = {}, options?: RawAxiosRequestConfig) {
+        return SeasonApiFp(this.configuration).getSeasonSpectatorSubsessionIdsDetail(requestParameters.event_types, requestParameters.season_ids, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

@@ -1,6 +1,8 @@
 import {
   IRacingSeasonListParametersSchema,
   IRacingSeasonRaceGuideParametersSchema,
+  IRacingSeasonSpectatorSubsessionidsParametersSchema,
+  IRacingSeasonSpectatorSubsessionidsDetailParametersSchema,
 } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
@@ -28,5 +30,28 @@ export const raceGuide = createEndpoint(
   }
 );
 
-// TODO: Spectator subsessionIds
-// TODO: Spectator subsessionIds detail
+export const spectatorSubsessionIds = createEndpoint(
+  "/data/season/spectator_subsessionids",
+  {
+    method: "GET",
+    query: IRacingSeasonSpectatorSubsessionidsParametersSchema,
+  },
+  async ({ context: { iracing }, query }) => {
+    const response =
+      await iracing.season.getSeasonSpectatorSubsessionIds(query);
+    return response.data;
+  }
+);
+
+export const spectatorSubsessionIdsDetail = createEndpoint(
+  "/data/season/spectator_subsessionids_detail",
+  {
+    method: "GET",
+    query: IRacingSeasonSpectatorSubsessionidsDetailParametersSchema,
+  },
+  async ({ context: { iracing }, query }) => {
+    const response =
+      await iracing.season.getSeasonSpectatorSubsessionIdsDetail(query);
+    return response.data;
+  }
+);

@@ -9,6 +9,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 |[**getSeasonListDocs**](#getseasonlistdocs) | **GET** /data/doc/season/list | |
 |[**getSeasonRaceGuide**](#getseasonraceguide) | **GET** /data/season/race_guide | |
 |[**getSeasonRaceGuideDocs**](#getseasonraceguidedocs) | **GET** /data/doc/season/race_guide | |
+|[**getSeasonSpectatorSubsessionIds**](#getseasonspectatorsubsessionids) | **GET** /data/season/spectator_subsessionids | |
+|[**getSeasonSpectatorSubsessionIdsDetail**](#getseasonspectatorsubsessionidsdetail) | **GET** /data/season/spectator_subsessionids_detail | |
 |[**getSeasonSpectatorSubsessionIdsDetailDocs**](#getseasonspectatorsubsessionidsdetaildocs) | **GET** /data/doc/season/spectator_subsessionids_detail | |
 |[**getSeasonSpectatorSubsessionIdsDocs**](#getseasonspectatorsubsessionidsdocs) | **GET** /data/doc/season/spectator_subsessionids | |
 
@@ -253,6 +255,115 @@ This endpoint does not have any parameters.
 |-------------|-------------|------------------|
 |**200** | Success |  -  |
 |**401** | Access token is missing or invalid. |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getSeasonSpectatorSubsessionIds**
+> IracingAPIResponse getSeasonSpectatorSubsessionIds()
+
+
+### Example
+
+```typescript
+import {
+    SeasonApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new SeasonApi(configuration);
+
+let event_types: Array<IracingEventType>; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
+
+const { status, data } = await apiInstance.getSeasonSpectatorSubsessionIds(
+    event_types
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **event_types** | **Array&lt;IracingEventType&gt;** | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined|
+
+
+### Return type
+
+**IracingAPIResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
+|**401** | Access token is missing or invalid. |  -  |
+|**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
+|**503** | Maintenance |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getSeasonSpectatorSubsessionIdsDetail**
+> IracingAPIResponse getSeasonSpectatorSubsessionIdsDetail()
+
+
+### Example
+
+```typescript
+import {
+    SeasonApi,
+    Configuration
+} from '@iracing-data/api-client';
+
+const configuration = new Configuration();
+const apiInstance = new SeasonApi(configuration);
+
+let event_types: Array<IracingEventType>; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
+let season_ids: Array<number>; //Seasons to include in the search. Defaults to all. ?season_ids=513,937 (optional) (default to undefined)
+
+const { status, data } = await apiInstance.getSeasonSpectatorSubsessionIdsDetail(
+    event_types,
+    season_ids
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **event_types** | **Array&lt;IracingEventType&gt;** | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined|
+| **season_ids** | **Array&lt;number&gt;** | Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937 | (optional) defaults to undefined|
+
+
+### Return type
+
+**IracingAPIResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Success |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
+|**401** | Access token is missing or invalid. |  -  |
+|**429** | Rate limited |  * x-ratelimit-limit -  <br>  * x-ratelimit-remaining -  <br>  * x-ratelimit-reset -  <br>  |
+|**503** | Maintenance |  -  |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

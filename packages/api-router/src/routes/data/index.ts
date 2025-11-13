@@ -7,7 +7,7 @@ export * from "./hosted";
 export * from "./league";
 export * from "./lookup";
 export * from "./member";
-// TODO: Results
+export * from "./results";
 export * from "./season";
 export * from "./series";
 export * from "./stats";

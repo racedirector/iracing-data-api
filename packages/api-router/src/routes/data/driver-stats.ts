@@ -6,10 +6,12 @@ export const category = createEndpoint(
   {
     method: "GET",
     requireHeaders: true,
-    query: IRacingDriverStatsByCategoryPathSchema,
   },
-  async ({ context: { iracing }, query }) => {
-    const response = await iracing.driverStats.getDriverStatsByCategory(query);
+  async ({ context: { iracing }, params: queryParams }) => {
+    const response = await iracing.driverStats.getDriverStatsByCategory(
+      await IRacingDriverStatsByCategoryPathSchema.parseAsync(queryParams)
+    );
+
     return response.data;
   }
 );

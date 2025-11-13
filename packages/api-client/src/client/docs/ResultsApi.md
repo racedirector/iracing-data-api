@@ -497,7 +497,7 @@ let league_id: number; //Include only results for the league with this ID. (opti
 let league_season_id: number; //Include only results for the league season with this ID. (optional) (default to undefined)
 let car_id: number; //One of the cars used by the session. (optional) (default to undefined)
 let track_id: number; //The ID of the track used by the session. (optional) (default to undefined)
-let category_ids: Array<number>; //Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
+let category_ids: string; //Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getResultsSearchHosted(
     start_range_begin,
@@ -532,7 +532,7 @@ const { status, data } = await apiInstance.getResultsSearchHosted(
 | **league_season_id** | [**number**] | Include only results for the league season with this ID. | (optional) defaults to undefined|
 | **car_id** | [**number**] | One of the cars used by the session. | (optional) defaults to undefined|
 | **track_id** | [**number**] | The ID of the track used by the session. | (optional) defaults to undefined|
-| **category_ids** | **Array&lt;number&gt;** | Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4 | (optional) defaults to undefined|
+| **category_ids** | [**string**] | Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4 | (optional) defaults to undefined|
 
 
 ### Return type
@@ -629,8 +629,8 @@ let team_id: number; //Include only sessions in which this team participated. Ta
 let series_id: number; //Include only sessions for series with this ID. (optional) (default to undefined)
 let race_week_num: number; //Include only sessions with this race week number. (optional) (default to undefined)
 let official_only: boolean; //If true, include only sessions earning championship points. Defaults to all. (optional) (default to undefined)
-let event_types: Array<number>; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
-let category_ids: Array<number>; //License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
+let event_types: string; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
+let category_ids: string; //License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getResultsSearchSeries(
     season_year,
@@ -664,8 +664,8 @@ const { status, data } = await apiInstance.getResultsSearchSeries(
 | **series_id** | [**number**] | Include only sessions for series with this ID. | (optional) defaults to undefined|
 | **race_week_num** | [**number**] | Include only sessions with this race week number. | (optional) defaults to undefined|
 | **official_only** | [**boolean**] | If true, include only sessions earning championship points. Defaults to all. | (optional) defaults to undefined|
-| **event_types** | **Array&lt;number&gt;** | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined|
-| **category_ids** | **Array&lt;number&gt;** | License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4 | (optional) defaults to undefined|
+| **event_types** | [**string**] | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined|
+| **category_ids** | [**string**] | License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4 | (optional) defaults to undefined|
 
 
 ### Return type

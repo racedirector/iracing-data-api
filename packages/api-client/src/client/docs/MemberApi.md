@@ -35,7 +35,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new MemberApi(configuration);
 
-let cust_ids: Array<number>; //?cust_ids=2,3,4 (default to undefined)
+let cust_ids: string; //Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4 (default to undefined)
 let include_licenses: boolean; // (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getMember(
@@ -48,7 +48,7 @@ const { status, data } = await apiInstance.getMember(
 
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
-| **cust_ids** | **Array&lt;number&gt;** | ?cust_ids&#x3D;2,3,4 | defaults to undefined|
+| **cust_ids** | [**string**] | Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4 | defaults to undefined|
 | **include_licenses** | [**boolean**] |  | (optional) defaults to undefined|
 
 
@@ -289,7 +289,7 @@ const configuration = new Configuration();
 const apiInstance = new MemberApi(configuration);
 
 let category_id: number; //1 - Oval; 2 - Road; 3 - Dirt oval; 4 - Dirt road (default to undefined)
-let chart_type: IracingChartType; //1 - iRating; 2 - TT Rating; 3 - License/SR (default to undefined)
+let chart_type: number; //1 - iRating; 2 - TT Rating; 3 - License/SR (default to undefined)
 let cust_id: number; //Defaults to the authenticated member. (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getMemberChartData(
@@ -304,7 +304,7 @@ const { status, data } = await apiInstance.getMemberChartData(
 |Name | Type | Description  | Notes|
 |------------- | ------------- | ------------- | -------------|
 | **category_id** | [**number**] | 1 - Oval; 2 - Road; 3 - Dirt oval; 4 - Dirt road | defaults to undefined|
-| **chart_type** | **IracingChartType** | 1 - iRating; 2 - TT Rating; 3 - License/SR | defaults to undefined|
+| **chart_type** | [**number**] | 1 - iRating; 2 - TT Rating; 3 - License/SR | defaults to undefined|
 | **cust_id** | [**number**] | Defaults to the authenticated member. | (optional) defaults to undefined|
 
 

@@ -33,6 +33,8 @@ import {
   IRacingResultsSeasonResultsParametersSchema,
   IRacingSeasonListParametersSchema,
   IRacingSeasonRaceGuideParametersSchema,
+  IRacingSeasonSpectatorSubsessionidsDetailParametersSchema,
+  IRacingSeasonSpectatorSubsessionidsParametersSchema,
   IRacingSeriesPastSeasonsParametersSchema,
   IRacingSeriesSeasonListParametersSchema,
   IRacingSeriesSeasonScheduleParametersSchema,
@@ -1737,6 +1739,42 @@ export async function generateOpenAPISpec({
           tags: ["season"],
           externalDocs: {
             url: "/data/doc/season/race_guide",
+          },
+          responses: {
+            200: { $ref: "#/components/responses/Success" },
+            429: { $ref: "#/components/responses/RateLimited" },
+            401: { $ref: "#/components/responses/Unauthorized" },
+            503: { $ref: "#/components/responses/Maintenance" },
+          },
+        },
+      },
+      "/data/season/spectator_subsessionids": {
+        get: {
+          operationId: "getSeasonSpectatorSubsessionIds",
+          tags: ["season"],
+          requestParams: {
+            query: IRacingSeasonSpectatorSubsessionidsParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/season/spectator_subsessionids",
+          },
+          responses: {
+            200: { $ref: "#/components/responses/Success" },
+            429: { $ref: "#/components/responses/RateLimited" },
+            401: { $ref: "#/components/responses/Unauthorized" },
+            503: { $ref: "#/components/responses/Maintenance" },
+          },
+        },
+      },
+      "/data/season/spectator_subsessionids_detail": {
+        get: {
+          operationId: "getSeasonSpectatorSubsessionIdsDetail",
+          tags: ["season"],
+          requestParams: {
+            query: IRacingSeasonSpectatorSubsessionidsDetailParametersSchema,
+          },
+          externalDocs: {
+            url: "/data/doc/season/spectator_subsessionids_detail",
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
