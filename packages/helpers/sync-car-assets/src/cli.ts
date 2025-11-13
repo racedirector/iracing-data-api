@@ -2,6 +2,7 @@
 
 import { Command } from "@commander-js/extra-typings";
 import { syncCarAssets } from "./index.js";
+import { CarApi, Configuration } from "@iracing-data/api-client";
 
 const program = new Command("sync-iracing-car-assets")
   .description("Downloads the latest car assets.")
@@ -13,6 +14,12 @@ const program = new Command("sync-iracing-car-assets")
   .action(async (_, command) => {
     console.log("Downloading car assets...");
 
+    const configuration = new Configuration({
+      accessToken: undefined,
+    });
+
+    const api = new CarApi(configuration);
+
     const {
       outDir,
       writeFullAssets,
@@ -21,13 +28,16 @@ const program = new Command("sync-iracing-car-assets")
       skipAssets: skipCarAssets,
     } = command.optsWithGlobals();
 
-    await syncCarAssets({
-      outputDir: outDir,
-      writeFullAssets,
-      writeFullInfo,
-      skipCarAssets,
-      skipCarInfo,
-    });
+    await syncCarAssets(
+      {
+        outputDir: outDir,
+        writeFullAssets,
+        writeFullInfo,
+        skipCarAssets,
+        skipCarInfo,
+      },
+      api
+    );
 
     console.log("Done!");
   });
