@@ -11,11 +11,33 @@ import {
   setIRacingSessionHeader,
 } from "./middleware";
 import { toNodeHandler } from "better-call/node";
+import { toResponse } from "better-call";
+import { IracingAPIResponse } from "../../../packages/api-client/dist";
 
 const iracingRouter = createRouter({
   basePath: "/iracing",
   openapi: {
     path: "/reference",
+  },
+  /**
+   * By default, the iRacing API responds with links that
+   * contain the data. Here, we parse the link, fetch the data,
+   * and return it directly.
+   */
+  onResponse: async (response) => {
+    // TODO: Cache the data until the expiration date.
+    const json = await response.json();
+    const { link, expires } = json as IracingAPIResponse;
+
+    const expirationDate = new Date(expires);
+    if (expirationDate.getTime() < Date.now()) {
+      throw new Error("Data is expired!");
+    }
+
+    const data = await fetch(link);
+    const result = await data.json();
+
+    return toResponse(result);
   },
 });
 
@@ -58,6 +80,7 @@ app.get("/iracing/login", async (req, res) => {
 app.get("/oauth/iracing/callback", async (req, res) => {
   const params = new URLSearchParams(req.url.split("?")[1]);
   const session = await oauthClient.callback(params);
+
   res.cookie("iracing-session", JSON.stringify(session), {
     httpOnly: true,
   });

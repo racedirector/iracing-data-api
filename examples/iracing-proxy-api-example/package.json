@@ -1,5 +1,5 @@
 {
-  "name": "iracing-oauth-example",
+  "name": "iracing-proxy-api-example",
   "version": "0.0.1",
   "type": "module",
   "main": "dist/index.js",
@@ -8,10 +8,7 @@
     "dev": "tsx watch --tsconfig tsconfig.build.json --env-file=.env src/index.ts"
   },
   "dependencies": {
-    "@iracing-data/api": "workspace:*",
-    "@iracing-data/api-client": "workspace:*",
     "@iracing-data/api-router": "workspace:*",
-    "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "axios": "^1.7.9",
     "better-call": "^1.0.24",
