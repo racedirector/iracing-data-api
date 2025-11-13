@@ -1,8 +1,25 @@
 #!/usr/bin/env node
-
+import crypto from "node:crypto";
 import { Command } from "@commander-js/extra-typings";
+import { CarApi, AuthApi } from "@iracing-data/api-client";
+import axios from "axios";
+import { wrapper } from "axios-cookiejar-support";
+import { CookieJar } from "tough-cookie";
+import * as dotenv from "dotenv";
 import { syncCarAssets } from "./index.js";
-import { CarApi, Configuration } from "@iracing-data/api-client";
+import { getIRacingCredentials } from "./util.js";
+
+dotenv.config();
+
+/**
+ * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
+ */
+export async function hashPassword(email: string, password: string) {
+  return crypto
+    .createHash("sha256")
+    .update(password + email.toLowerCase())
+    .digest("base64");
+}
 
 const program = new Command("sync-iracing-car-assets")
   .description("Downloads the latest car assets.")
@@ -14,11 +31,28 @@ const program = new Command("sync-iracing-car-assets")
   .action(async (_, command) => {
     console.log("Downloading car assets...");
 
-    const configuration = new Configuration({
-      accessToken: undefined,
-    });
+    // Create an axios instance capable of handling cookies.
+    const client = wrapper(
+      axios.create({
+        baseURL: "https://members-ng.iracing.com/",
+        withCredentials: true,
+        jar: new CookieJar(),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      })
+    );
 
-    const api = new CarApi(configuration);
+    // Use the axios instance to authenticate
+    const auth = new AuthApi(undefined, undefined, client);
+    const { username, password } = await getIRacingCredentials();
+    const hashedPassword = await hashPassword(username, password);
+    const response = await auth.postAuth({
+      post_auth_request: {
+        email: username,
+        password: hashedPassword,
+      },
+    });
 
     const {
       outDir,
@@ -36,7 +70,7 @@ const program = new Command("sync-iracing-car-assets")
         skipCarAssets,
         skipCarInfo,
       },
-      api
+      new CarApi(undefined, undefined, client)
     );
 
     console.log("Done!");

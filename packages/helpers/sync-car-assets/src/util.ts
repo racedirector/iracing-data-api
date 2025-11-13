@@ -1,4 +1,5 @@
 import { IracingAPIResponse } from "@iracing-data/api-client";
+import assert from "node:assert";
 import { access, constants } from "node:fs/promises";
 
 /**
@@ -14,6 +15,82 @@ export const exists = async (path: string) => {
     return false;
   }
 };
+
+/**
+ * Attempts to read credentials from the environment variables. If not provided,
+ * prompts the user to enter them.
+ * @returns The parsed credentials.
+ */
+export async function getIRacingCredentials(usernameProp?: string) {
+  /**
+   * The provided username, or the username from the environment variable, or undefined.
+   */
+  const usernameOption =
+    (usernameProp ?? process.env.IRACING_USERNAME)
+      ? `${usernameProp ?? process.env.IRACING_USERNAME}`
+      : undefined;
+
+  /**
+   * The password from the envrionment variable, or undefined.
+   */
+  const passwordOption = process.env.IRACING_PASSWORD
+    ? `${process.env.IRACING_PASSWORD}`
+    : undefined;
+
+  /**
+   * Return the username and password if provided via env
+   */
+  if (usernameOption && passwordOption) {
+    return { usernameOption, passwordOption };
+  }
+
+  /**
+   * If inquirer is available, prompt the user for their credentials,
+   * else assert the credentials are provided and return them.
+   */
+  try {
+    let { default: inquirer } = require("inquirer");
+    const { username = usernameOption, password = passwordOption } =
+      await inquirer.prompt([
+        {
+          type: "input",
+          name: "username",
+          message: "Enter your username:",
+          when: () => !usernameOption,
+        },
+        {
+          type: "password",
+          name: "password",
+          message: "Enter your password:",
+          mask: "*",
+          when: () => !passwordOption,
+        },
+      ]);
+
+    assert(
+      username && username.length > 0,
+      "Could not find username via environment variable (IRACING_USERNAME), please update your env or enter when prompted."
+    );
+    assert(
+      password && password.length > 0,
+      "Could not find password via environment variable (IRACING_PASSWORD), please update your env or enter when prompted."
+    );
+
+    return { username, password };
+  } catch (error) {
+    console.error(error);
+    assert(
+      usernameOption && usernameOption.length > 0,
+      "Please provide username via environment variable (IRACING_USERNAME)."
+    );
+    assert(
+      passwordOption && passwordOption.length > 0,
+      "Please provider password via environment variable (IRACING_PASSWORD)."
+    );
+
+    return { username: usernameOption, password: passwordOption };
+  }
+}
 
 export async function fetchAPIResponseData<T extends unknown>({
   expires,
