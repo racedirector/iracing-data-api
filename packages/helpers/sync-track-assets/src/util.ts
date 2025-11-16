@@ -1,16 +1,6 @@
 import { IracingAPIResponse } from "@iracing-data/api-client";
 import assert from "node:assert";
 import { access, constants } from "node:fs/promises";
-
-async function getInquirer() {
-  try {
-    const inquirerPath = require.resolve("inquirer");
-    return await import(inquirerPath);
-  } catch (_error) {
-    return null;
-  }
-}
-
 /**
  * Checks if a file exists.
  * @param path the path of the file
@@ -46,47 +36,16 @@ export async function getIRacingCredentials(usernameProp?: string) {
     ? `${process.env.IRACING_PASSWORD}`
     : undefined;
 
-  const inquirer = await getInquirer();
-  if (inquirer) {
-    const { username = usernameOption, password = passwordOption } =
-      await inquirer.default.prompt([
-        {
-          type: "input",
-          name: "username",
-          message: "Enter your username:",
-          when: () => !usernameOption,
-        },
-        {
-          type: "password",
-          name: "password",
-          message: "Enter your password:",
-          mask: "*",
-          when: () => !passwordOption,
-        },
-      ]);
+  assert(
+    usernameOption && usernameOption.length > 0,
+    "Please provide username via environment variable (IRACING_USERNAME)."
+  );
+  assert(
+    passwordOption && passwordOption.length > 0,
+    "Please provider password via environment variable (IRACING_PASSWORD)."
+  );
 
-    assert(
-      username && username.length > 0,
-      "Could not find username via environment variable (IRACING_USERNAME), please update your env or enter when prompted."
-    );
-    assert(
-      password && password.length > 0,
-      "Could not find password via environment variable (IRACING_PASSWORD), please update your env or enter when prompted."
-    );
-
-    return { username, password };
-  } else {
-    assert(
-      usernameOption && usernameOption.length > 0,
-      "Please provide username via environment variable (IRACING_USERNAME)."
-    );
-    assert(
-      passwordOption && passwordOption.length > 0,
-      "Please provider password via environment variable (IRACING_PASSWORD)."
-    );
-
-    return { username: usernameOption, password: passwordOption };
-  }
+  return { username: usernameOption, password: passwordOption };
 }
 
 export async function fetchAPIResponseData<T extends unknown>({
