@@ -1,0 +1,12 @@
+{
+  "name": "@iracing-data/driver-swap-events",
+  "version": "0.0.1-alpha.0",
+  "description": "EventEmitter for driver swap detection from iRacing telemetry.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json"
+  },
+  "dependencies": {
+    "@iracing-data/telemetry-types": "workspace:*"
+  }
+}

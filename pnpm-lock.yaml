@@ -317,6 +317,12 @@ importers:
         specifier: ^5.9.2
         version: 5.9.2
 
+  packages/events/driver-swap-events:
+    dependencies:
+      '@iracing-data/telemetry-types':
+        specifier: workspace:*
+        version: link:../../telemetry/types
+
   packages/events/pace-flag-events:
     dependencies:
       '@iracing-data/telemetry-types':
