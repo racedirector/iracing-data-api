@@ -1,4 +1,5 @@
-import { z } from "zod/v4";
+import { z } from "zod";
+import { IRacingOAuthScopesSchema } from "@iracing-data/oauth-schema";
 
 const DEFAULT_OAUTH_URL = "https://oauth.iracing.com/oauth2";
 const DEFAULT_AUTH_URL = `${DEFAULT_OAUTH_URL}/authorize`;
@@ -25,21 +26,6 @@ export const IRacingOAuthTokenURL = z
     title: "iRacing OAuth Service Token Endpoint",
     description: "The endpoint for token exchange.",
   });
-
-// Allowed scopes. See: https://oauth.iracing.com/oauth2/book/scopes.html
-export const IRacingOAuthScopeSchema = z.enum([
-  "iracing.auth",
-  "iracing.profile",
-]);
-
-export const IRacingOAuthScopesSchema = z
-  .array(IRacingOAuthScopeSchema)
-  .min(1)
-  // Ensure uniqueness in the provided values
-  .refine(
-    (values) => new Set(values).size === values.length,
-    "Each value must be unique."
-  );
 
 export const IRacingOAuthClientMetadataSchema = z
   .object({
@@ -70,7 +56,7 @@ export const IRacingOAuthClientMetadataSchema = z
         description: `The OAuth2.0 issuer to use in discovery cases. Defaults to "${DEFAULT_OAUTH_URL}"`,
         note: "The default is acceptable in 99.9% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
       }),
-    scopes: IRacingOAuthScopesSchema.meta({
+    scopes: z.array(IRacingOAuthScopesSchema).meta({
       id: "scopes",
       title: "Scopes",
       description:
@@ -87,6 +73,18 @@ export const IRacingOAuthClientMetadataSchema = z
       title: "Client secret",
       description:
         "The client secret optionally provided by iRacing during client registration. See: https://oauth.iracing.com/oauth2/book/client_registration.html",
+    }),
+    username: z.string().optional().meta({
+      id: "username",
+      title: "Email address or username.",
+      description:
+        "The email address or other issued identifier for a user. Only used in the password limited grant.",
+    }),
+    password: z.string().optional().meta({
+      id: "password",
+      title: "User password",
+      description:
+        "The password of the user. Only used in the password limited grant.",
     }),
     redirectUri: z.url().meta({
       id: "redirectUri",
@@ -116,8 +114,6 @@ export type IRacingAuthorizationURL = z.infer<
   typeof IRacingOAuthAuthorizationURL
 >;
 export type IRacingTokenURL = z.infer<typeof IRacingOAuthTokenURL>;
-
-export type IRacingOAuthScope = z.infer<typeof IRacingOAuthScopeSchema>;
 
 export type IRacingOAuthClientMetadataInput = z.input<
   typeof IRacingOAuthClientMetadataSchema

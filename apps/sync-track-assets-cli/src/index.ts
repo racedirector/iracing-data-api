@@ -2,13 +2,11 @@
 
 import crypto from "node:crypto";
 import { Command } from "@commander-js/extra-typings";
-import { TrackApi, AuthApi } from "@iracing-data/api-client";
-import axios from "axios";
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
+import { Configuration, TrackApi } from "@iracing-data/api-client-fetch";
+import { syncTrackAssets } from "@iracing-data/sync-track-assets";
 import * as dotenv from "dotenv";
-import { getIRacingCredentials } from "./util.js";
-import { syncTrackAssets } from "./";
+import createClient from "openapi-fetch";
+import type { paths } from "./generated/openapi";
 
 dotenv.config();
 
@@ -34,28 +32,28 @@ const program = new Command("sync-iracing-track-assets")
   .action(async (_, command) => {
     console.log("Downloading track assets...");
 
-    // Create an axios instance capable of handling cookies.
-    const client = wrapper(
-      axios.create({
-        baseURL: "https://members-ng.iracing.com/",
-        withCredentials: true,
-        jar: new CookieJar(),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
+    const username = process.env.IRACING_AUTH_USERNAME!;
+    const password = process.env.IRACING_AUTH_PASSWORD!;
 
-    // Use the axios instance to authenticate
-    const auth = new AuthApi(undefined, undefined, client);
-    const { username, password } = await getIRacingCredentials();
-    const hashedPassword = await hashPassword(username, password);
-    await auth.postAuth({
-      post_auth_request: {
-        email: username,
-        password: hashedPassword,
+    /**
+     * Authorize the consumer with a password limited grant from iRacing OAuth services
+     */
+    const client = createClient<paths>({
+      baseUrl: "https://oauth.iracing.com/oauth2",
+    });
+
+    const session = await client.POST("/token", {
+      body: {
+        grant_type: "password_limited",
+        client_id: process.env.IRACING_AUTH_CLIENT!,
+        client_secret: process.env.IRACING_AUTH_SECRET!,
+        username: username,
+        password: await hashPassword(username, password),
+        scope: process.env.IRACING_AUTH_SCOPE!,
       },
     });
+
+    // TODO: Store the session somewhere?
 
     const {
       outDir,
@@ -77,7 +75,11 @@ const program = new Command("sync-iracing-track-assets")
         force,
         includeSVGs: includeSvgs,
       },
-      new TrackApi(undefined, undefined, client)
+      new TrackApi(
+        new Configuration({
+          accessToken: session.data?.access_token,
+        })
+      )
     );
 
     console.log("Done!");

@@ -1,5 +1,5 @@
 {
-  "main": "build/cli.cjs",
+  "main": "build/index.cjs",
   "output": "build/sync-car-assets.blob",
   "disableExperimentalSEAWarning": true
 }

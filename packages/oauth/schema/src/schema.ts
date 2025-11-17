@@ -10,11 +10,26 @@ export const IRacingOAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
 });
 
-export const IRacingOAuthClientSecretSchema = z.string().optional().meta({
-  description: "Required only if issued.",
+export const IRacingOAuthClientSecretSchema = z.string().meta({
+  description: "The client secret issued during registration.",
 });
 
-export const IRacingOAuthScopesSchema = z.string().optional().meta({
+export const IRacingOAuthScopeAuthSchema = z.literal("iracing.auth").meta({
+  description: "OAuth scope that grants authorization for iRacing services.",
+});
+
+export const IRacingOAuthScopeProfileSchema = z
+  .literal("iracing.profile")
+  .meta({
+    description: "OAuth scope that grants access to the iRacing profile.",
+  });
+
+export const IRacingOAuthScopesSchema = z.union([
+  IRacingOAuthScopeAuthSchema,
+  IRacingOAuthScopeProfileSchema,
+]);
+
+export const IRacingOAuthScopesStringSchema = z.string().optional().meta({
   description:
     "One or more scopes to request, if any, separated by whitespace.",
 });
@@ -36,6 +51,15 @@ export const IRacingOAuthHeadersSchema = z.object({
 });
 
 // Requests and responses
+
+export const IRacingOAuthErrorResponseSchema = z.object({
+  status: z.number(),
+  status_reason: z.string(),
+  error: z.string(),
+  error_description: z.string(),
+  error_uri: z.string(),
+  state: z.string().optional(),
+});
 
 export const IRacingOAuthAuthorizeParametersSchema = z.object({
   client_id: IRacingOAuthClientIdSchema,
@@ -62,7 +86,7 @@ export const IRacingOAuthAuthorizeParametersSchema = z.object({
     description:
       "This state value will be returned unmodified at the end of the authentication and authorization flow. It may be used to store request-specific data and in the prevention of CSRF attacks.",
   }),
-  scope: IRacingOAuthScopesSchema,
+  scope: IRacingOAuthScopesStringSchema.optional(),
   prompt: z.string().optional().meta({
     description:
       "Space-delimited, case-sensitive list of ASCII string values which influence how the authorization server interacts with the user.",
@@ -79,11 +103,11 @@ export const IRacingOAuthCllbackParametersSchema = z
       "Parameters are added to the query string of the `redirect_uri`.",
   });
 
-export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema = z.object(
-  {
+export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema = z
+  .object({
     grant_type: z.literal("authorization_code"),
     client_id: IRacingOAuthClientIdSchema,
-    client_secret: IRacingOAuthClientSecretSchema,
+    client_secret: IRacingOAuthClientSecretSchema.optional(),
     code: z
       .string()
       .meta({ description: "As returned to the redirect_uri of the client." }),
@@ -94,61 +118,76 @@ export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema = z.object(
       description:
         "The PKCE code verifier which is only required if a code_challenge was used to `/authorize``.",
     }),
-  }
-);
+  })
+  .meta({
+    id: "authorizationCodeGrant",
+  });
 
-export const IRacingOAuthTokenRefreshGrantParametersSchema = z.object({
-  grant_type: z.literal("authorization_code"),
-  client_id: IRacingOAuthClientIdSchema,
-  client_secret: IRacingOAuthClientSecretSchema,
-  refresh_token: z.string().meta({
-    description: "As returned in the `/token` response.",
-  }),
-});
+export const IRacingOAuthTokenRefreshGrantParametersSchema = z
+  .object({
+    grant_type: z.literal("refresh_token"),
+    client_id: IRacingOAuthClientIdSchema,
+    client_secret: IRacingOAuthClientSecretSchema.optional(),
+    refresh_token: z.string().meta({
+      description: "As returned in the `/token` response.",
+    }),
+  })
+  .meta({
+    id: "refreshTokenGrant",
+  });
 
-export const IRacingOAuthPasswordLimitedGrantParametersSchema = z.object({
-  grant_type: z.literal("password_limited"),
-  client_id: IRacingOAuthClientIdSchema,
-  client_secret: IRacingOAuthClientSecretSchema,
-  username: z.string().meta({
-    description: "The email address or other issued identifier for a user.",
-  }),
-  password: z.string().meta({
-    description:
-      "The password of the user. Password must be masked with the `username` before it is sent to the server.",
-  }),
-  scope: IRacingOAuthScopesSchema,
-});
+export const IRacingOAuthPasswordLimitedGrantParametersSchema = z
+  .object({
+    grant_type: z.literal("password_limited"),
+    client_id: IRacingOAuthClientIdSchema,
+    client_secret: IRacingOAuthClientSecretSchema,
+    username: z.string().meta({
+      description: "The email address or other issued identifier for a user.",
+    }),
+    password: z.string().meta({
+      description:
+        "The password of the user. Password must be masked with the `username` before it is sent to the server.",
+    }),
+    scope: IRacingOAuthScopesStringSchema.optional(),
+  })
+  .meta({
+    id: "passwordLimitedGrant",
+  });
 
-export const IRacingOAuthTokenParametersSchema = z.discriminatedUnion(
-  "grant_type",
-  [
+export const IRacingOAuthTokenParametersSchema = z
+  .discriminatedUnion("grant_type", [
     IRacingOAuthTokenAuthorizationCodeGrantParametersSchema,
     IRacingOAuthTokenRefreshGrantParametersSchema,
     IRacingOAuthPasswordLimitedGrantParametersSchema,
-  ]
-);
+  ])
+  .meta({
+    id: "tokenGrantParameters",
+  });
 
-export const IRacingOAuthTokenResponseSchema = z.object({
-  access_token: z.string().meta({
-    description:
-      "The access token may be used to authorize a connection to a resource server. The value is considered opaque and its format may change without warning at our discretion.",
-  }),
-  token_type: z.literal("bearer"),
-  expires_in: z.number().meta({
-    description:
-      "The number of seconds after which this access token will no longer be considered valid.",
-  }),
-  refresh_token: z.string().optional().meta({
-    description:
-      "The refresh token may be used in a Refresh Token Grant to obtain new access and refresh tokens. Each refresh token may only be used once. The value is considered opaque and its format may change without warning at our discretion.",
-  }),
-  refresh_token_expires_in: z.number().optional().meta({
-    description:
-      "The number of seconds after which this refresh token will no longer be considered valid. The server may not issue a refresh token, in which case this field will be omitted.",
-  }),
-  scope: z.string().trim(),
-});
+export const IRacingOAuthTokenResponseSchema = z
+  .object({
+    access_token: z.string().meta({
+      description:
+        "The access token may be used to authorize a connection to a resource server. The value is considered opaque and its format may change without warning at our discretion.",
+    }),
+    token_type: z.literal("bearer"),
+    expires_in: z.number().meta({
+      description:
+        "The number of seconds after which this access token will no longer be considered valid.",
+    }),
+    refresh_token: z.string().optional().meta({
+      description:
+        "The refresh token may be used in a Refresh Token Grant to obtain new access and refresh tokens. Each refresh token may only be used once. The value is considered opaque and its format may change without warning at our discretion.",
+    }),
+    refresh_token_expires_in: z.number().optional().meta({
+      description:
+        "The number of seconds after which this refresh token will no longer be considered valid. The server may not issue a refresh token, in which case this field will be omitted.",
+    }),
+    scope: IRacingOAuthScopesStringSchema.optional(),
+  })
+  .meta({
+    id: "tokenGrantResponse",
+  });
 
 export const IRacingOAuthSessionSchema = z.object({
   session_id: z.string().meta({
@@ -210,6 +249,17 @@ export const IRacingOAuthRevokeSessionsInputSchema = z.object({
 
 // Types
 export type IRacingOAuthClientId = z.infer<typeof IRacingOAuthClientIdSchema>;
+export type IRacingOAuthClientSecret = z.infer<
+  typeof IRacingOAuthClientSecretSchema
+>;
+export type IRacingOAuthScopeAuth = z.infer<typeof IRacingOAuthScopeAuthSchema>;
+export type IRacingOAuthScopeProfile = z.infer<
+  typeof IRacingOAuthScopeProfileSchema
+>;
+export type IRacingOAuthScopes = z.infer<typeof IRacingOAuthScopesSchema>;
+export type IRacingOAuthScopesString = z.infer<
+  typeof IRacingOAuthScopesStringSchema
+>;
 export type IRacingOAuthRequestIdHeader = z.infer<
   typeof IRacingOAuthRequestIdHeaderSchema
 >;

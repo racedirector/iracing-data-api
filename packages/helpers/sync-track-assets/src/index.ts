@@ -1,26 +1,17 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import * as dotenv from "dotenv";
-import { exists, fetchAPIResponseData, getIRacingCredentials } from "./util";
-import { TrackApi } from "@iracing-data/api-client";
+import { exists, fetchAPIResponseData } from "./util";
+import { TrackApi } from "@iracing-data/api-client-fetch";
 import {
   IRacingGetTrackAssetsResponse,
   IRacingGetTrackResponse,
 } from "@iracing-data/api-schema";
-
-dotenv.config();
 
 export interface SyncTrackAssetsOptions {
   /**
    * The directory to output the SVG files to.
    */
   outputDir: string;
-
-  /**
-   * iRacing username.
-   * @default undefined
-   */
-  username?: string;
 
   /**
    * Force download of track layers even if they already exist.
@@ -71,7 +62,6 @@ export interface SyncTrackAssetsOptions {
 export async function syncTrackAssets(
   {
     outputDir,
-    username: usernameProp,
     force = false,
     writeFullAssets = false,
     writeFullInfo = false,
@@ -96,12 +86,8 @@ export async function syncTrackAssets(
   const [tracks, trackInfo] = await Promise.all([
     client
       .getTrackAssets()
-      .then((r) => r.data)
       .then(fetchAPIResponseData<IRacingGetTrackAssetsResponse>),
-    client
-      .getTrack()
-      .then((r) => r.data)
-      .then(fetchAPIResponseData<IRacingGetTrackResponse>),
+    client.getTrack().then(fetchAPIResponseData<IRacingGetTrackResponse>),
   ]);
 
   /**

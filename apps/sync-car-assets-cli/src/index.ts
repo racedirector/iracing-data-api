@@ -1,20 +1,16 @@
 #!/usr/bin/env node
+
 import crypto from "node:crypto";
 import { Command } from "@commander-js/extra-typings";
-import { CarApi, AuthApi } from "@iracing-data/api-client";
-import axios from "axios";
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
+import { CarApi, Configuration } from "@iracing-data/api-client-fetch";
+import { syncCarAssets } from "@iracing-data/sync-car-assets";
 import * as dotenv from "dotenv";
-import { syncCarAssets } from "./index.js";
-import { getIRacingCredentials } from "./util.js";
+import createClient from "openapi-fetch";
+import type { paths } from "./generated/openapi";
 
 dotenv.config();
 
-/**
- * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
- */
-export async function hashPassword(email: string, password: string) {
+async function hashPassword(email: string, password: string) {
   return crypto
     .createHash("sha256")
     .update(password + email.toLowerCase())
@@ -31,28 +27,28 @@ const program = new Command("sync-iracing-car-assets")
   .action(async (_, command) => {
     console.log("Downloading car assets...");
 
-    // Create an axios instance capable of handling cookies.
-    const client = wrapper(
-      axios.create({
-        baseURL: "https://members-ng.iracing.com/",
-        withCredentials: true,
-        jar: new CookieJar(),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      })
-    );
+    const username = process.env.IRACING_AUTH_USERNAME!;
+    const password = process.env.IRACING_AUTH_PASSWORD!;
 
-    // Use the axios instance to authenticate
-    const auth = new AuthApi(undefined, undefined, client);
-    const { username, password } = await getIRacingCredentials();
-    const hashedPassword = await hashPassword(username, password);
-    await auth.postAuth({
-      post_auth_request: {
-        email: username,
-        password: hashedPassword,
+    /**
+     * Authorize the consumer with a password limited grant from iRacing OAuth services
+     */
+    const client = createClient<paths>({
+      baseUrl: "https://oauth.iracing.com/oauth2",
+    });
+
+    const session = await client.POST("/token", {
+      body: {
+        grant_type: "password_limited",
+        client_id: process.env.IRACING_AUTH_CLIENT!,
+        client_secret: process.env.IRACING_AUTH_SECRET!,
+        username: username,
+        password: await hashPassword(username, password),
+        scope: process.env.IRACING_AUTH_SCOPE!,
       },
     });
+
+    // TODO: Store the session somewhere?
 
     const {
       outDir,
@@ -70,7 +66,11 @@ const program = new Command("sync-iracing-car-assets")
         skipCarAssets,
         skipCarInfo,
       },
-      new CarApi(undefined, undefined, client)
+      new CarApi(
+        new Configuration({
+          accessToken: session.data?.access_token,
+        })
+      )
     );
 
     console.log("Done!");

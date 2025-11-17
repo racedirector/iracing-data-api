@@ -1,14 +1,11 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { CarApi } from "@iracing-data/api-client";
+import { CarApi } from "@iracing-data/api-client-fetch";
 import {
   IRacingGetCarResponse,
   IRacingGetCarAssetsResponse,
 } from "@iracing-data/api-schema";
-import * as dotenv from "dotenv";
 import { exists, fetchAPIResponseData } from "./util.js";
-
-dotenv.config();
 
 export interface SyncCarAssetsOptions {
   /**
@@ -74,12 +71,8 @@ export async function syncCarAssets(
   const [cars, carInfo] = await Promise.all([
     client
       .getCarAssets()
-      .then((r) => r.data)
       .then(fetchAPIResponseData<IRacingGetCarAssetsResponse>),
-    client
-      .getCar()
-      .then((r) => r.data)
-      .then(fetchAPIResponseData<IRacingGetCarResponse>),
+    client.getCar().then(fetchAPIResponseData<IRacingGetCarResponse>),
   ]);
 
   /**

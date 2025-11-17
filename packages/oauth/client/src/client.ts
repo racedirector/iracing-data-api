@@ -1,6 +1,8 @@
+import assert from "node:assert";
 import {
   IRacingOAuthTokenResponseSchema,
   IRacingOAuthTokenResponse,
+  IRacingOAuthPasswordLimitedGrantParametersSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
 import { OAuthCallbackError } from "./oauth-callback-error";
@@ -10,7 +12,7 @@ import {
   IRacingOAuthClientMetadataSchema,
   StateStore,
 } from "./schema";
-import { sanitizeTokenResponse } from "./utils";
+import { hashPassword, sanitizeTokenResponse } from "./utils";
 
 export type OAuthClientOptions = {
   // Config
@@ -159,6 +161,33 @@ export class OAuthClient {
     );
 
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+  }
+
+  async passwordLimitedGrant() {
+    assert(
+      this.clientMetadata.username,
+      "To use the password limited grant, a username must be provided."
+    );
+
+    assert(
+      this.clientMetadata.password,
+      "To use the password limited grant, a password must be provided."
+    );
+
+    const parameters =
+      await IRacingOAuthPasswordLimitedGrantParametersSchema.parseAsync({
+        grant_type: "password_limited",
+        client_id: this.clientMetadata.clientId,
+        client_secret: this.clientMetadata.clientSecret,
+        username: this.clientMetadata.username,
+        password: await hashPassword(
+          this.clientMetadata.username,
+          this.clientMetadata.password
+        ),
+        scope: this.clientMetadata.scopes.join(" "),
+      });
+
+    console.log("Send this to the iRacing OAuth service:", parameters);
   }
 
   async refresh(token: string) {

@@ -1,5 +1,5 @@
-import { IRacingErrorResponseSchema } from "@iracing-data/api-schema";
 import {
+  IRacingOAuthErrorResponseSchema,
   IRacingOAuthAuthorizeParametersSchema,
   IRacingOAuthHeadersSchema,
   IRacingOAuthProfileResponseSchema,
@@ -43,7 +43,7 @@ export async function generateOpenAPISpec({
       },
     ],
     externalDocs: {
-      url: "/oauth2/book",
+      url: "/book",
     },
     components: {
       headers: {
@@ -58,7 +58,7 @@ export async function generateOpenAPISpec({
           description: "Access token is missing or invalid.",
           content: {
             "application/json": {
-              schema: IRacingErrorResponseSchema,
+              schema: IRacingOAuthErrorResponseSchema,
             },
           },
         },
@@ -75,6 +75,7 @@ export async function generateOpenAPISpec({
     paths: {
       "/iracing/profile": {
         get: {
+          operationId: "getProfile",
           security: [{ bearerAuth: [] }],
           responses: {
             200: {
@@ -92,6 +93,7 @@ export async function generateOpenAPISpec({
       },
       "/sessions": {
         get: {
+          operationId: "getSessions",
           security: [{ bearerAuth: [] }],
           responses: {
             200: {
@@ -109,6 +111,7 @@ export async function generateOpenAPISpec({
       },
       "/revoke/current": {
         post: {
+          operationId: "revokeCurrent",
           security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
@@ -125,6 +128,7 @@ export async function generateOpenAPISpec({
       },
       "/revoke/sessions": {
         post: {
+          operationId: "revokeSessions",
           security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
@@ -141,6 +145,7 @@ export async function generateOpenAPISpec({
       },
       "/revoke/client": {
         post: {
+          operationId: "revokeClient",
           security: [{ bearerAuth: [] }],
           responses: {
             200: { $ref: "#/components/responses/SessionsRevoked" },
@@ -150,6 +155,7 @@ export async function generateOpenAPISpec({
       },
       "/authorize": {
         get: {
+          operationId: "authorize",
           requestParams: {
             query: IRacingOAuthAuthorizeParametersSchema,
           },
@@ -162,6 +168,7 @@ export async function generateOpenAPISpec({
       },
       "/token": {
         post: {
+          operationId: "exchangeToken",
           requestBody: {
             content: {
               "application/x-www-form-urlencoded": {
@@ -172,8 +179,16 @@ export async function generateOpenAPISpec({
           responses: {
             200: {
               description: "Success",
+              headers: IRacingOAuthHeadersSchema,
               content: {
                 "application/json": { schema: IRacingOAuthTokenResponseSchema },
+              },
+            },
+            400: {
+              description: "Failure",
+              headers: IRacingOAuthHeadersSchema,
+              content: {
+                "application/json": { schema: IRacingOAuthErrorResponseSchema },
               },
             },
           },

@@ -1,3 +1,5 @@
+import crypto from "node:crypto";
+
 export type OAuthTokenResponse = {
   access_token: string;
   token_type: "Bearer";
@@ -33,4 +35,14 @@ export async function sanitizeTokenResponse(
     status: response.status,
     headers: response.headers,
   });
+}
+
+/**
+ * Compute the Base64‑encoded SHA‑256 hash of (password + email.toLowerCase()).
+ */
+export async function hashPassword(email: string, password: string) {
+  return crypto
+    .createHash("sha256")
+    .update(password + email.toLowerCase())
+    .digest("base64");
 }

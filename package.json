@@ -11,8 +11,8 @@
     "codegen:openapi:oauth": "iracing-oauth-api-openapi -o ./openapi -f iracing-oauth.json",
     "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
-    "codegen:client:api:axios": "openapi-generator-cli generate -g typescript-axios -i openapi/iracing.json -o packages/_api/client/axios --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-axios'",
-    "codegen:client:api:fetch": "openapi-generator-cli generate -g typescript-fetch -i openapi/iracing.json -o packages/_api/client/fetch --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-fetch'",
+    "codegen:client:api:axios": "openapi-generator-cli generate -g typescript-axios -i openapi/iracing.json -o packages/api/client/axios --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-axios'",
+    "codegen:client:api:fetch": "openapi-generator-cli generate -g typescript-fetch -i openapi/iracing.json -o packages/api/client/fetch --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-fetch'",
     "dev:pkg": "pnpm --recursive --parallel --stream dev",
     "dev:tsc": "tsc --build tsconfig.json --watch",
     "dev": "NODE_ENV=development pnpm --stream '/^dev:.+$/'",
@@ -35,6 +35,7 @@
     "@typescript-eslint/eslint-plugin": "8.24.1",
     "@typescript-eslint/parser": "8.22.0",
     "dotenv": "16.4.7",
+    "esbuild": "^0.27.0",
     "eslint": "^9",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "^2.31.0",
@@ -47,6 +48,7 @@
     "typescript": "^5.9.2"
   },
   "workspaces": [
+    "apps/*",
     "packages/*",
     "packages/api/*",
     "packages/api/client/*",
