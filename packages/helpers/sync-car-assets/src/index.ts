@@ -87,8 +87,8 @@ export async function syncCarAssets(
    * Get the JSON data for the track assets and track info from the API.
    */
   const [cars, carInfo] = await Promise.all([
-    client.carAssets(),
-    client.carGet(),
+    client.carAssets() as Promise<Record<string, any>>,
+    client.carGet() as Promise<any[]>,
   ]);
 
   /**
