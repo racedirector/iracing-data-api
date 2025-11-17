@@ -1,5 +1,5 @@
 {
-  "name": "@iracing-data/http",
+  "name": "@iracing-data/telemetry-client-http",
   "version": "0.0.0-alpha.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

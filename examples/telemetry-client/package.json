@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@iracing-data/grpc-node": "workspace:*"
+    "@iracing-data/telemetry-client-grpc-node": "workspace:*"
   }
 }

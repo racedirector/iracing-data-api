@@ -7,4 +7,6 @@ packages:
   - "packages/events/*"
   - "packages/helpers/*"
   - "packages/oauth/*"
+  - "packages/telemetry/*"
+  - "packages/telemetry/client/*"
   - "services/*"

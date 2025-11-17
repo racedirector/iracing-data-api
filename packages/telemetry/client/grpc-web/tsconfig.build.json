@@ -1,13 +1,11 @@
 {
-  "extends": "../../tsconfig/node.json",
+  "extends": "../../../../tsconfig/node.json",
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
     "noUnusedLocals": false,
     "declarationMap": false,
     "sourceMap": false,
-
-    "composite": true,
     "paths": {
       "@/*": ["./src/*"]
     }

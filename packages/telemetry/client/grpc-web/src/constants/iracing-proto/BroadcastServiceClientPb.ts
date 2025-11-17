@@ -10,38 +10,37 @@
 // 	protoc              v5.29.3
 // source: iracing-proto/broadcast.proto
 
-
 /* eslint-disable */
 // @ts-nocheck
 
+import * as grpcWeb from "grpc-web";
 
-import * as grpcWeb from 'grpc-web';
-
-import * as google_protobuf_empty_pb from 'google-protobuf/google/protobuf/empty_pb'; // proto import: "google/protobuf/empty.proto"
-import * as iracing$proto_broadcast_pb from '../iracing-proto/broadcast_pb'; // proto import: "iracing-proto/broadcast.proto"
-
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb"; // proto import: "google/protobuf/empty.proto"
+import * as iracing$proto_broadcast_pb from "./broadcast_pb"; // proto import: "iracing-proto/broadcast.proto"
 
 export class BroadcastClient {
   client_: grpcWeb.AbstractClientBase;
   hostname_: string;
-  credentials_: null | { [index: string]: string; };
-  options_: null | { [index: string]: any; };
+  credentials_: null | { [index: string]: string };
+  options_: null | { [index: string]: any };
 
-  constructor (hostname: string,
-               credentials?: null | { [index: string]: string; },
-               options?: null | { [index: string]: any; }) {
+  constructor(
+    hostname: string,
+    credentials?: null | { [index: string]: string },
+    options?: null | { [index: string]: any }
+  ) {
     if (!options) options = {};
     if (!credentials) credentials = {};
-    options['format'] = 'text';
+    options["format"] = "text";
 
     this.client_ = new grpcWeb.GrpcWebClientBase(options);
-    this.hostname_ = hostname.replace(/\/+$/, '');
+    this.hostname_ = hostname.replace(/\/+$/, "");
     this.credentials_ = credentials;
     this.options_ = options;
   }
 
   methodDescriptorGetAvailableCameras = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/GetAvailableCameras',
+    "/iracing.broadcast.Broadcast/GetAvailableCameras",
     grpcWeb.MethodType.UNARY,
     google_protobuf_empty_pb.Empty,
     iracing$proto_broadcast_pb.GetAvailableCamerasResponse,
@@ -53,38 +52,45 @@ export class BroadcastClient {
 
   getAvailableCameras(
     request: google_protobuf_empty_pb.Empty,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.GetAvailableCamerasResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.GetAvailableCamerasResponse>;
 
   getAvailableCameras(
     request: google_protobuf_empty_pb.Empty,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.GetAvailableCamerasResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.GetAvailableCamerasResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.GetAvailableCamerasResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.GetAvailableCamerasResponse>;
 
   getAvailableCameras(
     request: google_protobuf_empty_pb.Empty,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.GetAvailableCamerasResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.GetAvailableCamerasResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/GetAvailableCameras',
+        this.hostname_ + "/iracing.broadcast.Broadcast/GetAvailableCameras",
         request,
         metadata || {},
         this.methodDescriptorGetAvailableCameras,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/GetAvailableCameras',
-    request,
-    metadata || {},
-    this.methodDescriptorGetAvailableCameras);
+      this.hostname_ + "/iracing.broadcast.Broadcast/GetAvailableCameras",
+      request,
+      metadata || {},
+      this.methodDescriptorGetAvailableCameras
+    );
   }
 
   methodDescriptorCameraSwitchPosition = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/CameraSwitchPosition',
+    "/iracing.broadcast.Broadcast/CameraSwitchPosition",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
     iracing$proto_broadcast_pb.CameraSwitchPositionResponse,
@@ -96,38 +102,45 @@ export class BroadcastClient {
 
   cameraSwitchPosition(
     request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.CameraSwitchPositionResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.CameraSwitchPositionResponse>;
 
   cameraSwitchPosition(
     request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.CameraSwitchPositionResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSwitchPositionResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.CameraSwitchPositionResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSwitchPositionResponse>;
 
   cameraSwitchPosition(
     request: iracing$proto_broadcast_pb.CameraSwitchPositionRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.CameraSwitchPositionResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.CameraSwitchPositionResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/CameraSwitchPosition',
+        this.hostname_ + "/iracing.broadcast.Broadcast/CameraSwitchPosition",
         request,
         metadata || {},
         this.methodDescriptorCameraSwitchPosition,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/CameraSwitchPosition',
-    request,
-    metadata || {},
-    this.methodDescriptorCameraSwitchPosition);
+      this.hostname_ + "/iracing.broadcast.Broadcast/CameraSwitchPosition",
+      request,
+      metadata || {},
+      this.methodDescriptorCameraSwitchPosition
+    );
   }
 
   methodDescriptorCameraSwitchNumber = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/CameraSwitchNumber',
+    "/iracing.broadcast.Broadcast/CameraSwitchNumber",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
     iracing$proto_broadcast_pb.CameraSwitchNumberResponse,
@@ -139,38 +152,45 @@ export class BroadcastClient {
 
   cameraSwitchNumber(
     request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.CameraSwitchNumberResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.CameraSwitchNumberResponse>;
 
   cameraSwitchNumber(
     request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.CameraSwitchNumberResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSwitchNumberResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.CameraSwitchNumberResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSwitchNumberResponse>;
 
   cameraSwitchNumber(
     request: iracing$proto_broadcast_pb.CameraSwitchNumberRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.CameraSwitchNumberResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.CameraSwitchNumberResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/CameraSwitchNumber',
+        this.hostname_ + "/iracing.broadcast.Broadcast/CameraSwitchNumber",
         request,
         metadata || {},
         this.methodDescriptorCameraSwitchNumber,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/CameraSwitchNumber',
-    request,
-    metadata || {},
-    this.methodDescriptorCameraSwitchNumber);
+      this.hostname_ + "/iracing.broadcast.Broadcast/CameraSwitchNumber",
+      request,
+      metadata || {},
+      this.methodDescriptorCameraSwitchNumber
+    );
   }
 
   methodDescriptorCameraSetState = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/CameraSetState',
+    "/iracing.broadcast.Broadcast/CameraSetState",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.CameraSetStateRequest,
     iracing$proto_broadcast_pb.CameraSetStateResponse,
@@ -182,38 +202,45 @@ export class BroadcastClient {
 
   cameraSetState(
     request: iracing$proto_broadcast_pb.CameraSetStateRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.CameraSetStateResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.CameraSetStateResponse>;
 
   cameraSetState(
     request: iracing$proto_broadcast_pb.CameraSetStateRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.CameraSetStateResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSetStateResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.CameraSetStateResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.CameraSetStateResponse>;
 
   cameraSetState(
     request: iracing$proto_broadcast_pb.CameraSetStateRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.CameraSetStateResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.CameraSetStateResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/CameraSetState',
+        this.hostname_ + "/iracing.broadcast.Broadcast/CameraSetState",
         request,
         metadata || {},
         this.methodDescriptorCameraSetState,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/CameraSetState',
-    request,
-    metadata || {},
-    this.methodDescriptorCameraSetState);
+      this.hostname_ + "/iracing.broadcast.Broadcast/CameraSetState",
+      request,
+      metadata || {},
+      this.methodDescriptorCameraSetState
+    );
   }
 
   methodDescriptorReplaySetPlaySpeed = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ReplaySetPlaySpeed',
+    "/iracing.broadcast.Broadcast/ReplaySetPlaySpeed",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
     iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse,
@@ -225,38 +252,45 @@ export class BroadcastClient {
 
   replaySetPlaySpeed(
     request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
 
   replaySetPlaySpeed(
     request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse>;
 
   replaySetPlaySpeed(
     request: iracing$proto_broadcast_pb.ReplaySetPlaySpeedRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySetPlaySpeedResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ReplaySetPlaySpeed',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySetPlaySpeed",
         request,
         metadata || {},
         this.methodDescriptorReplaySetPlaySpeed,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ReplaySetPlaySpeed',
-    request,
-    metadata || {},
-    this.methodDescriptorReplaySetPlaySpeed);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySetPlaySpeed",
+      request,
+      metadata || {},
+      this.methodDescriptorReplaySetPlaySpeed
+    );
   }
 
   methodDescriptorReplaySetPlayPosition = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ReplaySetPlayPosition',
+    "/iracing.broadcast.Broadcast/ReplaySetPlayPosition",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
     iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse,
@@ -268,38 +302,45 @@ export class BroadcastClient {
 
   replaySetPlayPosition(
     request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse>;
 
   replaySetPlayPosition(
     request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse>;
 
   replaySetPlayPosition(
     request: iracing$proto_broadcast_pb.ReplaySetPlayPositionRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySetPlayPositionResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ReplaySetPlayPosition',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySetPlayPosition",
         request,
         metadata || {},
         this.methodDescriptorReplaySetPlayPosition,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ReplaySetPlayPosition',
-    request,
-    metadata || {},
-    this.methodDescriptorReplaySetPlayPosition);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySetPlayPosition",
+      request,
+      metadata || {},
+      this.methodDescriptorReplaySetPlayPosition
+    );
   }
 
   methodDescriptorReplaySearch = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ReplaySearch',
+    "/iracing.broadcast.Broadcast/ReplaySearch",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ReplaySearchRequest,
     iracing$proto_broadcast_pb.ReplaySearchResponse,
@@ -311,38 +352,45 @@ export class BroadcastClient {
 
   replaySearch(
     request: iracing$proto_broadcast_pb.ReplaySearchRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySearchResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ReplaySearchResponse>;
 
   replaySearch(
     request: iracing$proto_broadcast_pb.ReplaySearchRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySearchResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySearchResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySearchResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySearchResponse>;
 
   replaySearch(
     request: iracing$proto_broadcast_pb.ReplaySearchRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySearchResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySearchResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ReplaySearch',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySearch",
         request,
         metadata || {},
         this.methodDescriptorReplaySearch,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ReplaySearch',
-    request,
-    metadata || {},
-    this.methodDescriptorReplaySearch);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySearch",
+      request,
+      metadata || {},
+      this.methodDescriptorReplaySearch
+    );
   }
 
   methodDescriptorReplaySetState = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ReplaySetState',
+    "/iracing.broadcast.Broadcast/ReplaySetState",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ReplaySetStateRequest,
     iracing$proto_broadcast_pb.ReplaySetStateResponse,
@@ -354,38 +402,45 @@ export class BroadcastClient {
 
   replaySetState(
     request: iracing$proto_broadcast_pb.ReplaySetStateRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySetStateResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ReplaySetStateResponse>;
 
   replaySetState(
     request: iracing$proto_broadcast_pb.ReplaySetStateRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySetStateResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetStateResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySetStateResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySetStateResponse>;
 
   replaySetState(
     request: iracing$proto_broadcast_pb.ReplaySetStateRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySetStateResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySetStateResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ReplaySetState',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySetState",
         request,
         metadata || {},
         this.methodDescriptorReplaySetState,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ReplaySetState',
-    request,
-    metadata || {},
-    this.methodDescriptorReplaySetState);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySetState",
+      request,
+      metadata || {},
+      this.methodDescriptorReplaySetState
+    );
   }
 
   methodDescriptorReloadTextures = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ReloadTextures',
+    "/iracing.broadcast.Broadcast/ReloadTextures",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ReloadTexturesRequest,
     iracing$proto_broadcast_pb.ReloadTexturesResponse,
@@ -397,38 +452,45 @@ export class BroadcastClient {
 
   reloadTextures(
     request: iracing$proto_broadcast_pb.ReloadTexturesRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReloadTexturesResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ReloadTexturesResponse>;
 
   reloadTextures(
     request: iracing$proto_broadcast_pb.ReloadTexturesRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReloadTexturesResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReloadTexturesResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReloadTexturesResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReloadTexturesResponse>;
 
   reloadTextures(
     request: iracing$proto_broadcast_pb.ReloadTexturesRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReloadTexturesResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReloadTexturesResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ReloadTextures',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ReloadTextures",
         request,
         metadata || {},
         this.methodDescriptorReloadTextures,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ReloadTextures',
-    request,
-    metadata || {},
-    this.methodDescriptorReloadTextures);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ReloadTextures",
+      request,
+      metadata || {},
+      this.methodDescriptorReloadTextures
+    );
   }
 
   methodDescriptorChatCommand = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ChatCommand',
+    "/iracing.broadcast.Broadcast/ChatCommand",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ChatCommandRequest,
     iracing$proto_broadcast_pb.ChatCommandResponse,
@@ -440,38 +502,45 @@ export class BroadcastClient {
 
   chatCommand(
     request: iracing$proto_broadcast_pb.ChatCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ChatCommandResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ChatCommandResponse>;
 
   chatCommand(
     request: iracing$proto_broadcast_pb.ChatCommandRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ChatCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ChatCommandResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ChatCommandResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ChatCommandResponse>;
 
   chatCommand(
     request: iracing$proto_broadcast_pb.ChatCommandRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ChatCommandResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ChatCommandResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ChatCommand',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ChatCommand",
         request,
         metadata || {},
         this.methodDescriptorChatCommand,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ChatCommand',
-    request,
-    metadata || {},
-    this.methodDescriptorChatCommand);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ChatCommand",
+      request,
+      metadata || {},
+      this.methodDescriptorChatCommand
+    );
   }
 
   methodDescriptorPitCommand = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/PitCommand',
+    "/iracing.broadcast.Broadcast/PitCommand",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.PitCommandRequest,
     iracing$proto_broadcast_pb.PitCommandResponse,
@@ -483,38 +552,45 @@ export class BroadcastClient {
 
   pitCommand(
     request: iracing$proto_broadcast_pb.PitCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.PitCommandResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.PitCommandResponse>;
 
   pitCommand(
     request: iracing$proto_broadcast_pb.PitCommandRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.PitCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.PitCommandResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.PitCommandResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.PitCommandResponse>;
 
   pitCommand(
     request: iracing$proto_broadcast_pb.PitCommandRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.PitCommandResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.PitCommandResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/PitCommand',
+        this.hostname_ + "/iracing.broadcast.Broadcast/PitCommand",
         request,
         metadata || {},
         this.methodDescriptorPitCommand,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/PitCommand',
-    request,
-    metadata || {},
-    this.methodDescriptorPitCommand);
+      this.hostname_ + "/iracing.broadcast.Broadcast/PitCommand",
+      request,
+      metadata || {},
+      this.methodDescriptorPitCommand
+    );
   }
 
   methodDescriptorTelemetryCommand = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/TelemetryCommand',
+    "/iracing.broadcast.Broadcast/TelemetryCommand",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.TelemetryCommandRequest,
     iracing$proto_broadcast_pb.TelemetryCommandResponse,
@@ -526,38 +602,45 @@ export class BroadcastClient {
 
   telemetryCommand(
     request: iracing$proto_broadcast_pb.TelemetryCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.TelemetryCommandResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.TelemetryCommandResponse>;
 
   telemetryCommand(
     request: iracing$proto_broadcast_pb.TelemetryCommandRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.TelemetryCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.TelemetryCommandResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.TelemetryCommandResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.TelemetryCommandResponse>;
 
   telemetryCommand(
     request: iracing$proto_broadcast_pb.TelemetryCommandRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.TelemetryCommandResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.TelemetryCommandResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/TelemetryCommand',
+        this.hostname_ + "/iracing.broadcast.Broadcast/TelemetryCommand",
         request,
         metadata || {},
         this.methodDescriptorTelemetryCommand,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/TelemetryCommand',
-    request,
-    metadata || {},
-    this.methodDescriptorTelemetryCommand);
+      this.hostname_ + "/iracing.broadcast.Broadcast/TelemetryCommand",
+      request,
+      metadata || {},
+      this.methodDescriptorTelemetryCommand
+    );
   }
 
   methodDescriptorForceFeedbackCommand = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ForceFeedbackCommand',
+    "/iracing.broadcast.Broadcast/ForceFeedbackCommand",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
     iracing$proto_broadcast_pb.ForceFeedbackCommandResponse,
@@ -569,38 +652,45 @@ export class BroadcastClient {
 
   forceFeedbackCommand(
     request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ForceFeedbackCommandResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ForceFeedbackCommandResponse>;
 
   forceFeedbackCommand(
     request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ForceFeedbackCommandResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ForceFeedbackCommandResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ForceFeedbackCommandResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ForceFeedbackCommandResponse>;
 
   forceFeedbackCommand(
     request: iracing$proto_broadcast_pb.ForceFeedbackCommandRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ForceFeedbackCommandResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ForceFeedbackCommandResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ForceFeedbackCommand',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ForceFeedbackCommand",
         request,
         metadata || {},
         this.methodDescriptorForceFeedbackCommand,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ForceFeedbackCommand',
-    request,
-    metadata || {},
-    this.methodDescriptorForceFeedbackCommand);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ForceFeedbackCommand",
+      request,
+      metadata || {},
+      this.methodDescriptorForceFeedbackCommand
+    );
   }
 
   methodDescriptorReplaySearchSessionTime = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/ReplaySearchSessionTime',
+    "/iracing.broadcast.Broadcast/ReplaySearchSessionTime",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
     iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse,
@@ -612,38 +702,45 @@ export class BroadcastClient {
 
   replaySearchSessionTime(
     request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
 
   replaySearchSessionTime(
     request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse>;
 
   replaySearchSessionTime(
     request: iracing$proto_broadcast_pb.ReplaySearchSessionTimeRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.ReplaySearchSessionTimeResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/ReplaySearchSessionTime',
+        this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySearchSessionTime",
         request,
         metadata || {},
         this.methodDescriptorReplaySearchSessionTime,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/ReplaySearchSessionTime',
-    request,
-    metadata || {},
-    this.methodDescriptorReplaySearchSessionTime);
+      this.hostname_ + "/iracing.broadcast.Broadcast/ReplaySearchSessionTime",
+      request,
+      metadata || {},
+      this.methodDescriptorReplaySearchSessionTime
+    );
   }
 
   methodDescriptorVideoCapture = new grpcWeb.MethodDescriptor(
-    '/iracing.broadcast.Broadcast/VideoCapture',
+    "/iracing.broadcast.Broadcast/VideoCapture",
     grpcWeb.MethodType.UNARY,
     iracing$proto_broadcast_pb.VideoCaptureRequest,
     iracing$proto_broadcast_pb.VideoCaptureResponse,
@@ -655,35 +752,40 @@ export class BroadcastClient {
 
   videoCapture(
     request: iracing$proto_broadcast_pb.VideoCaptureRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_broadcast_pb.VideoCaptureResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_broadcast_pb.VideoCaptureResponse>;
 
   videoCapture(
     request: iracing$proto_broadcast_pb.VideoCaptureRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.VideoCaptureResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.VideoCaptureResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.VideoCaptureResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_broadcast_pb.VideoCaptureResponse>;
 
   videoCapture(
     request: iracing$proto_broadcast_pb.VideoCaptureRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_broadcast_pb.VideoCaptureResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_broadcast_pb.VideoCaptureResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.broadcast.Broadcast/VideoCapture',
+        this.hostname_ + "/iracing.broadcast.Broadcast/VideoCapture",
         request,
         metadata || {},
         this.methodDescriptorVideoCapture,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.broadcast.Broadcast/VideoCapture',
-    request,
-    metadata || {},
-    this.methodDescriptorVideoCapture);
+      this.hostname_ + "/iracing.broadcast.Broadcast/VideoCapture",
+      request,
+      metadata || {},
+      this.methodDescriptorVideoCapture
+    );
   }
-
 }
-

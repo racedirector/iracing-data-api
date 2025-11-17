@@ -17,7 +17,7 @@
   "license": "ISC",
   "dependencies": {
     "@iracing-data/car-session-flag-events": "workspace:*",
-    "@iracing-data/grpc-node": "workspace:*",
+    "@iracing-data/telemetry-client-grpc-node": "workspace:*",
     "@iracing-data/car-track-location-events": "workspace:*",
     "@iracing-data/pace-flag-events": "workspace:*",
     "@iracing-data/pace-order-events": "workspace:*",

@@ -1,5 +1,5 @@
 {
-  "name": "@iracing-data/ws",
+  "name": "@iracing-data/telemetry-client-grpc-node",
   "version": "0.0.0-alpha.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -7,13 +7,12 @@
     "build": "tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "@iracing-data/telemetry-types": "workspace:*",
-    "axios": "^1.7.9",
-    "ws": "^8.18.1"
+    "@iracing-data/telemetry-types": "workspace:*"
   },
   "devDependencies": {
-    "@types/node": "^24.3.1",
-    "@types/ws": "^8.5.4",
+    "@grpc/grpc-js": "1.13.3",
+    "@grpc/proto-loader": "^0.7.13",
+    "google-protobuf": "^4.0.0",
     "ts-invariant": "^0.10.3"
   }
 }

@@ -1,5 +1,5 @@
 import { CarSessionFlagEventEmitter } from "@iracing-data/car-session-flag-events";
-import { TelemetryClient } from "@iracing-data/grpc-node";
+import { TelemetryClient } from "@iracing-data/telemetry-client-grpc-node";
 import { CarTrackLocationEventEmitter } from "@iracing-data/car-track-location-events";
 import { PaceFlagEventEmitter } from "@iracing-data/pace-flag-events";
 import { PaceOrderEventEmitter } from "@iracing-data/pace-order-events";

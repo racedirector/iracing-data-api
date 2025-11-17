@@ -27,11 +27,11 @@
     { "path": "./packages/helpers/sync-car-assets" },
     { "path": "./packages/helpers/sync-telemetry-json-schema" },
     { "path": "./packages/helpers/sync-track-assets" },
-    { "path": "./packages/iracing-telemetry-grpc-node" },
-    { "path": "./packages/iracing-telemetry-grpc-web" },
-    { "path": "./packages/iracing-telemetry-http" },
-    { "path": "./packages/iracing-telemetry-types" },
-    { "path": "./packages/iracing-telemetry-ws" },
+    { "path": "./packages/telemetry/client/grpc-node" },
+    { "path": "./packages/telemetry/client/grpc-web" },
+    { "path": "./packages/telemetry/client/http" },
+    { "path": "./packages/telemetry/client/ws" },
+    { "path": "./packages/telemetry/types" },
     { "path": "./packages/oauth/client" },
     { "path": "./packages/oauth/schema" }
   ]

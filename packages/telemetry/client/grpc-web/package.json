@@ -1,5 +1,5 @@
 {
-  "name": "@iracing-data/grpc-web",
+  "name": "@iracing-data/telemetry-client-grpc-web",
   "version": "0.0.0-alpha.0",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
