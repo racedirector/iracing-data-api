@@ -1,7 +1,5 @@
 import client from "@/oauth-client";
-import { BASE_URL } from "@iracing-data/oauth-client";
 import { createEndpoint } from "better-call";
-import path from "path";
 import { z } from "zod";
 
 // TODO: Add routes for session management
@@ -77,88 +75,5 @@ export const oauthSignOut = createEndpoint(
     });
 
     return context.redirect("/");
-  }
-);
-
-export const oauthSessions = createEndpoint(
-  "/oauth/sessions",
-  {
-    method: "GET",
-  },
-  async (context) => {
-    const accessToken =
-      context.getHeader("X-IRACING-ACCESS-TOKEN") ||
-      context.getCookie("iracing-token");
-
-    return fetch(path.join(BASE_URL, "sessions"), {
-      headers: {
-        Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-      },
-    });
-  }
-);
-
-export const revokeCurrentOauthSession = createEndpoint(
-  "/oauth/revoke/current",
-  {
-    method: "POST",
-    body: z.object({
-      forgetBrowser: z.boolean().optional(),
-    }),
-  },
-  async (context) => {
-    const accessToken =
-      context.getHeader("X-IRACING-ACCESS-TOKEN") ||
-      context.getCookie("iracing-token");
-
-    return fetch(path.join(BASE_URL, "revoke", "current"), {
-      body: JSON.stringify(context.body),
-      headers: {
-        Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-  }
-);
-
-export const revokeOauthSessions = createEndpoint(
-  "/oauth/revoke/current",
-  {
-    method: "POST",
-    body: z.object({
-      sessionIds: z.array(z.string()),
-    }),
-  },
-  async (context) => {
-    const accessToken =
-      context.getHeader("X-IRACING-ACCESS-TOKEN") ||
-      context.getCookie("iracing-token");
-
-    return fetch(path.join(BASE_URL, "revoke", "current"), {
-      body: JSON.stringify({ session_ids: context.body.sessionIds.join(",") }),
-      headers: {
-        Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
-  }
-);
-
-export const revokeClientOauthSessions = createEndpoint(
-  "/oauth/revoke/client",
-  {
-    method: "POST",
-  },
-  async (context) => {
-    const accessToken =
-      context.getHeader("X-IRACING-ACCESS-TOKEN") ||
-      context.getCookie("iracing-token");
-
-    return fetch(path.join(BASE_URL, "revoke", "client"), {
-      headers: {
-        Authorization: accessToken ? `Bearer ${accessToken}` : undefined,
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-    });
   }
 );

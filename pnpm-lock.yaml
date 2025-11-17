@@ -376,6 +376,25 @@ importers:
         specifier: ^13.1.0
         version: 13.1.0(commander@14.0.0)
 
+  packages/helpers/oauth-schema-to-openapi:
+    dependencies:
+      '@iracing-data/oauth-schema':
+        specifier: workspace:*
+        version: link:../../oauth/schema
+      commander:
+        specifier: ^14.0.2
+        version: 14.0.2
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+      zod-openapi:
+        specifier: ^5.4.3
+        version: 5.4.3(zod@4.1.12)
+    devDependencies:
+      '@commander-js/extra-typings':
+        specifier: ^14.0.0
+        version: 14.0.0(commander@14.0.2)
+
   packages/helpers/sync-car-assets:
     dependencies:
       '@commander-js/extra-typings':
@@ -523,12 +542,15 @@ importers:
 
   packages/oauth/client:
     dependencies:
+      '@iracing-data/oauth-schema':
+        specifier: workspace:*
+        version: link:../schema
       oauth4webapi:
         specifier: ^3.7.0
         version: 3.7.0
       zod:
-        specifier: ^4.0.17
-        version: 4.0.17
+        specifier: ^4.1.12
+        version: 4.1.12
 
   packages/oauth/schema:
     dependencies:
@@ -569,6 +591,14 @@ packages:
       commander: ~13.1.0
     dependencies:
       commander: 14.0.0
+
+  /@commander-js/extra-typings@14.0.0(commander@14.0.2):
+    resolution: {integrity: sha512-hIn0ncNaJRLkZrxBIp5AsW/eXEHNKYQBh0aPdoUqNgD+Io3NIykQqpKFyKcuasZhicGaEZJX/JBSIkZ4e5x8Dg==}
+    peerDependencies:
+      commander: ~14.0.0
+    dependencies:
+      commander: 14.0.2
+    dev: true
 
   /@cspotcode/source-map-support@0.8.1:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2184,6 +2214,10 @@ packages:
 
   /commander@14.0.0:
     resolution: {integrity: sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==}
+    engines: {node: '>=20'}
+
+  /commander@14.0.2:
+    resolution: {integrity: sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==}
     engines: {node: '>=20'}
 
   /commander@2.20.3:
@@ -5246,6 +5280,15 @@ packages:
     resolution: {integrity: sha512-U/PBtDf35ff0D8X8D0jfdzHYEPFxAI7jJlxZXwCSez5M3190m+QobIfh+sWDWSHMCWWJN2AWamkegn6vr6YBTw==}
     engines: {node: '>=18'}
     dev: true
+
+  /zod-openapi@5.4.3(zod@4.1.12):
+    resolution: {integrity: sha512-6kJ/gJdvHZtuxjYHoMtkl2PixCwRuZ/s79dVkEr7arHvZGXfx7Cvh53X3HfJ5h9FzGelXOXlnyjwfX0sKEPByw==}
+    engines: {node: '>=20'}
+    peerDependencies:
+      zod: ^3.25.74 || ^4.0.0
+    dependencies:
+      zod: 4.1.12
+    dev: false
 
   /zod@4.0.17:
     resolution: {integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==}
