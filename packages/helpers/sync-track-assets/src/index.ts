@@ -159,5 +159,3 @@ export async function syncTrackAssets(
     // TODO: Download images.
   }
 }
-
-export default syncTrackAssets;

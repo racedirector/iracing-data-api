@@ -14,6 +14,7 @@
     { "path": "./packages/api/schema" },
     { "path": "./packages/events/car-session-flag-events" },
     { "path": "./packages/events/car-track-location-events" },
+    { "path": "./packages/events/driver-swap-events" },
     { "path": "./packages/events/pace-flag-events" },
     { "path": "./packages/events/pace-order-events" },
     { "path": "./packages/events/pit-lane-events" },
@@ -27,12 +28,12 @@
     { "path": "./packages/helpers/sync-car-assets" },
     { "path": "./packages/helpers/sync-telemetry-json-schema" },
     { "path": "./packages/helpers/sync-track-assets" },
+    { "path": "./packages/oauth/client" },
+    { "path": "./packages/oauth/schema" },
     { "path": "./packages/telemetry/client/grpc-node" },
     { "path": "./packages/telemetry/client/grpc-web" },
     { "path": "./packages/telemetry/client/http" },
     { "path": "./packages/telemetry/client/ws" },
-    { "path": "./packages/telemetry/types" },
-    { "path": "./packages/oauth/client" },
-    { "path": "./packages/oauth/schema" }
+    { "path": "./packages/telemetry/types" }
   ]
 }

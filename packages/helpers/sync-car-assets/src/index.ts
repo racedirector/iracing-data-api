@@ -122,5 +122,3 @@ export async function syncCarAssets(
     // TODO: Download images.
   }
 }
-
-export default syncCarAssets;

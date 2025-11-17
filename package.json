@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "check": "pnpm --recursive --stream check",
     "codegen": "pnpm codegen:openapi && pnpm codegen:client",
     "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
@@ -41,6 +42,7 @@
     "prettier-config-standard": "7.0.0",
     "protoc-gen-grpc-web": "^1.5.0",
     "protoc-gen-ts": "0.8.7",
+    "tsup": "^8.5.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },

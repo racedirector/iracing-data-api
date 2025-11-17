@@ -2,7 +2,7 @@
 
 import path from "node:path";
 import { Command } from "@commander-js/extra-typings";
-import { generateOpenAPISpec } from ".";
+import { generateOpenAPISpec } from "./";
 
 const program = new Command("iracing-oauth-api-openapi")
   .requiredOption("-o, --output <path>", "Output path")

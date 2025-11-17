@@ -3,10 +3,24 @@
   "version": "0.0.1-alpha.0",
   "description": "Zod schema for iRacing OAuth API.",
   "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
+  "sideEffects": false,
   "scripts": {
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsup",
+    "check": "tsc --noEmit -p tsconfig.build.json"
   },
   "dependencies": {
     "zod": "^4.1.12"
+  },
+  "buildOptions": {
+    "sourcemap": false
   }
 }

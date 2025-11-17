@@ -2,17 +2,26 @@
   "name": "@iracing-data/oauth-schema-to-openapi",
   "version": "0.0.0-alpha.0",
   "main": "dist/index.js",
-  "typings": "dist/index.d.ts",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js",
+      "import": "./dist/index.mjs"
+    }
+  },
   "bin": {
     "iracing-oauth-api-openapi": "dist/cli.js"
   },
+  "sideEffects": false,
   "scripts": {
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsup",
+    "check": "tsc --noEmit -p tsconfig.build.json"
   },
   "dependencies": {
     "@iracing-data/oauth-schema": "workspace:*",
     "commander": "^14.0.2",
-    "zod": "^4.1.12",
     "zod-openapi": "^5.4.3"
   },
   "devDependencies": {
