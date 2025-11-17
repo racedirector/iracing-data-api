@@ -18,6 +18,7 @@
     { "path": "./packages/events/session-state-events" },
     { "path": "./packages/events/track-location-events" },
     { "path": "./packages/helpers/iracing-json-schema-to-typescript" },
+    { "path": "./packages/helpers/oauth-schema-to-openapi" },
     { "path": "./packages/helpers/sync-car-assets" },
     { "path": "./packages/helpers/sync-telemetry-json-schema" },
     { "path": "./packages/helpers/sync-track-assets" },
@@ -26,6 +27,7 @@
     { "path": "./packages/iracing-telemetry-http" },
     { "path": "./packages/iracing-telemetry-types" },
     { "path": "./packages/iracing-telemetry-ws" },
-    { "path": "./packages/oauth/client" }
+    { "path": "./packages/oauth/client" },
+    { "path": "./packages/oauth/schema" }
   ]
 }

@@ -1,12 +1,4 @@
-export type OAuthTokenResponse = {
-  access_token: string;
-  token_type: "Bearer";
-  expires_in: number;
-  refresh_token?: string | null;
-  refresh_token_expires_in?: string | null;
-  scope?: string | null;
-};
-
+import { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";
 /**
  * HACK: The iRacing Authorization Server doesn't respond in the
  * format that oauth4webapi expects. We need to delete values
@@ -15,7 +7,7 @@ export type OAuthTokenResponse = {
 export async function sanitizeTokenResponse(
   response: Response
 ): Promise<Response> {
-  const token = (await response.clone().json()) as OAuthTokenResponse;
+  const token = (await response.clone().json()) as IRacingOAuthTokenResponse;
 
   if (token?.refresh_token === null) {
     delete token.refresh_token;
