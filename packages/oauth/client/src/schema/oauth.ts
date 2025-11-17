@@ -1,20 +1,31 @@
-import { z } from "zod/v4";
-import { DEFAULT_AUTH_URL, DEFAULT_TOKEN_URL, BASE_URL } from "../constants";
+import { z } from "zod";
+import { IRacingOAuthScopesSchema } from "@iracing-data/oauth-schema";
 
-// Allowed scopes. See: https://oauth.iracing.com/oauth2/book/scopes.html
-export const IRacingOAuthScopeSchema = z.enum([
-  "iracing.auth",
-  "iracing.profile",
-]);
+const DEFAULT_OAUTH_URL = "https://oauth.iracing.com/oauth2";
+const DEFAULT_AUTH_URL = `${DEFAULT_OAUTH_URL}/authorize`;
+const DEFAULT_TOKEN_URL = `${DEFAULT_OAUTH_URL}/token`;
 
-export const IRacingOAuthScopesSchema = z
-  .array(IRacingOAuthScopeSchema)
-  .min(1)
-  // Ensure uniqueness in the provided values
-  .refine(
-    (values) => new Set(values).size === values.length,
-    "Each value must be unique."
-  );
+export const IRacingOAuthBaseURL = z.literal(DEFAULT_OAUTH_URL).meta({
+  id: "iracingOAuthURL",
+  title: "iRacing OAuth Service URL",
+  description: "The URL for the iRacing OAuth service",
+});
+
+export const IRacingOAuthAuthorizationURL = z
+  .templateLiteral([IRacingOAuthBaseURL, "/authorize"])
+  .meta({
+    id: "iracingOAuthAuthorizationURL",
+    title: "iRacing OAuth Service Authorization Endpoint",
+    description: "The endpoint for authorization.",
+  });
+
+export const IRacingOAuthTokenURL = z
+  .templateLiteral([IRacingOAuthBaseURL, "/token"])
+  .meta({
+    id: "iracingOAuthTokenURL",
+    title: "iRacing OAuth Service Token Endpoint",
+    description: "The endpoint for token exchange.",
+  });
 
 export const IRacingOAuthClientMetadataSchema = z
   .object({
@@ -25,7 +36,7 @@ export const IRacingOAuthClientMetadataSchema = z
         id: "authorizationUrl",
         title: "Authorization URL",
         description: `The URL to use when making authorization requests. Defaults to "${DEFAULT_AUTH_URL}"`,
-        note: "The default is acceptable in 99% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
+        note: "The default is acceptable in 99.9% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
       }),
     tokenUrl: z
       .url()
@@ -34,18 +45,18 @@ export const IRacingOAuthClientMetadataSchema = z
         id: "tokenUrl",
         title: "Token URL",
         description: `The URL to use when making token requests. Defaults to "${DEFAULT_TOKEN_URL}"`,
-        note: "The default is acceptable in 99% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
+        note: "The default is acceptable in 99.9% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
       }),
     issuer: z
       .url()
-      .default(BASE_URL)
+      .default(DEFAULT_OAUTH_URL)
       .meta({
         id: "issuer",
         title: "Issuer",
-        description: `The OAuth2.0 issuer to use in discovery cases. Defaults to "${BASE_URL}"`,
-        note: "The default is acceptable in 99% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
+        description: `The OAuth2.0 issuer to use in discovery cases. Defaults to "${DEFAULT_OAUTH_URL}"`,
+        note: "The default is acceptable in 99.9% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
       }),
-    scopes: IRacingOAuthScopesSchema.meta({
+    scopes: z.array(IRacingOAuthScopesSchema).meta({
       id: "scopes",
       title: "Scopes",
       description:
@@ -56,6 +67,24 @@ export const IRacingOAuthClientMetadataSchema = z
       title: "Client ID",
       description:
         "The client ID provided by iRacing after client registration. See: https://oauth.iracing.com/oauth2/book/client_registration.html",
+    }),
+    clientSecret: z.string().optional().meta({
+      id: "clientSecret",
+      title: "Client secret",
+      description:
+        "The client secret optionally provided by iRacing during client registration. See: https://oauth.iracing.com/oauth2/book/client_registration.html",
+    }),
+    username: z.string().optional().meta({
+      id: "username",
+      title: "Email address or username.",
+      description:
+        "The email address or other issued identifier for a user. Only used in the password limited grant.",
+    }),
+    password: z.string().optional().meta({
+      id: "password",
+      title: "User password",
+      description:
+        "The password of the user. Only used in the password limited grant.",
     }),
     redirectUri: z.url().meta({
       id: "redirectUri",
@@ -76,25 +105,15 @@ export const IRacingOAuthClientMetadataSchema = z
     description: "Metadata the user must provide to use the client.",
   });
 
-export const IRacingOAuthCallbackSchema = z.object({
-  state: z.string(),
-  code: z.string(),
-});
-
-export const IRacingOAuthTokenResponseSchema = z.object({
-  access_token: z.string(),
-  token_type: z.literal("bearer"),
-  expires_in: z.number(),
-  refresh_token: z.string().optional(),
-  refresh_token_expires_in: z.number().optional(),
-  scope: z.string().trim(),
-});
-
 /**
  * Type exports
  */
 
-export type IRacingOAuthScope = z.infer<typeof IRacingOAuthScopeSchema>;
+export type IRacingOAuthURL = z.infer<typeof IRacingOAuthBaseURL>;
+export type IRacingAuthorizationURL = z.infer<
+  typeof IRacingOAuthAuthorizationURL
+>;
+export type IRacingTokenURL = z.infer<typeof IRacingOAuthTokenURL>;
 
 export type IRacingOAuthClientMetadataInput = z.input<
   typeof IRacingOAuthClientMetadataSchema
@@ -102,12 +121,4 @@ export type IRacingOAuthClientMetadataInput = z.input<
 
 export type IRacingOAuthClientMetadata = z.infer<
   typeof IRacingOAuthClientMetadataSchema
->;
-
-export type IRacingOAuthCallbackInput = z.infer<
-  typeof IRacingOAuthCallbackSchema
->;
-
-export type IRacingOAuthCallbackResponse = z.infer<
-  typeof IRacingOAuthTokenResponseSchema
 >;
