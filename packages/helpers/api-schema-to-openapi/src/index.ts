@@ -270,7 +270,7 @@ export async function generateOpenAPISpec({
       "/data/doc/carclass": {
         get: {
           operationId: "getCarClassDocs",
-          tags: ["doc", "carclass"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -280,7 +280,7 @@ export async function generateOpenAPISpec({
       "/data/doc/carclass/get": {
         get: {
           operationId: "getCarClassGetDocs",
-          tags: ["doc", "carclass"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -290,7 +290,7 @@ export async function generateOpenAPISpec({
       "/data/doc/car": {
         get: {
           operationId: "getCarDocs",
-          tags: ["doc", "car"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -300,7 +300,7 @@ export async function generateOpenAPISpec({
       "/data/doc/car/assets": {
         get: {
           operationId: "getCarAssetsDocs",
-          tags: ["doc", "car"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -310,7 +310,7 @@ export async function generateOpenAPISpec({
       "/data/doc/car/get": {
         get: {
           operationId: "getCarGetDocs",
-          tags: ["doc", "car"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -320,7 +320,7 @@ export async function generateOpenAPISpec({
       "/data/doc/constants": {
         get: {
           operationId: "getConstantsDocs",
-          tags: ["doc", "constants"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -330,7 +330,7 @@ export async function generateOpenAPISpec({
       "/data/doc/constants/categories": {
         get: {
           operationId: "getConstantsCategoriesDocs",
-          tags: ["doc", "constants"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -340,7 +340,7 @@ export async function generateOpenAPISpec({
       "/data/doc/constants/divisions": {
         get: {
           operationId: "getConstantsDivisionsDocs",
-          tags: ["doc", "constants"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -350,7 +350,7 @@ export async function generateOpenAPISpec({
       "/data/doc/constants/event_types": {
         get: {
           operationId: "getConstantsEventTypesDocs",
-          tags: ["doc", "constants"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -360,7 +360,7 @@ export async function generateOpenAPISpec({
       "/data/doc/driver_stats_by_category": {
         get: {
           operationId: "getDriverStatsByCategoryDocs",
-          tags: ["doc", "driver_stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -370,7 +370,7 @@ export async function generateOpenAPISpec({
       "/data/doc/driver_stats_by_category/{category}": {
         get: {
           operationId: "getDriverStatsByCategoryCategoryDocs",
-          tags: ["doc", "driver_stats"],
+          tags: ["doc"],
           requestParams: {
             path: IRacingDriverStatsByCategoryPathSchema,
           },
@@ -383,7 +383,7 @@ export async function generateOpenAPISpec({
       "/data/doc/hosted": {
         get: {
           operationId: "getHostedDocs",
-          tags: ["doc", "hosted"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -393,7 +393,7 @@ export async function generateOpenAPISpec({
       "/data/doc/hosted/combined_sessions": {
         get: {
           operationId: "getHostedCombinedSessionsDocs",
-          tags: ["doc", "hosted"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -403,7 +403,7 @@ export async function generateOpenAPISpec({
       "/data/doc/hosted/sessions": {
         get: {
           operationId: "getHostedSessionsDocs",
-          tags: ["doc", "hosted"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -413,7 +413,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league": {
         get: {
           operationId: "getLeagueDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -423,7 +423,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/cust_league_sessions": {
         get: {
           operationId: "getLeagueCustomerLeagueSessionsDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -433,7 +433,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/directory": {
         get: {
           operationId: "getLeagueDirectoryDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -443,7 +443,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/get": {
         get: {
           operationId: "getLeagueGetDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -453,7 +453,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/get_points_systems": {
         get: {
           operationId: "getLeagueGetPointsSystemsDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -463,7 +463,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/membership": {
         get: {
           operationId: "getLeagueMembershipDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -473,7 +473,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/roster": {
         get: {
           operationId: "getLeagueRosterDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -483,7 +483,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/seasons": {
         get: {
           operationId: "getLeagueSeasonsDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -493,7 +493,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/season_standings": {
         get: {
           operationId: "getLeagueSeasonStandingsDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -503,7 +503,7 @@ export async function generateOpenAPISpec({
       "/data/doc/league/season_sessions": {
         get: {
           operationId: "getLeagueSeasonSessionsDocs",
-          tags: ["doc", "league"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -513,7 +513,7 @@ export async function generateOpenAPISpec({
       "/data/doc/lookup": {
         get: {
           operationId: "getLookupDocs",
-          tags: ["doc", "lookup"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -523,7 +523,7 @@ export async function generateOpenAPISpec({
       "/data/doc/lookup/countries": {
         get: {
           operationId: "getLookupCountriesDocs",
-          tags: ["doc", "lookup"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -533,7 +533,7 @@ export async function generateOpenAPISpec({
       "/data/doc/lookup/drivers": {
         get: {
           operationId: "getLookupDriversDocs",
-          tags: ["doc", "lookup"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -543,7 +543,7 @@ export async function generateOpenAPISpec({
       "/data/doc/lookup/flairs": {
         get: {
           operationId: "getLookupFlairsDocs",
-          tags: ["doc", "lookup"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -553,7 +553,7 @@ export async function generateOpenAPISpec({
       "/data/doc/lookup/get": {
         get: {
           operationId: "getLookupGetDocs",
-          tags: ["doc", "lookup"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -563,7 +563,7 @@ export async function generateOpenAPISpec({
       "/data/doc/lookup/licenses": {
         get: {
           operationId: "getLookupLicensesDocs",
-          tags: ["doc", "lookup"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -573,7 +573,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member": {
         get: {
           operationId: "getMemberDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -583,7 +583,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/awards": {
         get: {
           operationId: "getMemberAwardsDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -593,7 +593,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/award_instances": {
         get: {
           operationId: "getMemberAwardInstancesDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -603,7 +603,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/chart_data": {
         get: {
           operationId: "getMemberChartDataDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -613,7 +613,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/get": {
         get: {
           operationId: "getMemberGetDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -623,7 +623,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/info": {
         get: {
           operationId: "getMemberInfoDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -633,7 +633,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/participation_credits": {
         get: {
           operationId: "getMemberParticipationCreditsDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -643,7 +643,7 @@ export async function generateOpenAPISpec({
       "/data/doc/member/profile": {
         get: {
           operationId: "getMemberProfileDocs",
-          tags: ["doc", "member"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -653,7 +653,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results": {
         get: {
           operationId: "getResultsDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -663,7 +663,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/get": {
         get: {
           operationId: "getResultsGetDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -673,7 +673,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/event_log": {
         get: {
           operationId: "getResultsEventLogDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -683,7 +683,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/lap_chart_data": {
         get: {
           operationId: "getResultsLapChartDataDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -693,7 +693,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/lap_data": {
         get: {
           operationId: "getResultsLapDataDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -703,7 +703,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/search_hosted": {
         get: {
           operationId: "getResultsSearchHostedDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -713,7 +713,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/search_series": {
         get: {
           operationId: "getResultsSearchSeriesDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -723,7 +723,7 @@ export async function generateOpenAPISpec({
       "/data/doc/results/season_results": {
         get: {
           operationId: "getResultsSeasonResultsDocs",
-          tags: ["doc", "results"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -733,7 +733,7 @@ export async function generateOpenAPISpec({
       "/data/doc/season": {
         get: {
           operationId: "getSeasonDocs",
-          tags: ["doc", "season"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -743,7 +743,7 @@ export async function generateOpenAPISpec({
       "/data/doc/season/list": {
         get: {
           operationId: "getSeasonListDocs",
-          tags: ["doc", "season"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -753,7 +753,7 @@ export async function generateOpenAPISpec({
       "/data/doc/season/race_guide": {
         get: {
           operationId: "getSeasonRaceGuideDocs",
-          tags: ["doc", "season"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -763,7 +763,7 @@ export async function generateOpenAPISpec({
       "/data/doc/season/spectator_subsessionids": {
         get: {
           operationId: "getSeasonSpectatorSubsessionIdsDocs",
-          tags: ["doc", "season"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -773,7 +773,7 @@ export async function generateOpenAPISpec({
       "/data/doc/season/spectator_subsessionids_detail": {
         get: {
           operationId: "getSeasonSpectatorSubsessionIdsDetailDocs",
-          tags: ["doc", "season"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -783,7 +783,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series": {
         get: {
           operationId: "getSeriesDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -793,7 +793,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/assets": {
         get: {
           operationId: "getSeriesAssetsDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -803,7 +803,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/get": {
         get: {
           operationId: "getSeriesGetDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -813,7 +813,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/past_seasons": {
         get: {
           operationId: "getSeriesPastSeasonsDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -823,7 +823,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/seasons": {
         get: {
           operationId: "getSeriesSeasonsDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -833,7 +833,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/season_list": {
         get: {
           operationId: "getSeriesSeasonListDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -843,7 +843,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/season_schedule": {
         get: {
           operationId: "getSeriesSeasonScheduleDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -853,7 +853,7 @@ export async function generateOpenAPISpec({
       "/data/doc/series/stats_series": {
         get: {
           operationId: "getSeriesStatsSeriesDocs",
-          tags: ["doc", "series"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -863,7 +863,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats": {
         get: {
           operationId: "getStatsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -873,7 +873,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_bests": {
         get: {
           operationId: "getStatsMemberBestsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -883,7 +883,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_career": {
         get: {
           operationId: "getStatsMemberCareerDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -893,7 +893,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_division": {
         get: {
           operationId: "getStatsMemberDivisionDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -903,7 +903,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_recap": {
         get: {
           operationId: "getStatsMemberRecapDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -913,7 +913,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_recent_races": {
         get: {
           operationId: "getStatsMemberRecentRacesDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -923,7 +923,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_summary": {
         get: {
           operationId: "getStatsMemberSummaryDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -933,7 +933,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/member_yearly": {
         get: {
           operationId: "getStatsMemberYearlyDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -943,7 +943,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/season_driver_standings": {
         get: {
           operationId: "getStatsSeasonDriverStandingsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -953,7 +953,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/season_supersession_standings": {
         get: {
           operationId: "getStatsSeasonSupersessionStandingsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -963,7 +963,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/season_team_standings": {
         get: {
           operationId: "getStatsSeasonTeamStandingsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -973,7 +973,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/season_tt_standings": {
         get: {
           operationId: "getStatsSeasonTTStandingsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -983,7 +983,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/season_tt_results": {
         get: {
           operationId: "getStatsSeasonTTResultsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -993,7 +993,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/season_qualify_results": {
         get: {
           operationId: "getStatsSeasonQualifyResultsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1003,7 +1003,7 @@ export async function generateOpenAPISpec({
       "/data/doc/stats/world_records": {
         get: {
           operationId: "getStatsWorldRecordsDocs",
-          tags: ["doc", "stats"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1013,7 +1013,7 @@ export async function generateOpenAPISpec({
       "/data/doc/team": {
         get: {
           operationId: "getTeamDocs",
-          tags: ["doc", "team"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1023,7 +1023,7 @@ export async function generateOpenAPISpec({
       "/data/doc/team/get": {
         get: {
           operationId: "getTeamGetDocs",
-          tags: ["doc", "team"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1033,7 +1033,7 @@ export async function generateOpenAPISpec({
       "/data/doc/team/membership": {
         get: {
           operationId: "getTeamMembershipDocs",
-          tags: ["doc", "team"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1043,7 +1043,7 @@ export async function generateOpenAPISpec({
       "/data/doc/time_attack": {
         get: {
           operationId: "getTimeAttackDocs",
-          tags: ["doc", "time_attack"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1053,7 +1053,7 @@ export async function generateOpenAPISpec({
       "/data/doc/time_attack/member_season_results": {
         get: {
           operationId: "getTimeAttackMemberSeasonResultsDocs",
-          tags: ["doc", "time_attack"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1063,7 +1063,7 @@ export async function generateOpenAPISpec({
       "/data/doc/track": {
         get: {
           operationId: "getTrackDocs",
-          tags: ["doc", "track"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1073,7 +1073,7 @@ export async function generateOpenAPISpec({
       "/data/doc/track/assets": {
         get: {
           operationId: "getTrackAssetsDocs",
-          tags: ["doc", "track"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },
@@ -1083,7 +1083,7 @@ export async function generateOpenAPISpec({
       "/data/doc/track/get": {
         get: {
           operationId: "getTrackGetDocs",
-          tags: ["doc", "track"],
+          tags: ["doc"],
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
             401: { $ref: "#/components/responses/Unauthorized" },

@@ -10,7 +10,7 @@
   "dependencies": {
     "@iracing-data/api-router": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
-    "axios": "^1.7.9",
+    "@iracing-data/oauth-router": "workspace:*",
     "better-call": "^1.0.24",
     "cookie-parser": "^1.4.7",
     "express": "^5.1.0",

@@ -1,16 +1,18 @@
+import {
+  IRacingOAuthTokenResponseSchema,
+  IRacingOAuthTokenResponse,
+} from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
 import { OAuthCallbackError } from "./oauth-callback-error";
 import {
   IRacingOAuthClientMetadata,
   IRacingOAuthClientMetadataInput,
   IRacingOAuthClientMetadataSchema,
-  IRacingOAuthTokenResponse,
-  IRacingOAuthTokenResponseSchema,
   StateStore,
 } from "./schema";
 import { sanitizeTokenResponse } from "./utils";
 
-type OAuthClientOptions = {
+export type OAuthClientOptions = {
   // Config
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
 
@@ -185,3 +187,5 @@ export class OAuthClient {
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
   }
 }
+
+export type { IRacingOAuthTokenResponse };

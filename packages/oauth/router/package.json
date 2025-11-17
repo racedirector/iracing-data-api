@@ -1,0 +1,17 @@
+{
+  "name": "@iracing-data/oauth-router",
+  "version": "0.0.1-alpha.0",
+  "description": "better-call based router for the iRacing OAuth API.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "codegen:client": "openapi-generator-cli generate -g typescript-fetch -i openapi/spec.json -o src/client --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case'"
+  },
+  "dependencies": {
+    "@iracing-data/oauth-client": "workspace:*",
+    "better-call": "^1.0.26"
+  },
+  "devDependencies": {
+    "@openapitools/openapi-generator-cli": "^2.25.0"
+  }
+}

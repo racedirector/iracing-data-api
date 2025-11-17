@@ -1,3 +1,4 @@
+import { IRacingErrorResponseSchema } from "@iracing-data/api-schema";
 import {
   IRacingOAuthAuthorizeParametersSchema,
   IRacingOAuthHeadersSchema,
@@ -37,7 +38,7 @@ export async function generateOpenAPISpec({
     },
     servers: [
       {
-        url: "https://oauth.iracing.com",
+        url: "https://oauth.iracing.com/oauth2",
         description: "iRacing OAuth server.",
       },
     ],
@@ -53,13 +54,31 @@ export async function generateOpenAPISpec({
           headers: IRacingOAuthHeadersSchema,
           description: "Session(s) were successfully revoked.",
         },
+        Unauthorized: {
+          description: "Access token is missing or invalid.",
+          content: {
+            "application/json": {
+              schema: IRacingErrorResponseSchema,
+            },
+          },
+        },
+      },
+      securitySchemes: {
+        bearerAuth: {
+          type: "http",
+          scheme: "bearer",
+          bearerFormat: "JWT",
+          description: "JWT Authentication",
+        },
       },
     },
     paths: {
-      "/oauth2/iracing/profile": {
+      "/iracing/profile": {
         get: {
+          security: [{ bearerAuth: [] }],
           responses: {
             200: {
+              description: "Success",
               headers: IRacingOAuthHeadersSchema,
               content: {
                 "application/json": {
@@ -71,10 +90,12 @@ export async function generateOpenAPISpec({
           },
         },
       },
-      "/oauth2/sessions": {
+      "/sessions": {
         get: {
+          security: [{ bearerAuth: [] }],
           responses: {
             200: {
+              description: "Success",
               headers: IRacingOAuthHeadersSchema,
               content: {
                 "application/json": {
@@ -86,8 +107,9 @@ export async function generateOpenAPISpec({
           },
         },
       },
-      "/oauth2/revoke/current": {
+      "/revoke/current": {
         post: {
+          security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
               "application/x-www-form-urlencoded": {
@@ -101,8 +123,9 @@ export async function generateOpenAPISpec({
           },
         },
       },
-      "/oauth2/revoke/sessions": {
+      "/revoke/sessions": {
         post: {
+          security: [{ bearerAuth: [] }],
           requestBody: {
             content: {
               "application/x-www-form-urlencoded": {
@@ -116,15 +139,16 @@ export async function generateOpenAPISpec({
           },
         },
       },
-      "/oauth2/revoke/client": {
+      "/revoke/client": {
         post: {
+          security: [{ bearerAuth: [] }],
           responses: {
             200: { $ref: "#/components/responses/SessionsRevoked" },
             401: { $ref: "#/components/responses/Unauthorized" },
           },
         },
       },
-      "/oauth2/authorize": {
+      "/authorize": {
         get: {
           requestParams: {
             query: IRacingOAuthAuthorizeParametersSchema,
@@ -136,7 +160,7 @@ export async function generateOpenAPISpec({
           },
         },
       },
-      "/oauth2/token": {
+      "/token": {
         post: {
           requestBody: {
             content: {

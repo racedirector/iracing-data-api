@@ -1,0 +1,15 @@
+.openapi-generator-ignore
+apis/DefaultApi.ts
+apis/index.ts
+docs/DefaultApi.md
+docs/ErrorResponse.md
+docs/IracingProfileGet200Response.md
+docs/SessionsGet200Response.md
+docs/SessionsGet200ResponseSessionsInner.md
+index.ts
+models/ErrorResponse.ts
+models/IracingProfileGet200Response.ts
+models/SessionsGet200Response.ts
+models/SessionsGet200ResponseSessionsInner.ts
+models/index.ts
+runtime.ts

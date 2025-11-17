@@ -10,6 +10,7 @@
     "build": "tsc --build tsconfig.build.json"
   },
   "dependencies": {
+    "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/oauth-schema": "workspace:*",
     "commander": "^14.0.2",
     "zod": "^4.1.12",

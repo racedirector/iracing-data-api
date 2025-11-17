@@ -1,9 +1,12 @@
 import path from "node:path";
 import express from "express";
 import cookieParser from "cookie-parser";
-import { createRouter } from "@iracing-data/api-router";
+import {
+  createRouter as createIRacingRouter,
+  IracingAPIResponse,
+} from "@iracing-data/api-router";
+import { createRouter as createOAuthRouter } from "@iracing-data/oauth-router";
 import { PORT } from "./config";
-import oauthClient from "./oauth-client";
 import { page } from "./page";
 import {
   getIRacingSession,
@@ -12,9 +15,12 @@ import {
 } from "./middleware";
 import { toNodeHandler } from "better-call/node";
 import { toResponse } from "better-call";
-import { IracingAPIResponse } from "../../../packages/api-client/dist";
+import oauthClient from "./oauth-client";
 
-const iracingRouter = createRouter({
+/**
+ * Create a router for handling iRacing API requests.
+ */
+const iracingRouter = createIRacingRouter({
   basePath: "/iracing",
   openapi: {
     path: "/reference",
@@ -41,6 +47,42 @@ const iracingRouter = createRouter({
   },
 });
 
+/**
+ * Create a router for handling iRacing OAuth requests.
+ */
+const oauthRouter = createOAuthRouter({
+  oauthClient: oauthClient,
+  callbackPath: "/oauth/iracing/callback",
+  onCallback: (session, { request, setCookie, getHeader }) => {
+    setCookie("iracing-session", JSON.stringify(session), {
+      httpOnly: true,
+    });
+
+    const url = new URL(request.url);
+    url.pathname = "/";
+    url.search = "";
+
+    return Response.redirect(url, 302);
+  },
+  onSignOut: (_, { setCookie }) => {
+    setCookie("iracing-session", "");
+  },
+  onRequest: (request) => {
+    console.debug("Received request:", request);
+  },
+  onResponse: (response) => {
+    console.debug("Received response:", response);
+  },
+  onError: (error) => {
+    console.debug("Received error:", error);
+  },
+  openapi: {
+    disabled: true,
+  },
+});
+
+const oauthNodeHandler = toNodeHandler(oauthRouter.handler);
+
 const availablePaths = Object.values(iracingRouter.endpoints).map(
   ({ path: endpointPath }) => path.join("/iracing", endpointPath)
 );
@@ -58,34 +100,10 @@ app.get("/", getIRacingSession, (req: IRacingSessionRequest, res) => {
     .send(
       page(
         req.accessToken
-          ? `<h1>Authenticated with iRacing</h1><a href="/logout">Sign out</a>${availablePathsList}`
-          : `<h1>Login</h1><a href="/iracing/login">Login with iRacing</a>`
+          ? `<h1>Authenticated with iRacing</h1><a href="/signout">Sign out</a>${availablePathsList}`
+          : `<h1>Login</h1><a href="/signin">Login with iRacing</a>`
       )
     );
-});
-
-/**
- * Kicks off the iRacing OAuth sign-in flow.
- */
-app.get("/iracing/login", async (req, res) => {
-  const { url } = await oauthClient.authorize();
-  return res.redirect(url.toString());
-});
-
-/**
- * Callback for the iRacing OAuth sign-in flow.
- * The path this handler is registered to should match
- * the path provided to iRacing during client registration.
- */
-app.get("/oauth/iracing/callback", async (req, res) => {
-  const params = new URLSearchParams(req.url.split("?")[1]);
-  const session = await oauthClient.callback(params);
-
-  res.cookie("iracing-session", JSON.stringify(session), {
-    httpOnly: true,
-  });
-
-  return res.redirect("/");
 });
 
 app.use(
@@ -93,6 +111,8 @@ app.use(
   setIRacingSessionHeader,
   toNodeHandler(iracingRouter.handler)
 );
+
+app.use(oauthNodeHandler);
 
 app.listen(PORT, () => {
   console.info(`Example app listening on port ${PORT}`);

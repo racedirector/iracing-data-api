@@ -1,0 +1,521 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "iRacing OAuth API",
+    "version": "0.0.1"
+  },
+  "servers": [
+    {
+      "url": "https://oauth.iracing.com/oauth2",
+      "description": "iRacing OAuth server."
+    }
+  ],
+  "externalDocs": {
+    "url": "/oauth2/book"
+  },
+  "paths": {
+    "/iracing/profile": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/x-request-id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "iracing_name": {
+                      "type": "string"
+                    },
+                    "iracing_cust_id": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "iracing_name",
+                    "iracing_cust_id"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/sessions": {
+      "get": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "headers": {
+              "x-request-id": {
+                "$ref": "#/components/headers/x-request-id"
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sessions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "session_id": {
+                            "description": "A session identifier. This value is considered opaque and its format may change without warning at our discretion.",
+                            "type": "string"
+                          },
+                          "client_id": {
+                            "description": "A client identifier.",
+                            "type": "string"
+                          },
+                          "client_name": {
+                            "description": "The name of the client as selected during client registration.",
+                            "type": "string"
+                          },
+                          "client_developer_name": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "client_developer_url": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "client_developer_email": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "scope": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "scope_descriptions": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "current_session": {
+                            "type": "boolean"
+                          },
+                          "impersonated": {
+                            "type": "boolean"
+                          },
+                          "impersonation_note": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_ip": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "ipv4",
+                                "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_continent": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_country": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_subdivisions": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_city": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_user_agent_header": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_user_agent_operating_system": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "first_user_agent_browser": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_ip": {
+                            "anyOf": [
+                              {
+                                "type": "string",
+                                "format": "ipv4",
+                                "pattern": "^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_continent": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_country": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_subdivisions": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_city": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_user_agent_header": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_user_agent_operating_system": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          },
+                          "last_user_agent_browser": {
+                            "anyOf": [
+                              {
+                                "type": "string"
+                              },
+                              {
+                                "type": "null"
+                              }
+                            ]
+                          }
+                        },
+                        "required": [
+                          "session_id",
+                          "client_id",
+                          "client_name",
+                          "client_developer_name",
+                          "client_developer_url",
+                          "client_developer_email",
+                          "scope",
+                          "scope_descriptions",
+                          "current_session",
+                          "impersonated",
+                          "impersonation_note",
+                          "first_ip",
+                          "first_continent",
+                          "first_country",
+                          "first_subdivisions",
+                          "first_city",
+                          "first_user_agent_header",
+                          "first_user_agent_operating_system",
+                          "first_user_agent_browser",
+                          "last_ip",
+                          "last_continent",
+                          "last_country",
+                          "last_subdivisions",
+                          "last_city",
+                          "last_user_agent_header",
+                          "last_user_agent_operating_system",
+                          "last_user_agent_browser"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "sessions"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/revoke/current": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "forgetBrowser": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SessionsRevoked"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/revoke/sessions": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sessionIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                },
+                "required": [
+                  "sessionIds"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SessionsRevoked"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/revoke/client": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "$ref": "#/components/responses/SessionsRevoked"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "errorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "note": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "headers": {
+      "x-request-id": {
+        "required": true,
+        "description": "Each incoming request is assigned a request identifier. The request identifier is used to associate log messages with the request. Please include the value of the received x-request-id header when reporting issues.",
+        "schema": {
+          "title": "Request ID",
+          "description": "Each incoming request is assigned a request identifier. The request identifier is used to associate log messages with the request. Please include the value of the received x-request-id header when reporting issues.",
+          "type": "string"
+        }
+      }
+    },
+    "responses": {
+      "SessionsRevoked": {
+        "description": "Session(s) were successfully revoked.",
+        "headers": {
+          "x-request-id": {
+            "$ref": "#/components/headers/x-request-id"
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "Access token is missing or invalid.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/errorResponse"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "JWT Authentication"
+      }
+    }
+  }
+}

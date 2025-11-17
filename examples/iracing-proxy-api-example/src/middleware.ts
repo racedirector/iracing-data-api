@@ -12,9 +12,9 @@ export async function getIRacingSession(
   next: NextFunction
 ) {
   req.accessToken = req.get("X-IRACING-ACCESS-TOKEN");
-
   if (!req.accessToken && req.cookies?.["iracing-session"]) {
     const parsedSession = JSON.parse(req.cookies["iracing-session"]);
+    console.log("Got parsed session:", parsedSession);
     const decoded = (jwtDecode(parsedSession.access_token) as any) || {};
     const exp =
       typeof decoded.exp === "number"
@@ -33,6 +33,7 @@ export async function getIRacingSession(
         const newSession = await oauthClient.refresh(
           parsedSession.refresh_token
         );
+
         res.cookie("iracing-session", JSON.stringify(newSession), {
           httpOnly: true,
           secure: true,
