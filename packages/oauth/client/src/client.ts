@@ -79,12 +79,12 @@ export class OAuthClient {
    * @param params The query parameters from the authorization server.
    * @returns The auth token.
    */
-  async callback(params: URLSearchParams) {
+  async callback(params: URLSearchParams): Promise<IRacingOAuthTokenResponse> {
     const stateParam = params.get("state");
     const codeParam = params.get("code");
-    const errorParam = params.get("error");
-    const errorDescriptionParam = params.get("error_description");
-    const errorUriParam = params.get("error_uri");
+    // const errorParam = params.get("error");
+    // const errorDescriptionParam = params.get("error_description");
+    // const errorUriParam = params.get("error_uri");
 
     if (!stateParam) {
       throw new OAuthCallbackError(params, 'Missing "state" parameter.');
@@ -161,7 +161,7 @@ export class OAuthClient {
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
   }
 
-  async refresh(token: string) {
+  async refresh(token: string): Promise<IRacingOAuthTokenResponse> {
     const authorizationServer: oauth.AuthorizationServer = {
       issuer: this.clientMetadata.issuer,
       token_endpoint: this.clientMetadata.tokenUrl,
