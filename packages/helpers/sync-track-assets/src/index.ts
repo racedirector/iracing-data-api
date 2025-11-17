@@ -113,9 +113,10 @@ export async function syncTrackAssets(
   /**
    * Get the JSON data for the track assets and track info from the API.
    */
-  const [tracks, trackInfo] = await Promise.all<
-    [Promise<TrackAssetIndex>, Promise<TrackInfo[]>]
-  >([client.trackAssets(), client.trackGet()]);
+  const [tracks, trackInfo] = await Promise.all([
+    client.trackAssets() as Promise<TrackAssetIndex>,
+    client.trackGet() as Promise<TrackInfo[]>,
+  ]);
 
   /**
    * Write the data if requested.
