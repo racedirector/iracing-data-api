@@ -1,22 +1,17 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { IRacingAPISessionClient, hashPassword } from "@iracing-data/api";
-import * as dotenv from "dotenv";
-import { exists, getIRacingCredentials } from "./util.js";
-
-dotenv.config();
+import { CarApi } from "@iracing-data/api-client-fetch";
+import {
+  IRacingGetCarResponse,
+  IRacingGetCarAssetsResponse,
+} from "@iracing-data/api-schema";
+import { exists, fetchAPIResponseData } from "./util.js";
 
 export interface SyncCarAssetsOptions {
   /**
    * The directory to output the car files to.
    */
   outputDir: string;
-
-  /**
-   * iRacing username.
-   * @default undefined
-   */
-  username?: string;
 
   /**
    * Write full car info to the output directory.
@@ -54,26 +49,13 @@ export interface SyncCarAssetsOptions {
 export async function syncCarAssets(
   {
     outputDir,
-    username: usernameProp,
     writeFullAssets = false,
     writeFullInfo = false,
     skipCarInfo = false,
     skipCarAssets = false,
   }: SyncCarAssetsOptions,
-  client: IRacingAPISessionClient = new IRacingAPISessionClient()
+  client: CarApi = new CarApi()
 ) {
-  /**
-   * Authenticate with the iRacing API if no credentials are found.
-   */
-  const needAuth = client.whoami() === null;
-  if (needAuth) {
-    console.log("No credentials found. Authenticating with iRacing API.");
-    const { username, password } = await getIRacingCredentials(usernameProp);
-    const hashedPassword = await hashPassword(username, password);
-    await client.authenticate({ username, hashedPassword });
-    console.log("Authenticated with user:", client.whoami());
-  }
-
   /**
    * Create the output directory if it doesn't exist.
    */
@@ -87,8 +69,10 @@ export async function syncCarAssets(
    * Get the JSON data for the track assets and track info from the API.
    */
   const [cars, carInfo] = await Promise.all([
-    client.carAssets() as Promise<Record<string, any>>,
-    client.carGet() as Promise<any[]>,
+    client
+      .getCarAssets()
+      .then(fetchAPIResponseData<IRacingGetCarAssetsResponse>),
+    client.getCar().then(fetchAPIResponseData<IRacingGetCarResponse>),
   ]);
 
   /**

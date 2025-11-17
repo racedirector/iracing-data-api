@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig/node.json",
+  "compilerOptions": {
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "module": "nodenext",
+    "moduleResolution": "nodenext",
+    "noUnusedLocals": false,
+    "declarationMap": false,
+    "sourceMap": false,
+    "isolatedModules": false,
+    "paths": {
+      "@/*": ["./src/*"]
+    },
+    "lib": ["es6"]
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

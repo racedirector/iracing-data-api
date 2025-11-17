@@ -1,0 +1,5 @@
+{
+  "main": "build/index.cjs",
+  "output": "build/sync-track-assets.blob",
+  "disableExperimentalSEAWarning": true
+}

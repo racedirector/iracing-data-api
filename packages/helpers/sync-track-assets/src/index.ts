@@ -1,34 +1,17 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { IRacingAPISessionClient, hashPassword } from "@iracing-data/api";
-import * as dotenv from "dotenv";
-import { exists, getIRacingCredentials } from "./util";
-
-dotenv.config();
-
-export interface TrackInfo {
-  track_id: number;
-}
-
-export interface TrackAsset {
-  track_id: string;
-  track_map: string;
-  track_map_layers: Record<string, string>;
-}
-
-export type TrackAssetIndex = Record<string, TrackAsset>;
+import { exists, fetchAPIResponseData } from "./util";
+import { TrackApi } from "@iracing-data/api-client-fetch";
+import {
+  IRacingGetTrackAssetsResponse,
+  IRacingGetTrackResponse,
+} from "@iracing-data/api-schema";
 
 export interface SyncTrackAssetsOptions {
   /**
    * The directory to output the SVG files to.
    */
   outputDir: string;
-
-  /**
-   * iRacing username.
-   * @default undefined
-   */
-  username?: string;
 
   /**
    * Force download of track layers even if they already exist.
@@ -79,7 +62,6 @@ export interface SyncTrackAssetsOptions {
 export async function syncTrackAssets(
   {
     outputDir,
-    username: usernameProp,
     force = false,
     writeFullAssets = false,
     writeFullInfo = false,
@@ -87,20 +69,8 @@ export async function syncTrackAssets(
     skipTrackInfo = false,
     includeSVGs = false,
   }: SyncTrackAssetsOptions,
-  client: IRacingAPISessionClient = new IRacingAPISessionClient()
+  client: TrackApi = new TrackApi()
 ) {
-  /**
-   * Authenticate with the iRacing API if no credentials are found.
-   */
-  const needAuth = client.whoami() === null;
-  if (needAuth) {
-    console.log("No credentials found. Authenticating with iRacing API.");
-    const { username, password } = await getIRacingCredentials(usernameProp);
-    const hashedPassword = await hashPassword(username, password);
-    await client.authenticate({ username, password: hashedPassword });
-    console.log("Authenticated with user:", client.whoami());
-  }
-
   /**
    * Create the output directory if it doesn't exist.
    */
@@ -114,8 +84,10 @@ export async function syncTrackAssets(
    * Get the JSON data for the track assets and track info from the API.
    */
   const [tracks, trackInfo] = await Promise.all([
-    client.trackAssets() as Promise<TrackAssetIndex>,
-    client.trackGet() as Promise<TrackInfo[]>,
+    client
+      .getTrackAssets()
+      .then(fetchAPIResponseData<IRacingGetTrackAssetsResponse>),
+    client.getTrack().then(fetchAPIResponseData<IRacingGetTrackResponse>),
   ]);
 
   /**
@@ -135,7 +107,7 @@ export async function syncTrackAssets(
 
   console.log("Downloading assets for", Object.keys(tracks).length, "tracks.");
 
-  for (const [trackId, asset] of Object.entries<TrackAsset>(tracks)) {
+  for (const [trackId, asset] of Object.entries(tracks)) {
     const info = trackInfo.find((t) => t.track_id === +trackId);
     const trackDir = path.join(outputDir, trackId);
     const assetPath = path.join(trackDir, "assets.json");
@@ -176,8 +148,8 @@ export async function syncTrackAssets(
           } else {
             // Get the asset from the URL and write to the file.
             console.log("\tDownloading layer:", layer, "from", layerUrl);
-            const response = await client.client.get(layerUrl);
-            const svg = response.data;
+            const response = await fetch(layerUrl);
+            const svg = await response.text();
             await writeFile(layerPath, svg, "utf8");
           }
         })

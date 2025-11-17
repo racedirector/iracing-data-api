@@ -8,7 +8,7 @@
     "dev": "tsx watch --tsconfig tsconfig.build.json --env-file=.env src/index.ts"
   },
   "dependencies": {
-    "@iracing-data/api": "workspace:*",
+    "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "axios": "^1.7.9",
     "better-call": "^1.0.24",
