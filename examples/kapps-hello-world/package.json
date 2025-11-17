@@ -11,6 +11,6 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@iracing-data/ws": "workspace:*"
+    "@iracing-data/telemetry-client-ws": "workspace:*"
   }
 }

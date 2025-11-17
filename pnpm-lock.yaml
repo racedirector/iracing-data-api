@@ -71,9 +71,6 @@ importers:
       '@iracing-data/car-track-location-events':
         specifier: workspace:*
         version: link:../../packages/events/car-track-location-events
-      '@iracing-data/grpc-node':
-        specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-grpc-node
       '@iracing-data/pace-flag-events':
         specifier: workspace:*
         version: link:../../packages/events/pace-flag-events
@@ -89,9 +86,12 @@ importers:
       '@iracing-data/session-state-events':
         specifier: workspace:*
         version: link:../../packages/events/session-state-events
+      '@iracing-data/telemetry-client-grpc-node':
+        specifier: workspace:*
+        version: link:../../packages/telemetry/client/grpc-node
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-types
+        version: link:../../packages/telemetry/types
       ascii-table3:
         specifier: ^1.0.1
         version: 1.0.1
@@ -173,9 +173,9 @@ importers:
 
   examples/kapps-hello-world:
     dependencies:
-      '@iracing-data/ws':
+      '@iracing-data/telemetry-client-ws':
         specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-ws
+        version: link:../../packages/telemetry/client/ws
 
   examples/oauth-example:
     dependencies:
@@ -213,36 +213,15 @@ importers:
 
   examples/player-pit-stop-events:
     dependencies:
-      '@iracing-data/car-session-flag-events':
-        specifier: workspace:*
-        version: link:../../packages/events/car-session-flag-events
-      '@iracing-data/car-track-location-events':
-        specifier: workspace:*
-        version: link:../../packages/events/car-track-location-events
-      '@iracing-data/grpc-node':
-        specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-grpc-node
-      '@iracing-data/pace-flag-events':
-        specifier: workspace:*
-        version: link:../../packages/events/pace-flag-events
-      '@iracing-data/pace-order-events':
-        specifier: workspace:*
-        version: link:../../packages/events/pace-order-events
-      '@iracing-data/pit-lane-events':
-        specifier: workspace:*
-        version: link:../../packages/events/pit-lane-events
       '@iracing-data/player-pit-stop-events':
         specifier: workspace:*
         version: link:../../packages/events/player-pit-stop-events
-      '@iracing-data/session-flag-events':
+      '@iracing-data/telemetry-client-grpc-node':
         specifier: workspace:*
-        version: link:../../packages/events/session-flag-events
-      '@iracing-data/session-state-events':
-        specifier: workspace:*
-        version: link:../../packages/events/session-state-events
+        version: link:../../packages/telemetry/client/grpc-node
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-types
+        version: link:../../packages/telemetry/types
       ascii-table3:
         specifier: ^1.0.1
         version: 1.0.1
@@ -271,9 +250,9 @@ importers:
 
   examples/telemetry-client:
     dependencies:
-      '@iracing-data/grpc-node':
+      '@iracing-data/telemetry-client-grpc-node':
         specifier: workspace:*
-        version: link:../../packages/iracing-telemetry-grpc-node
+        version: link:../../packages/telemetry/client/grpc-node
 
   packages/api/client/axios:
     dependencies:
@@ -316,7 +295,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       lodash:
         specifier: ^4.17.21
@@ -329,7 +308,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       lodash:
         specifier: ^4.17.21
@@ -342,7 +321,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       lodash:
         specifier: ^4.17.21
@@ -355,7 +334,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       lodash:
         specifier: ^4.17.21
@@ -377,7 +356,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       typescript:
         specifier: ^5.9.2
@@ -387,7 +366,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       typescript:
         specifier: ^5.9.2
@@ -397,7 +376,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       typescript:
         specifier: ^5.9.2
@@ -407,7 +386,7 @@ importers:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../../iracing-telemetry-types
+        version: link:../../telemetry/types
     devDependencies:
       typescript:
         specifier: ^5.9.2
@@ -495,11 +474,29 @@ importers:
         specifier: workspace:*
         version: link:../../api/schema
 
-  packages/iracing-telemetry-grpc-node:
+  packages/oauth/client:
+    dependencies:
+      '@iracing-data/oauth-schema':
+        specifier: workspace:*
+        version: link:../schema
+      oauth4webapi:
+        specifier: ^3.7.0
+        version: 3.7.0
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+
+  packages/oauth/schema:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+
+  packages/telemetry/client/grpc-node:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../iracing-telemetry-types
+        version: link:../../types
     devDependencies:
       '@grpc/grpc-js':
         specifier: 1.13.3
@@ -514,11 +511,11 @@ importers:
         specifier: ^0.10.3
         version: 0.10.3
 
-  packages/iracing-telemetry-grpc-web:
+  packages/telemetry/client/grpc-web:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../iracing-telemetry-types
+        version: link:../../types
     devDependencies:
       '@grpc/grpc-js':
         specifier: 1.13.3
@@ -539,46 +536,34 @@ importers:
         specifier: ^0.10.3
         version: 0.10.3
 
-  packages/iracing-telemetry-http:
+  packages/telemetry/client/http:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../iracing-telemetry-types
+        version: link:../../types
       axios:
         specifier: ^1.7.9
-        version: 1.8.2
+        version: 1.12.2
     devDependencies:
       ts-invariant:
         specifier: ^0.10.3
         version: 0.10.3
 
-  packages/iracing-telemetry-types:
-    devDependencies:
-      '@iracing-data/iracing-json-schema-to-typescript':
-        specifier: workspace:*
-        version: link:../helpers/iracing-json-schema-to-typescript
-      '@iracing-data/sync-telemetry-json-schema':
-        specifier: workspace:*
-        version: link:../helpers/sync-telemetry-json-schema
-      tsx:
-        specifier: ^4.20.4
-        version: 4.20.4
-
-  packages/iracing-telemetry-ws:
+  packages/telemetry/client/ws:
     dependencies:
       '@iracing-data/telemetry-types':
         specifier: workspace:*
-        version: link:../iracing-telemetry-types
+        version: link:../../types
       axios:
         specifier: ^1.7.9
-        version: 1.8.2
+        version: 1.12.2
       ws:
         specifier: ^8.18.1
         version: 8.18.1
     devDependencies:
       '@types/node':
         specifier: ^24.3.1
-        version: 24.3.1
+        version: 24.10.0
       '@types/ws':
         specifier: ^8.5.4
         version: 8.18.1
@@ -586,23 +571,17 @@ importers:
         specifier: ^0.10.3
         version: 0.10.3
 
-  packages/oauth/client:
-    dependencies:
-      '@iracing-data/oauth-schema':
+  packages/telemetry/types:
+    devDependencies:
+      '@iracing-data/iracing-json-schema-to-typescript':
         specifier: workspace:*
-        version: link:../schema
-      oauth4webapi:
-        specifier: ^3.7.0
-        version: 3.7.0
-      zod:
-        specifier: ^4.1.12
-        version: 4.1.12
-
-  packages/oauth/schema:
-    dependencies:
-      zod:
-        specifier: ^4.1.12
-        version: 4.1.12
+        version: link:../../helpers/iracing-json-schema-to-typescript
+      '@iracing-data/sync-telemetry-json-schema':
+        specifier: workspace:*
+        version: link:../../helpers/sync-telemetry-json-schema
+      tsx:
+        specifier: ^4.20.4
+        version: 4.20.5
 
 packages:
 
@@ -2056,7 +2035,6 @@ packages:
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
-    dev: true
 
   /axios@1.8.2:
     resolution: {integrity: sha512-ls4GYBm5aig9vWx8AWDSGLpnpDQRtWAfrjU+EuytuODrFBkqesN2RkOQCBzrA1RQNHw1SmRMSDDDSwzNAYQ6Rg==}
@@ -3376,15 +3354,6 @@ packages:
 
   /fs-constants@1.0.0:
     resolution: {integrity: sha512-y6OAwoSIf7FyjMIv94u+b5rdheZEjzR63GTyZJm5qh4Bi+2YgwLCcI/fPFZkL5PSixOt6ZNKm+w+Hfp/Bciwow==}
-    dev: true
-
-  /fs-extra@11.3.0:
-    resolution: {integrity: sha512-Z4XaCL6dUDHfP/jT25jJKMmtxvuwbkrD1vNSMFlo9lNLY2c5FHYSQgHPRZUjAB26TpDEoW9HCOgplrdbaPV/ew==}
-    engines: {node: '>=14.14'}
-    dependencies:
-      graceful-fs: 4.2.11
-      jsonfile: 6.1.0
-      universalify: 2.0.1
     dev: true
 
   /fs-extra@11.3.2:
@@ -4747,7 +4716,7 @@ packages:
     requiresBuild: true
     dependencies:
       download: 8.0.0
-      fs-extra: 11.3.0
+      fs-extra: 11.3.2
     dev: true
 
   /protoc-gen-ts@0.8.7:

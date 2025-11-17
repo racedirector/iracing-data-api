@@ -10,38 +10,37 @@
 // 	protoc              v5.29.3
 // source: iracing-proto/telemetry.proto
 
-
 /* eslint-disable */
 // @ts-nocheck
 
+import * as grpcWeb from "grpc-web";
 
-import * as grpcWeb from 'grpc-web';
-
-import * as google_protobuf_empty_pb from 'google-protobuf/google/protobuf/empty_pb'; // proto import: "google/protobuf/empty.proto"
-import * as iracing$proto_telemetry_pb from '../iracing-proto/telemetry_pb'; // proto import: "iracing-proto/telemetry.proto"
-
+import * as google_protobuf_empty_pb from "google-protobuf/google/protobuf/empty_pb"; // proto import: "google/protobuf/empty.proto"
+import * as iracing$proto_telemetry_pb from "./telemetry_pb"; // proto import: "iracing-proto/telemetry.proto"
 
 export class TelemetryClient {
   client_: grpcWeb.AbstractClientBase;
   hostname_: string;
-  credentials_: null | { [index: string]: string; };
-  options_: null | { [index: string]: any; };
+  credentials_: null | { [index: string]: string };
+  options_: null | { [index: string]: any };
 
-  constructor (hostname: string,
-               credentials?: null | { [index: string]: string; },
-               options?: null | { [index: string]: any; }) {
+  constructor(
+    hostname: string,
+    credentials?: null | { [index: string]: string },
+    options?: null | { [index: string]: any }
+  ) {
     if (!options) options = {};
     if (!credentials) credentials = {};
-    options['format'] = 'text';
+    options["format"] = "text";
 
     this.client_ = new grpcWeb.GrpcWebClientBase(options);
-    this.hostname_ = hostname.replace(/\/+$/, '');
+    this.hostname_ = hostname.replace(/\/+$/, "");
     this.credentials_ = credentials;
     this.options_ = options;
   }
 
   methodDescriptorDumpTelemetry = new grpcWeb.MethodDescriptor(
-    '/iracing.telemetry.Telemetry/DumpTelemetry',
+    "/iracing.telemetry.Telemetry/DumpTelemetry",
     grpcWeb.MethodType.UNARY,
     google_protobuf_empty_pb.Empty,
     iracing$proto_telemetry_pb.GetTelemetryResponse,
@@ -53,38 +52,45 @@ export class TelemetryClient {
 
   dumpTelemetry(
     request: google_protobuf_empty_pb.Empty,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_telemetry_pb.GetTelemetryResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_telemetry_pb.GetTelemetryResponse>;
 
   dumpTelemetry(
     request: google_protobuf_empty_pb.Empty,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryResponse>;
 
   dumpTelemetry(
     request: google_protobuf_empty_pb.Empty,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.telemetry.Telemetry/DumpTelemetry',
+        this.hostname_ + "/iracing.telemetry.Telemetry/DumpTelemetry",
         request,
         metadata || {},
         this.methodDescriptorDumpTelemetry,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.telemetry.Telemetry/DumpTelemetry',
-    request,
-    metadata || {},
-    this.methodDescriptorDumpTelemetry);
+      this.hostname_ + "/iracing.telemetry.Telemetry/DumpTelemetry",
+      request,
+      metadata || {},
+      this.methodDescriptorDumpTelemetry
+    );
   }
 
   methodDescriptorDumpTelemetryString = new grpcWeb.MethodDescriptor(
-    '/iracing.telemetry.Telemetry/DumpTelemetryString',
+    "/iracing.telemetry.Telemetry/DumpTelemetryString",
     grpcWeb.MethodType.UNARY,
     google_protobuf_empty_pb.Empty,
     iracing$proto_telemetry_pb.GetTelemetryStringResponse,
@@ -96,38 +102,45 @@ export class TelemetryClient {
 
   dumpTelemetryString(
     request: google_protobuf_empty_pb.Empty,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
 
   dumpTelemetryString(
     request: google_protobuf_empty_pb.Empty,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryStringResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryStringResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
 
   dumpTelemetryString(
     request: google_protobuf_empty_pb.Empty,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryStringResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryStringResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.telemetry.Telemetry/DumpTelemetryString',
+        this.hostname_ + "/iracing.telemetry.Telemetry/DumpTelemetryString",
         request,
         metadata || {},
         this.methodDescriptorDumpTelemetryString,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.telemetry.Telemetry/DumpTelemetryString',
-    request,
-    metadata || {},
-    this.methodDescriptorDumpTelemetryString);
+      this.hostname_ + "/iracing.telemetry.Telemetry/DumpTelemetryString",
+      request,
+      metadata || {},
+      this.methodDescriptorDumpTelemetryString
+    );
   }
 
   methodDescriptorGetTelemetry = new grpcWeb.MethodDescriptor(
-    '/iracing.telemetry.Telemetry/GetTelemetry',
+    "/iracing.telemetry.Telemetry/GetTelemetry",
     grpcWeb.MethodType.UNARY,
     iracing$proto_telemetry_pb.GetTelemetryRequest,
     iracing$proto_telemetry_pb.GetTelemetryResponse,
@@ -139,38 +152,45 @@ export class TelemetryClient {
 
   getTelemetry(
     request: iracing$proto_telemetry_pb.GetTelemetryRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_telemetry_pb.GetTelemetryResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_telemetry_pb.GetTelemetryResponse>;
 
   getTelemetry(
     request: iracing$proto_telemetry_pb.GetTelemetryRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryResponse>;
 
   getTelemetry(
     request: iracing$proto_telemetry_pb.GetTelemetryRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.telemetry.Telemetry/GetTelemetry',
+        this.hostname_ + "/iracing.telemetry.Telemetry/GetTelemetry",
         request,
         metadata || {},
         this.methodDescriptorGetTelemetry,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.telemetry.Telemetry/GetTelemetry',
-    request,
-    metadata || {},
-    this.methodDescriptorGetTelemetry);
+      this.hostname_ + "/iracing.telemetry.Telemetry/GetTelemetry",
+      request,
+      metadata || {},
+      this.methodDescriptorGetTelemetry
+    );
   }
 
   methodDescriptorGetTelemetryString = new grpcWeb.MethodDescriptor(
-    '/iracing.telemetry.Telemetry/GetTelemetryString',
+    "/iracing.telemetry.Telemetry/GetTelemetryString",
     grpcWeb.MethodType.UNARY,
     iracing$proto_telemetry_pb.GetTelemetryRequest,
     iracing$proto_telemetry_pb.GetTelemetryStringResponse,
@@ -182,38 +202,45 @@ export class TelemetryClient {
 
   getTelemetryString(
     request: iracing$proto_telemetry_pb.GetTelemetryRequest,
-    metadata?: grpcWeb.Metadata | null): Promise<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
+    metadata?: grpcWeb.Metadata | null
+  ): Promise<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
 
   getTelemetryString(
     request: iracing$proto_telemetry_pb.GetTelemetryRequest,
     metadata: grpcWeb.Metadata | null,
-    callback: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryStringResponse) => void): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
+    callback: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryStringResponse
+    ) => void
+  ): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryStringResponse>;
 
   getTelemetryString(
     request: iracing$proto_telemetry_pb.GetTelemetryRequest,
     metadata?: grpcWeb.Metadata | null,
-    callback?: (err: grpcWeb.RpcError,
-               response: iracing$proto_telemetry_pb.GetTelemetryStringResponse) => void) {
+    callback?: (
+      err: grpcWeb.RpcError,
+      response: iracing$proto_telemetry_pb.GetTelemetryStringResponse
+    ) => void
+  ) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
-        this.hostname_ +
-          '/iracing.telemetry.Telemetry/GetTelemetryString',
+        this.hostname_ + "/iracing.telemetry.Telemetry/GetTelemetryString",
         request,
         metadata || {},
         this.methodDescriptorGetTelemetryString,
-        callback);
+        callback
+      );
     }
     return this.client_.unaryCall(
-    this.hostname_ +
-      '/iracing.telemetry.Telemetry/GetTelemetryString',
-    request,
-    metadata || {},
-    this.methodDescriptorGetTelemetryString);
+      this.hostname_ + "/iracing.telemetry.Telemetry/GetTelemetryString",
+      request,
+      metadata || {},
+      this.methodDescriptorGetTelemetryString
+    );
   }
 
   methodDescriptorSubscribeTelemetryStream = new grpcWeb.MethodDescriptor(
-    '/iracing.telemetry.Telemetry/SubscribeTelemetryStream',
+    "/iracing.telemetry.Telemetry/SubscribeTelemetryStream",
     grpcWeb.MethodType.SERVER_STREAMING,
     iracing$proto_telemetry_pb.TelemetrySubscriptionRequest,
     iracing$proto_telemetry_pb.GetTelemetryResponse,
@@ -225,17 +252,18 @@ export class TelemetryClient {
 
   subscribeTelemetryStream(
     request: iracing$proto_telemetry_pb.TelemetrySubscriptionRequest,
-    metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryResponse> {
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryResponse> {
     return this.client_.serverStreaming(
-      this.hostname_ +
-        '/iracing.telemetry.Telemetry/SubscribeTelemetryStream',
+      this.hostname_ + "/iracing.telemetry.Telemetry/SubscribeTelemetryStream",
       request,
       metadata || {},
-      this.methodDescriptorSubscribeTelemetryStream);
+      this.methodDescriptorSubscribeTelemetryStream
+    );
   }
 
   methodDescriptorSubscribeTelemetryStringStream = new grpcWeb.MethodDescriptor(
-    '/iracing.telemetry.Telemetry/SubscribeTelemetryStringStream',
+    "/iracing.telemetry.Telemetry/SubscribeTelemetryStringStream",
     grpcWeb.MethodType.SERVER_STREAMING,
     iracing$proto_telemetry_pb.TelemetrySubscriptionRequest,
     iracing$proto_telemetry_pb.GetTelemetryStringResponse,
@@ -247,14 +275,14 @@ export class TelemetryClient {
 
   subscribeTelemetryStringStream(
     request: iracing$proto_telemetry_pb.TelemetrySubscriptionRequest,
-    metadata?: grpcWeb.Metadata): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryStringResponse> {
+    metadata?: grpcWeb.Metadata
+  ): grpcWeb.ClientReadableStream<iracing$proto_telemetry_pb.GetTelemetryStringResponse> {
     return this.client_.serverStreaming(
       this.hostname_ +
-        '/iracing.telemetry.Telemetry/SubscribeTelemetryStringStream',
+        "/iracing.telemetry.Telemetry/SubscribeTelemetryStringStream",
       request,
       metadata || {},
-      this.methodDescriptorSubscribeTelemetryStringStream);
+      this.methodDescriptorSubscribeTelemetryStringStream
+    );
   }
-
 }
-
