@@ -1,7 +1,11 @@
 {
   "include": [],
   "references": [
-    { "path": "./packages/apps/race-events" },
+    { "path": "./apps/race-events" },
+    { "path": "./examples/kapps-hello-world" },
+    { "path": "./examples/oauth-example" },
+    { "path": "./examples/player-pit-stop-events" },
+    { "path": "./examples/telemetry-client" },
     { "path": "./packages/api" },
     { "path": "./packages/cli" },
     { "path": "./packages/events/car-session-flag-events" },
@@ -12,6 +16,16 @@
     { "path": "./packages/events/player-pit-stop-events" },
     { "path": "./packages/events/session-flag-events" },
     { "path": "./packages/events/session-state-events" },
-    { "path": "./packages/events/track-location-events" }
+    { "path": "./packages/events/track-location-events" },
+    { "path": "./packages/helpers/iracing-json-schema-to-typescript" },
+    { "path": "./packages/helpers/sync-car-assets" },
+    { "path": "./packages/helpers/sync-telemetry-json-schema" },
+    { "path": "./packages/helpers/sync-track-assets" },
+    { "path": "./packages/iracing-telemetry-grpc-node" },
+    { "path": "./packages/iracing-telemetry-grpc-web" },
+    { "path": "./packages/iracing-telemetry-http" },
+    { "path": "./packages/iracing-telemetry-types" },
+    { "path": "./packages/iracing-telemetry-ws" },
+    { "path": "./packages/oauth/client" }
   ]
 }
