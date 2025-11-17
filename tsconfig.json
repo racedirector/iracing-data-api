@@ -1,4 +1,17 @@
 {
   "include": [],
-  "references": [{ "path": "./packages/api" }, { "path": "./packages/cli" }]
+  "references": [
+    { "path": "./packages/apps/race-events" },
+    { "path": "./packages/api" },
+    { "path": "./packages/cli" },
+    { "path": "./packages/events/car-session-flag-events" },
+    { "path": "./packages/events/car-track-location-events" },
+    { "path": "./packages/events/pace-flag-events" },
+    { "path": "./packages/events/pace-order-events" },
+    { "path": "./packages/events/pit-lane-events" },
+    { "path": "./packages/events/player-pit-stop-events" },
+    { "path": "./packages/events/session-flag-events" },
+    { "path": "./packages/events/session-state-events" },
+    { "path": "./packages/events/track-location-events" }
+  ]
 }

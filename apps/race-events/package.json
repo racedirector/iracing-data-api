@@ -6,6 +6,7 @@
   "type": "module",
   "scripts": {
     "build": "tsc",
+    "build:executable": "pnpm bundle && pnpm --parallel --stream '/^build:executable:.+$/'",
     "build:executable:macos": "./scripts/build-executable-macos.sh",
     "build:executable:windows": "./scripts/build-executable-windows.sh",
     "bundle": "esbuild ./src/index.ts --bundle --platform=node --outfile=build/index.cjs --format=cjs",
