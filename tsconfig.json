@@ -26,6 +26,7 @@
     { "path": "./packages/iracing-telemetry-http" },
     { "path": "./packages/iracing-telemetry-types" },
     { "path": "./packages/iracing-telemetry-ws" },
-    { "path": "./packages/oauth/client" }
+    { "path": "./packages/oauth/client" },
+    { "path": "./packages/oauth/schema" }
   ]
 }

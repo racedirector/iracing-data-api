@@ -530,6 +530,12 @@ importers:
         specifier: ^4.0.17
         version: 4.0.17
 
+  packages/oauth/schema:
+    dependencies:
+      zod:
+        specifier: ^4.1.12
+        version: 4.1.12
+
 packages:
 
   /@apidevtools/json-schema-ref-parser@11.9.3:
@@ -5243,4 +5249,8 @@ packages:
 
   /zod@4.0.17:
     resolution: {integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==}
+    dev: false
+
+  /zod@4.1.12:
+    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
     dev: false
