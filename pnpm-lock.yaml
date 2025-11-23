@@ -11,6 +11,9 @@ importers:
       '@iracing-data/api-schema-to-openapi':
         specifier: workspace:*
         version: link:packages/helpers/api-schema-to-openapi
+      '@iracing-data/oauth-schema-to-openapi':
+        specifier: workspace:*
+        version: link:packages/helpers/oauth-schema-to-openapi
       '@openapitools/openapi-generator-cli':
         specifier: ^2.25.0
         version: 2.25.0(@types/node@24.10.1)

@@ -9,8 +9,10 @@
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api:axios": "openapi-generator-cli generate -g typescript-axios -i openapi/iracing.json -o packages/api/client/axios --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-axios'",
     "codegen:client:api:fetch": "openapi-generator-cli generate -g typescript-fetch -i openapi/iracing.json -o packages/api/client/fetch --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-fetch'",
+    "codegen:client:oauth:fetch": "openapi-generator-cli generate -g typescript-fetch -i openapi/oauth.json -o packages/oauth/client/src/fetch --additional-properties=useSingleRequestParameter=true,paramNaming='original'",
     "codegen:openapi": "pnpm -w --parallel --stream '/^codegen:openapi:.+$/'",
     "codegen:openapi:api": "iracing-api-openapi -o ./openapi -f iracing.json",
+    "codegen:openapi:oauth": "iracing-oauth-api-openapi -o ./openapi -f oauth.json",
     "lint:fix": "pnpm lint --fix",
     "lint": "eslint . --ext .ts,.js",
     "style:fix": "prettier --write .",
@@ -26,6 +28,7 @@
   "license": "ISC",
   "devDependencies": {
     "@iracing-data/api-schema-to-openapi": "workspace:*",
+    "@iracing-data/oauth-schema-to-openapi": "workspace:*",
     "@openapitools/openapi-generator-cli": "^2.25.0",
     "@types/google-protobuf": "^3.15.12",
     "@types/lodash": "^4.17.15",
