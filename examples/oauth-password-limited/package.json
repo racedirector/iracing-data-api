@@ -1,0 +1,14 @@
+{
+  "name": "iracing-password-limited-oauth",
+  "version": "0.0.1",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "start": "node --env-file .env dist/index.js"
+  },
+  "dependencies": {
+    "@iracing-data/oauth-client": "workspace:*",
+    "@iracing-data/api-client-fetch": "workspace:*"
+  }
+}

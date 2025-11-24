@@ -107,9 +107,7 @@ export class OAuthClient {
 
   /**
    * Authorizes the consumer with the password limited flow on iRacing auth servers.
-   *
-   * TODO: Implement a token store mechanism so clients can store the tokens where they want
-   * instead of handling responses directly.
+   * @returns The session token from the OAuth API.
    */
   async passwordLimitedAuthorization() {
     const { username, password, clientId, clientSecret, scopes } =
@@ -148,19 +146,16 @@ export class OAuthClient {
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: JSON.stringify(requestParameters),
+      body: new URLSearchParams(requestParameters),
     });
 
     // TODO: Check headers? Return rate-limit status?
-
-    // !!!: Likely can remove...
-    const normalizedResponse = await sanitizeTokenResponse(response);
 
     // Check the response as if it were any other oauth4webapi request for sanity.
     const result = await oauth.processAuthorizationCodeResponse(
       this.authorizationServer,
       this.authorizationClient,
-      normalizedResponse
+      response
     );
 
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);

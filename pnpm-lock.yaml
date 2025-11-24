@@ -214,6 +214,15 @@ importers:
         specifier: ^4.19.0
         version: 4.20.4
 
+  examples/oauth-password-limited:
+    dependencies:
+      '@iracing-data/api-client-fetch':
+        specifier: workspace:*
+        version: link:../../packages/api/client/fetch
+      '@iracing-data/oauth-client':
+        specifier: workspace:*
+        version: link:../../packages/oauth/client
+
   examples/player-pit-stop-events:
     dependencies:
       '@iracing-data/player-pit-stop-events':
