@@ -498,8 +498,8 @@ importers:
         specifier: workspace:*
         version: link:../schema
       oauth4webapi:
-        specifier: ^3.7.0
-        version: 3.7.0
+        specifier: ^3.8.3
+        version: 3.8.3
       zod:
         specifier: ^4.1.12
         version: 4.1.12
@@ -4295,8 +4295,8 @@ packages:
       sort-keys: 2.0.0
     dev: true
 
-  /oauth4webapi@3.7.0:
-    resolution: {integrity: sha512-Q52wTPUWPsVLVVmTViXPQFMW2h2xv2jnDGxypjpelCFKaOjLsm7AxYuOk1oQgFm95VNDbuggasu9htXrz6XwKw==}
+  /oauth4webapi@3.8.3:
+    resolution: {integrity: sha512-pQ5BsX3QRTgnt5HxgHwgunIRaDXBdkT23tf8dfzmtTIL2LTpdmxgbpbBm0VgFWAIDlezQvQCTgnVIUmHupXHxw==}
     dev: false
 
   /object-assign@4.1.1:
