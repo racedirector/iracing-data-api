@@ -7,6 +7,6 @@
     "build": "tsc --build tsconfig.build.json"
   },
   "dependencies": {
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   }
 }
