@@ -1,30 +1,30 @@
-# @iracing-data/api-schema-to-openapi-schema
+# @iracing-data/api-schema-to-openapi
 
-Helper function to generate OpenAPI (Swagger) spec from [iRacing API zod schema](../../api-schema/).
+Generate an OpenAPI definition from the Zod schema used by the `/data` API.
 
 ## Installation
 
-```sh
-$ pnpm add -D @iracing/data/api-schema-to-openapi
+```bash
+pnpm add -D @iracing-data/api-schema-to-openapi
 ```
 
 ## Usage
 
 ### CLI
 
-```sh
-$ iracing-api-openapi -f openapi.json -o ~/Desktop
+```bash
+iracing-api-openapi -f openapi.json -o ./dist
 ```
 
 ### Programmatically
 
-```ts
-import { generateOpenAPISpect } from "@iracing-data/api-schema-to-openapi";
+```typescript
+import { generateOpenAPISpec } from "@iracing-data/api-schema-to-openapi";
 
 await generateOpenAPISpec({
   fileName: "openapi.json",
-  outputDir: "~/Desktop",
+  outputDir: "./dist",
 });
-
-console.log("Output schema to", path.join(output, file));
 ```
+
+The generator consumes schemas from `@iracing-data/api-schema` and writes an OpenAPI document for client generation and documentation.

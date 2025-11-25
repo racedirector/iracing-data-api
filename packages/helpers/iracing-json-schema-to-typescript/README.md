@@ -1,11 +1,23 @@
 # @iracing-data/helpers/iracing-json-schema-to-typescript
 
-Helper functions to generate typescript types from JSON schema (from [sync-telemetry-json-schema](../sync-telemetry-json-schema/README.md))
+Transforms the downloaded telemetry JSON schemas into TypeScript definitions.
 
 ## Installation
 
-_Coming soon_
+```bash
+pnpm add @iracing-data/helpers/iracing-json-schema-to-typescript
+```
 
 ## Usage
 
-_Coming soon_
+```typescript
+import path from "node:path";
+import { generateTypesFromSchema } from "@iracing-data/helpers/iracing-json-schema-to-typescript";
+
+await generateTypesFromSchema({
+  schemaPath: path.join(process.cwd(), "schemas/telemetry.json"),
+  outputPath: path.join(process.cwd(), "src/generated/telemetry-types.ts"),
+});
+```
+
+Combine this helper with `@iracing-data/helpers/sync-telemetry-json-schema` to fetch and convert schemas in one workflow.

@@ -1,56 +1,23 @@
 # @iracing-data/pace-order-events
 
-EventEmitter for car-related session flag telemetry events from iRacing.
+EventEmitter that tracks the pacing order (rows and lines) for each car during cautions.
 
 ## Installation
 
-```
-npm install @iracing-data/pace-order-events
-yarn add @iracing-data/pace-order-events
-pnpm i @iracing-data/pace-order-events
+```bash
+pnpm add @iracing-data/pace-order-events
 ```
 
 ## Usage
 
 ```typescript
-const paceOrderManager = new PaceOrderEventEmitter()
-  .on(
-    "change",
-    ({
-      sessionTime,
-      previousLines,
-      currentLines,
-      previousRows,
-      currentRows,
-      paceMode,
-    }) => {}
-  )
-  .on(
-    "rowsChange",
-    ({ sessionTime, previousRows, currentRows, paceMode }) => {}
-  )
-  .on(
-    "rowChange",
-    ({ sessionTime, previousRow, currentRow, carIndex, paceMode }) => {}
-  )
-  .on(
-    "linesChange",
-    ({ sessionTime, previousLines, currentLines, paceMode }) => {}
-  )
-  .on(
-    "lineChange",
-    ({ sessionTime, previousLine, currentLine, carIndex, paceMode }) => {}
-  )
-  .on(
-    "carMoved",
-    ({
-      sessionTime,
-      previousLine,
-      currentLine,
-      previousRow,
-      currentRow,
-      carIndex,
-      paceMode,
-    }) => {}
-  );
+import { PaceOrderEventEmitter } from "@iracing-data/pace-order-events";
+
+const paceOrder = new PaceOrderEventEmitter().on("carMoved", ({ carIndex, currentRow, currentLine }) => {
+  console.log(`Car ${carIndex} moved to row ${currentRow}, line ${currentLine}`);
+});
+
+paceOrder.process(paceLines, paceRows, paceMode, sessionTime);
 ```
+
+`process` compares the latest pace lines/rows to the previous tick and emits the events declared in `PaceOrderEventMap` (`change`, `rowsChange`, `linesChange`, and per-car movement events).

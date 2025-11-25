@@ -1,11 +1,19 @@
 # @iracing-data/telemetry-types
 
-TypeScript types for the iRacing telemetry API.
+TypeScript definitions for the telemetry services exposed by `iracing-telemetry-grpc`.
 
-Codegen is designed to be used with [iracing-telemetry-grpc](https://github.com/racedirector/iracing-telemetry-grpc) to use the provided JSON schema resource.
+## Installation
+
+```bash
+pnpm add @iracing-data/telemetry-types
+```
 
 ## Usage
 
-0. Start iRacing on a host machine.
-1. Start the telemetry server on the host machine (or use a test file).
-2. Run the codegen script to generate the TypeScript types.
+```typescript
+import { TelemetryData, SessionState } from "@iracing-data/telemetry-types";
+
+const example: TelemetryData = { SessionTime: "0.0", SessionState: SessionState.invalid };
+```
+
+The types are generated from the telemetry JSON schemas and are shared across telemetry clients and event emitters.

@@ -1,32 +1,24 @@
 # @iracing-data/helpers/sync-telemetry-json-schema
 
-Helper functions to download the JSON schema of iRacing telemetry from a https://github.com/racedirector/iracing-telemetry-services gRPC server instance.
+Downloads the telemetry JSON schemas from an `iracing-telemetry-services` deployment (gRPC) and writes them locally.
 
 ## Installation
 
-_Coming soon_
+```bash
+pnpm add @iracing-data/helpers/sync-telemetry-json-schema
+```
 
 ## Usage
 
-### gRPC Server
-
-Exports a function that downloads the JSON schema from the gRPC server to the provided directory.
-
 ```typescript
-  const API_URL = process.env.API_URL
+import path from "node:path";
+import { downloadSchema } from "@iracing-data/helpers/sync-telemetry-json-schema";
 
-  const schemaOutputDir = path.join(__dirname, "../schemas");
-
-  const { telemetrySchemaPath, sessionSchemaPath } = await downloadSchema({
-    serverUrl: API_URL,
-    outputDir: schemaOutputDir,
-  });
+const schemaOutputDir = path.join(process.cwd(), "schemas");
+const { telemetrySchemaPath, sessionSchemaPath } = await downloadSchema({
+  serverUrl: process.env.API_URL!,
+  outputDir: schemaOutputDir,
+});
 ```
 
-### HTTP Server
-
-_Coming Soon_
-
-#### WebSockets
-
-_Coming Soon_
+The helper fetches the telemetry and session schemas over gRPC and returns the paths to the downloaded files.
