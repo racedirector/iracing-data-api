@@ -9,6 +9,6 @@
   "dependencies": {
     "@iracing-data/oauth-schema": "workspace:*",
     "oauth4webapi": "^3.8.3",
-    "zod": "^4.1.12"
+    "zod": "^4.1.13"
   }
 }
