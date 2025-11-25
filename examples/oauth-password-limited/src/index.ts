@@ -29,7 +29,6 @@ async function main() {
       clientSecret: process.env.IRACING_AUTH_SECRET,
       username: process.env.IRACING_AUTH_USERNAME,
       password: process.env.IRACING_AUTH_PASSWORD,
-      redirectUri: `http://127.0.0.1:${process.env.PORT}/oauth/iracing/callback`,
       scopes: ["iracing.auth", "iracing.profile"],
     },
     stateStore: new InMemoryStore(),

@@ -11,7 +11,7 @@ import {
   IRacingOAuthClientMetadataSchema,
   StateStore,
 } from "./schema";
-import { sanitizeTokenResponse, maskSecret } from "./utils";
+import { maskSecret } from "./utils";
 
 export type OAuthClientOptions = {
   // Config
@@ -67,7 +67,11 @@ export class OAuthClient {
    * @returns The URL, verifier, and state parameter.
    */
   async authorize() {
-    // TODO: Throw an error if the client is configured incorrectly.
+    if (!this.clientMetadata.redirectUri) {
+      throw new Error(
+        "Client is not configured for the authorization code flow; missing `redirectUri`."
+      );
+    }
 
     const verifier = oauth.generateRandomCodeVerifier();
     const challenge = await oauth.calculatePKCECodeChallenge(verifier);
@@ -149,8 +153,6 @@ export class OAuthClient {
       body: new URLSearchParams(requestParameters),
     });
 
-    // TODO: Check headers? Return rate-limit status?
-
     // Check the response as if it were any other oauth4webapi request for sanity.
     const result = await oauth.processAuthorizationCodeResponse(
       this.authorizationServer,
@@ -168,11 +170,14 @@ export class OAuthClient {
    * @returns The auth token.
    */
   async callback(params: URLSearchParams) {
+    if (!this.clientMetadata.redirectUri) {
+      throw new Error(
+        "Client is not configured for the authorization code flow; missing `redirectUri`."
+      );
+    }
+
     const stateParam = params.get("state");
     const codeParam = params.get("code");
-    // const errorParam = params.get("error");
-    // const errorDescriptionParam = params.get("error_description");
-    // const errorUriParam = params.get("error_uri");
 
     if (!stateParam) {
       throw new OAuthCallbackError(params, 'Missing "state" parameter.');
@@ -227,13 +232,10 @@ export class OAuthClient {
       stateData.verifier!
     );
 
-    // !!!: We likely can remove this, given the new iRacing typings, but I need to verify.
-    const normalizedResponse = await sanitizeTokenResponse(response);
-
     const result = await oauth.processAuthorizationCodeResponse(
       this.authorizationServer,
       this.authorizationClient,
-      normalizedResponse
+      response
     );
 
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
@@ -247,13 +249,10 @@ export class OAuthClient {
       token
     );
 
-    // !!!: We probably don't need this anymore, but adding for safety before I can test and publish...
-    const normalizedResponse = await sanitizeTokenResponse(response);
-
     const result = await oauth.processRefreshTokenResponse(
       this.authorizationServer,
       this.authorizationClient,
-      normalizedResponse
+      response
     );
 
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);

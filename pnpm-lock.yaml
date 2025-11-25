@@ -276,13 +276,13 @@ importers:
         specifier: 12.11.5 - 24.10.2
         version: 24.10.1
       typescript:
-        specifier: ^4.0 || ^5.0
+        specifier: ^5.9
         version: 5.9.3
 
   packages/api/client/fetch:
     devDependencies:
       typescript:
-        specifier: ^4.0 || ^5.0
+        specifier: ^5.9
         version: 5.9.3
 
   packages/api/router:
@@ -294,13 +294,13 @@ importers:
         specifier: workspace:*
         version: link:../schema
       better-call:
-        specifier: ^1.0.26
+        specifier: ^1.1.0
         version: 1.1.0
 
   packages/api/schema:
     dependencies:
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.1.13
         version: 4.1.13
 
   packages/events/car-session-flag-events:
@@ -313,7 +313,7 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/car-track-location-events:
@@ -326,7 +326,7 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/driver-swap-events:
@@ -345,7 +345,7 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/pace-order-events:
@@ -358,7 +358,7 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/pit-lane-events:
@@ -367,7 +367,7 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/player-pit-stop-events:
@@ -377,7 +377,7 @@ importers:
         version: link:../../telemetry/types
     devDependencies:
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/session-flag-events:
@@ -387,7 +387,7 @@ importers:
         version: link:../../telemetry/types
     devDependencies:
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/session-state-events:
@@ -397,7 +397,7 @@ importers:
         version: link:../../telemetry/types
     devDependencies:
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/events/track-location-events:
@@ -407,7 +407,7 @@ importers:
         version: link:../../telemetry/types
     devDependencies:
       typescript:
-        specifier: ^5.9.2
+        specifier: ^5.9.3
         version: 5.9.3
 
   packages/helpers/api-schema-to-openapi:
@@ -419,7 +419,7 @@ importers:
         specifier: ^14.0.2
         version: 14.0.2
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.1.13
         version: 4.1.13
       zod-openapi:
         specifier: ^5.4.3
@@ -451,7 +451,7 @@ importers:
         specifier: ^14.0.2
         version: 14.0.2
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.1.13
         version: 4.1.13
       zod-openapi:
         specifier: ^5.4.3
@@ -501,13 +501,13 @@ importers:
         specifier: ^3.8.3
         version: 3.8.3
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.1.13
         version: 4.1.13
 
   packages/oauth/schema:
     dependencies:
       zod:
-        specifier: ^4.1.12
+        specifier: ^4.1.13
         version: 4.1.13
 
   packages/telemetry/client/grpc-node:
