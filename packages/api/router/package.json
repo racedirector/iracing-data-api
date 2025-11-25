@@ -9,6 +9,6 @@
   "dependencies": {
     "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/api-schema": "workspace:*",
-    "better-call": "^1.0.26"
+    "better-call": "^1.1.0"
   }
 }
