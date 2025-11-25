@@ -202,7 +202,7 @@ importers:
         version: 5.1.0
       zod:
         specifier: ^4.0.17
-        version: 4.0.17
+        version: 4.1.13
     devDependencies:
       '@types/express':
         specifier: ^5.0.3
@@ -301,7 +301,7 @@ importers:
     dependencies:
       zod:
         specifier: ^4.1.12
-        version: 4.1.12
+        version: 4.1.13
 
   packages/events/car-session-flag-events:
     dependencies:
@@ -420,10 +420,10 @@ importers:
         version: 14.0.2
       zod:
         specifier: ^4.1.12
-        version: 4.1.12
+        version: 4.1.13
       zod-openapi:
         specifier: ^5.4.3
-        version: 5.4.3(zod@4.1.12)
+        version: 5.4.3(zod@4.1.13)
     devDependencies:
       '@commander-js/extra-typings':
         specifier: ^14.0.0
@@ -452,10 +452,10 @@ importers:
         version: 14.0.2
       zod:
         specifier: ^4.1.12
-        version: 4.1.12
+        version: 4.1.13
       zod-openapi:
         specifier: ^5.4.3
-        version: 5.4.3(zod@4.1.12)
+        version: 5.4.3(zod@4.1.13)
     devDependencies:
       '@commander-js/extra-typings':
         specifier: ^14.0.0
@@ -502,13 +502,13 @@ importers:
         version: 3.8.3
       zod:
         specifier: ^4.1.12
-        version: 4.1.12
+        version: 4.1.13
 
   packages/oauth/schema:
     dependencies:
       zod:
         specifier: ^4.1.12
-        version: 4.1.12
+        version: 4.1.13
 
   packages/telemetry/client/grpc-node:
     dependencies:
@@ -5849,19 +5849,15 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zod-openapi@5.4.3(zod@4.1.12):
+  /zod-openapi@5.4.3(zod@4.1.13):
     resolution: {integrity: sha512-6kJ/gJdvHZtuxjYHoMtkl2PixCwRuZ/s79dVkEr7arHvZGXfx7Cvh53X3HfJ5h9FzGelXOXlnyjwfX0sKEPByw==}
     engines: {node: '>=20'}
     peerDependencies:
       zod: ^3.25.74 || ^4.0.0
     dependencies:
-      zod: 4.1.12
+      zod: 4.1.13
     dev: false
 
-  /zod@4.0.17:
-    resolution: {integrity: sha512-1PHjlYRevNxxdy2JZ8JcNAw7rX8V9P1AKkP+x/xZfxB0K5FYfuV+Ug6P/6NVSR2jHQ+FzDDoDHS04nYUsOIyLQ==}
-    dev: false
-
-  /zod@4.1.12:
-    resolution: {integrity: sha512-JInaHOamG8pt5+Ey8kGmdcAcg3OL9reK8ltczgHTAwNhMys/6ThXHityHxVV2p3fkw/c+MAvBHFVYHFZDmjMCQ==}
+  /zod@4.1.13:
+    resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
     dev: false
