@@ -10,19 +10,16 @@
     "build:executable:macos": "./scripts/build-executable-macos.sh",
     "build:executable:windows": "./scripts/build-executable-windows.sh",
     "bundle": "esbuild src/index.ts --bundle --platform=node --tsconfig=tsconfig.build.json --outfile=build/index.cjs --format=cjs",
-    "codegen": "pnpm codegen:openapi:types",
-    "codegen:openapi:types": "openapi-typescript ../../openapi/iracing-oauth.json -o src/generated/openapi.ts",
     "test:ts": "tsc --noEmit"
   },
   "dependencies": {
     "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/oauth-client": "workspace:*",
     "@iracing-data/sync-car-assets": "workspace:*",
-    "commander": "^14.0.2",
-    "openapi-fetch": "^0.15.0"
+    "commander": "^14.0.2"
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^14.0.0",
-    "esbuild": "^0.27.0",
-    "openapi-typescript": "7.10.1"
+    "esbuild": "^0.27.0"
   }
 }
