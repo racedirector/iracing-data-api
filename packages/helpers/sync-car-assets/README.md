@@ -1,75 +1,25 @@
-# @iracing-data/helpers/sync-track-assets
+# @iracing-data/helpers/sync-car-assets
 
-A helper function to download all the track SVGs from the iRacing API.
+Helper utilities to download car assets and metadata from the iRacing `/data` API and write them to disk.
 
 ## Installation
 
 ```bash
-pnpm install @iracing-data/helpers/sync-track-assets
+pnpm add @iracing-data/helpers/sync-car-assets
 ```
 
 ## Usage
 
-Will output all the track SVGs to the specified directory. Subdirectories will be created for each track, by ID. `asset.json` and `info.json` files will be written to each track directory, unless `skipTrackInfo` or `skipTrackAssets` is set to `true`.
-
 ```typescript
-await downloadTrackSVGs(
+import { syncCarAssets } from "@iracing-data/helpers/sync-car-assets";
+
+await syncCarAssets(
   {
-    outputDir: outDir,
-    writeFullAssets,
-    writeFullInfo,
-    skipTrackAssets,
-    skipTrackInfo,
-    username,
-    force,
-  },
+    outputDir: "./cars",
+    writeFullAssets: true,
+    writeFullInfo: true,
+  }
 );
 ```
 
-
-### Configuration
-
-```typescript
-export interface DownloadTrackSVGsOptions {
-  /**
-   * The directory to output the SVG files to.
-   */
-  outputDir: string;
-
-  /**
-   * iRacing username.
-   * @default undefined
-   */
-  username?: string;
-
-  /**
-   * Force download of track layers even if they already exist.
-   * @default false
-   */
-  force?: boolean;
-
-  /**
-   * Write full track info to the output directory.
-   * @default false
-   */
-  writeFullInfo?: boolean;
-
-  /**
-   * Write full track assets to the output directory.
-   * @default false
-   */
-  writeFullAssets?: boolean;
-
-  /**
-   * Skip writing track info for each track.
-   * @default false
-   */
-  skipTrackInfo?: boolean;
-
-  /**
-   * Skip writing track assets for each track.
-   * @default false
-   */
-  skipTrackAssets?: boolean;
-}
-```
+Assets are written under the provided output directory with per-car `assets.json` and `info.json` files. Optional flags let you skip writing either dataset.

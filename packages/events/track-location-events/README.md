@@ -1,22 +1,27 @@
 # @iracing-data/track-location-events
 
-EventEmitter for track location telemetry events from iRacing.
+Emits events when the overall session track state changes (e.g., caution, on track, off track) based on telemetry values.
 
 ## Installation
 
-```
-npm install @iracing-data/track-location-events
-yarn add @iracing-data/track-location-events
-pnpm i @iracing-data/track-location-events
+```bash
+pnpm add @iracing-data/track-location-events
 ```
 
 ## Usage
 
 ```typescript
-const emitter = new TrackLocationEventEmitter().on(
-  "change",
-  ({ sessionTime, previousTrackLocation, currentTrackLocation }) => {}
-);
+import { TrackLocationEventEmitter } from "@iracing-data/track-location-events";
 
-emitter.process(trackLocation, sessionTime);
+const trackLocationEvents = new TrackLocationEventEmitter().on("change", ({
+  sessionTime,
+  previousTrackLocation,
+  currentTrackLocation,
+}) => {
+  console.log(`${sessionTime}: ${previousTrackLocation} -> ${currentTrackLocation}`);
+});
+
+trackLocationEvents.process(currentTrackLocation, sessionTime);
 ```
+
+See `TrackLocationEventMap` for the full list of emitted events.

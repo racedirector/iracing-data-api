@@ -1,22 +1,27 @@
 # @iracing-data/session-state-events
 
-EventEmitter for session state telemetry events from iRacing.
+EventEmitter that watches the session state telemetry value and surfaces typed change events.
 
 ## Installation
 
-```
-npm install @iracing-data/session-state-events
-yarn add @iracing-data/session-state-events
-pnpm i @iracing-data/session-state-events
+```bash
+pnpm add @iracing-data/session-state-events
 ```
 
 ## Usage
 
 ```typescript
-const sessionStateEmitter = new SessionStateEventEmitter().on(
-  "change",
-  ({ sessionTime, previousSessionState, sessionState }) => {}
-);
+import { SessionStateEventEmitter } from "@iracing-data/session-state-events";
 
-sessionStateEmitter.process(sessionState);
+const sessionStateEmitter = new SessionStateEventEmitter().on("change", ({
+  sessionTime,
+  previousSessionState,
+  currentSessionState,
+}) => {
+  console.log(`${sessionTime}: ${previousSessionState} -> ${currentSessionState}`);
+});
+
+sessionStateEmitter.process(currentState, sessionTime);
 ```
+
+Pass each telemetry update's state into `process` to receive `change` events as defined in `SessionStateEventMap`.

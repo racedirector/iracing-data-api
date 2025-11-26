@@ -1,33 +1,27 @@
-# examples/telemetry-client
+# race-events
 
-This is a simple example of a client that connects to the `telemetry-server` service and prints the telemetry data to the console.
+Example CLI that connects to an iRacing telemetry server and logs race-control style events (flags, pit lane changes, pace order updates, etc.).
 
-## Overview
+## Setup
 
-Creates a gRPC client that connects to the `telemetry-server` service.
+1. Copy the template environment file and adjust connection settings:
 
-## Usage
+   ```bash
+   cp .env.template .env
+   ```
 
-0. Update and load your environment. An `.env.template` is provided. Copy it to `.env` and update the values as needed:
+2. Install dependencies from the repo root:
 
-    ```bash
-    cp .env.template .env
-    ```
+   ```bash
+   pnpm install
+   ```
 
-    ```bash
-    # .env
-    PORT=1234
-    ```
+## Running
 
-1. Start the `telemetry-server` service. A convenience script is provided:
+Use the built-in script to run the TypeScript entrypoint with your environment loaded:
 
-    ```bash
-    pnpm start:server
-    ```
+```bash
+pnpm --filter race-events start
+```
 
-2. Run the client:
-
-    ```bash
-    // From the `examples/telemetry-client` directory
-    pnpm start
-    ```
+The app will connect to the configured telemetry server, subscribe to live data via `@iracing-data/telemetry-client-grpc-node`, and print structured events to the console.

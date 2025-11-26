@@ -1,35 +1,23 @@
 # @iracing-data/pace-flag-events
 
-An EventEmitter for pace flag events from iRacing telemetry.
+Emits events for pace-related instructions such as wave-arounds and free passes.
 
 ## Installation
 
-```
-npm install @iracing-data/pace-flag-events
-yarn add @iracing-data/pace-flag-events
-pnpm i @iracing-data/pace-flag-events
+```bash
+pnpm add @iracing-data/pace-flag-events
 ```
 
 ## Usage
 
 ```typescript
-const paceFlagManager = new PaceFlagEventEmitter()
-  .on("waveAround", ({ sessionTime, carIndex }) => {
-    paceLogger.info(
-      { sessionTime, type: "wave-around", carIndex },
-      `Car ${carIndex} was waved around.`
-    );
-  })
-  .on("freePass", ({ sessionTime, carIndex }) => {
-    paceLogger.info(
-      { sessionTime, type: "free-pass", carIndex },
-      `Car ${carIndex} was given a free pass.`
-    );
-  })
-  .on("endOfLine", ({ sessionTime, carIndex }) => {
-    paceLogger.info(
-      { sessionTime, type: "end-of-line", carIndex },
-      `Car ${carIndex} was given EOL.`
-    );
-  });
+import { PaceFlagEventEmitter } from "@iracing-data/pace-flag-events";
+
+const paceFlags = new PaceFlagEventEmitter().on("freePass", ({ carIndex, sessionTime }) => {
+  console.log(`Lucky dog for car ${carIndex} at ${sessionTime}`);
+});
+
+paceFlags.process(paceFlagsBitset, sessionTime);
 ```
+
+`process` accepts the per-car pace flag array and emits events defined in `PaceFlagEventMap`.
