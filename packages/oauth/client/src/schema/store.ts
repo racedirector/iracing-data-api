@@ -1,4 +1,5 @@
 import { SimpleStore } from "../storage";
+import { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";
 
 export interface InternalState {
   iss: string;
@@ -7,3 +8,4 @@ export interface InternalState {
 }
 
 export type StateStore = SimpleStore<string, InternalState>;
+export type SessionStore = SimpleStore<string, IRacingOAuthTokenResponse>;
