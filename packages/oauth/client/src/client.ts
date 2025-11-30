@@ -9,6 +9,7 @@ import {
   IRacingOAuthClientMetadata,
   IRacingOAuthClientMetadataInput,
   IRacingOAuthClientMetadataSchema,
+  SessionStore,
   StateStore,
 } from "./schema";
 import { maskSecret } from "./utils";
@@ -19,6 +20,7 @@ export type OAuthClientOptions = {
 
   // Stores
   stateStore: StateStore;
+  sessionStore: SessionStore;
 };
 
 /**
@@ -31,17 +33,19 @@ export type OAuthClientOptions = {
 export class OAuthClient {
   private readonly clientMetadata: IRacingOAuthClientMetadata;
   private readonly stateStore: StateStore;
+  private readonly sessionStore: SessionStore;
 
   protected authorizationServer: oauth.AuthorizationServer;
   protected authorizationClient: oauth.Client;
   protected clientAuthorization: oauth.ClientAuth;
 
   constructor(options: OAuthClientOptions) {
-    const { clientMetadata, stateStore } = options;
+    const { clientMetadata, stateStore, sessionStore } = options;
 
     this.clientMetadata =
       IRacingOAuthClientMetadataSchema.parse(clientMetadata);
     this.stateStore = stateStore;
+    this.sessionStore = sessionStore;
 
     this.authorizationServer = {
       issuer: this.clientMetadata.issuer,
@@ -113,7 +117,7 @@ export class OAuthClient {
    * Authorizes the consumer with the password limited flow on iRacing auth servers.
    * @returns The session token from the OAuth API.
    */
-  async passwordLimitedAuthorization() {
+  async passwordLimitedAuthorization(sessionId = "default") {
     const { username, password, clientId, clientSecret, scopes } =
       this.clientMetadata;
 
@@ -160,7 +164,11 @@ export class OAuthClient {
       response
     );
 
-    return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+    const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
+
+    await this.sessionStore.set(sessionId, token);
+
+    return token;
   }
 
   /**
@@ -169,7 +177,7 @@ export class OAuthClient {
    * @param params The query parameters from the authorization server.
    * @returns The auth token.
    */
-  async callback(params: URLSearchParams) {
+  async callback(params: URLSearchParams, sessionId?: string) {
     if (!this.clientMetadata.redirectUri) {
       throw new Error(
         "Client is not configured for the authorization code flow; missing `redirectUri`."
@@ -238,7 +246,11 @@ export class OAuthClient {
       response
     );
 
-    return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+    const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
+
+    await this.sessionStore.set(sessionId ?? stateData.appState ?? stateParam, token);
+
+    return token;
   }
 
   async refresh(token: string) {
@@ -256,6 +268,33 @@ export class OAuthClient {
     );
 
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+  }
+
+  async getSession(sessionId = "default") {
+    return await this.sessionStore.get(sessionId);
+  }
+
+  async refreshSession(sessionId = "default") {
+    const session = await this.getSession(sessionId);
+
+    if (!session) {
+      throw new Error(`No session found for key "${sessionId}"`);
+    }
+
+    if (!session.refresh_token) {
+      throw new Error(
+        `Session "${sessionId}" cannot be refreshed; missing refresh token.`
+      );
+    }
+
+    const refreshed = await this.refresh(session.refresh_token);
+
+    await this.sessionStore.set(sessionId, {
+      ...session,
+      ...refreshed,
+    });
+
+    return refreshed;
   }
 }
 

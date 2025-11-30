@@ -1,28 +1,18 @@
 import {
+  InMemoryStore,
   InternalState,
+  IRacingOAuthTokenResponse,
   OAuthClient,
   StateStore,
 } from "@iracing-data/oauth-client";
 import { Configuration, MemberApi } from "@iracing-data/api-client-fetch";
 
-export class InMemoryStore implements StateStore {
-  private state = new Map<string, InternalState>();
-
-  get(key, options) {
-    return this.state.get(key);
-  }
-  set(key, value) {
-    this.state.set(key, value);
-  }
-  del(key) {
-    this.state.delete(key);
-  }
-  clear() {
-    this.state.clear();
-  }
-}
-
 async function main() {
+  const sessionId = "example-session";
+
+  const stateStore = new InMemoryStore<string, InternalState>();
+  const sessionStore = new InMemoryStore<string, IRacingOAuthTokenResponse>();
+
   const client = new OAuthClient({
     clientMetadata: {
       clientId: process.env.IRACING_AUTH_CLIENT!,
@@ -31,13 +21,17 @@ async function main() {
       password: process.env.IRACING_AUTH_PASSWORD,
       scopes: ["iracing.auth", "iracing.profile"],
     },
-    stateStore: new InMemoryStore(),
+    stateStore,
+    sessionStore,
   });
 
-  const token = await client.passwordLimitedAuthorization();
+  const token = await client.passwordLimitedAuthorization(sessionId);
 
   console.info("Successfully authenticated!");
   console.info("Token expires in", token.expires_in, "seconds");
+
+  const savedToken = await client.getSession(sessionId);
+  console.info("Stored session", savedToken);
 
   const configuration = new Configuration({
     accessToken: token.access_token,

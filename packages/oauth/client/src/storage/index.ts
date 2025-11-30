@@ -14,3 +14,5 @@ export interface SimpleStore<K extends Key = string, V extends Value = Value> {
   del: (key: K) => Awaitable<void>;
   clear?: () => Awaitable<void>;
 }
+
+export * from "./memory-store";
