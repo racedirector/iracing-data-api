@@ -422,8 +422,8 @@ importers:
         specifier: ^4.1.13
         version: 4.1.13
       zod-openapi:
-        specifier: ^5.4.3
-        version: 5.4.3(zod@4.1.13)
+        specifier: ^5.4.5
+        version: 5.4.5(zod@4.1.13)
     devDependencies:
       '@commander-js/extra-typings':
         specifier: ^14.0.0
@@ -454,8 +454,8 @@ importers:
         specifier: ^4.1.13
         version: 4.1.13
       zod-openapi:
-        specifier: ^5.4.3
-        version: 5.4.3(zod@4.1.13)
+        specifier: ^5.4.5
+        version: 5.4.5(zod@4.1.13)
     devDependencies:
       '@commander-js/extra-typings':
         specifier: ^14.0.0
@@ -5831,8 +5831,8 @@ packages:
     engines: {node: '>=10'}
     dev: true
 
-  /zod-openapi@5.4.3(zod@4.1.13):
-    resolution: {integrity: sha512-6kJ/gJdvHZtuxjYHoMtkl2PixCwRuZ/s79dVkEr7arHvZGXfx7Cvh53X3HfJ5h9FzGelXOXlnyjwfX0sKEPByw==}
+  /zod-openapi@5.4.5(zod@4.1.13):
+    resolution: {integrity: sha512-DVLBNsnggh8k/Yq7qp+NeQCH6JuLIyGzUQWA1wN5+7DpQJSwC7WYR/2lE6uQDmGcS/X6l4tUyYFpeG4nk3nOpA==}
     engines: {node: '>=20'}
     peerDependencies:
       zod: ^3.25.74 || ^4.0.0
