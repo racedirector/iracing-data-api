@@ -433,14 +433,14 @@ importers:
     dependencies:
       commander:
         specifier: ^14.0.0
-        version: 14.0.0
+        version: 14.0.2
       json-schema-to-typescript:
         specifier: 15.0.4
         version: 15.0.4
     devDependencies:
       '@commander-js/extra-typings':
         specifier: ^13.1.0
-        version: 13.1.0(commander@14.0.0)
+        version: 13.1.0(commander@14.0.2)
 
   packages/helpers/oauth-schema-to-openapi:
     dependencies:
@@ -477,11 +477,11 @@ importers:
         version: 1.13.4
       commander:
         specifier: ^14.0.0
-        version: 14.0.0
+        version: 14.0.2
     devDependencies:
       '@commander-js/extra-typings':
         specifier: ^13.1.0
-        version: 13.1.0(commander@14.0.0)
+        version: 13.1.0(commander@14.0.2)
 
   packages/helpers/sync-track-assets:
     dependencies:
@@ -638,12 +638,12 @@ packages:
     resolution: {integrity: sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA==}
     dev: true
 
-  /@commander-js/extra-typings@13.1.0(commander@14.0.0):
+  /@commander-js/extra-typings@13.1.0(commander@14.0.2):
     resolution: {integrity: sha512-q5P52BYb1hwVWE6dtID7VvuJWrlfbCv4klj7BjUUOqMz4jbSZD4C9fJ9lRjL2jnBGTg+gDDlaXN51rkWcLk4fg==}
     peerDependencies:
       commander: ~13.1.0
     dependencies:
-      commander: 14.0.0
+      commander: 14.0.2
     dev: true
 
   /@commander-js/extra-typings@14.0.0(commander@14.0.2):
@@ -2275,10 +2275,6 @@ packages:
     engines: {node: '>= 0.8'}
     dependencies:
       delayed-stream: 1.0.0
-
-  /commander@14.0.0:
-    resolution: {integrity: sha512-2uM9rYjPvyq39NwLRqaiLtWHyDC1FvryJDa2ATTVims5YAS4PupsEQsDvP14FqhFr0P49CYDugi59xaxJlTXRA==}
-    engines: {node: '>=20'}
 
   /commander@14.0.2:
     resolution: {integrity: sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==}
