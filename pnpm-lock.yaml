@@ -524,7 +524,7 @@ importers:
         version: 0.7.13
       google-protobuf:
         specifier: ^4.0.0
-        version: 4.0.0
+        version: 4.0.1
       ts-invariant:
         specifier: ^0.10.3
         version: 0.10.3
@@ -543,7 +543,7 @@ importers:
         version: 0.7.13
       google-protobuf:
         specifier: ^4.0.0
-        version: 4.0.0
+        version: 4.0.1
       grpc-web:
         specifier: ^2.0.2
         version: 2.0.2
@@ -3498,8 +3498,8 @@ packages:
       gopd: 1.2.0
     dev: true
 
-  /google-protobuf@4.0.0:
-    resolution: {integrity: sha512-b8wmenhUMf2WNL+xIJ/slvD/hEE6V3nRnG86O2bzkBrMweM9gnqZE1dfXlDjibY3aXJXDNbAHepevYyQ7qWKsQ==}
+  /google-protobuf@4.0.1:
+    resolution: {integrity: sha512-0I4mx3UtAwpcc8l9Ds5gHcwV2FyPdwvxxBcor8LusE4b6PjoFxEngZRBepjvuQ4B0eZ2iu/Vezh8oRsnpJ9UGA==}
     dev: true
 
   /gopd@1.2.0:
