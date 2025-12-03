@@ -1,0 +1,11 @@
+emit:
+  - "@typespec/openapi3"
+
+options:
+  output-dir: "./dist"
+  "@typespec/openapi3":
+    output-file: "iracing.typespec.openapi.json"
+    new-line: lf
+
+linter:
+  extends: ["@typespec/rest", "@typespec/http"]
