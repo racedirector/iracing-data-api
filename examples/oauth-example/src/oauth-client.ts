@@ -1,5 +1,4 @@
-import { OAuthClient } from "@iracing-data/oauth-client";
-import { InMemoryStore } from "./storage/memory";
+import { OAuthClient, InMemoryStore } from "@iracing-data/oauth-client";
 import { IRACING_CLIENT_ID, IRACING_AUTH_SECRET, PORT } from "./config";
 
 export const client = new OAuthClient({
@@ -10,6 +9,7 @@ export const client = new OAuthClient({
     scopes: ["iracing.profile", "iracing.auth"],
   },
   stateStore: new InMemoryStore(),
+  sessionStore: new InMemoryStore(),
 });
 
 export default client;

@@ -4,6 +4,7 @@ import { IRacingOAuthScopesSchema } from "@iracing-data/oauth-schema";
 const DEFAULT_OAUTH_URL = "https://oauth.iracing.com/oauth2";
 const DEFAULT_AUTH_URL = `${DEFAULT_OAUTH_URL}/authorize`;
 const DEFAULT_TOKEN_URL = `${DEFAULT_OAUTH_URL}/token`;
+const DEFAULT_USER_INFO_URL = `${DEFAULT_OAUTH_URL}/iracing/profile`;
 
 export const IRacingOAuthBaseURL = z.literal(DEFAULT_OAUTH_URL).meta({
   id: "iracingOAuthURL",
@@ -25,6 +26,15 @@ export const IRacingOAuthTokenURL = z
     id: "iracingOAuthTokenURL",
     title: "iRacing OAuth Service Token Endpoint",
     description: "The endpoint for token exchange.",
+  });
+
+export const IRacingOAuthUserInfoURL = z
+  .templateLiteral([IRacingOAuthBaseURL, "/iracing/profile"])
+  .meta({
+    id: "iracingOAuthUserInfoURL",
+    title: "iRacing OAuth User Info Endpoint",
+    description:
+      "The endpoint for fetching the user info on behalf of the authorized user.",
   });
 
 export const IRacingOAuthScopesArraySchema = z
@@ -54,6 +64,15 @@ export const IRacingOAuthClientMetadataSchema = z
         id: "tokenUrl",
         title: "Token URL",
         description: `The URL to use when making token requests. Defaults to "${DEFAULT_TOKEN_URL}"`,
+        note: "The default is acceptable in 99.9% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
+      }),
+    userInfoUrl: z
+      .url()
+      .default(DEFAULT_USER_INFO_URL)
+      .meta({
+        id: "userInfoUrl",
+        title: "User Info URL",
+        description: `The URL to use when making user info requests. Defaults to "${DEFAULT_USER_INFO_URL}"`,
         note: "The default is acceptable in 99.9% of use-cases, but is able to be overridden in case iRacing makes changes to the URLs.",
       }),
     issuer: z
@@ -163,6 +182,7 @@ export type IRacingAuthorizationURL = z.infer<
   typeof IRacingOAuthAuthorizationURL
 >;
 export type IRacingTokenURL = z.infer<typeof IRacingOAuthTokenURL>;
+export type IRacingUserInfoURL = z.infer<typeof IRacingOAuthUserInfoURL>;
 
 export type IRacingOAuthClientMetadataInput = z.input<
   typeof IRacingOAuthClientMetadataSchema

@@ -2,6 +2,7 @@ import {
   IRacingOAuthTokenResponseSchema,
   IRacingOAuthTokenResponse,
   IRacingOAuthPasswordLimitedGrantParametersSchema,
+  IRacingOAuthProfileResponse,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
 import { OAuthCallbackError } from "./oauth-callback-error";
@@ -12,7 +13,7 @@ import {
   SessionStore,
   StateStore,
 } from "./schema";
-import { maskSecret } from "./utils";
+import { isAccessTokenExpired, maskSecret } from "./utils";
 
 export type OAuthClientOptions = {
   // Config
@@ -49,7 +50,9 @@ export class OAuthClient {
 
     this.authorizationServer = {
       issuer: this.clientMetadata.issuer,
+      authorization_endpoint: this.clientMetadata.authorizationUrl,
       token_endpoint: this.clientMetadata.tokenUrl,
+      // userinfo_endpoint: this.clientMetadata.userInfoUrl,
     };
 
     this.authorizationClient = {
@@ -117,7 +120,7 @@ export class OAuthClient {
    * Authorizes the consumer with the password limited flow on iRacing auth servers.
    * @returns The session token from the OAuth API.
    */
-  async passwordLimitedAuthorization(sessionId = "default") {
+  async passwordLimitedAuthorization() {
     const { username, password, clientId, clientSecret, scopes } =
       this.clientMetadata;
 
@@ -149,12 +152,18 @@ export class OAuthClient {
         scope: scopes.join(" "),
       });
 
+    const requestParams = new URLSearchParams(requestParameters);
+
+    /**
+     * !!!: Manually send the request to the token endpoint because `oauth4webapi` doesn't expose
+     * a public token request endpoint function.
+     */
     const response = await fetch("https://oauth.iracing.com/oauth2/token", {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
       },
-      body: new URLSearchParams(requestParameters),
+      body: requestParams,
     });
 
     // Check the response as if it were any other oauth4webapi request for sanity.
@@ -166,7 +175,9 @@ export class OAuthClient {
 
     const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
 
-    await this.sessionStore.set(sessionId, token);
+    // !!!: Store the password limited session by username.
+    // !!!: Sessions are typically stored by the iRacing customer ID.
+    await this.sessionStore.set(username, token);
 
     return token;
   }
@@ -248,11 +259,30 @@ export class OAuthClient {
 
     const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
 
-    await this.sessionStore.set(sessionId ?? stateData.appState ?? stateParam, token);
+    /**
+     * Using the returned token, make a request to `/iracing/profile` on the OAuth API
+     * to fetch the user's profile for session caching.
+     */
+    const profileResponse = await oauth.protectedResourceRequest(
+      token.access_token,
+      "GET",
+      new URL("/iracing/profile", this.clientMetadata.issuer)
+    );
+
+    const profileData =
+      (await profileResponse.json()) as IRacingOAuthProfileResponse;
+
+    // Store the session by the iracing customer id.
+    await this.sessionStore.set(profileData.iracing_cust_id.toString(), token);
 
     return token;
   }
 
+  /**
+   * Refreshes a token for the given refresh token.
+   * @param token The refresh token
+   * @returns a new access token.
+   */
   async refresh(token: string) {
     const response = await oauth.refreshTokenGrantRequest(
       this.authorizationServer,
@@ -270,11 +300,71 @@ export class OAuthClient {
     return await IRacingOAuthTokenResponseSchema.parseAsync(result);
   }
 
-  async getSession(sessionId = "default") {
+  /**
+   * Makes a protected request on behalf of the provided `sessionId`.
+   *
+   * This looks up a session for the given session ID, and forwards the access token to `oauth4webapi.protectedResourceRequest`.
+   *
+   * @param sessionId — The id of the session to use for the request.
+   * @param method — The HTTP method for the request.
+   * @param url — Target URL for the request.
+   * @param headers — Headers for the request.
+   * @param body — Request body compatible with the Fetch API and the request's method.
+   * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
+   *   rejected with {@link WWWAuthenticateChallengeError}.
+   */
+  async makeProtectedRequest(
+    sessionId: string,
+    method: string,
+    url: URL,
+    headers?: Headers,
+    body?: oauth.ProtectedResourceRequestBody,
+    options?: oauth.ProtectedResourceRequestOptions
+  ) {
+    const session = await this.restoreSession(sessionId);
+    if (session) {
+      return await oauth.protectedResourceRequest(
+        session.access_token,
+        method,
+        url,
+        headers,
+        body,
+        options
+      );
+    } else {
+      throw new Error(
+        `Could not find session matching ${sessionId}. Did you forget to authenticate?`
+      );
+    }
+  }
+
+  async restoreSession(id: string) {
+    // Get the session
+    const session = await this.getSession(id);
+    if (session) {
+      // Check if the session is expired
+      const isExpired = isAccessTokenExpired(session.access_token);
+      if (isExpired) {
+        // Refresh the session
+        return await this.refreshSession(id);
+      }
+
+      return session;
+    }
+  }
+
+  private async getSession(sessionId: string) {
     return await this.sessionStore.get(sessionId);
   }
 
-  async refreshSession(sessionId = "default") {
+  private async storeSession(
+    sessionId: string,
+    session: IRacingOAuthTokenResponse
+  ) {
+    await this.sessionStore.set(sessionId, session);
+  }
+
+  private async refreshSession(sessionId: string) {
     const session = await this.getSession(sessionId);
 
     if (!session) {
@@ -289,7 +379,7 @@ export class OAuthClient {
 
     const refreshed = await this.refresh(session.refresh_token);
 
-    await this.sessionStore.set(sessionId, {
+    await this.storeSession(sessionId, {
       ...session,
       ...refreshed,
     });
