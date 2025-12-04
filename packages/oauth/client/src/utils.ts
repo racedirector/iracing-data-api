@@ -1,3 +1,4 @@
+import { jwtDecode } from "jwt-decode";
 import crypto from "node:crypto";
 
 /**
@@ -16,4 +17,26 @@ export function maskSecret(secret: string, identifier: string): string {
 
   // Create SHA-256 hash and return base64 encoded result
   return crypto.createHash("sha256").update(combined, "utf8").digest("base64");
+}
+
+function isJWTExpired(token: string) {
+  const { exp } = jwtDecode(token);
+  const expiry = new Date(exp! * 1000);
+  return Date.now() > expiry.getTime();
+}
+
+export function isAccessTokenExpired(accessToken: string) {
+  return isJWTExpired(accessToken);
+}
+
+export function isAccessTokenValid(accessToken: string) {
+  return !isAccessTokenExpired(accessToken);
+}
+
+export function isRefreshTokenExpired(refreshToken: string) {
+  return isJWTExpired(refreshToken);
+}
+
+export function isRefreshTokenValid(refreshToken: string) {
+  return !isRefreshTokenExpired(refreshToken);
 }

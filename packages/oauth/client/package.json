@@ -8,6 +8,7 @@
   },
   "dependencies": {
     "@iracing-data/oauth-schema": "workspace:*",
+    "jwt-decode": "^4.0.0",
     "oauth4webapi": "^3.8.3",
     "zod": "^4.1.13"
   }
