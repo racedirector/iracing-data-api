@@ -1,8 +1,9 @@
-import fs from "node:fs/promises";
+import fs, { access, constants, mkdir } from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   InMemoryStore,
+  DiskStore,
   InternalState,
   IRacingOAuthTokenResponse,
   OAuthClient,
@@ -14,7 +15,6 @@ import {
   IracingAPIResponse,
   LookupApi,
   MemberApi,
-  Middleware,
   SeriesApi,
   TrackApi,
 } from "@iracing-data/api-client-fetch";
@@ -22,24 +22,41 @@ import {
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const OUTPUT_PATH = "output";
+const outputPath = path.join(__dirname, "output");
+const credentialsPath = path.join(__dirname, "credentials.json");
 function makeOutputPath(...paths: string[]) {
-  return path.join(__dirname, OUTPUT_PATH, ...paths);
+  return path.join(outputPath, ...paths);
 }
 
-async function fetchIRacingLink({ link, expires }: IracingAPIResponse) {
+/**
+ * Checks if a file exists.
+ * @param path the path of the file
+ * @returns true if the file exists, false otherwise
+ */
+export const exists = async (path: string) => {
+  try {
+    await access(path, constants.F_OK);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+async function fetchIRacingLink({
+  link,
+  expires,
+}: Partial<IracingAPIResponse>) {
+  if (!expires) return;
+
   if (new Date() >= expires) {
     throw new Error("Data is expired. Try fetching again.");
   }
 
-  console.log("Fetching from link:", link);
-
-  const response = await fetch(link);
-  const data = await response.json();
-
-  console.log("Fetched data from iRacing:", data);
-
-  return data;
+  if (link) {
+    console.log("Fetching from link:", link);
+    const response = await fetch(link);
+    return await response.json();
+  }
 }
 
 async function writeResponseDataToFile(
@@ -48,13 +65,11 @@ async function writeResponseDataToFile(
 ) {
   const outputPath = makeOutputPath(filePath);
 
-  console.log("Writing output:", outputPath);
-
   const data = await fetchIRacingLink(response);
 
-  await fs.writeFile(outputPath, JSON.stringify(data));
-
-  console.log("Successfully wrote output:", outputPath);
+  if (data) {
+    await fs.writeFile(outputPath, JSON.stringify(data));
+  }
 }
 
 /**
@@ -64,12 +79,13 @@ async function writeResponseDataToFile(
 
 async function fetchSeries(configuration: Configuration) {
   const series = new SeriesApi(configuration);
-  const seriesAssetsResponse = await series.getSeriesAssets();
-  const seriesResponse = await series.getSeries();
 
   await Promise.all([
-    writeResponseDataToFile("series-assets.json", seriesAssetsResponse),
-    writeResponseDataToFile("series.json", seriesResponse),
+    writeResponseDataToFile(
+      "series-assets.json",
+      await series.getSeriesAssets()
+    ),
+    writeResponseDataToFile("series.json", await series.getSeries()),
   ]);
 }
 
@@ -86,12 +102,10 @@ async function fetchCars(configuration: Configuration) {
 
 async function fetchTracks(configuration: Configuration) {
   const track = new TrackApi(configuration);
-  const trackAssetsResponse = await track.getTrackAssets();
-  const trackResponse = await track.getTrack();
 
   await Promise.all([
-    writeResponseDataToFile("track-assets.json", trackAssetsResponse),
-    writeResponseDataToFile("track.json", trackResponse),
+    writeResponseDataToFile("track-assets.json", await track.getTrackAssets()),
+    writeResponseDataToFile("track.json", await track.getTrack()),
   ]);
 }
 
@@ -116,57 +130,32 @@ async function fetchConstants(configuration: Configuration) {
 
 async function fetchLookup(configuration: Configuration) {
   const lookup = new LookupApi(configuration);
-  const countriesResponse = await lookup.getLookupCountries();
-  const licensesResponse = await lookup.getLookupLicenses();
-  const flairsResponse = await lookup.getLookupFlairs();
 
   await Promise.all([
-    writeResponseDataToFile("countries.json", countriesResponse),
-    writeResponseDataToFile("licenses.json", licensesResponse),
-    writeResponseDataToFile("flairs.json", flairsResponse),
+    writeResponseDataToFile(
+      "countries.json",
+      await lookup.getLookupCountries()
+    ),
+    writeResponseDataToFile("licenses.json", await lookup.getLookupLicenses()),
+    writeResponseDataToFile("flairs.json", await lookup.getLookupFlairs()),
   ]);
 }
 
-async function main() {
-  const sessionId = "example-session";
-
-  const stateStore = new InMemoryStore<string, InternalState>();
-  const sessionStore = new InMemoryStore<string, IRacingOAuthTokenResponse>();
-
-  const client = new OAuthClient({
-    clientMetadata: {
-      clientId: process.env.IRACING_AUTH_CLIENT!,
-      clientSecret: process.env.IRACING_AUTH_SECRET,
-      username: process.env.IRACING_AUTH_USERNAME,
-      password: process.env.IRACING_AUTH_PASSWORD,
-      scopes: ["iracing.auth", "iracing.profile"],
-    },
-    stateStore,
-    sessionStore,
-  });
-
-  const token = await client.passwordLimitedAuthorization(sessionId);
-
-  console.info("Successfully authenticated!");
-  console.info("Token expires in", token.expires_in, "seconds");
-
-  const savedToken = await client.getSession(sessionId);
-  console.info("Stored session", savedToken);
-
-  const configuration = new Configuration({
-    accessToken: token.access_token,
-  });
-
-  const member = new MemberApi(configuration);
-  const response = await member.getMemberProfile();
-  console.info("Fetched authenticated member:", response);
+async function fetchData(configuration: Configuration) {
+  /**
+   * Create the output dir if it doesn't exist
+   */
+  const outputExists = await exists(outputPath);
+  if (!outputExists) {
+    await mkdir(outputPath, { recursive: true });
+  }
 
   const [cars, tracks, series, lookup, constants] = await Promise.allSettled([
-    fetchCars,
-    fetchTracks,
-    fetchSeries,
-    fetchLookup,
-    fetchConstants,
+    fetchCars(configuration),
+    fetchTracks(configuration),
+    fetchSeries(configuration),
+    fetchLookup(configuration),
+    fetchConstants(configuration),
   ]);
 
   if (cars.status === "rejected") {
@@ -184,6 +173,42 @@ async function main() {
   if (constants.status === "rejected") {
     console.log("Could not fetch constants. Reason:", constants.reason);
   }
+}
+
+async function main() {
+  const stateStore = new InMemoryStore<string, InternalState>();
+  const sessionStore = new DiskStore<string, IRacingOAuthTokenResponse>(
+    credentialsPath
+  );
+
+  const username = process.env.IRACING_AUTH_USERNAME;
+
+  const client = new OAuthClient({
+    clientMetadata: {
+      clientId: process.env.IRACING_AUTH_CLIENT!,
+      clientSecret: process.env.IRACING_AUTH_SECRET,
+      username,
+      password: process.env.IRACING_AUTH_PASSWORD,
+      scopes: ["iracing.auth", "iracing.profile"],
+    },
+    stateStore,
+    sessionStore,
+  });
+
+  let session = await client.restoreSession(username!);
+  if (!session) {
+    console.log("Could not find existing session. Authenticating...");
+    session = await client.passwordLimitedAuthorization();
+    console.info("Successfully authenticated!", session);
+  } else {
+    console.log("Continuing with discovered credentials...");
+  }
+
+  const configuration = new Configuration({
+    accessToken: session.access_token,
+  });
+
+  await fetchData(configuration);
 
   console.log("Fetched assets from `/data` API.");
 }
