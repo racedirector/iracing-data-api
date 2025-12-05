@@ -1,15 +1,17 @@
 {
-  "name": "@examples/iracing-typespec",
-  "version": "0.0.1",
+  "name": "iracing-typespec",
+  "version": "0.1.0",
+  "type": "module",
   "private": true,
-  "description": "TypeSpec sketch of the iRacing /data API emitting OpenAPI definitions.",
   "scripts": {
-    "build": "tsp compile ."
+    "build": "tsp compile .",
+    "import": "tsp-openapi3 ./openapi/iracing.json --output-dir . --namespace iRacingDataAPI"
   },
-  "devDependencies": {
-    "@typespec/compiler": "^0.65.0",
-    "@typespec/http": "^0.65.0",
-    "@typespec/openapi3": "^0.65.0",
-    "@typespec/rest": "^0.65.0"
+  "dependencies": {
+    "@typespec/compiler": "latest",
+    "@typespec/http": "latest",
+    "@typespec/rest": "latest",
+    "@typespec/openapi": "latest",
+    "@typespec/openapi3": "latest"
   }
 }
