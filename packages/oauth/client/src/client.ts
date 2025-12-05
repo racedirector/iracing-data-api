@@ -301,13 +301,14 @@ export class OAuthClient {
   }
 
   /**
-   * Makes a protected request on behalf of the provided `sessionId`.
+   * Makes a protected request on behalf of the provided `sessionId` against the iRacing API
+   * as specified by `path`.
    *
    * This looks up a session for the given session ID, and forwards the access token to `oauth4webapi.protectedResourceRequest`.
    *
    * @param sessionId — The id of the session to use for the request.
    * @param method — The HTTP method for the request.
-   * @param url — Target URL for the request.
+   * @param url — The path for the request, relative to the iRacing API URL.
    * @param headers — Headers for the request.
    * @param body — Request body compatible with the Fetch API and the request's method.
    * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
@@ -316,17 +317,17 @@ export class OAuthClient {
   async makeProtectedRequest(
     sessionId: string,
     method: string,
-    url: URL,
+    path: string,
     headers?: Headers,
     body?: oauth.ProtectedResourceRequestBody,
     options?: oauth.ProtectedResourceRequestOptions
   ) {
     const session = await this.restoreSession(sessionId);
     if (session) {
-      return await oauth.protectedResourceRequest(
-        session.access_token,
+      return this._makeProtectedRequest(
+        session,
         method,
-        url,
+        path,
         headers,
         body,
         options
@@ -336,6 +337,38 @@ export class OAuthClient {
         `Could not find session matching ${sessionId}. Did you forget to authenticate?`
       );
     }
+  }
+
+  /**
+   * Makes a protected request on behalf of the provided `session` against the iRacing API
+   * as specified by `path`.
+   *
+   * This looks up a session for the given session ID, and forwards the access token to `oauth4webapi.protectedResourceRequest`.
+   *
+   * @param session — The session to use for the request.
+   * @param method — The HTTP method for the request.
+   * @param url — The path for the request, relative to the iRacing API URL.
+   * @param headers — Headers for the request.
+   * @param body — Request body compatible with the Fetch API and the request's method.
+   * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
+   *   rejected with {@link WWWAuthenticateChallengeError}.
+   */
+  private async _makeProtectedRequest(
+    session: IRacingOAuthTokenResponse,
+    method: string,
+    path: string,
+    headers?: Headers,
+    body?: oauth.ProtectedResourceRequestBody,
+    options?: oauth.ProtectedResourceRequestOptions
+  ) {
+    return await oauth.protectedResourceRequest(
+      session.access_token,
+      method,
+      new URL(path, "https://members-ng.iracing.com"),
+      headers,
+      body,
+      options
+    );
   }
 
   async restoreSession(id: string) {
