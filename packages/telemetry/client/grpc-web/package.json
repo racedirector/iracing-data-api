@@ -10,7 +10,7 @@
     "@iracing-data/telemetry-types": "workspace:*"
   },
   "devDependencies": {
-    "@grpc/grpc-js": "1.13.3",
+    "@grpc/grpc-js": "1.14.2",
     "@grpc/proto-loader": "^0.8.0",
     "google-protobuf": "^4.0.0",
     "grpc-web": "^2.0.2",
