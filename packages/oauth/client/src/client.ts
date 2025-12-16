@@ -407,12 +407,24 @@ export class OAuthClient {
     const session = await this.getSession(sessionId);
 
     if (!session) {
-      throw new Error(`No session found for key "${sessionId}"`);
+      throw new OAuthRefreshError(
+        `No session found for key ID.`,
+        undefined,
+        undefined,
+        {
+          sessionId,
+        }
+      );
     }
 
     if (!session.refresh_token) {
-      throw new Error(
-        `Session "${sessionId}" cannot be refreshed; missing refresh token.`
+      throw new OAuthRefreshError(
+        `Session cannot be refreshed.`,
+        "Missing refresh token",
+        "MISSING_REFRESH_TOKEN",
+        {
+          sessionId,
+        }
       );
     }
 
