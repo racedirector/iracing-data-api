@@ -7,6 +7,7 @@ import {
   InternalState,
   IRacingOAuthTokenResponse,
   OAuthClient,
+  OAuthRefreshError,
 } from "@iracing-data/oauth-client";
 import {
   CarApi,
@@ -195,13 +196,24 @@ async function main() {
     sessionStore,
   });
 
-  let session = await client.restoreSession(username!);
-  if (!session) {
-    console.log("Could not find existing session. Authenticating...");
-    session = await client.passwordLimitedAuthorization();
-    console.info("Successfully authenticated!", session);
-  } else {
-    console.log("Continuing with discovered credentials...");
+  let session: IRacingOAuthTokenResponse | undefined;
+  try {
+    session = await client.restoreSession(username!);
+    if (!session) {
+      console.log("Could not find existing session. Authenticating...");
+      session = await client.passwordLimitedAuthorization();
+      console.info("Successfully authenticated!", session);
+    } else {
+      console.log("Continuing with discovered credentials...");
+    }
+  } catch (error) {
+    if (error instanceof OAuthRefreshError) {
+      session = await client.passwordLimitedAuthorization();
+    }
+
+    if (!session) {
+      throw new Error("Failed to restore session!");
+    }
   }
 
   const configuration = new Configuration({

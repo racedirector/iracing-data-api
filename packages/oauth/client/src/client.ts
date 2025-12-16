@@ -5,7 +5,7 @@ import {
   IRacingOAuthProfileResponse,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
-import { OAuthCallbackError } from "./oauth-callback-error";
+import { OAuthCallbackError, OAuthRefreshError } from "./oauth-callback-error";
 import {
   IRacingOAuthClientMetadata,
   IRacingOAuthClientMetadataInput,
@@ -291,13 +291,19 @@ export class OAuthClient {
       token
     );
 
-    const result = await oauth.processRefreshTokenResponse(
-      this.authorizationServer,
-      this.authorizationClient,
-      response
-    );
+    try {
+      const result = await oauth.processRefreshTokenResponse(
+        this.authorizationServer,
+        this.authorizationClient,
+        response
+      );
 
-    return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+      return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+    } catch (error) {
+      if (error instanceof oauth.ResponseBodyError) {
+        throw OAuthRefreshError.from(error);
+      }
+    }
   }
 
   /**

@@ -473,7 +473,7 @@ importers:
   packages/helpers/sync-telemetry-json-schema:
     dependencies:
       '@grpc/grpc-js':
-        specifier: ^1.13.4
+        specifier: ^1.14.2
         version: 1.14.2
       commander:
         specifier: ^14.0.0
