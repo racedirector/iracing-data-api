@@ -13,7 +13,7 @@
     "codegen:openapi:api": "iracing-api-openapi -o ./openapi -f iracing.json",
     "codegen:openapi:oauth": "iracing-oauth-api-openapi -o ./openapi -f oauth.json",
     "lint:fix": "pnpm lint --fix",
-    "lint": "eslint . --ext .ts,.js",
+    "lint": "eslint .",
     "style:fix": "prettier --write .",
     "style": "prettier --check .",
     "format": "pnpm lint:fix && pnpm style:fix",
