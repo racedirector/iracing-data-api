@@ -1,8 +1,8 @@
 #!/usr/bin/env ts-node
 import path from "node:path";
 import { fileURLToPath } from "url";
-import { downloadSchema } from "@iracing-data/sync-telemetry-json-schema";
 import { generateTypes } from "@iracing-data/iracing-json-schema-to-typescript";
+import { downloadSchema } from "@iracing-data/sync-telemetry-json-schema";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

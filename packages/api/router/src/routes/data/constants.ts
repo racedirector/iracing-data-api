@@ -7,7 +7,7 @@ export const categories = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.constants.getConstantsCategories();
-  }
+  },
 );
 
 export const divisions = createEndpoint(
@@ -17,7 +17,7 @@ export const divisions = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.constants.getConstantsDivisions();
-  }
+  },
 );
 
 export const eventTypes = createEndpoint(
@@ -27,5 +27,5 @@ export const eventTypes = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.constants.getConstantsEventTypes();
-  }
+  },
 );

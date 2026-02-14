@@ -8,5 +8,5 @@ export const getCarClass = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.carClass.getCarClass();
-  }
+  },
 );

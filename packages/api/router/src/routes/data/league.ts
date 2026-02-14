@@ -19,7 +19,7 @@ export const directory = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueDirectory(query);
-  }
+  },
 );
 
 export const customerLeagueSessions = createEndpoint(
@@ -30,7 +30,7 @@ export const customerLeagueSessions = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueCustomerLeagueSessions(query);
-  }
+  },
 );
 
 export const getLeague = createEndpoint(
@@ -41,7 +41,7 @@ export const getLeague = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeague(query);
-  }
+  },
 );
 
 export const getPointsSystems = createEndpoint(
@@ -52,7 +52,7 @@ export const getPointsSystems = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeaguePointsSystems(query);
-  }
+  },
 );
 
 export const leagueMembership = createEndpoint(
@@ -63,7 +63,7 @@ export const leagueMembership = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueMembership(query);
-  }
+  },
 );
 
 export const leagueRoster = createEndpoint(
@@ -74,7 +74,7 @@ export const leagueRoster = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueRoster(query);
-  }
+  },
 );
 
 export const leagueSeasons = createEndpoint(
@@ -85,7 +85,7 @@ export const leagueSeasons = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueSeasons(query);
-  }
+  },
 );
 
 export const seasonStandings = createEndpoint(
@@ -96,7 +96,7 @@ export const seasonStandings = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueSeasonStandings(query);
-  }
+  },
 );
 
 export const seasonSessions = createEndpoint(
@@ -107,5 +107,5 @@ export const seasonSessions = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.league.getLeagueSeasonSessions(query);
-  }
+  },
 );

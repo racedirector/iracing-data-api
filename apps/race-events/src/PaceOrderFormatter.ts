@@ -41,7 +41,7 @@ export class PaceOrderFormatter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof PaceOrderFormatterEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -49,7 +49,7 @@ export class PaceOrderFormatter extends EventEmitter {
 
   emit<E extends keyof PaceOrderFormatterEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
@@ -60,7 +60,7 @@ export class PaceOrderFormatter extends EventEmitter {
     paceLines: number[],
     drivers: Session["DriverInfo"]["Drivers"],
     paceMode: PaceMode,
-    isTeamRacing: boolean = false
+    isTeamRacing: boolean = false,
   ) {
     if (this._orderData.length) {
       this._orderData = [];
@@ -74,7 +74,7 @@ export class PaceOrderFormatter extends EventEmitter {
       this._paceMode = paceMode;
     }
 
-    for (var i = 0; i < drivers.length; i++) {
+    for (let i = 0; i < drivers.length; i++) {
       const driver = drivers[i];
       const row = paceRows[i];
       const line = paceLines[i];
@@ -115,7 +115,7 @@ export class PaceOrderFormatter extends EventEmitter {
             nameForLineValue(line),
             carNumber,
             displayName,
-          ])
+          ]),
         );
     } else {
       return table
@@ -125,7 +125,7 @@ export class PaceOrderFormatter extends EventEmitter {
             row,
             carNumber,
             displayName,
-          ])
+          ]),
         );
     }
   }
@@ -137,7 +137,7 @@ export class PaceOrderFormatter extends EventEmitter {
         this._unassignedData.map(({ carNumber, displayName }) => [
           carNumber,
           displayName,
-        ])
+        ]),
       );
   }
 }

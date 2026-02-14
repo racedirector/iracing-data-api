@@ -1,5 +1,5 @@
-import _ from "lodash";
 import { EventEmitter } from "node:events";
+import _ from "lodash";
 
 export type PitLaneEventMap = {
   /** Fired when pit lane transitions to open. */
@@ -35,7 +35,7 @@ export class PitLaneEventEmitter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof PitLaneEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -43,7 +43,7 @@ export class PitLaneEventEmitter extends EventEmitter {
 
   emit<E extends keyof PitLaneEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
@@ -54,7 +54,7 @@ export class PitLaneEventEmitter extends EventEmitter {
     isOnPitRoad: boolean[],
     paceCarIndex: number,
     sessionTime: string,
-    length: number = isOnPitRoad.length
+    length: number = isOnPitRoad.length,
   ) {
     // Pit lane open/close transition
     if (isPitLaneOpen !== this.previousIsPitLaneOpen) {

@@ -1,11 +1,11 @@
 import { CarSessionFlagEventEmitter } from "@iracing-data/car-session-flag-events";
-import { TelemetryClient } from "@iracing-data/telemetry-client-grpc-node";
 import { CarTrackLocationEventEmitter } from "@iracing-data/car-track-location-events";
 import { PaceFlagEventEmitter } from "@iracing-data/pace-flag-events";
 import { PaceOrderEventEmitter } from "@iracing-data/pace-order-events";
 import { PitLaneEventEmitter } from "@iracing-data/pit-lane-events";
 import { SessionFlagEventEmitter } from "@iracing-data/session-flag-events";
 import { SessionStateEventEmitter } from "@iracing-data/session-state-events";
+import { TelemetryClient } from "@iracing-data/telemetry-client-grpc-node";
 import {
   isCheckeredState,
   isCoolDown,
@@ -20,8 +20,8 @@ import {
 } from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
-import PaceOrderFormatter from "./PaceOrderFormatter";
 import { logger } from "./logging";
+import PaceOrderFormatter from "./PaceOrderFormatter";
 
 const apiUrl = process.env.API_URL || "localhost:50051";
 
@@ -62,25 +62,25 @@ const sessionFlagObserver = new SessionFlagEventEmitter()
   .on("randomWaving", ({ sessionTime, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, previousFlags, flags },
-      "Barney is the little kid in the background going crazy (random waving)."
+      "Barney is the little kid in the background going crazy (random waving).",
     );
   })
   .on("green", ({ sessionTime, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, previousFlags, flags },
-      "Green, green, green."
+      "Green, green, green.",
     );
   })
   .on("caution", ({ sessionTime, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, previousFlags, flags, isCaution: true },
-      "Caution is shown."
+      "Caution is shown.",
     );
   })
   .on("cautionWaving", ({ sessionTime, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, previousFlags, flags, isCaution: true },
-      "Caution is waving."
+      "Caution is waving.",
     );
   })
   .on("tenToGo", ({ sessionTime, previousFlags, flags }) => {
@@ -92,7 +92,7 @@ const sessionFlagObserver = new SessionFlagEventEmitter()
   .on("white", ({ sessionTime, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, previousFlags, flags },
-      "White flag, one to go."
+      "White flag, one to go.",
     );
   })
   .on("checkered", ({ sessionTime, previousFlags, flags }) => {
@@ -103,43 +103,43 @@ const carFlagObserver = new CarSessionFlagEventEmitter()
   .on("blue:cleared", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the blue flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the blue flag.`,
     );
   })
   .on("black", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the black flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the black flag.`,
     );
   })
   .on("black:cleared", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the black flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the black flag.`,
     );
   })
   .on("furled", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the furled flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the furled flag.`,
     );
   })
   .on("furled:cleared", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the furled flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the furled flag.`,
     );
   })
   .on("repair", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the repair flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) received the repair flag.`,
     );
   })
   .on("repair:cleared", ({ sessionTime, carIndex, previousFlags, flags }) => {
     flagLogger.info(
       { sessionTime, carIndex, previousFlags, flags },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the repair flag.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) cleared the repair flag.`,
     );
   });
 
@@ -151,19 +151,19 @@ const paceFlagManager = new PaceFlagEventEmitter()
   .on("waveAround", ({ sessionTime, carIndex }) => {
     paceFlagLogger.info(
       { sessionTime, type: "wave-around", carIndex },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was waved around.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was waved around.`,
     );
   })
   .on("freePass", ({ sessionTime, carIndex }) => {
     paceFlagLogger.info(
       { sessionTime, type: "free-pass", carIndex },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was given a free pass.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was given a free pass.`,
     );
   })
   .on("endOfLine", ({ sessionTime, carIndex }) => {
     paceFlagLogger.info(
       { sessionTime, type: "end-of-line", carIndex },
-      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was given EOL.`
+      `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) was given EOL.`,
     );
   });
 
@@ -183,18 +183,18 @@ const pitLaneManager = new PitLaneEventEmitter()
     ({ sessionTime, carIndex, isPaceCar, isPitLaneOpen }) => {
       pitLaneLogger.info(
         { sessionTime, type: "pit-entry", carIndex, isPitLaneOpen, isPaceCar },
-        `${isPaceCar ? "Pace car" : `Car ${carIndex} (${carIdentifierForIndex(carIndex)})`} entered ${isPitLaneOpen ? "open" : "closed"} pit lane`
+        `${isPaceCar ? "Pace car" : `Car ${carIndex} (${carIdentifierForIndex(carIndex)})`} entered ${isPitLaneOpen ? "open" : "closed"} pit lane`,
       );
-    }
+    },
   )
   .on(
     "pitroad:exited",
     ({ sessionTime, carIndex, isPaceCar, isPitLaneOpen }) => {
       pitLaneLogger.info(
         { sessionTime, type: "pit-exit", carIndex, isPitLaneOpen, isPaceCar },
-        `${isPaceCar ? "Pace car" : `Car ${carIndex} (${carIdentifierForIndex(carIndex)})`} exited ${isPitLaneOpen ? "open" : "closed"} pit lane`
+        `${isPaceCar ? "Pace car" : `Car ${carIndex} (${carIdentifierForIndex(carIndex)})`} exited ${isPitLaneOpen ? "open" : "closed"} pit lane`,
       );
-    }
+    },
   );
 
 /**
@@ -213,7 +213,7 @@ const paceOrderFormatter = new PaceOrderFormatter().on("update", () => {
   });
 
   paceOrderLogger.info(
-    `\n${paceOrderTable.toString()}\n${unassignedTable.toString()}`
+    `\n${paceOrderTable.toString()}\n${unassignedTable.toString()}`,
   );
 });
 
@@ -225,9 +225,9 @@ const paceOrderManager = new PaceOrderEventEmitter().on(
       currentLines,
       cachedDrivers,
       paceMode,
-      isTeamRacing
+      isTeamRacing,
     );
-  }
+  },
 );
 
 /**
@@ -245,9 +245,9 @@ const trackLocationEmitter = new CarTrackLocationEventEmitter()
     }) => {
       trackLocationLogger.info(
         { sessionTime, carIndex, previousTrackLocation, currentTrackLocation },
-        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is not in world.`
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is not in world.`,
       );
-    }
+    },
   )
   .on(
     "offTrack",
@@ -259,9 +259,9 @@ const trackLocationEmitter = new CarTrackLocationEventEmitter()
     }) => {
       trackLocationLogger.info(
         { sessionTime, carIndex, previousTrackLocation, currentTrackLocation },
-        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is off track.`
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is off track.`,
       );
-    }
+    },
   )
   .on(
     "onTrack",
@@ -273,9 +273,9 @@ const trackLocationEmitter = new CarTrackLocationEventEmitter()
     }) => {
       trackLocationLogger.info(
         { sessionTime, carIndex, previousTrackLocation, currentTrackLocation },
-        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is on track.`
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is on track.`,
       );
-    }
+    },
   )
   .on(
     "approachingPits",
@@ -287,9 +287,9 @@ const trackLocationEmitter = new CarTrackLocationEventEmitter()
     }) => {
       trackLocationLogger.info(
         { sessionTime, carIndex, previousTrackLocation, currentTrackLocation },
-        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is approaching pit lane.`
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) is approaching pit lane.`,
       );
-    }
+    },
   )
   .on(
     "inPitStall",
@@ -301,9 +301,9 @@ const trackLocationEmitter = new CarTrackLocationEventEmitter()
     }) => {
       trackLocationLogger.info(
         { sessionTime, carIndex, previousTrackLocation, currentTrackLocation },
-        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) entered their pit stall.`
+        `Car ${carIndex} (${carIdentifierForIndex(carIndex)}) entered their pit stall.`,
       );
-    }
+    },
   );
 
 /**
@@ -334,9 +334,9 @@ const sessionStateEmitter = new SessionStateEventEmitter().on(
   ({ sessionTime, previousSessionState, currentSessionState }) => {
     sessionStateLogger.info(
       { sessionTime, previousSessionState, currentSessionState },
-      `Session state did change from '${stringForSessionState(previousSessionState)}' to '${stringForSessionState(currentSessionState)}'`
+      `Session state did change from '${stringForSessionState(previousSessionState)}' to '${stringForSessionState(currentSessionState)}'`,
     );
-  }
+  },
 );
 
 /**
@@ -425,14 +425,14 @@ const stream = client
       onPitRoad,
       paceCarIndex,
       sessionTimeDurationString,
-      numberOfDrivers
+      numberOfDrivers,
     );
 
     // Process pace flag events
     paceFlagManager.process(
       paceFlags,
       sessionTimeDurationString,
-      numberOfDrivers
+      numberOfDrivers,
     );
 
     // Process pace order events
@@ -441,7 +441,7 @@ const stream = client
       paceRows,
       paceMode,
       sessionTimeDurationString,
-      numberOfDrivers
+      numberOfDrivers,
     );
 
     sessionFlagObserver.process(sessionFlags, sessionTimeDurationString);
@@ -449,7 +449,7 @@ const stream = client
     trackLocationEmitter.process(
       trackLocations,
       sessionTimeDurationString,
-      numberOfDrivers
+      numberOfDrivers,
     );
 
     sessionStateEmitter.process(sessionState, sessionTimeDurationString);

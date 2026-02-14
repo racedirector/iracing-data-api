@@ -26,7 +26,7 @@ const main = async () => {
     },
     () => {
       console.debug("Socket disconnect");
-    }
+    },
   );
 
   setTimeout(() => {

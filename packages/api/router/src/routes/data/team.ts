@@ -9,7 +9,7 @@ export const getTeam = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.team.getTeam(query);
-  }
+  },
 );
 
 export const membership = createEndpoint(
@@ -19,5 +19,5 @@ export const membership = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.team.getTeamMembership();
-  }
+  },
 );

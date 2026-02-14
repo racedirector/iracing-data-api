@@ -7,7 +7,7 @@ export const getDoc = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getDocs();
-  }
+  },
 );
 
 // Service docs
@@ -16,7 +16,7 @@ export const getCarClassDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getCarClassDocs();
-  }
+  },
 );
 
 export const getCarDocs = createEndpoint(
@@ -24,7 +24,7 @@ export const getCarDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getCarDocs();
-  }
+  },
 );
 
 export const getConstantsDocs = createEndpoint(
@@ -32,7 +32,7 @@ export const getConstantsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getConstantsDocs();
-  }
+  },
 );
 
 export const getDriverStatsByCategoryDocs = createEndpoint(
@@ -40,7 +40,7 @@ export const getDriverStatsByCategoryDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getDriverStatsByCategoryDocs();
-  }
+  },
 );
 
 export const getHostedDocs = createEndpoint(
@@ -48,7 +48,7 @@ export const getHostedDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getHostedDocs();
-  }
+  },
 );
 
 export const getLeagueDocs = createEndpoint(
@@ -56,7 +56,7 @@ export const getLeagueDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueDocs();
-  }
+  },
 );
 
 export const getLookupDocs = createEndpoint(
@@ -64,7 +64,7 @@ export const getLookupDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLookupDocs();
-  }
+  },
 );
 
 export const getMemberDocs = createEndpoint(
@@ -72,7 +72,7 @@ export const getMemberDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberDocs();
-  }
+  },
 );
 
 export const getResultsDocs = createEndpoint(
@@ -80,7 +80,7 @@ export const getResultsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsDocs();
-  }
+  },
 );
 
 export const getSeasonDocs = createEndpoint(
@@ -88,7 +88,7 @@ export const getSeasonDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeasonDocs();
-  }
+  },
 );
 
 export const getSeriesDocs = createEndpoint(
@@ -96,7 +96,7 @@ export const getSeriesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesDocs();
-  }
+  },
 );
 
 export const getStatsDocs = createEndpoint(
@@ -104,7 +104,7 @@ export const getStatsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsDocs();
-  }
+  },
 );
 
 export const getTeamDocs = createEndpoint(
@@ -112,7 +112,7 @@ export const getTeamDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTeamDocs();
-  }
+  },
 );
 
 export const getTimeAttackDocs = createEndpoint(
@@ -120,7 +120,7 @@ export const getTimeAttackDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTimeAttackDocs();
-  }
+  },
 );
 
 export const getTrackDocs = createEndpoint(
@@ -128,7 +128,7 @@ export const getTrackDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTrackDocs();
-  }
+  },
 );
 
 // Service method docs (one-level deeper)
@@ -137,7 +137,7 @@ export const getCarClassGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getCarClassGetDocs();
-  }
+  },
 );
 
 export const getCarAssetsDocs = createEndpoint(
@@ -145,7 +145,7 @@ export const getCarAssetsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getCarAssetsDocs();
-  }
+  },
 );
 
 export const getCarGetDocs = createEndpoint(
@@ -153,7 +153,7 @@ export const getCarGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getCarGetDocs();
-  }
+  },
 );
 
 export const getConstantsCategoriesDocs = createEndpoint(
@@ -161,7 +161,7 @@ export const getConstantsCategoriesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getConstantsCategoriesDocs();
-  }
+  },
 );
 
 export const getConstantsDivisionsDocs = createEndpoint(
@@ -169,7 +169,7 @@ export const getConstantsDivisionsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getConstantsDivisionsDocs();
-  }
+  },
 );
 
 export const getConstantsEventTypesDocs = createEndpoint(
@@ -177,7 +177,7 @@ export const getConstantsEventTypesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getConstantsEventTypesDocs();
-  }
+  },
 );
 
 export const getDriverStatsByCategoryCategoryDocs = createEndpoint(
@@ -187,7 +187,7 @@ export const getDriverStatsByCategoryCategoryDocs = createEndpoint(
     return await iracing.doc.getDriverStatsByCategoryCategoryDocs({
       category: params?.category,
     });
-  }
+  },
 );
 
 export const getHostedCombinedSessionsDocs = createEndpoint(
@@ -195,7 +195,7 @@ export const getHostedCombinedSessionsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getHostedCombinedSessionsDocs();
-  }
+  },
 );
 
 export const getHostedSessionsDocs = createEndpoint(
@@ -203,7 +203,7 @@ export const getHostedSessionsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getHostedSessionsDocs();
-  }
+  },
 );
 
 export const getLeagueCustomerLeagueSessionsDocs = createEndpoint(
@@ -211,7 +211,7 @@ export const getLeagueCustomerLeagueSessionsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueCustomerLeagueSessionsDocs();
-  }
+  },
 );
 
 export const getLeagueDirectoryDocs = createEndpoint(
@@ -219,7 +219,7 @@ export const getLeagueDirectoryDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueDirectoryDocs();
-  }
+  },
 );
 
 export const getLeagueGetDocs = createEndpoint(
@@ -227,7 +227,7 @@ export const getLeagueGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueGetDocs();
-  }
+  },
 );
 
 export const getLeagueGetPointsSystemsDocs = createEndpoint(
@@ -235,7 +235,7 @@ export const getLeagueGetPointsSystemsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueGetPointsSystemsDocs();
-  }
+  },
 );
 
 export const getLeagueMembershipDocs = createEndpoint(
@@ -243,7 +243,7 @@ export const getLeagueMembershipDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueMembershipDocs();
-  }
+  },
 );
 
 export const getLeagueRosterDocs = createEndpoint(
@@ -251,7 +251,7 @@ export const getLeagueRosterDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueRosterDocs();
-  }
+  },
 );
 
 export const getLeagueSeasonsDocs = createEndpoint(
@@ -259,7 +259,7 @@ export const getLeagueSeasonsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueSeasonsDocs();
-  }
+  },
 );
 
 export const getLeagueSeasonStandingsDocs = createEndpoint(
@@ -267,7 +267,7 @@ export const getLeagueSeasonStandingsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueSeasonStandingsDocs();
-  }
+  },
 );
 
 export const getLeagueSeasonSessionsDocs = createEndpoint(
@@ -275,7 +275,7 @@ export const getLeagueSeasonSessionsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLeagueSeasonSessionsDocs();
-  }
+  },
 );
 
 export const getLookupCountriesDocs = createEndpoint(
@@ -283,7 +283,7 @@ export const getLookupCountriesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLookupCountriesDocs();
-  }
+  },
 );
 
 export const getLookupDriversDocs = createEndpoint(
@@ -291,7 +291,7 @@ export const getLookupDriversDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLookupDriversDocs();
-  }
+  },
 );
 
 export const getLookupFlairsDocs = createEndpoint(
@@ -299,7 +299,7 @@ export const getLookupFlairsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLookupFlairsDocs();
-  }
+  },
 );
 
 export const getLookupGetDocs = createEndpoint(
@@ -307,7 +307,7 @@ export const getLookupGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLookupGetDocs();
-  }
+  },
 );
 
 export const getLookupLicensesDocs = createEndpoint(
@@ -315,7 +315,7 @@ export const getLookupLicensesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getLookupLicensesDocs();
-  }
+  },
 );
 
 export const getMemberAwardsDocs = createEndpoint(
@@ -323,7 +323,7 @@ export const getMemberAwardsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberAwardsDocs();
-  }
+  },
 );
 
 export const getMemberAwardInstancesDocs = createEndpoint(
@@ -331,7 +331,7 @@ export const getMemberAwardInstancesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberAwardInstancesDocs();
-  }
+  },
 );
 
 export const getMemberChartDataDocs = createEndpoint(
@@ -339,7 +339,7 @@ export const getMemberChartDataDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberChartDataDocs();
-  }
+  },
 );
 
 export const getMemberGetDocs = createEndpoint(
@@ -347,7 +347,7 @@ export const getMemberGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberGetDocs();
-  }
+  },
 );
 
 export const getMemberInfoDocs = createEndpoint(
@@ -355,7 +355,7 @@ export const getMemberInfoDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberInfoDocs();
-  }
+  },
 );
 
 export const getMemberParticipationCreditsDocs = createEndpoint(
@@ -363,7 +363,7 @@ export const getMemberParticipationCreditsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberParticipationCreditsDocs();
-  }
+  },
 );
 
 export const getMemberProfileDocs = createEndpoint(
@@ -371,7 +371,7 @@ export const getMemberProfileDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getMemberProfileDocs();
-  }
+  },
 );
 
 export const getResultsGetDocs = createEndpoint(
@@ -379,7 +379,7 @@ export const getResultsGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsGetDocs();
-  }
+  },
 );
 
 export const getResultsEventLogDocs = createEndpoint(
@@ -387,7 +387,7 @@ export const getResultsEventLogDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsEventLogDocs();
-  }
+  },
 );
 
 export const getResultsLapChartDataDocs = createEndpoint(
@@ -395,7 +395,7 @@ export const getResultsLapChartDataDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsLapChartDataDocs();
-  }
+  },
 );
 
 export const getResultsLapDataDocs = createEndpoint(
@@ -403,7 +403,7 @@ export const getResultsLapDataDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsLapDataDocs();
-  }
+  },
 );
 
 export const getResultsSearchHostedDocs = createEndpoint(
@@ -411,7 +411,7 @@ export const getResultsSearchHostedDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsSearchHostedDocs();
-  }
+  },
 );
 
 export const getResultsSearchSeriesDocs = createEndpoint(
@@ -419,7 +419,7 @@ export const getResultsSearchSeriesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsSearchSeriesDocs();
-  }
+  },
 );
 
 export const getResultsSeasonResultsDocs = createEndpoint(
@@ -427,7 +427,7 @@ export const getResultsSeasonResultsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getResultsSeasonResultsDocs();
-  }
+  },
 );
 
 export const getSeasonListDocs = createEndpoint(
@@ -435,7 +435,7 @@ export const getSeasonListDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeasonListDocs();
-  }
+  },
 );
 
 export const getSeasonRaceGuideDocs = createEndpoint(
@@ -443,7 +443,7 @@ export const getSeasonRaceGuideDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeasonRaceGuideDocs();
-  }
+  },
 );
 
 export const getSeasonSpectatorSubsessionIdsDocs = createEndpoint(
@@ -451,7 +451,7 @@ export const getSeasonSpectatorSubsessionIdsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeasonSpectatorSubsessionIdsDocs();
-  }
+  },
 );
 
 export const getSeasonSpectatorSubsessionIdsDetailDocs = createEndpoint(
@@ -459,7 +459,7 @@ export const getSeasonSpectatorSubsessionIdsDetailDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeasonSpectatorSubsessionIdsDetailDocs();
-  }
+  },
 );
 
 export const getSeriesAssetsDocs = createEndpoint(
@@ -467,7 +467,7 @@ export const getSeriesAssetsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesAssetsDocs();
-  }
+  },
 );
 
 export const getSeriesGetDocs = createEndpoint(
@@ -475,7 +475,7 @@ export const getSeriesGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesGetDocs();
-  }
+  },
 );
 
 export const getSeriesPastSeasonsDocs = createEndpoint(
@@ -483,7 +483,7 @@ export const getSeriesPastSeasonsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesPastSeasonsDocs();
-  }
+  },
 );
 
 export const getSeriesSeasonsDocs = createEndpoint(
@@ -491,7 +491,7 @@ export const getSeriesSeasonsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesSeasonsDocs();
-  }
+  },
 );
 
 export const getSeriesSeasonListDocs = createEndpoint(
@@ -499,7 +499,7 @@ export const getSeriesSeasonListDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesSeasonListDocs();
-  }
+  },
 );
 
 export const getSeriesSeasonScheduleDocs = createEndpoint(
@@ -507,7 +507,7 @@ export const getSeriesSeasonScheduleDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesSeasonScheduleDocs();
-  }
+  },
 );
 
 export const getSeriesStatsSeriesDocs = createEndpoint(
@@ -515,7 +515,7 @@ export const getSeriesStatsSeriesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getSeriesStatsSeriesDocs();
-  }
+  },
 );
 
 export const getStatsMemberBestsDocs = createEndpoint(
@@ -523,7 +523,7 @@ export const getStatsMemberBestsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberBestsDocs();
-  }
+  },
 );
 
 export const getStatsMemberCareerDocs = createEndpoint(
@@ -531,7 +531,7 @@ export const getStatsMemberCareerDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberCareerDocs();
-  }
+  },
 );
 
 export const getStatsMemberDivisionDocs = createEndpoint(
@@ -539,7 +539,7 @@ export const getStatsMemberDivisionDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberDivisionDocs();
-  }
+  },
 );
 
 export const getStatsMemberRecapDocs = createEndpoint(
@@ -547,7 +547,7 @@ export const getStatsMemberRecapDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberRecapDocs();
-  }
+  },
 );
 
 export const getStatsMemberRecentRacesDocs = createEndpoint(
@@ -555,7 +555,7 @@ export const getStatsMemberRecentRacesDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberRecentRacesDocs();
-  }
+  },
 );
 
 export const getStatsMemberSummaryDocs = createEndpoint(
@@ -563,7 +563,7 @@ export const getStatsMemberSummaryDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberSummaryDocs();
-  }
+  },
 );
 
 export const getStatsMemberYearlyDocs = createEndpoint(
@@ -571,7 +571,7 @@ export const getStatsMemberYearlyDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsMemberYearlyDocs();
-  }
+  },
 );
 
 export const getStatsSeasonDriverStandingsDocs = createEndpoint(
@@ -579,7 +579,7 @@ export const getStatsSeasonDriverStandingsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsSeasonDriverStandingsDocs();
-  }
+  },
 );
 
 export const getStatsSeasonSupersessionStandingsDocs = createEndpoint(
@@ -587,7 +587,7 @@ export const getStatsSeasonSupersessionStandingsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsSeasonSupersessionStandingsDocs();
-  }
+  },
 );
 
 export const getStatsSeasonTeamStandingsDocs = createEndpoint(
@@ -595,7 +595,7 @@ export const getStatsSeasonTeamStandingsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsSeasonTeamStandingsDocs();
-  }
+  },
 );
 
 export const getStatsSeasonTTStandingsDocs = createEndpoint(
@@ -603,7 +603,7 @@ export const getStatsSeasonTTStandingsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsSeasonTTStandingsDocs();
-  }
+  },
 );
 
 export const getStatsSeasonTTResultsDocs = createEndpoint(
@@ -611,7 +611,7 @@ export const getStatsSeasonTTResultsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsSeasonTTResultsDocs();
-  }
+  },
 );
 
 export const getStatsSeasonQualifyResultsDocs = createEndpoint(
@@ -619,7 +619,7 @@ export const getStatsSeasonQualifyResultsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsSeasonQualifyResultsDocs();
-  }
+  },
 );
 
 export const getStatsWorldRecordsDocs = createEndpoint(
@@ -627,7 +627,7 @@ export const getStatsWorldRecordsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getStatsWorldRecordsDocs();
-  }
+  },
 );
 
 export const getTeamGetDocs = createEndpoint(
@@ -635,7 +635,7 @@ export const getTeamGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTeamGetDocs();
-  }
+  },
 );
 
 export const getTeamMembershipDocs = createEndpoint(
@@ -643,7 +643,7 @@ export const getTeamMembershipDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTeamMembershipDocs();
-  }
+  },
 );
 
 export const getTimeAttackMemberSeasonResultsDocs = createEndpoint(
@@ -651,7 +651,7 @@ export const getTimeAttackMemberSeasonResultsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTimeAttackMemberSeasonResultsDocs();
-  }
+  },
 );
 
 export const getTrackAssetsDocs = createEndpoint(
@@ -659,7 +659,7 @@ export const getTrackAssetsDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTrackAssetsDocs();
-  }
+  },
 );
 
 export const getTrackGetDocs = createEndpoint(
@@ -667,5 +667,5 @@ export const getTrackGetDocs = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.doc.getTrackGetDocs();
-  }
+  },
 );

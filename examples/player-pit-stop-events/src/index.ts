@@ -1,9 +1,9 @@
 import { TelemetryClient } from "@iracing-data/grpc-node";
+import { PlayerPitStopEventEmitter } from "@iracing-data/player-pit-stop-events";
 import { TelemetryData, TrackLocation } from "@iracing-data/telemetry-types";
 import _ from "lodash";
 import { Duration } from "luxon";
 import pino from "pino";
-import { PlayerPitStopEventEmitter } from "@iracing-data/player-pit-stop-events";
 import {
   servicesForFlags,
   stringForPitServiceStatus,
@@ -34,13 +34,13 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
   .on("pitroad:entered", ({ sessionTime, isPitLaneOpen }) => {
     logger.info(
       { sessionTime, type: "pit-road-enter" },
-      `Player entered ${isPitLaneOpen ? "open" : "closed"} pit road`
+      `Player entered ${isPitLaneOpen ? "open" : "closed"} pit road`,
     );
   })
   .on("pitroad:exited", ({ sessionTime, isPitLaneOpen }) => {
     logger.info(
       { sessionTime, type: "pit-road-exit" },
-      `Player exited ${isPitLaneOpen ? "open" : "closed"} pit road`
+      `Player exited ${isPitLaneOpen ? "open" : "closed"} pit road`,
     );
   })
   .on("pitstall:entered", ({ sessionTime, trackLocation }) => {
@@ -50,7 +50,7 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
         type: "pit-stall-enter",
         trackLocation,
       },
-      "Player entered their pit stall."
+      "Player entered their pit stall.",
     );
   })
   .on("pitstall:exited", ({ sessionTime, trackLocation }) => {
@@ -60,7 +60,7 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
         type: "pit-stall-exit",
         trackLocation,
       },
-      "Player exited their pit stall."
+      "Player exited their pit stall.",
     );
   })
   .on(
@@ -73,7 +73,7 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
     }) => {
       const { added, removed } = updateServices(
         previousServiceFlags,
-        currentServiceFlags
+        currentServiceFlags,
       );
 
       if (isPitstopActive) {
@@ -87,7 +87,7 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
               currentServiceFlags,
               requested: added,
             },
-            "Service request update during active stop."
+            "Service request update during active stop.",
           );
         }
 
@@ -100,7 +100,7 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
             started: removed,
             remaining: servicesForFlags(currentServiceFlags),
           },
-          "Service started"
+          "Service started",
         );
       } else {
         logger.info(
@@ -112,10 +112,10 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
             requested: added,
             unrequested: removed,
           },
-          "Service request update"
+          "Service request update",
         );
       }
-    }
+    },
   )
   .on(
     "service:change",
@@ -127,9 +127,9 @@ const playerPitStopEventEmitter = new PlayerPitStopEventEmitter()
           previousServiceStatus,
           currentServiceStatus,
         },
-        `Service change: "${stringForPitServiceStatus(previousServiceStatus)}" to "${stringForPitServiceStatus(currentServiceStatus)}"`
+        `Service change: "${stringForPitServiceStatus(previousServiceStatus)}" to "${stringForPitServiceStatus(currentServiceStatus)}"`,
       );
-    }
+    },
   );
 
 /**

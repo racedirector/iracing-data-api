@@ -20,7 +20,8 @@
     "build": "pnpm --recursive --stream build",
     "dev": "NODE_ENV=development pnpm --stream '/^dev:.+$/'",
     "dev:tsc": "tsc --build tsconfig.json --watch",
-    "dev:pkg": "pnpm --recursive --parallel --stream dev"
+    "dev:pkg": "pnpm --recursive --parallel --stream dev",
+    "test": "pnpm --recursive --if-present test"
   },
   "keywords": [],
   "author": "",

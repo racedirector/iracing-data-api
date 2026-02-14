@@ -14,7 +14,7 @@ export const list = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.season.getSeasonList(query);
-  }
+  },
 );
 
 export const raceGuide = createEndpoint(
@@ -28,7 +28,7 @@ export const raceGuide = createEndpoint(
       ...query,
       from: from ? new Date(from) : undefined,
     });
-  }
+  },
 );
 
 export const spectatorSubsessionIds = createEndpoint(
@@ -39,7 +39,7 @@ export const spectatorSubsessionIds = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.season.getSeasonSpectatorSubsessionIds(query);
-  }
+  },
 );
 
 export const spectatorSubsessionIdsDetail = createEndpoint(
@@ -50,5 +50,5 @@ export const spectatorSubsessionIdsDetail = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.season.getSeasonSpectatorSubsessionIdsDetail(query);
-  }
+  },
 );

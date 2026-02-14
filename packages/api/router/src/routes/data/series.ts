@@ -13,7 +13,7 @@ export const seriesAssets = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.series.getSeriesAssets();
-  }
+  },
 );
 
 export const getSeries = createEndpoint(
@@ -23,7 +23,7 @@ export const getSeries = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.series.getSeries();
-  }
+  },
 );
 
 export const pastSeasons = createEndpoint(
@@ -34,7 +34,7 @@ export const pastSeasons = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesPastSeasons(query);
-  }
+  },
 );
 
 export const seasons = createEndpoint(
@@ -45,7 +45,7 @@ export const seasons = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesSeasons(query);
-  }
+  },
 );
 
 export const seasonList = createEndpoint(
@@ -56,7 +56,7 @@ export const seasonList = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesSeasonList(query);
-  }
+  },
 );
 
 export const seasonSchedule = createEndpoint(
@@ -67,7 +67,7 @@ export const seasonSchedule = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesSeasonSchedule(query);
-  }
+  },
 );
 
 export const statsSeries = createEndpoint(
@@ -77,5 +77,5 @@ export const statsSeries = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.series.getSeriesStatsSeries();
-  }
+  },
 );

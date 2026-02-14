@@ -1,6 +1,5 @@
-import { IracingAPIResponse } from "@iracing-data/api-client-fetch";
-import assert from "node:assert";
 import { access, constants } from "node:fs/promises";
+import { IracingAPIResponse } from "@iracing-data/api-client-fetch";
 /**
  * Checks if a file exists.
  * @param path the path of the file
@@ -15,7 +14,7 @@ export const exists = async (path: string) => {
   }
 };
 
-export async function fetchAPIResponseData<T extends unknown>({
+export async function fetchAPIResponseData<T>({
   expires,
   link,
 }: IracingAPIResponse) {

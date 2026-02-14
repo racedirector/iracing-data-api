@@ -20,7 +20,7 @@ export const logger = pino(
     base: undefined,
     level: "debug",
   },
-  stream
+  stream,
 );
 
 export default logger;

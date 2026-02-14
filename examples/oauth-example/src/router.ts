@@ -11,7 +11,7 @@ export const router = createRouter(
         description: "An iRacing OAuth Client implementation example.",
       },
     },
-  }
+  },
 );
 
 export default router;

@@ -1,5 +1,4 @@
 import EventEmitter from "node:events";
-import _ from "lodash";
 import {
   isApproachingPits,
   isInPitStall,
@@ -8,6 +7,7 @@ import {
   isOnTrack,
   TrackLocation,
 } from "@iracing-data/telemetry-types";
+import _ from "lodash";
 
 export type CarTrackLocationEventMap = {
   change: {
@@ -57,7 +57,7 @@ export class CarTrackLocationEventEmitter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof CarTrackLocationEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -65,7 +65,7 @@ export class CarTrackLocationEventEmitter extends EventEmitter {
 
   emit<E extends keyof CarTrackLocationEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
@@ -74,7 +74,7 @@ export class CarTrackLocationEventEmitter extends EventEmitter {
   process(
     trackLocations: TrackLocation[],
     sessionTime: string,
-    length: number = trackLocations.length
+    length: number = trackLocations.length,
   ) {
     if (!_.isEqual(this.previousTrackLocations, trackLocations)) {
       for (let i = 0; i < length; i++) {

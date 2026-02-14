@@ -114,14 +114,14 @@ export const isOnPitRoad = (location: number) =>
 
 export const didLeaveWorld = (
   previousLocation: number,
-  currentLocation: number
+  currentLocation: number,
 ) =>
   previousLocation > TrackLocation.not_in_world &&
   isNotInWorld(currentLocation);
 
 export const didReturnToWorld = (
   previousLocation: number,
-  currentLocation: number
+  currentLocation: number,
 ) =>
   isNotInWorld(previousLocation) &&
   currentLocation > TrackLocation.not_in_world;
@@ -129,7 +129,7 @@ export const didReturnToWorld = (
 export const didReturnToLocation = (
   previousLocation: number,
   currentLocation: number,
-  location: TrackLocation
+  location: TrackLocation,
 ) => isNotInWorld(previousLocation) && currentLocation === location;
 
 // Session State

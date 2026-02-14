@@ -1,11 +1,11 @@
 import { writeFile, mkdir } from "node:fs/promises";
 import path from "node:path";
-import { exists, fetchAPIResponseData } from "./util";
 import { TrackApi } from "@iracing-data/api-client-fetch";
 import {
   IRacingGetTrackAssetsResponse,
   IRacingGetTrackResponse,
 } from "@iracing-data/api-schema";
+import { exists, fetchAPIResponseData } from "./util";
 
 export interface SyncTrackAssetsOptions {
   /**
@@ -69,7 +69,7 @@ export async function syncTrackAssets(
     skipTrackInfo = false,
     includeSVGs = false,
   }: SyncTrackAssetsOptions,
-  client: TrackApi = new TrackApi()
+  client: TrackApi = new TrackApi(),
 ) {
   /**
    * Create the output directory if it doesn't exist.
@@ -152,7 +152,7 @@ export async function syncTrackAssets(
             const svg = await response.text();
             await writeFile(layerPath, svg, "utf8");
           }
-        })
+        }),
       );
     }
 

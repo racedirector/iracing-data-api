@@ -17,7 +17,7 @@ export class SessionStateEventEmitter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof SessionStateEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -25,7 +25,7 @@ export class SessionStateEventEmitter extends EventEmitter {
 
   emit<E extends keyof SessionStateEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);

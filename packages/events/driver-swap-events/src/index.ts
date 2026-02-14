@@ -20,7 +20,7 @@ export class DriverSwapEventEmitter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof DriverSwapEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -28,7 +28,7 @@ export class DriverSwapEventEmitter extends EventEmitter {
 
   emit<E extends keyof DriverSwapEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
@@ -37,7 +37,7 @@ export class DriverSwapEventEmitter extends EventEmitter {
   async process(
     drivers: Drivers,
     sessionTime: string,
-    length: number = drivers.length
+    length: number = drivers.length,
   ) {
     if (this.previousDrivers.length === 0) {
       this.previousDrivers = drivers;

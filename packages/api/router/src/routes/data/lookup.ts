@@ -8,7 +8,7 @@ export const countries = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.lookup.getLookupCountries();
-  }
+  },
 );
 
 export const flairs = createEndpoint(
@@ -18,7 +18,7 @@ export const flairs = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.lookup.getLookupFlairs();
-  }
+  },
 );
 
 export const licenses = createEndpoint(
@@ -28,7 +28,7 @@ export const licenses = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.lookup.getLookupLicenses();
-  }
+  },
 );
 
 export const drivers = createEndpoint(
@@ -39,7 +39,7 @@ export const drivers = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.lookup.getLookupDrivers(query);
-  }
+  },
 );
 
 export const getLookup = createEndpoint(
@@ -48,7 +48,7 @@ export const getLookup = createEndpoint(
     method: "GET",
     requireHeaders: true,
   },
-  async ({ context: { iracing }, query }) => {
+  async ({ context: { iracing } }) => {
     return await iracing.lookup.getLookup();
-  }
+  },
 );

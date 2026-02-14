@@ -8,15 +8,15 @@ const program = new Command("sync-iracing-telemetry-json-schema")
   .requiredOption("-o, --output <path>", "Output path")
   .option(
     "--ti, --telemetry-input <telemetrySchemaPath>",
-    "Telemetry JSON schema input"
+    "Telemetry JSON schema input",
   )
   .option(
     "--to, --telemetry-output <telemetryTypesPath>",
-    "Telemetry types output"
+    "Telemetry types output",
   )
   .option(
     "--si, --session-input <sessionSchemaPath>",
-    "Session JSON schema input"
+    "Session JSON schema input",
   )
   .option("--so, --session-output <sessionTypesPath>", "Session types output")
   .action(async (_, command) => {

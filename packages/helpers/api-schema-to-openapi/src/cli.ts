@@ -8,7 +8,7 @@ const program = new Command("iracing-api-openapi")
   .requiredOption("-o, --output <path>", "Output path")
   .option(
     "-f, --file <fileName>",
-    "The name of the output file. Defaults to 'openapi.json'"
+    "The name of the output file. Defaults to 'openapi.json'",
   )
   .action(async (_, command) => {
     const { output, file = "openapi.json" } = command.optsWithGlobals();

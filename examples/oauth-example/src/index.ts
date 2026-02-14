@@ -1,8 +1,8 @@
 import { toNodeHandler } from "better-call/node";
-import express from "express";
 import cookieParser from "cookie-parser";
-import { page } from "./page";
+import express from "express";
 import { PORT } from "./config";
+import { page } from "./page";
 import router from "./router";
 
 const app = express();
@@ -17,8 +17,8 @@ app.get("/", (req, res) => {
       page(
         hasToken
           ? `<h1>Authenticated with iRacing</h1><a href="/logout">Sign out</a>`
-          : `<h1>Login</h1><a href="/login">Login with iRacing</a>`
-      )
+          : `<h1>Login</h1><a href="/login">Login with iRacing</a>`,
+      ),
     );
 });
 

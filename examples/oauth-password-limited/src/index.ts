@@ -2,14 +2,6 @@ import fs, { access, constants, mkdir } from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  InMemoryStore,
-  DiskStore,
-  InternalState,
-  IRacingOAuthTokenResponse,
-  OAuthClient,
-  OAuthRefreshError,
-} from "@iracing-data/oauth-client";
-import {
   CarApi,
   Configuration,
   ConstantsApi,
@@ -19,6 +11,14 @@ import {
   SeriesApi,
   TrackApi,
 } from "@iracing-data/api-client-fetch";
+import {
+  InMemoryStore,
+  DiskStore,
+  InternalState,
+  IRacingOAuthTokenResponse,
+  OAuthClient,
+  OAuthRefreshError,
+} from "@iracing-data/oauth-client";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -62,7 +62,7 @@ async function fetchIRacingLink({
 
 async function writeResponseDataToFile(
   filePath: string,
-  response: IracingAPIResponse
+  response: IracingAPIResponse,
 ) {
   const outputPath = makeOutputPath(filePath);
 
@@ -84,7 +84,7 @@ async function fetchSeries(configuration: Configuration) {
   await Promise.all([
     writeResponseDataToFile(
       "series-assets.json",
-      await series.getSeriesAssets()
+      await series.getSeriesAssets(),
     ),
     writeResponseDataToFile("series.json", await series.getSeries()),
   ]);
@@ -116,15 +116,15 @@ async function fetchConstants(configuration: Configuration) {
   await Promise.all([
     writeResponseDataToFile(
       "categories.json",
-      await constants.getConstantsCategories()
+      await constants.getConstantsCategories(),
     ),
     writeResponseDataToFile(
       "divisions.json",
-      await constants.getConstantsDivisions()
+      await constants.getConstantsDivisions(),
     ),
     writeResponseDataToFile(
       "event-types.json",
-      await constants.getConstantsEventTypes()
+      await constants.getConstantsEventTypes(),
     ),
   ]);
 }
@@ -135,7 +135,7 @@ async function fetchLookup(configuration: Configuration) {
   await Promise.all([
     writeResponseDataToFile(
       "countries.json",
-      await lookup.getLookupCountries()
+      await lookup.getLookupCountries(),
     ),
     writeResponseDataToFile("licenses.json", await lookup.getLookupLicenses()),
     writeResponseDataToFile("flairs.json", await lookup.getLookupFlairs()),
@@ -179,7 +179,7 @@ async function fetchData(configuration: Configuration) {
 async function main() {
   const stateStore = new InMemoryStore<string, InternalState>();
   const sessionStore = new DiskStore<string, IRacingOAuthTokenResponse>(
-    credentialsPath
+    credentialsPath,
   );
 
   const username = process.env.IRACING_AUTH_USERNAME;
