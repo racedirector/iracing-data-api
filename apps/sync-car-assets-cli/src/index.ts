@@ -69,8 +69,8 @@ const program = new Command("sync-iracing-car-assets")
       new CarApi(
         new Configuration({
           accessToken: session.data?.access_token,
-        })
-      )
+        }),
+      ),
     );
 
     console.log("Done!");

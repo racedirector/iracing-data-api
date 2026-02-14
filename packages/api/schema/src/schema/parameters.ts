@@ -481,7 +481,7 @@ export const IRacingStatsSeasonSupersessionStandingsParametersSchema = z.object(
       .number()
       .optional()
       .meta({ description: "The first race week of a season is 0." }),
-  }
+  },
 );
 
 export const IRacingStatsSeasonTeamStandingsParametersSchema = z.object({

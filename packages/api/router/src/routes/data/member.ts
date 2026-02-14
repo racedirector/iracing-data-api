@@ -1,4 +1,3 @@
-import { createEndpoint } from "../utils";
 import {
   IRacingMemberAwardInstancesParametersSchema,
   IRacingMemberAwardsParametersSchema,
@@ -6,6 +5,7 @@ import {
   IRacingMemberGetParametersSchema,
   IRacingMemberProfileParametersSchema,
 } from "@iracing-data/api-schema";
+import { createEndpoint } from "../utils";
 
 export const awards = createEndpoint(
   "/data/member/awards",
@@ -16,7 +16,7 @@ export const awards = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberAwards(query);
-  }
+  },
 );
 
 export const awardInstances = createEndpoint(
@@ -28,7 +28,7 @@ export const awardInstances = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberAwardInstances(query);
-  }
+  },
 );
 
 export const chartData = createEndpoint(
@@ -39,7 +39,7 @@ export const chartData = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberChartData(query);
-  }
+  },
 );
 
 export const getMember = createEndpoint(
@@ -50,7 +50,7 @@ export const getMember = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMember(query);
-  }
+  },
 );
 
 export const info = createEndpoint(
@@ -60,7 +60,7 @@ export const info = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.member.getMemberInfo();
-  }
+  },
 );
 
 export const participationCredits = createEndpoint(
@@ -68,7 +68,7 @@ export const participationCredits = createEndpoint(
   { method: "GET" },
   async ({ context: { iracing } }) => {
     return await iracing.member.getMemberParticipationCredits();
-  }
+  },
 );
 
 export const profile = createEndpoint(
@@ -79,5 +79,5 @@ export const profile = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberProfile(query);
-  }
+  },
 );

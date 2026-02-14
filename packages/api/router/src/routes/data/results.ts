@@ -14,7 +14,7 @@ export const getResults = createEndpoint(
   { method: "GET", query: IRacingResultsGetParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResults(query);
-  }
+  },
 );
 
 export const eventLog = createEndpoint(
@@ -22,7 +22,7 @@ export const eventLog = createEndpoint(
   { method: "GET", query: IRacingResultsEventLogParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsEventLog(query);
-  }
+  },
 );
 
 export const lapChartData = createEndpoint(
@@ -30,7 +30,7 @@ export const lapChartData = createEndpoint(
   { method: "GET", query: IRacingResultsLapChartDataParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsLapChartData(query);
-  }
+  },
 );
 
 export const lapData = createEndpoint(
@@ -38,7 +38,7 @@ export const lapData = createEndpoint(
   { method: "GET", query: IRacingResultsLapDataParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsLapData(query);
-  }
+  },
 );
 
 export const searchHosted = createEndpoint(
@@ -67,7 +67,7 @@ export const searchHosted = createEndpoint(
         ? new Date(finish_range_end)
         : undefined,
     });
-  }
+  },
 );
 
 export const searchSeries = createEndpoint(
@@ -96,7 +96,7 @@ export const searchSeries = createEndpoint(
         ? new Date(finish_range_end)
         : undefined,
     });
-  }
+  },
 );
 
 export const seasonResults = createEndpoint(
@@ -104,5 +104,5 @@ export const seasonResults = createEndpoint(
   { method: "GET", query: IRacingResultsSeasonResultsParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsSeasonResults(query);
-  }
+  },
 );

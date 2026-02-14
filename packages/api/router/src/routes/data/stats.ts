@@ -24,7 +24,7 @@ export const memberBests = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberBests(query);
-  }
+  },
 );
 
 export const memberCareer = createEndpoint(
@@ -35,7 +35,7 @@ export const memberCareer = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberCareer(query);
-  }
+  },
 );
 
 export const memberDivision = createEndpoint(
@@ -46,7 +46,7 @@ export const memberDivision = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberDivision(query);
-  }
+  },
 );
 
 export const memberRecap = createEndpoint(
@@ -57,7 +57,7 @@ export const memberRecap = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberRecap(query);
-  }
+  },
 );
 
 export const memberRecentRaces = createEndpoint(
@@ -68,7 +68,7 @@ export const memberRecentRaces = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberRecentRaces(query);
-  }
+  },
 );
 
 export const memberSummary = createEndpoint(
@@ -79,7 +79,7 @@ export const memberSummary = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberSummary(query);
-  }
+  },
 );
 
 export const memberYearly = createEndpoint(
@@ -90,7 +90,7 @@ export const memberYearly = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsMemberYearly(query);
-  }
+  },
 );
 
 export const seasonDriverStandings = createEndpoint(
@@ -101,7 +101,7 @@ export const seasonDriverStandings = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsSeasonDriverStandings(query);
-  }
+  },
 );
 
 export const seasonSupersessionStandings = createEndpoint(
@@ -112,7 +112,7 @@ export const seasonSupersessionStandings = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsSeasonSupersessionStandings(query);
-  }
+  },
 );
 
 export const seasonTeamStandings = createEndpoint(
@@ -123,7 +123,7 @@ export const seasonTeamStandings = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsSeasonTeamStandings(query);
-  }
+  },
 );
 
 export const seasonTimeTrialStandings = createEndpoint(
@@ -134,7 +134,7 @@ export const seasonTimeTrialStandings = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsSeasonTimeTrialStandings(query);
-  }
+  },
 );
 
 export const seasonTimeTrialResults = createEndpoint(
@@ -145,7 +145,7 @@ export const seasonTimeTrialResults = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsSeasonTimeTrialResults(query);
-  }
+  },
 );
 
 export const seasonQualifyResults = createEndpoint(
@@ -156,7 +156,7 @@ export const seasonQualifyResults = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsSeasonQualifyResults(query);
-  }
+  },
 );
 
 export const worldRecords = createEndpoint(
@@ -167,5 +167,5 @@ export const worldRecords = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.stats.getStatsWorldRecords(query);
-  }
+  },
 );

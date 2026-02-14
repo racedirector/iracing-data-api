@@ -9,5 +9,5 @@ export const memberSeasonResults = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.timeAttack.getTimeAttackMemberSeasonResults(query);
-  }
+  },
 );

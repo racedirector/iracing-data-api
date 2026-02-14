@@ -1,6 +1,6 @@
-import client from "@/oauth-client";
 import { createEndpoint } from "better-call";
 import { z } from "zod";
+import client from "@/oauth-client";
 
 // TODO: Add routes for session management
 
@@ -12,7 +12,7 @@ export const oauthSignIn = createEndpoint(
   async (context) => {
     const { url } = await client.authorize();
     return context.redirect(url.toString());
-  }
+  },
 );
 
 export const oauthCallback = createEndpoint(
@@ -40,7 +40,7 @@ export const oauthCallback = createEndpoint(
     context.setHeader("X-IRACING-ACCESS-TOKEN", token.access_token);
     context.setHeader(
       "X-IRACING-ACCESS-TOKEN-EXPIRES-IN",
-      token.expires_in.toString()
+      token.expires_in.toString(),
     );
 
     if (token.scope) {
@@ -54,12 +54,12 @@ export const oauthCallback = createEndpoint(
     if (token.refresh_token_expires_in) {
       context.setHeader(
         "X-IRACING-REFRESH-TOKEN-EXPIRES-IN",
-        token.refresh_token_expires_in.toString()
+        token.refresh_token_expires_in.toString(),
       );
     }
 
     return context.redirect("/");
-  }
+  },
 );
 
 export const oauthSignOut = createEndpoint(
@@ -75,5 +75,5 @@ export const oauthSignOut = createEndpoint(
     });
 
     return context.redirect("/");
-  }
+  },
 );

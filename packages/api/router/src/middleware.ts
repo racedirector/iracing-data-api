@@ -62,7 +62,7 @@ export const iracingClientMiddleware = createMiddleware(
         track: new TrackApi(config),
       },
     };
-  }
+  },
 );
 
 export default iracingClientMiddleware;

@@ -1,3 +1,5 @@
+import fs from "node:fs";
+import path from "node:path";
 import {
   IRacingOAuthErrorResponseSchema,
   IRacingOAuthAuthorizeParametersSchema,
@@ -10,8 +12,6 @@ import {
   IRacingOAuthTokenParametersSchema,
   IRacingOAuthTokenResponseSchema,
 } from "@iracing-data/oauth-schema";
-import fs from "node:fs";
-import path from "node:path";
 import { createDocument } from "zod-openapi";
 
 export interface GenerateOpenAPISpecOptions {

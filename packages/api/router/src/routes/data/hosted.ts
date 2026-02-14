@@ -9,7 +9,7 @@ export const combinedSessions = createEndpoint(
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.hosted.getHostedCombinedSessions(query);
-  }
+  },
 );
 
 export const sessions = createEndpoint(
@@ -19,5 +19,5 @@ export const sessions = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.hosted.getHostedSessions();
-  }
+  },
 );

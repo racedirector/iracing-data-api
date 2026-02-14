@@ -78,8 +78,8 @@ const program = new Command("sync-iracing-track-assets")
       new TrackApi(
         new Configuration({
           accessToken: session.data?.access_token,
-        })
-      )
+        }),
+      ),
     );
 
     console.log("Done!");

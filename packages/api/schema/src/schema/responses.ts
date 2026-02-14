@@ -36,7 +36,7 @@ export const IRacingServiceMethodDocsResponseSchema = z
     link: z.url(),
     parameters: z.record(
       z.string(),
-      IRacingServiceMethodParametersDocsResponseSchema
+      IRacingServiceMethodParametersDocsResponseSchema,
     ),
     expirationSeconds: z.coerce.number().optional(),
   })
@@ -67,13 +67,13 @@ export const IRacingServicesDocsResponseSchema = z
 
 export const IRacingGetCarAssetsResponseSchema = z.record(
   z.number(),
-  z.unknown()
+  z.unknown(),
 );
 
 export const IRacingGetCarResponseSchema = z.array(
   z.object({
     car_id: z.number(),
-  })
+  }),
 );
 
 export const IRacingGetTrackAssetsResponseSchema = z.record(
@@ -82,13 +82,13 @@ export const IRacingGetTrackAssetsResponseSchema = z.record(
     track_id: z.number(),
     track_map: z.string(),
     track_map_layers: z.record(z.string(), z.string()),
-  })
+  }),
 );
 
 export const IRacingGetTrackResponseSchema = z.array(
   z.object({
     track_id: z.number(),
-  })
+  }),
 );
 
 /**

@@ -1,6 +1,6 @@
+import EventEmitter from "node:events";
 import { PaceMode } from "@iracing-data/telemetry-types";
 import _ from "lodash";
-import EventEmitter from "node:events";
 
 export type PaceOrderEventMap = {
   change: {
@@ -83,11 +83,11 @@ export class PaceOrderEventEmitter extends EventEmitter {
       }
     });
 
-    super.on("removeListener", (event) => {
+    super.on("removeListener", (_event) => {
       const hasPerCarListeners = Boolean(
         this.listenerCount("rowChange") ||
-          this.listenerCount("lineChange") ||
-          this.listenerCount("carMoved")
+        this.listenerCount("lineChange") ||
+        this.listenerCount("carMoved"),
       );
 
       if (this._hasPerCarListeners !== hasPerCarListeners) {
@@ -99,7 +99,7 @@ export class PaceOrderEventEmitter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof PaceOrderEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -107,7 +107,7 @@ export class PaceOrderEventEmitter extends EventEmitter {
 
   emit<E extends keyof PaceOrderEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
@@ -118,7 +118,7 @@ export class PaceOrderEventEmitter extends EventEmitter {
     paceRows: number[],
     paceMode: PaceMode,
     sessionTime: string,
-    length = Math.min(paceLines.length, paceRows.length)
+    length = Math.min(paceLines.length, paceRows.length),
   ) {
     if (this.paceMode !== paceMode) {
       this._paceMode = paceMode;
@@ -128,7 +128,7 @@ export class PaceOrderEventEmitter extends EventEmitter {
 
     const prevLen = Math.min(
       this.previousPaceLines.length,
-      this.previousPaceRows.length
+      this.previousPaceRows.length,
     );
 
     if (prevLen === 0) {

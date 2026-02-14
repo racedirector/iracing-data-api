@@ -6,7 +6,20 @@ import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
-    ignores: ["dist/**", "bin/**", "node_modules/**"],
+    ignores: [
+      "dist/**",
+      "bin/**",
+      "node_modules/**",
+      "openapi/**",
+      "iracing-proto/**",
+      "packages/**/generated/**",
+      "packages/**/src/**/schema.ts",
+      "packages/**/src/**/telemetry.ts",
+      "packages/**/src/**/session.ts",
+      "packages/api/client/**",
+      "packages/oauth/client/**",
+      "packages/telemetry/client/**",
+    ],
   },
   {
     files: ["**/*.{js,ts}"],
@@ -29,6 +42,7 @@ export default [
       ...importPlugin.configs.typescript.rules,
       ...eslintConfigPrettier.rules,
       "prettier/prettier": "error",
+      "import/no-unresolved": "off",
       "prefer-const": "warn",
       eqeqeq: ["error", "always", { null: "ignore" }],
       "import/order": [
@@ -110,12 +124,34 @@ export default [
   },
   {
     files: [
+      "apps/sync-*-cli/**/*.ts",
+      "examples/**/*.ts",
+      "examples/**/*.js",
       "packages/cli/**/*.ts",
+      "packages/helpers/**/src/cli.ts",
+      "packages/helpers/api-schema-to-openapi/src/index.ts",
+      "packages/helpers/oauth-schema-to-openapi/src/index.ts",
       "packages/helpers/sync-car-assets/**/*.ts",
       "packages/helpers/sync-track-assets/**/*.ts",
     ],
     rules: {
       "no-console": "off",
+    },
+  },
+  {
+    files: ["examples/**/*.ts", "examples/**/*.js"],
+    rules: {
+      "@typescript-eslint/no-unused-vars": "off",
+    },
+  },
+  {
+    files: [
+      "packages/helpers/sync-telemetry-json-schema/src/constants/google/protobuf/struct.ts",
+    ],
+    rules: {
+      "@typescript-eslint/no-namespace": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      eqeqeq: "off",
     },
   },
   {

@@ -7,7 +7,7 @@ export const trackAssets = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.track.getTrackAssets();
-  }
+  },
 );
 
 export const getTrack = createEndpoint(
@@ -17,5 +17,5 @@ export const getTrack = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.track.getTrack();
-  }
+  },
 );

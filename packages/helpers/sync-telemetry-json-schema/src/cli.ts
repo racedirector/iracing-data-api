@@ -5,7 +5,7 @@ import { downloadSchema } from "./";
 
 const program = new Command("sync-iracing-telemetry-json-schema")
   .description(
-    "CLI tool for interacting with iracing-telemetry-services servers to fetch JSON schema."
+    "CLI tool for interacting with iracing-telemetry-services servers to fetch JSON schema.",
   )
   .requiredOption("-o, --output <path>", "Output path")
   .option("-s, --source <url>", "Server URL", "http://localhost:50051")

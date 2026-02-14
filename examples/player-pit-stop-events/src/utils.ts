@@ -16,13 +16,13 @@ const PitServiceLabels: Record<PitServiceFlags, string> = {
 
 export function servicesForFlags(flags: number): string[] {
   return Object.entries(PitServiceLabels).flatMap(([bit, label]) =>
-    (flags & Number(bit)) !== 0 ? [label] : []
+    (flags & Number(bit)) !== 0 ? [label] : [],
   );
 }
 
 export function updateServices(
   previous: number,
-  current: number
+  current: number,
 ): {
   added: string[];
   removed: string[];

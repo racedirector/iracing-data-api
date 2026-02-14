@@ -17,7 +17,7 @@ export const downloadSchema = async ({
 
   const client = new iracing.telemetry.SchemaClient(
     serverUrl,
-    grpc.credentials.createInsecure()
+    grpc.credentials.createInsecure(),
   );
 
   const request = new iracing.telemetry.GetTelemetryJSONSchemaRequest();

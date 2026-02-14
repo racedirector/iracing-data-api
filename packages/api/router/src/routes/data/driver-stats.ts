@@ -9,7 +9,7 @@ export const category = createEndpoint(
   },
   async ({ context: { iracing }, params: queryParams }) => {
     return await iracing.driverStats.getDriverStatsByCategory(
-      await IRacingDriverStatsByCategoryPathSchema.parseAsync(queryParams)
+      await IRacingDriverStatsByCategoryPathSchema.parseAsync(queryParams),
     );
-  }
+  },
 );

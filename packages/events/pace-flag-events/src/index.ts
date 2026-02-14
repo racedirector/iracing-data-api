@@ -1,3 +1,4 @@
+import { EventEmitter } from "node:events";
 import {
   isEndOfLine,
   isFreePass,
@@ -5,7 +6,6 @@ import {
   PaceFlags,
 } from "@iracing-data/telemetry-types";
 import _ from "lodash";
-import { EventEmitter } from "node:events";
 
 export type PaceFlagEventMap = {
   endOfLine: {
@@ -34,7 +34,7 @@ export class PaceFlagEventEmitter extends EventEmitter {
   // Typed helpers for safer .on/.emit usage
   on<E extends keyof PaceFlagEventMap>(
     event: E,
-    listener: (payload: Payload<E>) => void
+    listener: (payload: Payload<E>) => void,
   ): this {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.on(event, listener as any);
@@ -42,7 +42,7 @@ export class PaceFlagEventEmitter extends EventEmitter {
 
   emit<E extends keyof PaceFlagEventMap>(
     event: E,
-    payload: Payload<E>
+    payload: Payload<E>,
   ): boolean {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     return super.emit(event, payload as any);
@@ -51,7 +51,7 @@ export class PaceFlagEventEmitter extends EventEmitter {
   process(
     paceFlags: PaceFlags[],
     sessionTime: string,
-    length: number = paceFlags.length
+    length: number = paceFlags.length,
   ) {
     if (_.isEmpty(this.previousPaceFlags)) {
       this.previousPaceFlags = paceFlags;

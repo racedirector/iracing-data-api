@@ -2,14 +2,14 @@ import { createRouter as createRouterFn, RouterConfig } from "better-call";
 import { toNodeHandler } from "better-call/node";
 import * as routes from "./routes";
 
-export interface CreateRouterOptions extends RouterConfig {}
+export type CreateRouterOptions = RouterConfig;
 
 export function createRouter(options: CreateRouterOptions = {}) {
   return createRouterFn(
     {
       ...routes,
     },
-    options
+    options,
   );
 }
 

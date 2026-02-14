@@ -54,7 +54,7 @@ export async function syncCarAssets(
     skipCarInfo = false,
     skipCarAssets = false,
   }: SyncCarAssetsOptions,
-  client: CarApi = new CarApi()
+  client: CarApi = new CarApi(),
 ) {
   /**
    * Create the output directory if it doesn't exist.

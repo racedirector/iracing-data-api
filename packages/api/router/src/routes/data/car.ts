@@ -7,7 +7,7 @@ export const carAssets = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.car.getCarAssets();
-  }
+  },
 );
 
 export const getCar = createEndpoint(
@@ -17,5 +17,5 @@ export const getCar = createEndpoint(
   },
   async ({ context: { iracing } }) => {
     return await iracing.car.getCar();
-  }
+  },
 );
