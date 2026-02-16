@@ -13,7 +13,7 @@
     "@iracing-data/oauth-schema": "workspace:*",
     "commander": "^14.0.2",
     "zod": "^4.1.13",
-    "zod-openapi": "^5.4.5"
+    "zod-openapi": "^5.4.6"
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^14.0.0"
