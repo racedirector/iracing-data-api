@@ -18,7 +18,7 @@
     "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/sync-track-assets": "workspace:*",
     "commander": "^14.0.2",
-    "openapi-fetch": "^0.15.0"
+    "openapi-fetch": "^0.17.0"
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^14.0.0",
