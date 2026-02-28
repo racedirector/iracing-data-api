@@ -46,7 +46,6 @@ Pre-release versions (anything containing a `-`, e.g. `0.1.0-alpha.0`) are autom
 
 - Write access to [racedirector/iracing-data-api](https://github.com/racedirector/iracing-data-api).
 - An npm account that is a member of the `@iracing-data` organisation.
-- `NPM_TOKEN` secret set in the repository's **npm** GitHub Actions environment (Settings → Environments → npm → Secrets). The token must have **Publish** scope for the `@iracing-data` org.
 
 ## End-to-end release process
 

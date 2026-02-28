@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/oauth-client",
-  "version": "0.0.1-alpha.3",
+  "version": "0.0.1-alpha.4",
   "description": "OAuth client implementation for the iRacing /data API.",
   "license": "ISC",
   "main": "dist/index.js",
