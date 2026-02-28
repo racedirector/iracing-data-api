@@ -1,0 +1,129 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "@iracing-data/*@*"
+  workflow_dispatch:
+    inputs:
+      package:
+        description: "Package to publish (e.g. @iracing-data/oauth-client)"
+        required: true
+        type: string
+      dist_tag:
+        description: "npm dist-tag (latest or next)"
+        required: true
+        type: choice
+        default: next
+        options:
+          - latest
+          - next
+
+permissions:
+  contents: write
+
+jobs:
+  publish:
+    name: Publish to npm
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      id-token: write
+      contents: read
+    env:
+      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      # Parse the package name and dist-tag from the tag, e.g.:
+      #   @iracing-data/oauth-client@0.1.0       → latest
+      #   @iracing-data/oauth-client@0.1.0-alpha.0 → next
+      - name: Resolve package and dist-tag
+        id: pkg
+        run: |
+          PKG_RE='^@iracing-data/[a-z0-9][a-z0-9-]*$'
+          VER_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            PKG="${{ inputs.package }}"
+            if ! echo "$PKG" | grep -qE "$PKG_RE"; then
+              echo "::error::Invalid package name: '$PKG'. Must match @iracing-data/<name>."
+              exit 1
+            fi
+            echo "name=$PKG" >> "$GITHUB_OUTPUT"
+            echo "dist_tag=${{ inputs.dist_tag }}" >> "$GITHUB_OUTPUT"
+          else
+            TAG="${{ github.ref_name }}"
+            PKG="${TAG%@*}"
+            VERSION="${TAG##*@}"
+            if ! echo "$PKG" | grep -qE "$PKG_RE"; then
+              echo "::error::Invalid package name parsed from tag: '$PKG'."
+              exit 1
+            fi
+            if ! echo "$VERSION" | grep -qE "$VER_RE"; then
+              echo "::error::Invalid version parsed from tag: '$VERSION'."
+              exit 1
+            fi
+            if [[ "$VERSION" == *"-"* ]]; then
+              DIST_TAG="next"
+            else
+              DIST_TAG="latest"
+            fi
+            echo "name=$PKG" >> "$GITHUB_OUTPUT"
+            echo "dist_tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Guard against tagging the wrong commit — the tag version must match
+      # the version declared in the package's package.json.
+      - name: Verify tag version matches package.json
+        if: github.event_name != 'workflow_dispatch'
+        run: |
+          TAG="${{ github.ref_name }}"
+          TAG_VERSION="${TAG##*@}"
+          PKG_VERSION=$(pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match exec node -p "require('./package.json').version")
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)."
+            echo "::error::Update the package version before tagging."
+            exit 1
+          fi
+
+      # Build this package and any workspace dependencies it has (suffix '...').
+      - name: Build
+        run: pnpm --filter "${{ steps.pkg.outputs.name }}..." --fail-if-no-match build
+
+      - name: Publish ${{ steps.pkg.outputs.name }}
+        run: |
+          pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match publish \
+            --no-git-checks \
+            --access public \
+            --tag "${{ steps.pkg.outputs.dist_tag }}"
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: publish
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Create GitHub Release
+        run: gh release create "${{ github.ref_name }}" --generate-notes --title "${{ github.ref_name }}"
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -55,3 +55,7 @@ pnpm install
 ```
 
 Use `pnpm --filter <package>` to run scripts for a specific workspace package or app. See each linked README for package-specific instructions.
+
+## Releasing
+
+Published packages live under the `@iracing-data` scope on npm. Releases are automated via GitHub Actions and driven by a git tag. See [docs/RELEASING.md](docs/RELEASING.md) for step-by-step instructions.

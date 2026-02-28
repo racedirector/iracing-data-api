@@ -1,14 +1,23 @@
 {
   "name": "@iracing-data/api-client-fetch",
   "version": "0.0.1",
-  "description": "OpenAPI client for @iracing-data/api-client-fetch",
+  "description": "Fetch-based TypeScript client for the iRacing /data API, generated from the OpenAPI spec.",
   "author": "OpenAPI-Generator",
+  "license": "ISC",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GIT_USER_ID/GIT_REPO_ID.git"
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "packages/api/client/fetch"
   },
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build"

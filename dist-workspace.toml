@@ -1,0 +1,12 @@
+# dist-workspace.toml
+# Declares the npm packages managed by dist (cargo-dist).
+# See: https://axodotdev.github.io/cargo-dist/book/quickstart/javascript.html
+
+[workspace]
+members = [
+    "npm:./packages/oauth/schema/",
+    "npm:./packages/oauth/client/",
+    "npm:./packages/api/schema/",
+    "npm:./packages/api/client/fetch/",
+    "npm:./packages/api/client/axios/",
+]
