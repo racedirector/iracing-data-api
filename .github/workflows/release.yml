@@ -42,13 +42,29 @@ jobs:
       - name: Resolve package and dist-tag
         id: pkg
         run: |
+          PKG_RE='^@iracing-data/[a-z0-9][a-z0-9-]*$'
+          VER_RE='^[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?(\+[a-zA-Z0-9.]+)?$'
+
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "name=${{ inputs.package }}" >> "$GITHUB_OUTPUT"
+            PKG="${{ inputs.package }}"
+            if ! echo "$PKG" | grep -qE "$PKG_RE"; then
+              echo "::error::Invalid package name: '$PKG'. Must match @iracing-data/<name>."
+              exit 1
+            fi
+            echo "name=$PKG" >> "$GITHUB_OUTPUT"
             echo "dist_tag=${{ inputs.dist_tag }}" >> "$GITHUB_OUTPUT"
           else
             TAG="${{ github.ref_name }}"
             PKG="${TAG%@*}"
             VERSION="${TAG##*@}"
+            if ! echo "$PKG" | grep -qE "$PKG_RE"; then
+              echo "::error::Invalid package name parsed from tag: '$PKG'."
+              exit 1
+            fi
+            if ! echo "$VERSION" | grep -qE "$VER_RE"; then
+              echo "::error::Invalid version parsed from tag: '$VERSION'."
+              exit 1
+            fi
             if [[ "$VERSION" == *"-"* ]]; then
               DIST_TAG="next"
             else
@@ -78,20 +94,20 @@ jobs:
         run: |
           TAG="${{ github.ref_name }}"
           TAG_VERSION="${TAG##*@}"
-          PKG_VERSION=$(pnpm --filter "${{ steps.pkg.outputs.name }}" exec node -p "require('./package.json').version")
+          PKG_VERSION=$(pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match exec node -p "require('./package.json').version")
           if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
             echo "::error::Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)."
             echo "::error::Update the package version before tagging."
             exit 1
           fi
 
-      # Build this package and any workspace dependencies it has (prefix '...').
+      # Build this package and any workspace dependencies it has (suffix '...').
       - name: Build
-        run: pnpm --filter "...${{ steps.pkg.outputs.name }}" build
+        run: pnpm --filter "${{ steps.pkg.outputs.name }}..." --fail-if-no-match build
 
       - name: Publish ${{ steps.pkg.outputs.name }}
         run: |
-          pnpm --filter "${{ steps.pkg.outputs.name }}" publish \
+          pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match publish \
             --no-git-checks \
             --access public \
             --tag "${{ steps.pkg.outputs.dist_tag }}"
