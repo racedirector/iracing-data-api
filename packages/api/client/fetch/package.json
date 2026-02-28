@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/api-client-fetch",
-  "version": "0.0.1",
+  "version": "0.0.1-alpha.0",
   "description": "Fetch-based TypeScript client for the iRacing /data API, generated from the OpenAPI spec.",
   "author": "OpenAPI-Generator",
   "license": "ISC",
