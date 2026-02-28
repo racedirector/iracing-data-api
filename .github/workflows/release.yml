@@ -82,6 +82,9 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
 
+      - name: Upgrade npm for Trusted Publishing (OIDC)
+        run: npm i -g npm@^11.5.1
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -103,10 +106,39 @@ jobs:
       - name: Build
         run: pnpm --filter "${{ steps.pkg.outputs.name }}..." --fail-if-no-match build
 
+      - name: Debug npm auth inputs (redacted)
+        shell: bash
+        run: |
+          echo "node: $(node --version)"
+          echo "npm:  $(npm --version)"
+          echo "env vars:"
+          env | grep -E '^(NODE_AUTH_TOKEN|NPM_TOKEN|NPM_CONFIG_USERCONFIG|NPM_CONFIG_REGISTRY)=' || true
+
+          echo ".npmrc files:"
+          ls -la .npmrc || true
+          ls -la ~/.npmrc || true
+
+          echo "authToken from npm config (should be empty):"
+          npm config get //registry.npmjs.org/:_authToken || true
+
+          echo "npm config userconfig path:"
+          npm config get userconfig || true
+
+      - name: Scrub npm token auth (force OIDC path)
+        shell: bash
+        run: |
+          rm -f ~/.npmrc
+          npm config delete //registry.npmjs.org/:_authToken || true
+          if [ -f .npmrc ]; then
+            grep -v "_authToken" .npmrc > .npmrc.ci || true
+            mv .npmrc.ci .npmrc
+          fi
+
       - name: Publish ${{ steps.pkg.outputs.name }}
         run: |
           pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match exec \
             npm publish \
+              --provenance \
               --no-git-checks \
               --access public \
               --tag "${{ steps.pkg.outputs.dist_tag }}"
