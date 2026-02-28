@@ -136,8 +136,7 @@ jobs:
 
       - name: Publish ${{ steps.pkg.outputs.name }}
         run: |
-          pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match exec \
-            npm publish \
+          pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match publish \
               --provenance \
               --no-git-checks \
               --access public \
