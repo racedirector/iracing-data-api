@@ -30,8 +30,6 @@ jobs:
     permissions:
       id-token: write
       contents: read
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -107,10 +105,11 @@ jobs:
 
       - name: Publish ${{ steps.pkg.outputs.name }}
         run: |
-          pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match publish \
-            --no-git-checks \
-            --access public \
-            --tag "${{ steps.pkg.outputs.dist_tag }}"
+          pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match exec \
+            npm publish \
+              --no-git-checks \
+              --access public \
+              --tag "${{ steps.pkg.outputs.dist_tag }}"
 
   github-release:
     name: Create GitHub Release
