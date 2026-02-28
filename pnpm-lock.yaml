@@ -222,6 +222,13 @@ importers:
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
+    devDependencies:
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
 
   examples/player-pit-stop-events:
     dependencies:
@@ -295,7 +302,7 @@ importers:
         version: link:../schema
       better-call:
         specifier: ^1.1.0
-        version: 1.1.4(zod@4.1.13)
+        version: 1.1.4(zod@4.3.6)
 
   packages/api/schema:
     dependencies:
@@ -3205,6 +3212,9 @@ packages:
   zod@4.1.13:
     resolution: {integrity: sha512-AvvthqfqrAhNH9dnfmrfKzX5upOdjUVJYFqNSlkmGf64gRaTzlPwz99IHYnVs28qYAybvAlBV+H7pn0saFY4Ig==}
 
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
+
 snapshots:
 
   '@apidevtools/json-schema-ref-parser@11.9.3':
@@ -3853,6 +3863,15 @@ snapshots:
       set-cookie-parser: 2.7.2
     optionalDependencies:
       zod: 4.1.13
+
+  better-call@1.1.4(zod@4.3.6):
+    dependencies:
+      '@better-auth/utils': 0.3.0
+      '@better-fetch/fetch': 1.1.19
+      rou3: 0.7.10
+      set-cookie-parser: 2.7.2
+    optionalDependencies:
+      zod: 4.3.6
 
   bl@1.2.3:
     dependencies:
@@ -6036,3 +6055,5 @@ snapshots:
       zod: 4.1.13
 
   zod@4.1.13: {}
+
+  zod@4.3.6: {}

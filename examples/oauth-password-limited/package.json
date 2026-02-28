@@ -4,11 +4,14 @@
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc --build tsconfig.build.json",
-    "start": "node --env-file .env dist/index.js"
+    "start": "tsx --tsconfig tsconfig.build.json --env-file=.env src/index.ts"
   },
   "dependencies": {
+    "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
-    "@iracing-data/api-client-fetch": "workspace:*"
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0"
   }
 }

@@ -1,10 +1,17 @@
-import fs, { access, constants, mkdir } from "node:fs/promises";
+import {
+  access,
+  constants,
+  mkdir,
+  readFile,
+  writeFile,
+} from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   CarApi,
   Configuration,
   ConstantsApi,
+  DocApi,
   IracingAPIResponse,
   LookupApi,
   MemberApi,
@@ -13,18 +20,26 @@ import {
 } from "@iracing-data/api-client-fetch";
 import {
   InMemoryStore,
-  DiskStore,
   InternalState,
-  IRacingOAuthTokenResponse,
-  OAuthClient,
+  DiskStore,
   OAuthRefreshError,
 } from "@iracing-data/oauth-client";
+import {
+  IRacingOAuthTokenResponse,
+  OAuthClient,
+} from "@iracing-data/oauth-client/dist/client";
+import {
+  TrackAssetEntryType,
+  TrackAssetJSONFileSchema,
+} from "./schema/trackAssets";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const outputPath = path.join(__dirname, "output");
-const credentialsPath = path.join(__dirname, "credentials.json");
+const projectRootDir = path.join(__dirname, "..");
+const outputPath = path.join(projectRootDir, "output");
+const credentialsPath = path.join(outputPath, "credentials.json");
+
 function makeOutputPath(...paths: string[]) {
   return path.join(outputPath, ...paths);
 }
@@ -34,7 +49,7 @@ function makeOutputPath(...paths: string[]) {
  * @param path the path of the file
  * @returns true if the file exists, false otherwise
  */
-export const exists = async (path: string) => {
+const exists = async (path: string) => {
   try {
     await access(path, constants.F_OK);
     return true;
@@ -54,7 +69,6 @@ async function fetchIRacingLink({
   }
 
   if (link) {
-    console.log("Fetching from link:", link);
     const response = await fetch(link);
     return await response.json();
   }
@@ -69,7 +83,7 @@ async function writeResponseDataToFile(
   const data = await fetchIRacingLink(response);
 
   if (data) {
-    await fs.writeFile(outputPath, JSON.stringify(data));
+    await writeFile(outputPath, JSON.stringify(data));
   }
 }
 
@@ -142,7 +156,80 @@ async function fetchLookup(configuration: Configuration) {
   ]);
 }
 
-async function fetchData(configuration: Configuration) {
+async function fetchDocs(configuration: Configuration) {
+  const docs = new DocApi(configuration);
+  const outputPath = makeOutputPath("docs.json");
+  const data = await docs.getDocs();
+  if (data) {
+    await writeFile(outputPath, JSON.stringify(data));
+  }
+}
+
+async function fetchTrackSVGLayer(url: URL, outputPath: string) {
+  const response = await fetch(url);
+  const data = await response.text();
+  await writeFile(outputPath, data, {
+    encoding: "utf-8",
+  });
+}
+
+async function fetchTrackSVGs(
+  track: TrackAssetEntryType,
+  outputDir: string,
+  accessToken?: string,
+) {
+  const trackOutputDir = path.join(outputDir, track.track_id.toString());
+
+  const outputExists = await exists(trackOutputDir);
+  if (!outputExists) {
+    await mkdir(trackOutputDir, { recursive: true });
+  }
+
+  const trackMapURLPath = track.track_map;
+  const fetchLayers = Object.values(track.track_map_layers).map(
+    async (layer) => {
+      const response = await fetch(new URL(layer, trackMapURLPath), {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = await response.text();
+      await writeFile(path.join(trackOutputDir, layer), data, {
+        encoding: "utf-8",
+      });
+    },
+  );
+
+  await Promise.allSettled(fetchLayers);
+}
+
+async function fetchTracksSVGAssets(accessToken?: string) {
+  const trackAssetsContents = await readFile(
+    path.join(outputPath, "track-assets.json"),
+    { encoding: "utf-8" },
+  );
+
+  const trackAssetsJson = JSON.parse(trackAssetsContents);
+
+  const result = TrackAssetJSONFileSchema.safeParse(trackAssetsJson);
+  if (!result.success) {
+    throw result.error;
+  }
+
+  console.log("Fetching SVG assets for tracks...");
+
+  const trackSVGOutputDir = path.join(outputPath, "tracks");
+  const tracks = Object.values(result.data);
+
+  // This will fetch all of a tracks layers asynchronously, one track at a time.
+  for (const track of tracks) {
+    await fetchTrackSVGs(track, trackSVGOutputDir, accessToken);
+  }
+
+  console.log("Successfully fetched SVG assets. See:", trackSVGOutputDir);
+}
+
+async function fetchData(configuration: Configuration, accessToken?: string) {
   /**
    * Create the output dir if it doesn't exist
    */
@@ -151,14 +238,19 @@ async function fetchData(configuration: Configuration) {
     await mkdir(outputPath, { recursive: true });
   }
 
-  const [cars, tracks, series, lookup, constants] = await Promise.allSettled([
-    fetchCars(configuration),
-    fetchTracks(configuration),
-    fetchSeries(configuration),
-    fetchLookup(configuration),
-    fetchConstants(configuration),
-  ]);
+  const [docs, cars, tracks, series, lookup, constants] =
+    await Promise.allSettled([
+      fetchDocs(configuration),
+      fetchCars(configuration),
+      fetchTracks(configuration),
+      fetchSeries(configuration),
+      fetchLookup(configuration),
+      fetchConstants(configuration),
+    ]);
 
+  if (docs.status === "rejected") {
+    console.log("Could not fetch docs. Reason:", docs.reason);
+  }
   if (cars.status === "rejected") {
     console.log("Could not fetch cars. Reason:", cars.reason);
   }
@@ -173,6 +265,10 @@ async function fetchData(configuration: Configuration) {
   }
   if (constants.status === "rejected") {
     console.log("Could not fetch constants. Reason:", constants.reason);
+  }
+
+  if (tracks.status !== "rejected") {
+    await fetchTracksSVGAssets(accessToken);
   }
 }
 
@@ -220,7 +316,7 @@ async function main() {
     accessToken: session.access_token,
   });
 
-  await fetchData(configuration);
+  await fetchData(configuration, session.access_token);
 
   console.log("Fetched assets from `/data` API.");
 }
