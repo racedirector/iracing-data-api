@@ -1,22 +1,30 @@
 {
   "name": "@iracing-data/api-client-axios",
   "version": "0.0.1",
-  "description": "OpenAPI client for @iracing-data/api-client-axios",
+  "description": "Axios-based TypeScript client for the iRacing /data API, generated from the OpenAPI spec.",
   "author": "OpenAPI-Generator Contributors",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GIT_USER_ID/GIT_REPO_ID.git"
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "packages/api/client/axios"
   },
   "keywords": [
     "axios",
     "typescript",
     "openapi-client",
     "openapi-generator",
-    "@iracing-data/api-client-axios"
+    "iracing"
   ],
   "license": "Unlicense",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsc",
     "prepare": "npm run build"
