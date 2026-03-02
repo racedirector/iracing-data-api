@@ -23,6 +23,6 @@
   "devDependencies": {
     "@commander-js/extra-typings": "^14.0.0",
     "esbuild": "^0.27.0",
-    "openapi-typescript": "7.10.1"
+    "openapi-typescript": "7.13.0"
   }
 }
