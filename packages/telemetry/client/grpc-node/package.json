@@ -12,7 +12,7 @@
   "devDependencies": {
     "@grpc/grpc-js": "1.14.3",
     "@grpc/proto-loader": "^0.8.0",
-    "google-protobuf": "^4.0.0",
+    "google-protobuf": "^4.0.2",
     "ts-invariant": "^0.10.3"
   }
 }
