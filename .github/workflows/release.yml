@@ -121,16 +121,6 @@ jobs:
           echo "npm config userconfig path:"
           npm config get userconfig || true
 
-      - name: Scrub npm token auth (force OIDC path)
-        shell: bash
-        run: |
-          rm -f ~/.npmrc
-          npm config delete //registry.npmjs.org/:_authToken || true
-          if [ -f .npmrc ]; then
-            grep -v "_authToken" .npmrc > .npmrc.ci || true
-            mv .npmrc.ci .npmrc
-          fi
-
       - name: Publish ${{ steps.pkg.outputs.name }}
         run: |
           pnpm --filter "${{ steps.pkg.outputs.name }}" --fail-if-no-match publish \
