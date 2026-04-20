@@ -335,7 +335,7 @@ export class OAuthClient {
     body?: oauth.ProtectedResourceRequestBody,
     options?: oauth.ProtectedResourceRequestOptions,
   ) {
-    const session = await this.restoreSession(sessionId);
+    const session = await this.restoreSessionForId(sessionId);
     if (session) {
       return this._makeProtectedRequest(
         session,
@@ -384,7 +384,7 @@ export class OAuthClient {
     );
   }
 
-  async restoreSession(id: string) {
+  async restoreSessionForId(id: string) {
     // Get the session
     const session = await this.getSession(id);
     if (session) {
@@ -392,7 +392,7 @@ export class OAuthClient {
       const isExpired = isAccessTokenExpired(session.access_token);
       if (isExpired) {
         // Refresh the session
-        return await this.refreshSession(id);
+        return await this.refreshSessionForSessionId(id);
       }
 
       return session;
@@ -410,7 +410,7 @@ export class OAuthClient {
     await this.sessionStore.set(sessionId, session);
   }
 
-  private async refreshSession(sessionId: string) {
+  private async refreshSessionForSessionId(sessionId: string) {
     const session = await this.getSession(sessionId);
 
     if (!session) {
