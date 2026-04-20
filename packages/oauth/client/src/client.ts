@@ -13,7 +13,14 @@ import {
   SessionStore,
   StateStore,
 } from "./schema";
-import { isAccessTokenExpired, maskSecret } from "./utils";
+import {
+  AccessTokenValidationOptions,
+  decodeAccessToken,
+  isAccessTokenExpired,
+  isRefreshTokenExpired,
+  maskSecret,
+  validateAccessToken as validateDecodedAccessToken,
+} from "./utils";
 
 export type OAuthClientOptions = {
   // Config
@@ -63,8 +70,8 @@ export class OAuthClient {
       ? oauth.ClientSecretPost(
           maskSecret(
             this.clientMetadata.clientSecret,
-            this.clientMetadata.clientId
-          )
+            this.clientMetadata.clientId,
+          ),
         )
       : oauth.None();
   }
@@ -76,7 +83,7 @@ export class OAuthClient {
   async authorize() {
     if (!this.clientMetadata.redirectUri) {
       throw new Error(
-        "Client is not configured for the authorization code flow; missing `redirectUri`."
+        "Client is not configured for the authorization code flow; missing `redirectUri`.",
       );
     }
 
@@ -95,17 +102,17 @@ export class OAuthClient {
     authorizationUrl.searchParams.set("response_type", "code");
     authorizationUrl.searchParams.set(
       "client_id",
-      this.clientMetadata.clientId
+      this.clientMetadata.clientId,
     );
     authorizationUrl.searchParams.set(
       "redirect_uri",
-      this.clientMetadata.redirectUri
+      this.clientMetadata.redirectUri,
     );
 
     if (this.clientMetadata.scopes) {
       authorizationUrl.searchParams.set(
         "scope",
-        this.clientMetadata.scopes.join(" ")
+        this.clientMetadata.scopes.join(" "),
       );
     }
 
@@ -126,19 +133,19 @@ export class OAuthClient {
 
     if (!username) {
       throw new Error(
-        "No username provided for password limited authentication flow."
+        "No username provided for password limited authentication flow.",
       );
     }
 
     if (!password) {
       throw new Error(
-        "No password provided for password limited authentication flow."
+        "No password provided for password limited authentication flow.",
       );
     }
 
     if (!clientSecret) {
       throw new Error(
-        "Client secret not provided; password limited authorization is not allowed."
+        "Client secret not provided; password limited authorization is not allowed.",
       );
     }
 
@@ -170,7 +177,7 @@ export class OAuthClient {
     const result = await oauth.processAuthorizationCodeResponse(
       this.authorizationServer,
       this.authorizationClient,
-      response
+      response,
     );
 
     const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
@@ -191,7 +198,7 @@ export class OAuthClient {
   async callback(params: URLSearchParams, sessionId?: string) {
     if (!this.clientMetadata.redirectUri) {
       throw new Error(
-        "Client is not configured for the authorization code flow; missing `redirectUri`."
+        "Client is not configured for the authorization code flow; missing `redirectUri`.",
       );
     }
 
@@ -209,7 +216,7 @@ export class OAuthClient {
     } else {
       throw new OAuthCallbackError(
         params,
-        `Unknown authorization session "${stateParam}"`
+        `Unknown authorization session "${stateParam}"`,
       );
     }
 
@@ -217,7 +224,7 @@ export class OAuthClient {
       throw new OAuthCallbackError(
         params,
         'Missing "code" query parameter.',
-        stateData.appState
+        stateData.appState,
       );
     }
 
@@ -227,7 +234,7 @@ export class OAuthClient {
         this.authorizationServer,
         this.authorizationClient,
         params,
-        stateParam
+        stateParam,
       );
     } catch (error) {
       if (error instanceof oauth.AuthorizationResponseError) {
@@ -235,7 +242,7 @@ export class OAuthClient {
           params,
           "OAuth Provider returned an error",
           stateParam,
-          error.cause
+          error.cause,
         );
       }
 
@@ -248,13 +255,13 @@ export class OAuthClient {
       this.clientAuthorization,
       codeGrantParams,
       this.clientMetadata.redirectUri,
-      stateData.verifier!
+      stateData.verifier!,
     );
 
     const result = await oauth.processAuthorizationCodeResponse(
       this.authorizationServer,
       this.authorizationClient,
-      response
+      response,
     );
 
     const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
@@ -266,7 +273,7 @@ export class OAuthClient {
     const profileResponse = await oauth.protectedResourceRequest(
       token.access_token,
       "GET",
-      new URL("/iracing/profile", this.clientMetadata.issuer)
+      new URL("/iracing/profile", this.clientMetadata.issuer),
     );
 
     const profileData =
@@ -288,14 +295,14 @@ export class OAuthClient {
       this.authorizationServer,
       this.authorizationClient,
       this.clientAuthorization,
-      token
+      token,
     );
 
     try {
       const result = await oauth.processRefreshTokenResponse(
         this.authorizationServer,
         this.authorizationClient,
-        response
+        response,
       );
 
       return await IRacingOAuthTokenResponseSchema.parseAsync(result);
@@ -326,7 +333,7 @@ export class OAuthClient {
     path: string,
     headers?: Headers,
     body?: oauth.ProtectedResourceRequestBody,
-    options?: oauth.ProtectedResourceRequestOptions
+    options?: oauth.ProtectedResourceRequestOptions,
   ) {
     const session = await this.restoreSession(sessionId);
     if (session) {
@@ -336,11 +343,11 @@ export class OAuthClient {
         path,
         headers,
         body,
-        options
+        options,
       );
     } else {
       throw new Error(
-        `Could not find session matching ${sessionId}. Did you forget to authenticate?`
+        `Could not find session matching ${sessionId}. Did you forget to authenticate?`,
       );
     }
   }
@@ -365,7 +372,7 @@ export class OAuthClient {
     path: string,
     headers?: Headers,
     body?: oauth.ProtectedResourceRequestBody,
-    options?: oauth.ProtectedResourceRequestOptions
+    options?: oauth.ProtectedResourceRequestOptions,
   ) {
     return await oauth.protectedResourceRequest(
       session.access_token,
@@ -373,7 +380,7 @@ export class OAuthClient {
       new URL(path, "https://members-ng.iracing.com"),
       headers,
       body,
-      options
+      options,
     );
   }
 
@@ -398,7 +405,7 @@ export class OAuthClient {
 
   private async storeSession(
     sessionId: string,
-    session: IRacingOAuthTokenResponse
+    session: IRacingOAuthTokenResponse,
   ) {
     await this.sessionStore.set(sessionId, session);
   }
@@ -413,7 +420,7 @@ export class OAuthClient {
         undefined,
         {
           sessionId,
-        }
+        },
       );
     }
 
@@ -424,7 +431,15 @@ export class OAuthClient {
         "MISSING_REFRESH_TOKEN",
         {
           sessionId,
-        }
+        },
+      );
+    }
+
+    if (isRefreshTokenExpired(session.refresh_token)) {
+      throw new OAuthRefreshError(
+        "Refresh token cannot be refreshed",
+        "Token expired",
+        "REFRESH_TOKEN_EXPIRED",
       );
     }
 
@@ -436,6 +451,35 @@ export class OAuthClient {
     });
 
     return refreshed;
+  }
+
+  /**
+   * Decodes an access token into its header and payload structure.
+   *
+   * This validates the token shape, but does not verify the token signature.
+   */
+  parseAccessToken(accessToken: string) {
+    return decodeAccessToken(accessToken);
+  }
+
+  /**
+   * Verifies an access token signature and then performs structural and claims validation.
+   *
+   * This checks signature validity, expiration, issuer, audience, scope, and claim consistency.
+   */
+  async validateAccessToken(
+    accessToken: string,
+    options: Omit<
+      AccessTokenValidationOptions,
+      "issuer" | "clientId" | "requiredScopes"
+    > = {},
+  ) {
+    return await validateDecodedAccessToken(accessToken, {
+      ...options,
+      issuer: this.clientMetadata.issuer,
+      clientId: this.clientMetadata.clientId,
+      requiredScopes: this.clientMetadata.scopes,
+    });
   }
 }
 

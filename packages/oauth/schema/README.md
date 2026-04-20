@@ -20,4 +20,4 @@ const parsed = IRacingOAuthAuthorizeParametersSchema.parse({
 });
 ```
 
-Review `src/schema.ts` for the full list of exported schemas that describe request parameters, headers, and error responses for the OAuth flow.
+Review `src/schema.ts` for the full list of exported schemas that describe request parameters, headers, error responses, and the decoded JWT access token shape used by the OAuth flow.

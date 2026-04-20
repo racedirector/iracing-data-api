@@ -166,7 +166,7 @@ export const IRacingOAuthClientMetadataSchema = z
     {
       error:
         "Client must provide `authorizationUrl` and `tokenUrl` or `issuer`.",
-    }
+    },
   )
   .meta({
     title: "Client Metadata",

@@ -189,6 +189,138 @@ export const IRacingOAuthTokenResponseSchema = z
     id: "tokenGrantResponse",
   });
 
+export const IRacingOAuthJWTAccessTokenAlgorithmValues = [
+  "HS256",
+  "HS384",
+  "HS512",
+  "RS256",
+  "RS384",
+  "RS512",
+  "ES256",
+  "ES384",
+  "ES512",
+  "PS256",
+  "PS384",
+  "PS512",
+  "ES256K",
+  "EdDSA",
+] as const;
+
+export const IRacingOAuthJWTAccessTokenAlgorithmSchema = z
+  .string()
+  .trim()
+  .pipe(z.enum(IRacingOAuthJWTAccessTokenAlgorithmValues))
+  .meta({
+    id: "jwtAccessTokenAlgorithm",
+    title: "JWT Access Token Algorithm",
+    description:
+      "The signed JWT algorithm used by the iRacing access token header. `none` is explicitly disallowed.",
+  });
+
+export const IRacingOAuthJWTAccessTokenHeaderSchema = z
+  .object({
+    kid: z.string().min(1).meta({
+      description:
+        "The key identifier used to look up the correct signing key in the JWKS document.",
+    }),
+    alg: IRacingOAuthJWTAccessTokenAlgorithmSchema,
+    jku: z.url().refine(
+      (value) => {
+        const url = new URL(value);
+
+        return (
+          url.protocol === "https:" &&
+          url.username === "" &&
+          url.password === "" &&
+          url.search === "" &&
+          url.hash === "" &&
+          url.hostname.endsWith(".iracing.com")
+        );
+      },
+      {
+        error:
+          "The `jku` claim must be an HTTPS URL on the `iracing.com` domain without user info, query, or fragment components.",
+      },
+    ),
+  })
+  .meta({
+    id: "jwtAccessTokenHeader",
+    title: "JWT Access Token Header",
+    description:
+      "The decoded JWS header for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
+  });
+
+export const IRacingOAuthJWTAccessTokenPayloadSchema = z
+  .object({
+    session_id: z.uuid().meta({
+      description: "The UUID identifier of the session.",
+    }),
+    iss: z.url().meta({
+      description:
+        "The issuer of the access token; the authorization server.",
+    }),
+    exp: z.number().int().nonnegative().meta({
+      description:
+        "The expiration time of the access token in seconds since the Unix epoch.",
+    }),
+    aud: z.array(z.string().min(1)).meta({
+      description:
+        "The audiences for which the access token is valid.",
+    }),
+    sub: z.string().nullable().meta({
+      description:
+        "The subject of the access token. This claim may be null.",
+    }),
+    client_id: z.string().min(1).meta({
+      description: "The identifier of the client application.",
+    }),
+    iat: z.number().int().nonnegative().meta({
+      description:
+        "The time of issue of the access token in seconds since the Unix epoch.",
+    }),
+    jti: z.uuid().meta({
+      description: "A UUID identifying this access token.",
+    }),
+    auth_time: z.number().int().nonnegative().meta({
+      description:
+        "The time the authentication and authorization process completed.",
+    }),
+    scope: z.string().nullable().meta({
+      description:
+        "The granted scopes separated by whitespace. This claim may be null.",
+    }),
+    iracing_env: z.string().nullable().meta({
+      description:
+        "The iRacing environment associated with the token. This claim may be null.",
+    }),
+    iracing_cust_id: z.number().int().nonnegative().nullable().meta({
+      description:
+        "The numeric iRacing customer identifier of the subject. This claim may be null.",
+    }),
+    iracing_group_ids: z.array(z.number().int().nonnegative()).nullable().meta({
+      description:
+        "The numeric iRacing group identifiers assigned to the subject. This claim may be null.",
+    }),
+  })
+  .meta({
+    id: "jwtAccessTokenPayload",
+    title: "JWT Access Token Payload",
+    description:
+      "The decoded payload for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
+  });
+
+export const IRacingOAuthJWTAccessTokenSchema = z
+  .object({
+    header: IRacingOAuthJWTAccessTokenHeaderSchema,
+    payload: IRacingOAuthJWTAccessTokenPayloadSchema,
+  })
+  .meta({
+    id: "jwtAccessToken",
+    title: "JWT Access Token",
+    description:
+      "The decoded and parsed JWT access token structure for iRacing.",
+  });
+
 export const IRacingOAuthSessionSchema = z.object({
   session_id: z.string().meta({
     description:
@@ -278,6 +410,18 @@ export type IRacingOAuthTokenParameters = z.infer<
 >;
 export type IRacingOAuthTokenResponse = z.infer<
   typeof IRacingOAuthTokenResponseSchema
+>;
+export type IRacingOAuthJWTAccessTokenAlgorithm = z.infer<
+  typeof IRacingOAuthJWTAccessTokenAlgorithmSchema
+>;
+export type IRacingOAuthJWTAccessTokenHeader = z.infer<
+  typeof IRacingOAuthJWTAccessTokenHeaderSchema
+>;
+export type IRacingOAuthJWTAccessTokenPayload = z.infer<
+  typeof IRacingOAuthJWTAccessTokenPayloadSchema
+>;
+export type IRacingOAuthJWTAccessToken = z.infer<
+  typeof IRacingOAuthJWTAccessTokenSchema
 >;
 export type IRacingOAuthSession = z.infer<typeof IRacingOAuthSessionSchema>;
 export type IRacingOAuthSessions = z.infer<typeof IRacingOAuthSessionsSchema>;

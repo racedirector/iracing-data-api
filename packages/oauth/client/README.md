@@ -43,6 +43,11 @@ const storedToken = await client.getSession("user-session");
 const { access_token: refreshedAccessToken } = await client.refreshSession(
   "user-session"
 );
+
+if (storedToken) {
+  const decoded = client.parseAccessToken(storedToken.access_token);
+  const validated = await client.validateAccessToken(storedToken.access_token);
+}
 ```
 
 Pass any {@link SimpleStore} implementation as the state and session store to
