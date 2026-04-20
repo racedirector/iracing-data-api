@@ -9,9 +9,10 @@ import type { GetOptions, Key, SimpleStore, Value } from "./index";
  * The entire store is read once at initialization and rewritten after any
  * mutation (`set`, `del`, `clear`).
  */
-export class DiskStore<K extends Key = string, V extends Value = Value>
-  implements SimpleStore<K, V>
-{
+export class DiskStore<
+  K extends Key = string,
+  V extends Value = Value,
+> implements SimpleStore<K, V> {
   private state = new Map<K, V>();
   private filePath: string;
 
@@ -35,7 +36,7 @@ export class DiskStore<K extends Key = string, V extends Value = Value>
     } catch (err) {
       console.warn(
         `[SimpleDiskStorage] Failed to load store from "${this.filePath}":`,
-        err
+        err,
       );
     }
   }
@@ -51,8 +52,10 @@ export class DiskStore<K extends Key = string, V extends Value = Value>
     } catch (err) {
       console.warn(
         `[SimpleDiskStorage] Failed to persist store to "${this.filePath}":`,
-        err
+        err,
       );
+
+      throw err;
     }
   }
 

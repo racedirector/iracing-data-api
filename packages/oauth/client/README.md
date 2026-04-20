@@ -38,17 +38,21 @@ const { url } = await client.authorize();
 const params = new URLSearchParams(req.url.split("?")[1]);
 const { access_token } = await client.callback(params, "user-session");
 
-// Later, grab or refresh the stored session
-const storedToken = await client.getSession("user-session");
-const { access_token: refreshedAccessToken } = await client.refreshSession(
-  "user-session"
-);
+// Later, restore the stored session with the same key.
+// `restoreSessionForId()` refreshes the access token automatically when needed.
+// If the session key is missing, it returns `undefined`.
+const storedToken = await client.restoreSessionForId("user-session");
 
 if (storedToken) {
   const decoded = client.parseAccessToken(storedToken.access_token);
   const validated = await client.validateAccessToken(storedToken.access_token);
 }
 ```
+
+When you pass a `sessionId` to `callback()`, the client stores the token under
+that key. If you omit it, the client falls back to the iRacing customer ID. If
+you already have a refresh token and want to force a refresh manually, call
+`client.refresh(refreshToken)`.
 
 Pass any {@link SimpleStore} implementation as the state and session store to
 control how the client tracks authorization state and OAuth tokens. See

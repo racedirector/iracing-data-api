@@ -8,12 +8,11 @@ import {
 import {
   IRacingOAuthJWTAccessToken,
   IRacingOAuthJWTAccessTokenAlgorithmValues,
-  IRacingOAuthJWTAccessTokenHeader,
   IRacingOAuthJWTAccessTokenHeaderSchema,
-  IRacingOAuthJWTAccessTokenPayload,
   IRacingOAuthJWTAccessTokenPayloadSchema,
   IRacingOAuthJWTAccessTokenSchema,
 } from "@iracing-data/oauth-schema";
+import { OAuthClaimsError } from "./errors";
 
 /**
  * Mask a secret (client_secret or password) using iRacing's masking algorithm.
@@ -60,6 +59,8 @@ function getRemoteJWKSet(jku: string): RemoteJWKSet {
  * Decodes an access token to it's parts.
  * @param accessToken The access token to decode
  * @returns A parsed access token.
+ *
+ * @throws {Error} If the token is not a valid JWT or does not match the expected access-token schema.
  */
 export function decodeAccessToken(
   accessToken: string,
@@ -78,6 +79,8 @@ export function decodeAccessToken(
  * Verifies an access token with the iRacing JWKS endpoint and validates its shape.
  *
  * This performs signature verification before any claims are trusted.
+ *
+ * @throws {Error} If the token cannot be decoded, verified, or parsed into the expected shape.
  */
 export async function verifyAccessToken(
   accessToken: string,
@@ -102,6 +105,10 @@ export async function verifyAccessToken(
  * @param accessToken The acces token to validate.
  * @param options The options to apply to validation.
  * @returns a parsed and validated access token.
+ *
+ * @throws {Error} If the token cannot be verified before validation.
+ * @throws {Error} If the token is expired or its time-based claims are inconsistent.
+ * @throws {Error} If the issuer, client id, audience, environment, or required scopes do not match.
  */
 export async function validateAccessToken(
   accessToken: string,
@@ -112,53 +119,49 @@ export async function validateAccessToken(
   const tolerance = options.clockSkewSeconds ?? 5;
 
   if (token.payload.exp <= now - tolerance) {
-    throw new Error("Access token has expired.");
+    throw OAuthClaimsError.tokenExpired();
   }
 
   if (token.payload.iat > now + tolerance) {
-    throw new Error("Access token was issued in the future.");
+    throw OAuthClaimsError.tokenIssuedInFuture();
   }
 
   if (token.payload.auth_time > now + tolerance) {
-    throw new Error("Access token authentication time is in the future.");
+    throw OAuthClaimsError.tokenAuthenticationInFuture();
   }
 
   if (token.payload.iat < token.payload.auth_time) {
-    throw new Error(
-      "Access token issue time is earlier than authentication time.",
-    );
+    throw OAuthClaimsError.issueTimeBeforeAuthenticationTime();
   }
 
   if (options.issuer && token.payload.iss !== options.issuer) {
-    throw new Error(
-      `Access token issuer mismatch. Expected "${options.issuer}" but received "${token.payload.iss}".`,
-    );
+    throw OAuthClaimsError.issuerMismatch(token.payload.iss, options.issuer);
   }
 
   if (options.clientId) {
     if (token.payload.client_id !== options.clientId) {
-      throw new Error(
-        `Access token client_id mismatch. Expected "${options.clientId}" but received "${token.payload.client_id}".`,
+      throw OAuthClaimsError.clientIdMismatch(
+        token.payload.client_id,
+        options.clientId,
       );
     }
 
     if (!token.payload.aud.includes(options.clientId)) {
-      throw new Error(
-        `Access token audience does not include the expected client id "${options.clientId}".`,
-      );
+      throw OAuthClaimsError.audienceClientIdMissing(options.clientId);
     }
   }
 
   if (!token.payload.aud.includes("oauth-api")) {
-    throw new Error('Access token audience does not include "oauth-api".');
+    throw OAuthClaimsError.oauthApiMissing();
   }
 
   if (
     options.expectedEnvironment !== undefined &&
     token.payload.iracing_env !== options.expectedEnvironment
   ) {
-    throw new Error(
-      `Access token environment mismatch. Expected "${options.expectedEnvironment}" but received "${token.payload.iracing_env}".`,
+    throw OAuthClaimsError.environmentMismatch(
+      token.payload.iracing_env,
+      options.expectedEnvironment,
     );
   }
 
@@ -172,7 +175,7 @@ export async function validateAccessToken(
 
     for (const scope of options.requiredScopes) {
       if (!grantedScopes.has(scope)) {
-        throw new Error(`Access token is missing required scope "${scope}".`);
+        throw OAuthClaimsError.scopeMissing(scope);
       }
     }
   }
@@ -186,18 +189,38 @@ function isJWTExpired(token: string) {
   return Date.now() > expiry.getTime();
 }
 
+/**
+ * Returns whether an access token is expired.
+ *
+ * @throws {Error} If the token is not a valid JWT.
+ */
 export function isAccessTokenExpired(accessToken: string) {
   return isJWTExpired(accessToken);
 }
 
+/**
+ * Returns whether an access token is still valid.
+ *
+ * @throws {Error} If the token is not a valid JWT.
+ */
 export function isAccessTokenValid(accessToken: string) {
   return !isAccessTokenExpired(accessToken);
 }
 
+/**
+ * Returns whether a refresh token is expired.
+ *
+ * @throws {Error} If the token is not a valid JWT.
+ */
 export function isRefreshTokenExpired(refreshToken: string) {
   return isJWTExpired(refreshToken);
 }
 
+/**
+ * Returns whether a refresh token is still valid.
+ *
+ * @throws {Error} If the token is not a valid JWT.
+ */
 export function isRefreshTokenValid(refreshToken: string) {
   return !isRefreshTokenExpired(refreshToken);
 }

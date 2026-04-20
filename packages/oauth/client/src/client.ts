@@ -5,7 +5,7 @@ import {
   IRacingOAuthProfileResponse,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
-import { OAuthCallbackError, OAuthRefreshError } from "./oauth-callback-error";
+import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
 import {
   IRacingOAuthClientMetadata,
   IRacingOAuthClientMetadataInput,
@@ -21,6 +21,7 @@ import {
   maskSecret,
   validateAccessToken as validateDecodedAccessToken,
 } from "./utils";
+import { ClientMetadataError, SessionNotFoundError } from "./errors";
 
 export type OAuthClientOptions = {
   // Config
@@ -47,6 +48,12 @@ export class OAuthClient {
   protected authorizationClient: oauth.Client;
   protected clientAuthorization: oauth.ClientAuth;
 
+  /**
+   * Creates an OAuth client configured for the iRacing authorization servers.
+   *
+   * @param options - Client metadata and storage backends used by the client.
+   * @throws {Error} If the client metadata does not match the expected schema.
+   */
   constructor(options: OAuthClientOptions) {
     const { clientMetadata, stateStore, sessionStore } = options;
 
@@ -79,12 +86,12 @@ export class OAuthClient {
   /**
    * Generates an Authorization URL for kicking off the OAuth flow.
    * @returns The URL, verifier, and state parameter.
+   *
+   * @throws {Error} If the client is not configured with a redirect URI.
    */
   async authorize() {
     if (!this.clientMetadata.redirectUri) {
-      throw new Error(
-        "Client is not configured for the authorization code flow; missing `redirectUri`.",
-      );
+      throw ClientMetadataError.missingRedirectUri();
     }
 
     const verifier = oauth.generateRandomCodeVerifier();
@@ -126,27 +133,24 @@ export class OAuthClient {
   /**
    * Authorizes the consumer with the password limited flow on iRacing auth servers.
    * @returns The session token from the OAuth API.
+   *
+   * @throws {Error} If username, password, or client secret are missing from the client configuration.
+   * @throws {Error} If the grant request fails or the returned token payload cannot be parsed.
    */
   async passwordLimitedAuthorization() {
     const { username, password, clientId, clientSecret, scopes } =
       this.clientMetadata;
 
     if (!username) {
-      throw new Error(
-        "No username provided for password limited authentication flow.",
-      );
+      throw ClientMetadataError.missingCredentials("username");
     }
 
     if (!password) {
-      throw new Error(
-        "No password provided for password limited authentication flow.",
-      );
+      throw ClientMetadataError.missingCredentials("password");
     }
 
     if (!clientSecret) {
-      throw new Error(
-        "Client secret not provided; password limited authorization is not allowed.",
-      );
+      throw ClientMetadataError.missingClientSecret();
     }
 
     const requestParameters =
@@ -165,7 +169,7 @@ export class OAuthClient {
      * !!!: Manually send the request to the token endpoint because `oauth4webapi` doesn't expose
      * a public token request endpoint function.
      */
-    const response = await fetch("https://oauth.iracing.com/oauth2/token", {
+    const response = await fetch(this.clientMetadata.tokenUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
@@ -184,7 +188,7 @@ export class OAuthClient {
 
     // !!!: Store the password limited session by username.
     // !!!: Sessions are typically stored by the iRacing customer ID.
-    await this.sessionStore.set(username, token);
+    await this.storeSession(username, token);
 
     return token;
   }
@@ -194,19 +198,23 @@ export class OAuthClient {
    * fetches the token.
    * @param params The query parameters from the authorization server.
    * @returns The auth token.
+   *
+   * @throws {Error} If the client is not configured with a redirect URI.
+   * @throws {OAuthCallbackError} If the callback is missing the `state` or `code` parameter,
+   *   or if the authorization session cannot be found.
+   * @throws {OAuthCallbackError} If the authorization server returns an OAuth error response.
+   * @throws {Error} If token exchange, token parsing, or profile lookup fails.
    */
   async callback(params: URLSearchParams, sessionId?: string) {
     if (!this.clientMetadata.redirectUri) {
-      throw new Error(
-        "Client is not configured for the authorization code flow; missing `redirectUri`.",
-      );
+      throw ClientMetadataError.missingRedirectUri();
     }
 
     const stateParam = params.get("state");
     const codeParam = params.get("code");
 
     if (!stateParam) {
-      throw new OAuthCallbackError(params, 'Missing "state" parameter.');
+      throw OAuthCallbackError.stateMissing(params);
     }
 
     const stateData = await this.stateStore.get(stateParam);
@@ -214,18 +222,11 @@ export class OAuthClient {
       // Prevent replay
       await this.stateStore.del(stateParam);
     } else {
-      throw new OAuthCallbackError(
-        params,
-        `Unknown authorization session "${stateParam}"`,
-      );
+      throw OAuthCallbackError.unknownAuthorizationState(stateParam, params);
     }
 
     if (!codeParam) {
-      throw new OAuthCallbackError(
-        params,
-        'Missing "code" query parameter.',
-        stateData.appState,
-      );
+      throw OAuthCallbackError.codeMissing(params, stateData.appState);
     }
 
     let codeGrantParams: URLSearchParams;
@@ -238,12 +239,7 @@ export class OAuthClient {
       );
     } catch (error) {
       if (error instanceof oauth.AuthorizationResponseError) {
-        throw new OAuthCallbackError(
-          params,
-          "OAuth Provider returned an error",
-          stateParam,
-          error.cause,
-        );
+        throw OAuthCallbackError.authorizationError(error, params, stateParam);
       }
 
       throw error;
@@ -267,20 +263,23 @@ export class OAuthClient {
     const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
 
     /**
-     * Using the returned token, make a request to `/iracing/profile` on the OAuth API
+     * Using the returned token, make a request to the configured user info endpoint
      * to fetch the user's profile for session caching.
      */
     const profileResponse = await oauth.protectedResourceRequest(
       token.access_token,
       "GET",
-      new URL("/iracing/profile", this.clientMetadata.issuer),
+      new URL(this.clientMetadata.userInfoUrl),
     );
 
     const profileData =
       (await profileResponse.json()) as IRacingOAuthProfileResponse;
 
-    // Store the session by the iracing customer id.
-    await this.sessionStore.set(profileData.iracing_cust_id.toString(), token);
+    // Store the session by the provided session ID when available, otherwise fall back to the iRacing customer id.
+    await this.storeSession(
+      sessionId ?? profileData.iracing_cust_id.toString(),
+      token,
+    );
 
     return token;
   }
@@ -289,6 +288,9 @@ export class OAuthClient {
    * Refreshes a token for the given refresh token.
    * @param token The refresh token
    * @returns a new access token.
+   *
+   * @throws {OAuthRefreshError} If the OAuth server returns a structured refresh error body.
+   * @throws {Error} If the refresh token request fails or the response body cannot be processed.
    */
   async refresh(token: string) {
     const response = await oauth.refreshTokenGrantRequest(
@@ -310,6 +312,8 @@ export class OAuthClient {
       if (error instanceof oauth.ResponseBodyError) {
         throw OAuthRefreshError.from(error);
       }
+
+      throw error;
     }
   }
 
@@ -326,6 +330,10 @@ export class OAuthClient {
    * @param body — Request body compatible with the Fetch API and the request's method.
    * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
    *   rejected with {@link WWWAuthenticateChallengeError}.
+   *
+   * @throws {OAuthRefreshError} If the stored session must be refreshed and the refresh fails.
+   * @throws {Error} If no session can be restored for the provided session ID.
+   * @throws {Error} If the downstream protected request fails.
    */
   async makeProtectedRequest(
     sessionId: string,
@@ -346,25 +354,23 @@ export class OAuthClient {
         options,
       );
     } else {
-      throw new Error(
-        `Could not find session matching ${sessionId}. Did you forget to authenticate?`,
-      );
+      throw new SessionNotFoundError(sessionId);
     }
   }
 
   /**
-   * Makes a protected request on behalf of the provided `session` against the iRacing API
-   * as specified by `path`.
+   * Makes a protected request on behalf of the provided session.
    *
-   * This looks up a session for the given session ID, and forwards the access token to `oauth4webapi.protectedResourceRequest`.
+   * This forwards the stored access token to `oauth4webapi.protectedResourceRequest`.
    *
-   * @param session — The session to use for the request.
-   * @param method — The HTTP method for the request.
-   * @param url — The path for the request, relative to the iRacing API URL.
-   * @param headers — Headers for the request.
-   * @param body — Request body compatible with the Fetch API and the request's method.
-   * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
-   *   rejected with {@link WWWAuthenticateChallengeError}.
+   * @param session - The session to use for the request.
+   * @param method - The HTTP method for the request.
+   * @param path - The path for the request, relative to the iRacing API URL.
+   * @param headers - Headers for the request.
+   * @param body - Request body compatible with the Fetch API and the request's method.
+   * @param options - Additional request options passed through to the OAuth helper.
+   * @returns Resolves with a {@link !Response} instance.
+   * @throws {Error} If the protected resource request fails.
    */
   private async _makeProtectedRequest(
     session: IRacingOAuthTokenResponse,
@@ -384,25 +390,22 @@ export class OAuthClient {
     );
   }
 
-  async restoreSessionForId(id: string) {
-    // Get the session
-    const session = await this.getSession(id);
-    if (session) {
-      // Check if the session is expired
-      const isExpired = isAccessTokenExpired(session.access_token);
-      if (isExpired) {
-        // Refresh the session
-        return await this.refreshSessionForSessionId(id);
-      }
-
-      return session;
-    }
-  }
-
+  /**
+   * Reads a session from the configured session store.
+   *
+   * @param sessionId - The session identifier to load.
+   * @returns The stored session, or `undefined` when no session exists.
+   */
   private async getSession(sessionId: string) {
     return await this.sessionStore.get(sessionId);
   }
 
+  /**
+   * Writes a session to the configured session store.
+   *
+   * @param sessionId - The session identifier to persist.
+   * @param session - The session payload to store.
+   */
   private async storeSession(
     sessionId: string,
     session: IRacingOAuthTokenResponse,
@@ -410,37 +413,27 @@ export class OAuthClient {
     await this.sessionStore.set(sessionId, session);
   }
 
+  /**
+   * Refreshes a stored session using its refresh token and persists the updated result.
+   *
+   * @param sessionId - The session identifier to refresh.
+   * @returns The refreshed token response.
+   * @throws {OAuthRefreshError} If the session does not exist, is missing a refresh token,
+   *   or the refresh token is expired.
+   */
   private async refreshSessionForSessionId(sessionId: string) {
     const session = await this.getSession(sessionId);
 
     if (!session) {
-      throw new OAuthRefreshError(
-        `No session found for key ID.`,
-        undefined,
-        undefined,
-        {
-          sessionId,
-        },
-      );
+      throw OAuthRefreshError.sessionNotFound(sessionId);
     }
 
     if (!session.refresh_token) {
-      throw new OAuthRefreshError(
-        `Session cannot be refreshed.`,
-        "Missing refresh token",
-        "MISSING_REFRESH_TOKEN",
-        {
-          sessionId,
-        },
-      );
+      throw OAuthRefreshError.missingRefreshToken(sessionId);
     }
 
     if (isRefreshTokenExpired(session.refresh_token)) {
-      throw new OAuthRefreshError(
-        "Refresh token cannot be refreshed",
-        "Token expired",
-        "REFRESH_TOKEN_EXPIRED",
-      );
+      throw OAuthRefreshError.tokenExpired(sessionId);
     }
 
     const refreshed = await this.refresh(session.refresh_token);
@@ -457,15 +450,48 @@ export class OAuthClient {
    * Decodes an access token into its header and payload structure.
    *
    * This validates the token shape, but does not verify the token signature.
+   *
+   * @throws {Error} If the token is not a valid JWT or does not match the expected access-token schema.
    */
   parseAccessToken(accessToken: string) {
     return decodeAccessToken(accessToken);
   }
 
   /**
+   * Restores a session from storage, refreshing it if the access token has expired.
+   *
+   * @param sessionId - The session identifier to load.
+   * @returns The stored session, or `undefined` when no session exists.
+   * @throws {OAuthRefreshError} If a stored session must be refreshed and the refresh fails.
+   * @throws {Error} If the stored access token is malformed.
+   */
+  async restoreSessionForId(
+    sessionId: string,
+  ): Promise<IRacingOAuthTokenResponse | undefined> {
+    // Get the session
+    const session = await this.getSession(sessionId);
+    if (session) {
+      // Check if the session is expired
+      const isExpired = isAccessTokenExpired(session.access_token);
+      if (isExpired) {
+        // Refresh the session
+        return await this.refreshSessionForSessionId(sessionId);
+      }
+
+      return session;
+    }
+
+    return undefined;
+  }
+
+  /**
    * Verifies an access token signature and then performs structural and claims validation.
    *
    * This checks signature validity, expiration, issuer, audience, scope, and claim consistency.
+   *
+   * @throws {Error} If the token cannot be verified before validation.
+   * @throws {Error} If the token is expired or its time-based claims are inconsistent.
+   * @throws {Error} If the issuer, client id, audience, environment, or required scopes do not match.
    */
   async validateAccessToken(
     accessToken: string,

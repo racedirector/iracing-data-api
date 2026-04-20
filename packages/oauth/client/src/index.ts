@@ -1,4 +1,4 @@
 export * from "./client";
-export * from "./oauth-callback-error";
+export * from "./errors";
 export * from "./schema";
 export * from "./storage";
