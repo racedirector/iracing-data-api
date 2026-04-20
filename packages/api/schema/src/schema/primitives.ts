@@ -54,9 +54,12 @@ export const IRacingCustomerIdSchema = z.coerce.number().meta({
   id: "customerId",
 });
 
-export const CommaSeparatedNumberString = z.string().regex(/^\d+(?:,\d+)*$/, {
-  message: "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
-});
+export const CommaSeparatedNumberString = z.coerce
+  .string()
+  .regex(/^\d+(?:,\d+)*$/, {
+    message:
+      "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
+  });
 
 export const IRacingEventTypePracticeSchema = z
   .literal(2)

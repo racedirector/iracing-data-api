@@ -17,3 +17,9 @@ const result = IRacingGetCarResponseSchema.parse(apiResponse);
 ```
 
 Use the schemas directly for runtime validation or feed them into helpers like `@iracing-data/api-schema-to-openapi` for OpenAPI generation.
+
+## Development
+
+```bash
+pnpm --filter @iracing-data/api-schema test
+```
