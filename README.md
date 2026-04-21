@@ -5,6 +5,7 @@ A monorepo of TypeScript packages for working with the iRacing `/data` API and t
 ## Packages
 
 ### API
+
 - [@iracing-data/api-schema](packages/api/schema/README.md) – Zod schemas for `/data` endpoints.
 - [@iracing-data/api-schema-to-openapi](packages/helpers/api-schema-to-openapi/README.md) – Generate OpenAPI docs from the schemas.
 - [@iracing-data/api-client-fetch](packages/api/client/fetch/README.md) – Fetch-based API client.
@@ -12,11 +13,13 @@ A monorepo of TypeScript packages for working with the iRacing `/data` API and t
 - [@iracing-data/api-router](packages/api/router/README.md) – Better Call router bundling generated routes.
 
 ### OAuth
+
 - [@iracing-data/oauth-schema](packages/oauth/schema/README.md) – OAuth request/response Zod schemas.
 - [@iracing-data/oauth-schema-to-openapi](packages/helpers/oauth-schema-to-openapi/README.md) – OpenAPI generation from OAuth schemas.
 - [@iracing-data/oauth-client](packages/oauth/client/README.md) – OAuth client implementation.
 
 ### Telemetry
+
 - [@iracing-data/telemetry-types](packages/telemetry/types/README.md) – Generated telemetry TypeScript types.
 - [@iracing-data/telemetry-client-grpc-node](packages/telemetry/client/grpc-node/README.md) – Node gRPC telemetry client.
 - [@iracing-data/telemetry-client-grpc-web](packages/telemetry/client/grpc-web/README.md) – Browser gRPC-Web telemetry client.
@@ -24,6 +27,7 @@ A monorepo of TypeScript packages for working with the iRacing `/data` API and t
 - [@iracing-data/telemetry-client-http](packages/telemetry/client/http/README.md) – Axios HTTP telemetry client.
 
 ### Telemetry Event Emitters
+
 - [@iracing-data/session-state-events](packages/events/session-state-events/README.md)
 - [@iracing-data/track-location-events](packages/events/track-location-events/README.md)
 - [@iracing-data/car-track-location-events](packages/events/car-track-location-events/README.md)
@@ -36,17 +40,24 @@ A monorepo of TypeScript packages for working with the iRacing `/data` API and t
 - [@iracing-data/driver-swap-events](packages/events/driver-swap-events/README.md)
 
 ### Helpers
+
 - [@iracing-data/helpers/sync-car-assets](packages/helpers/sync-car-assets/README.md)
 - [@iracing-data/helpers/sync-track-assets](packages/helpers/sync-track-assets/README.md)
 - [@iracing-data/helpers/sync-telemetry-json-schema](packages/helpers/sync-telemetry-json-schema/README.md)
 - [@iracing-data/helpers/iracing-json-schema-to-typescript](packages/helpers/iracing-json-schema-to-typescript/README.md)
 
 ## Apps
+
 - [race-events](apps/race-events/README.md) – Example CLI that logs race events from telemetry.
 - [@iracing-data/sync-car-assets-cli](apps/sync-car-assets-cli/README.md) – Download car assets via CLI.
 - [@iracing-data/sync-track-assets-cli](apps/sync-track-assets-cli/README.md) – Download track assets via CLI.
 
+## Examples
+
+See [examples/README.md](./examples/README.md).
+
 ## Rust
+
 - [iracing-data-api-client](crates/iracing-data-api-client/README.md) – Generated Rust client for the iRacing `/data` API. Use `cargo get-member --access-token "$IRACING_ACCESS_TOKEN" --customer-ids 378767 --include-licenses` to run the member lookup example.
 
 ## Development

@@ -133,6 +133,7 @@ dist
 
 # Default cookie-store from `iracing-data` CLI
 packages/cli/bin/*.json
+examples/oauth-example-cli/credentials.json
 
 # SEA build directories
 build/
