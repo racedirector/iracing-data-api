@@ -24,6 +24,6 @@
     "@iracing-data/oauth-schema": "workspace:*",
     "jose": "^6.2.2",
     "oauth4webapi": "^3.8.3",
-    "zod": "^4.1.13"
+    "zod": "^4.3.6"
   }
 }
