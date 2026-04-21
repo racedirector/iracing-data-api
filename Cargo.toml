@@ -1,3 +1,12 @@
 [workspace]
 members = ["crates/iracing-data-api-client"]
 resolver = "2"
+
+[workspace.lints.rust]
+rust_2018_idioms = "warn"
+unused_qualifications = "warn"
+
+[workspace.lints.clippy]
+all = "warn"
+dbg_macro = "warn"
+todo = "warn"

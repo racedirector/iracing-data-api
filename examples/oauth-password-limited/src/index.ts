@@ -294,7 +294,7 @@ async function main() {
 
   let session: IRacingOAuthTokenResponse | undefined;
   try {
-    session = await client.restoreSession(username!);
+    session = await client.restoreSessionForId(username!);
     if (!session) {
       console.log("Could not find existing session. Authenticating...");
       session = await client.passwordLimitedAuthorization();
