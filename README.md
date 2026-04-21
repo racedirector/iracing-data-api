@@ -46,6 +46,9 @@ A monorepo of TypeScript packages for working with the iRacing `/data` API and t
 - [@iracing-data/sync-car-assets-cli](apps/sync-car-assets-cli/README.md) – Download car assets via CLI.
 - [@iracing-data/sync-track-assets-cli](apps/sync-track-assets-cli/README.md) – Download track assets via CLI.
 
+## Rust
+- [iracing-data-api-client](crates/iracing-data-api-client/README.md) – Generated Rust client for the iRacing `/data` API. Use `cargo get-member --access-token "$IRACING_ACCESS_TOKEN" --customer-ids 378767 --include-licenses` to run the member lookup example.
+
 ## Development
 
 This repo uses [pnpm](https://pnpm.io/) for dependency management:

@@ -1,0 +1,2 @@
+[alias]
+get-member = "run -p iracing-data-api-client --example get_member --"

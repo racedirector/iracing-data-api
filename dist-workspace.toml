@@ -1,12 +1,32 @@
 # dist-workspace.toml
-# Declares the npm packages managed by dist (cargo-dist).
+# Declares the npm and cargo packages managed by dist (cargo-dist).
 # See: https://axodotdev.github.io/cargo-dist/book/quickstart/javascript.html
 
 [workspace]
 members = [
+    "cargo:./crates/iracing-data-api-client/",
     "npm:./packages/oauth/schema/",
     "npm:./packages/oauth/client/",
     "npm:./packages/api/schema/",
     "npm:./packages/api/client/fetch/",
     "npm:./packages/api/client/axios/",
 ]
+
+# Config for 'dist'
+[dist]
+# Target platforms to build apps for (Rust target-triple syntax)
+targets = [
+    "aarch64-apple-darwin",
+    "x86_64-apple-darwin",
+    "aarch64-pc-windows-msvc",
+    "x86_64-pc-windows-msvc",
+    "aarch64-unknown-linux-gnu",
+    "x86_64-unknown-linux-gnu",
+    "aarch64-unknown-linux-musl",
+    "x86_64-unknown-linux-musl",
+    "wasm32-unknown-unknown",
+]
+# The preferred dist version to use in CI (Cargo.toml SemVer syntax)
+cargo-dist-version = "0.30.4"
+# The installers to generate for each app
+installers = []

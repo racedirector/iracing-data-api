@@ -248,6 +248,7 @@ export async function generateOpenAPISpec({
           operationId: "postAuth",
           tags: ["auth"],
           requestBody: {
+            required: true,
             content: {
               "application/json": {
                 schema: IRacingAuthParametersSchema,
