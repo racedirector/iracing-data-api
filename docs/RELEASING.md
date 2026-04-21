@@ -185,3 +185,9 @@ dist init --yes
 ```
 
 The workspace members are declared in [`dist-workspace.toml`](../dist-workspace.toml).
+
+For the Rust library crate (`crates/iracing-data-api-client`), use an explicit tag when planning or releasing with `dist`:
+
+```bash
+dist plan --tag=iracing-data-api-client-v0.0.1
+```

@@ -20,6 +20,20 @@ Put the package under your project folder in a directory named `iracing-data-api
 iracing-data-api-client = { path = "./iracing-data-api-client" }
 ```
 
+### TLS backend selection
+
+This crate does not enable a TLS backend by default so it can compile cleanly across desktop and browser targets.
+
+For HTTPS API calls, enable one backend explicitly:
+
+```toml
+# rustls (portable, generally best for cross-platform builds)
+iracing-data-api-client = { path = "./iracing-data-api-client", features = ["rustls-tls"] }
+
+# native OS TLS
+iracing-data-api-client = { path = "./iracing-data-api-client", features = ["native-tls"] }
+```
+
 ## Documentation for API Endpoints
 
 All URIs are relative to *https://members-ng.iracing.com*
@@ -198,6 +212,5 @@ cargo doc --open
 ```
 
 ## Author
-
 
 

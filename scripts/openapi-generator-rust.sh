@@ -15,7 +15,7 @@ $OPENAPI_GENERATOR generate \
   -g rust \
   -i $OPENAPI_DOC \
   -o $OUTPUT_PACKAGE \
-  --additional-properties=useSingleRequestParameter=true,packageName='iracing-data-api-client',topLevelApiClient='true'
+  --additional-properties=useSingleRequestParameter=true,packageName='iracing-data-api-client',topLevelApiClient=true,useChrono=true
 
 if ! grep -q '^\[lints\]' "$OUTPUT_PACKAGE/Cargo.toml"; then
   cat <<'EOF' >> "$OUTPUT_PACKAGE/Cargo.toml"
