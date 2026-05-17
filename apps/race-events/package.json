@@ -9,6 +9,7 @@
     "build:executable": "pnpm bundle && pnpm --parallel --stream '/^build:executable:.+$/'",
     "build:executable:macos": "./scripts/build-executable-macos.sh",
     "build:executable:windows": "./scripts/build-executable-windows.sh",
+    "build:executable:node": "pnpm bundle && node scripts/build-sea.cjs",
     "bundle": "esbuild ./src/index.ts --bundle --platform=node --outfile=build/index.cjs --format=cjs",
     "start": "npx tsx --env-file-if-exists .env ./src/index.ts"
   },

@@ -1,0 +1,34 @@
+{
+  "name": "driver-lookup",
+  "version": "0.0.1",
+  "description": "Function to look up drivers",
+  "main": "dist/index.js",
+  "type": "module",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "build:executable": "pnpm bundle && pnpm --parallel --stream '/^build:executable:.+$/'",
+    "build:executable:macos": "./scripts/build-executable-macos.sh",
+    "build:executable:windows": "./scripts/build-executable-windows.sh",
+    "build:executable:node": "pnpm bundle && node scripts/build-sea.cjs",
+    "bundle": "esbuild ./src/index.ts --bundle --platform=node --outfile=build/index.cjs --format=cjs",
+    "start": "npx tsx --env-file-if-exists .env ./src/index.ts"
+  },
+  "license": "ISC",
+  "dependencies": {
+    "@iracing-data/api-client-fetch": "workspace:*",
+    "ascii-table3": "1.0.1",
+    "commander": "^14.0.3",
+    "lodash": "^4.18.1",
+    "luxon": "3.7.2",
+    "pino": "10.3.1",
+    "pino-pretty": "^13.1.3",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@commander-js/extra-typings": "14.0.0",
+    "@types/luxon": "^3.7.1",
+    "esbuild": "^0.28.0",
+    "tsx": "4.21.0",
+    "typescript": "^6.0.3"
+  }
+}
