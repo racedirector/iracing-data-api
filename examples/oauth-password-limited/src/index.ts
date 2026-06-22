@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import {
   access,
   constants,
@@ -7,6 +9,7 @@ import {
 } from "node:fs/promises";
 import path, { dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { Command } from "@commander-js/extra-typings";
 import {
   CarApi,
   Configuration,
@@ -272,7 +275,7 @@ async function fetchData(configuration: Configuration, accessToken?: string) {
   }
 }
 
-async function main() {
+async function runPasswordLimitedOAuthExample() {
   const stateStore = new InMemoryStore<string, InternalState>();
   const sessionStore = new DiskStore<string, IRacingOAuthTokenResponse>(
     credentialsPath,
@@ -321,4 +324,16 @@ async function main() {
   console.log("Fetched assets from `/data` API.");
 }
 
-main();
+const program = new Command("oauth-password-limited")
+  .description(
+    "Authenticate with iRacing using password_limited grant and fetch /data assets.",
+  )
+  .action(async () => {
+    await runPasswordLimitedOAuthExample();
+  });
+
+program.parseAsync().catch((error) => {
+  console.error("oauth-password-limited failed.");
+  console.error(error);
+  process.exitCode = 1;
+});

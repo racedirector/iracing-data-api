@@ -214,6 +214,28 @@ importers:
         specifier: ^4.19.0
         version: 4.21.0
 
+  examples/oauth-example-cli:
+    dependencies:
+      '@iracing-data/oauth-client':
+        specifier: workspace:*
+        version: link:../../packages/oauth/client
+      commander:
+        specifier: ^14.0.2
+        version: 14.0.2
+      dotenv:
+        specifier: 17.2.3
+        version: 17.2.3
+    devDependencies:
+      '@commander-js/extra-typings':
+        specifier: ^14.0.0
+        version: 14.0.0(commander@14.0.2)
+      '@types/node':
+        specifier: ^24.10.0
+        version: 24.10.1
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+
   examples/oauth-password-limited:
     dependencies:
       '@iracing-data/api-client-fetch':
@@ -222,10 +244,16 @@ importers:
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
+      commander:
+        specifier: ^14.0.2
+        version: 14.0.2
       zod:
         specifier: ^4.3.6
         version: 4.3.6
     devDependencies:
+      '@commander-js/extra-typings':
+        specifier: ^14.0.0
+        version: 14.0.0(commander@14.0.2)
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
