@@ -15,7 +15,7 @@ importers:
         specifier: workspace:*
         version: link:packages/helpers/oauth-schema-to-openapi
       '@openapitools/openapi-generator-cli':
-        specifier: 2.32.0
+        specifier: ^2.31.1
         version: 2.32.0
       '@types/google-protobuf':
         specifier: ^3.15.12
