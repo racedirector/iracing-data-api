@@ -1,5 +1,5 @@
 {
-  "include": [],
+  "include": ["src/**/*.ts", "vitest.config.ts"],
   "references": [{ "path": "./tsconfig.build.json" }],
   "compilerOptions": {
     "paths": {
