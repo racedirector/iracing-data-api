@@ -90,11 +90,6 @@ async function writeResponseDataToFile(
   }
 }
 
-/**
- * TODO: Implement middleware to avoid what's happening with the fetchIRacingLink
- */
-// const postMiddleware: Middleware["post"] = async ({ fetch, response }) => {};
-
 async function fetchSeries(configuration: Configuration) {
   const series = new SeriesApi(configuration);
 
@@ -307,6 +302,7 @@ async function runPasswordLimitedOAuthExample() {
     }
   } catch (error) {
     if (error instanceof OAuthRefreshError) {
+      console.log("Could not restore session. Authenticating...");
       session = await client.passwordLimitedAuthorization();
     }
 

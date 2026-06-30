@@ -85,7 +85,7 @@ export class OAuthRefreshError extends Error {
   }
 
   static tokenExpired(sessionId: string) {
-    new OAuthRefreshError(
+    return new OAuthRefreshError(
       "Refresh token cannot be refreshed",
       "Token expired",
       "REFRESH_TOKEN_EXPIRED",
