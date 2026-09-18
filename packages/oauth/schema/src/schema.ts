@@ -10,6 +10,11 @@ const EpochSecondsSchema = z.int().nonnegative().brand<"EpochSeconds">();
 
 const IpAddressSchema = z.union([z.ipv4(), z.ipv6()]);
 
+const CommaSeparatedSessionIdsSchema = z.codec(z.string(), z.array(z.uuid()), {
+  decode: (value) => value.split(","),
+  encode: (value) => value.join(","),
+});
+
 export const IRacingOAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
 });
@@ -33,7 +38,7 @@ export const IRacingOAuthScopesSchema = z.union([
   IRacingOAuthScopeProfileSchema,
 ]);
 
-export const IRacingOAuthScopesStringSchema = z.string().optional().meta({
+export const IRacingOAuthScopesStringSchema = z.string().meta({
   description:
     "One or more scopes to request, if any, separated by whitespace.",
 });
@@ -373,11 +378,11 @@ export const IRacingOAuthProfileResponseSchema = z.object({
 });
 
 export const IRacingOAuthRevokeCurrentSessionInputSchema = z.object({
-  forgetBrowser: z.boolean().optional(),
+  forget_browser: z.boolean().optional(),
 });
 
 export const IRacingOAuthRevokeSessionsInputSchema = z.object({
-  sessionIds: z.array(z.string()),
+  session_ids: CommaSeparatedSessionIdsSchema,
 });
 
 // Types

@@ -89,6 +89,7 @@ export async function verifyAccessToken(
   const jwks = getRemoteJWKSet(decoded.header.jku);
   const { protectedHeader, payload } = await jwtVerify(accessToken, jwks, {
     algorithms: [...IRacingOAuthJWTAccessTokenAlgorithmValues],
+    clockTolerance: 5,
   });
 
   const header = IRacingOAuthJWTAccessTokenHeaderSchema.parse(protectedHeader);

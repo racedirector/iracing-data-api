@@ -3,6 +3,7 @@ import {
   IRacingOAuthTokenResponse,
   IRacingOAuthPasswordLimitedGrantParametersSchema,
   IRacingOAuthProfileResponse,
+  IRacingOAuthProfileResponseSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
@@ -225,10 +226,6 @@ export class OAuthClient {
       throw OAuthCallbackError.unknownAuthorizationState(stateParam, params);
     }
 
-    if (!codeParam) {
-      throw OAuthCallbackError.codeMissing(params, stateData.appState);
-    }
-
     let codeGrantParams: URLSearchParams;
     try {
       codeGrantParams = oauth.validateAuthResponse(
@@ -243,6 +240,10 @@ export class OAuthClient {
       }
 
       throw error;
+    }
+
+    if (!codeParam) {
+      throw OAuthCallbackError.codeMissing(params, stateData.appState);
     }
 
     const response = await oauth.authorizationCodeGrantRequest(
@@ -272,12 +273,13 @@ export class OAuthClient {
       new URL(this.clientMetadata.userInfoUrl),
     );
 
-    const profileData =
-      (await profileResponse.json()) as IRacingOAuthProfileResponse;
+    const profileJson = await profileResponse.json();
+    const profile =
+      await IRacingOAuthProfileResponseSchema.parseAsync(profileJson);
 
     // Store the session by the provided session ID when available, otherwise fall back to the iRacing customer id.
     await this.storeSession(
-      sessionId ?? profileData.iracing_cust_id.toString(),
+      sessionId ?? profile.iracing_cust_id.toString(),
       token,
     );
 

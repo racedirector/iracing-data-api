@@ -134,6 +134,12 @@ export async function generateOpenAPISpec({
             content: {
               "application/x-www-form-urlencoded": {
                 schema: IRacingOAuthRevokeSessionsInputSchema,
+                encoding: {
+                  session_ids: {
+                    style: "form",
+                    explode: false,
+                  },
+                },
               },
             },
           },
