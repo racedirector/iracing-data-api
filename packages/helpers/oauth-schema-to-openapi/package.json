@@ -12,6 +12,7 @@
   "dependencies": {
     "@iracing-data/oauth-schema": "workspace:*",
     "commander": "^14.0.2",
+    "yaml": "^2.9.1",
     "zod": "^4.3.6",
     "zod-openapi": "^5.4.5"
   },

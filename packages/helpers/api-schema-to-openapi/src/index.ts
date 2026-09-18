@@ -60,16 +60,27 @@ import {
   IRacingTeamGetParametersSchema,
   IRacingTimeAttackMemberSeasonResultsParametersSchema,
 } from "@iracing-data/api-schema";
+import { stringify as stringifyYAML } from "yaml";
 import { createDocument } from "zod-openapi";
 
 export interface GenerateOpenAPISpecOptions {
   outputDir?: string;
   fileName?: string;
+  format?: "json" | "yaml";
+}
+
+function resolveFormat(
+  fileName: string,
+  format?: "json" | "yaml",
+): "json" | "yaml" {
+  if (format !== undefined) return format;
+  return /\.ya?ml$/i.test(fileName) ? "yaml" : "json";
 }
 
 export async function generateOpenAPISpec({
   outputDir = __dirname,
   fileName = "openapi.json",
+  format,
 }: GenerateOpenAPISpecOptions) {
   const outputPath = path.join(outputDir, fileName);
 
@@ -2264,5 +2275,11 @@ export async function generateOpenAPISpec({
 
   // Write to file.
   console.log(`Writing to ${outputPath}`);
-  fs.writeFileSync(outputPath, JSON.stringify(document));
+  const outputFormat = resolveFormat(fileName, format);
+  fs.writeFileSync(
+    outputPath,
+    outputFormat === "yaml"
+      ? stringifyYAML(document)
+      : JSON.stringify(document),
+  );
 }

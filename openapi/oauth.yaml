@@ -1,0 +1,567 @@
+openapi: 3.1.1
+info:
+  title: iRacing OAuth API
+  version: 0.0.1
+servers:
+  - url: https://oauth.iracing.com/oauth2
+    description: iRacing OAuth server.
+externalDocs:
+  url: /book
+paths:
+  /iracing/profile:
+    get:
+      operationId: getProfile
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success
+          headers:
+            x-request-id: &a1
+              $ref: "#/components/headers/x-request-id"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  iracing_name:
+                    type: string
+                  iracing_cust_id:
+                    type: number
+                required:
+                  - iracing_name
+                  - iracing_cust_id
+                additionalProperties: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /sessions:
+    get:
+      operationId: getSessions
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Success
+          headers:
+            x-request-id: *a1
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  sessions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        session_id:
+                          type: string
+                          description: A session identifier. This value is considered opaque and its
+                            format may change without warning at our discretion.
+                        client_id:
+                          type: string
+                          description: A client identifier.
+                        client_name:
+                          type: string
+                          description: The name of the client as selected during client registration.
+                        client_developer_name:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        client_developer_url:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        client_developer_email:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        scope:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        scope_descriptions:
+                          anyOf:
+                            - type: array
+                              items:
+                                type: string
+                            - type: "null"
+                        auth_time:
+                          type: integer
+                          minimum: 0
+                          maximum: 9007199254740991
+                        last_activity:
+                          type: integer
+                          minimum: 0
+                          maximum: 9007199254740991
+                        session_expiration:
+                          type: integer
+                          minimum: 0
+                          maximum: 9007199254740991
+                        current_session:
+                          type: boolean
+                        impersonated:
+                          type: boolean
+                        impersonation_note:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        first_ip:
+                          anyOf:
+                            - anyOf:
+                                - type: string
+                                  format: ipv4
+                                  pattern: ^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$
+                                - type: string
+                                  format: ipv6
+                                  pattern: ^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$
+                            - type: "null"
+                        first_continent:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        first_country:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        first_subdivisions:
+                          anyOf:
+                            - type: array
+                              items:
+                                type: string
+                            - type: "null"
+                        first_city:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        first_user_agent_header:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        first_user_agent_operating_system:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        first_user_agent_browser:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_ip:
+                          anyOf:
+                            - anyOf:
+                                - type: string
+                                  format: ipv4
+                                  pattern: ^(?:(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])\.){3}(?:25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])$
+                                - type: string
+                                  format: ipv6
+                                  pattern: ^(([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,7}:|([0-9a-fA-F]{1,4}:){1,6}:[0-9a-fA-F]{1,4}|([0-9a-fA-F]{1,4}:){1,5}(:[0-9a-fA-F]{1,4}){1,2}|([0-9a-fA-F]{1,4}:){1,4}(:[0-9a-fA-F]{1,4}){1,3}|([0-9a-fA-F]{1,4}:){1,3}(:[0-9a-fA-F]{1,4}){1,4}|([0-9a-fA-F]{1,4}:){1,2}(:[0-9a-fA-F]{1,4}){1,5}|[0-9a-fA-F]{1,4}:((:[0-9a-fA-F]{1,4}){1,6})|:((:[0-9a-fA-F]{1,4}){1,7}|:))$
+                            - type: "null"
+                        last_continent:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_country:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_subdivisions:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_city:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_user_agent_header:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_user_agent_operating_system:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                        last_user_agent_browser:
+                          anyOf:
+                            - type: string
+                            - type: "null"
+                      required:
+                        - session_id
+                        - client_id
+                        - client_name
+                        - client_developer_name
+                        - client_developer_url
+                        - client_developer_email
+                        - scope
+                        - scope_descriptions
+                        - auth_time
+                        - last_activity
+                        - session_expiration
+                        - current_session
+                        - impersonated
+                        - impersonation_note
+                        - first_ip
+                        - first_continent
+                        - first_country
+                        - first_subdivisions
+                        - first_city
+                        - first_user_agent_header
+                        - first_user_agent_operating_system
+                        - first_user_agent_browser
+                        - last_ip
+                        - last_continent
+                        - last_country
+                        - last_subdivisions
+                        - last_city
+                        - last_user_agent_header
+                        - last_user_agent_operating_system
+                        - last_user_agent_browser
+                      additionalProperties: false
+                required:
+                  - sessions
+                additionalProperties: false
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /revoke/current:
+    post:
+      operationId: revokeCurrent
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              properties:
+                forget_browser:
+                  type: boolean
+      responses:
+        "200":
+          $ref: "#/components/responses/SessionsRevoked"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /revoke/sessions:
+    post:
+      operationId: revokeSessions
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            encoding:
+              session_ids:
+                style: form
+                explode: false
+            schema:
+              type: object
+              properties:
+                session_ids:
+                  type: string
+              required:
+                - session_ids
+      responses:
+        "200":
+          $ref: "#/components/responses/SessionsRevoked"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /revoke/client:
+    post:
+      operationId: revokeClient
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          $ref: "#/components/responses/SessionsRevoked"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+  /authorize:
+    get:
+      operationId: authorize
+      parameters:
+        - in: query
+          name: client_id
+          schema:
+            type: string
+            description: The client identifier issued during client registration.
+          required: true
+          description: The client identifier issued during client registration.
+        - in: query
+          name: redirect_uri
+          schema:
+            type: string
+            format: uri
+            description: A redirect URI registered to the client, which must match exactly.
+          required: true
+          description: A redirect URI registered to the client, which must match exactly.
+        - in: query
+          name: response_type
+          schema:
+            type: string
+            const: code
+            description: The only valid value for this is code.
+          required: true
+          description: The only valid value for this is code.
+        - in: query
+          name: code_challenge
+          schema:
+            description: A PKCE code challenge. We require this of any client which cannot
+              reasonably keep a secret, and encourage server-side applications
+              to implement it regardless.
+            type: string
+          description: A PKCE code challenge. We require this of any client which cannot
+            reasonably keep a secret, and encourage server-side applications to
+            implement it regardless.
+        - in: query
+          name: code_challenge_method
+          schema:
+            description: The PKCE code challenge method. Either S256 (recommended) or plain.
+            default: plain
+            anyOf:
+              - type: string
+                const: plain
+              - type: string
+                const: S256
+          description: The PKCE code challenge method. Either S256 (recommended) or plain.
+        - in: query
+          name: state
+          schema:
+            description: This state value will be returned unmodified at the end of the
+              authentication and authorization flow. It may be used to store
+              request-specific data and in the prevention of CSRF attacks.
+            type: string
+          description: This state value will be returned unmodified at the end of the
+            authentication and authorization flow. It may be used to store
+            request-specific data and in the prevention of CSRF attacks.
+        - in: query
+          name: scope
+          schema:
+            type: string
+            description: One or more scopes to request, if any, separated by whitespace.
+        - in: query
+          name: prompt
+          schema:
+            description: Space-delimited, case-sensitive list of ASCII string values which
+              influence how the authorization server interacts with the user.
+            type: string
+          description: Space-delimited, case-sensitive list of ASCII string values which
+            influence how the authorization server interacts with the user.
+      responses:
+        "302":
+          description: Redirect back to the provided redirect_uri
+  /token:
+    post:
+      operationId: exchangeToken
+      requestBody:
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: "#/components/schemas/tokenGrantParameters"
+      responses:
+        "200":
+          description: Success
+          headers:
+            x-request-id: *a1
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/tokenGrantResponse"
+        "400":
+          description: Failure
+          headers:
+            x-request-id: *a1
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: number
+                  status_reason:
+                    type: string
+                  error:
+                    type: string
+                  error_description:
+                    type: string
+                  error_uri:
+                    type: string
+                  state:
+                    type: string
+                required:
+                  - status
+                  - status_reason
+                  - error
+                  - error_description
+                  - error_uri
+                additionalProperties: false
+components:
+  schemas:
+    tokenGrantParameters:
+      oneOf:
+        - $ref: "#/components/schemas/authorizationCodeGrant"
+        - $ref: "#/components/schemas/refreshTokenGrant"
+        - $ref: "#/components/schemas/passwordLimitedGrant"
+      type: object
+      discriminator:
+        propertyName: grant_type
+        mapping:
+          authorization_code: "#/components/schemas/authorizationCodeGrant"
+          refresh_token: "#/components/schemas/refreshTokenGrant"
+          password_limited: "#/components/schemas/passwordLimitedGrant"
+    authorizationCodeGrant:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          const: authorization_code
+        client_id:
+          type: string
+          description: The client identifier issued during client registration.
+        client_secret:
+          type: string
+          description: The client secret issued during registration.
+        code:
+          type: string
+          description: As returned to the redirect_uri of the client.
+        redirect_uri:
+          type: string
+          description: The same redirect_uri used to `/authorize`.
+        code_verifier:
+          description: The PKCE code verifier which is only required if a code_challenge
+            was used to `/authorize``.
+          type: string
+      required:
+        - grant_type
+        - client_id
+        - code
+        - redirect_uri
+    refreshTokenGrant:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          const: refresh_token
+        client_id:
+          type: string
+          description: The client identifier issued during client registration.
+        client_secret:
+          type: string
+          description: The client secret issued during registration.
+        refresh_token:
+          type: string
+          description: As returned in the `/token` response.
+      required:
+        - grant_type
+        - client_id
+        - refresh_token
+    passwordLimitedGrant:
+      type: object
+      properties:
+        grant_type:
+          type: string
+          const: password_limited
+        client_id:
+          type: string
+          description: The client identifier issued during client registration.
+        client_secret:
+          type: string
+          description: The client secret issued during registration.
+        username:
+          type: string
+          description: The email address or other issued identifier for a user.
+        password:
+          type: string
+          description: The password of the user. Password must be masked with the
+            `username` before it is sent to the server.
+        scope:
+          type: string
+          description: One or more scopes to request, if any, separated by whitespace.
+      required:
+        - grant_type
+        - client_id
+        - client_secret
+        - username
+        - password
+    tokenGrantResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          description: The access token may be used to authorize a connection to a
+            resource server. The value is considered opaque and its format may
+            change without warning at our discretion.
+        token_type:
+          type: string
+          const: Bearer
+        expires_in:
+          type: number
+          description: The number of seconds after which this access token will no longer
+            be considered valid.
+        refresh_token:
+          description: The refresh token may be used in a Refresh Token Grant to obtain
+            new access and refresh tokens. Each refresh token may only be used
+            once. The value is considered opaque and its format may change
+            without warning at our discretion.
+          type: string
+        refresh_token_expires_in:
+          description: The number of seconds after which this refresh token will no longer
+            be considered valid. The server may not issue a refresh token, in
+            which case this field will be omitted.
+          type: number
+        scope:
+          type: string
+          description: One or more scopes to request, if any, separated by whitespace.
+      required:
+        - access_token
+        - token_type
+        - expires_in
+      additionalProperties: false
+  headers:
+    x-request-id:
+      required: true
+      description: Each incoming request is assigned a request identifier. The request
+        identifier is used to associate log messages with the request. Please
+        include the value of the received x-request-id header when reporting
+        issues.
+      schema:
+        type: string
+        title: Request ID
+        description: Each incoming request is assigned a request identifier. The request
+          identifier is used to associate log messages with the request. Please
+          include the value of the received x-request-id header when reporting
+          issues.
+  responses:
+    SessionsRevoked:
+      description: Session(s) were successfully revoked.
+      headers:
+        x-request-id: *a1
+    Unauthorized:
+      description: Access token is missing or invalid.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: number
+              status_reason:
+                type: string
+              error:
+                type: string
+              error_description:
+                type: string
+              error_uri:
+                type: string
+              state:
+                type: string
+            required:
+              - status
+              - status_reason
+              - error
+              - error_description
+              - error_uri
+            additionalProperties: false
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: JWT Authentication
