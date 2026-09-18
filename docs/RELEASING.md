@@ -6,11 +6,11 @@ This document describes the end-to-end process for publishing `@iracing-data` pa
 
 Each package is versioned and released independently.
 
-| Package | Path | Current version |
-|---|---|---|
-| `@iracing-data/oauth-schema` | `packages/oauth/schema` | see `package.json` |
-| `@iracing-data/oauth-client` | `packages/oauth/client` | see `package.json` |
-| `@iracing-data/api-schema` | `packages/api/schema` | see `package.json` |
+| Package                          | Path                        | Current version    |
+| -------------------------------- | --------------------------- | ------------------ |
+| `@iracing-data/oauth-schema`     | `packages/oauth/schema`     | see `package.json` |
+| `@iracing-data/oauth-client`     | `packages/oauth/client`     | see `package.json` |
+| `@iracing-data/api-schema`       | `packages/api/schema`       | see `package.json` |
 | `@iracing-data/api-client-fetch` | `packages/api/client/fetch` | see `package.json` |
 | `@iracing-data/api-client-axios` | `packages/api/client/axios` | see `package.json` |
 
@@ -45,7 +45,8 @@ Pre-release versions (anything containing a `-`, e.g. `0.1.0-alpha.0`) are autom
 ## Prerequisites
 
 - Write access to [racedirector/iracing-data-api](https://github.com/racedirector/iracing-data-api).
-- An npm account that is a member of the `@iracing-data` organisation.
+- The repository's `npm` GitHub environment must be configured for npm publishing. The automated workflow uses GitHub Actions OIDC/trusted publishing rather than a local npm login.
+- For manual fallback publishing only, an npm account that is a member of the `@iracing-data` organisation.
 
 ## End-to-end release process
 
@@ -59,22 +60,30 @@ git checkout -b feature/my-change
 git push -u origin feature/my-change
 ```
 
-### 2. Open a pull request and include the version bump
+### 2. Decide which packages need a release
+
+Release each package independently. Only tag a package when that package has a user-visible change, a public API change, or a packaging/build change that needs to be published.
+
+To compare a package with its latest release tag:
+
+```bash
+git diff --name-status "@iracing-data/oauth-client@0.0.1-alpha.7"..HEAD -- packages/oauth/client
+git diff --name-status "@iracing-data/oauth-schema@0.0.1-alpha.3"..HEAD -- packages/oauth/schema/src
+```
+
+If a client package changed but its schema package did not, release only the client. If both changed, release the schema first, then the client.
+
+### 3. Open a pull request and include the version bump
 
 Before requesting review, bump the version of every package whose public API changed. Use [Semantic Versioning](https://semver.org/):
 
-| Change | Version part | Example |
-|---|---|---|
-| Breaking API change | `major` | `0.1.0` → `1.0.0` |
-| New backwards-compatible feature | `minor` | `0.1.0` → `0.2.0` |
-| Bug fix | `patch` | `0.1.0` → `0.1.1` |
+| Change                           | Version part | Example           |
+| -------------------------------- | ------------ | ----------------- |
+| Breaking API change              | `major`      | `0.1.0` → `1.0.0` |
+| New backwards-compatible feature | `minor`      | `0.1.0` → `0.2.0` |
+| Bug fix                          | `patch`      | `0.1.0` → `0.1.1` |
 
-```bash
-# Bump a specific package's version (edits package.json and creates a git tag locally — discard the local tag, the remote tag is created later).
-pnpm --filter @iracing-data/oauth-client version 0.1.0 --no-git-tag-version
-```
-
-Or edit `version` in the package's `package.json` directly.
+Edit `version` in the package's `package.json` directly. Avoid `pnpm version` for these workspace packages; it can fail on `workspace:*` dependencies and may still partially edit `package.json`.
 
 If a dependant package is also changing (e.g. `oauth-client` depends on a new `oauth-schema` release), bump both packages in the same PR and note that `oauth-schema` must be tagged and published first.
 
@@ -87,11 +96,22 @@ git commit -m "chore(oauth-client): bump to 0.1.0"
 
 > Including the version bump in the feature PR keeps the commit history clean and ensures the version is reviewed alongside the code change.
 
-### 3. Get the PR reviewed and merged
+### 4. Get the PR reviewed and merged
 
 Open a pull request against `main`, address feedback, and merge once approved.
 
-### 4. Create and push the release tag
+### 5. Validate the package locally
+
+Run the narrowest checks for the package before tagging. At minimum, run the package build. If the package has tests, run them too.
+
+```bash
+pnpm --filter @iracing-data/oauth-client test
+pnpm --filter @iracing-data/oauth-client build
+```
+
+The release workflow runs `pnpm --filter "<package>..." build`, which builds the package and its workspace dependencies. CI on `main` is responsible for the broader lint/test suite.
+
+### 6. Create and push the release tag
 
 After the PR is merged, pull the latest `main` and create the tag on the merge commit.
 
@@ -103,15 +123,20 @@ git pull
 node -p "require('./packages/oauth/client/package.json').version"
 # → 0.1.0
 
-git tag "@iracing-data/oauth-client@0.1.0"
+git tag -a "@iracing-data/oauth-client@0.1.0" -m "Release @iracing-data/oauth-client 0.1.0"
 git push origin "@iracing-data/oauth-client@0.1.0"
 ```
 
-> **Note:** wrap the tag in quotes in your shell — the `@` character requires it.
+> **Note:** wrap the tag in quotes in shell commands to avoid shell-specific interpretation of `@` or scoped package names.
 
 The push triggers the release workflow. You can monitor progress in the **Actions** tab.
 
-### 5. Verify the release
+```bash
+gh run list --limit 10
+gh run watch <run-id> --exit-status
+```
+
+### 7. Verify the release
 
 Once the workflow completes:
 
@@ -159,7 +184,7 @@ Use this as a fallback if the automated workflow is unavailable.
 ```bash
 # 1. Install and build.
 pnpm install --frozen-lockfile
-pnpm --filter "...@iracing-data/oauth-client" build
+pnpm --filter "@iracing-data/oauth-client..." build
 
 # 2. Authenticate.
 npm login
@@ -171,6 +196,10 @@ pnpm --filter @iracing-data/oauth-client publish --access public --tag latest
 Publish dependencies before dependants, following the same order as above.
 
 > `pnpm publish` rewrites `workspace:*` references to pinned version numbers automatically — you do not need to edit `package.json` files manually.
+
+## Manual workflow dispatch
+
+The release workflow can also be run from the Actions UI with `workflow_dispatch`, supplying a package name and npm dist-tag. Prefer tag-triggered releases for normal publishing because tag releases verify the tag version against `package.json` and create a GitHub Release. Manual dispatch is intended for operational fallback cases, such as retrying a publish after an infrastructure issue.
 
 ## dist CLI (optional)
 
