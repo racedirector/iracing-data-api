@@ -1,0 +1,4 @@
+interface:
+  display_name: "iRacing OAuth Compatibility Audit"
+  short_description: "Audit repo OAuth behavior against live iRacing docs"
+  default_prompt: "Use $iracing-oauth-compatibility-audit to audit the current repository against the live iRacing OAuth specification."
