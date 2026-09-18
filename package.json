@@ -15,16 +15,6 @@
     "codegen:openapi:api:yaml": "iracing-api-openapi -o ./openapi -f iracing.yaml",
     "codegen:openapi:oauth": "iracing-oauth-api-openapi -o ./openapi -f oauth.json",
     "codegen:openapi:oauth:yaml": "iracing-oauth-api-openapi -o ./openapi -f oauth.yaml",
-    "codegen:proto": "node ./scripts/protoc.mjs",
-    "codegen:proto:web": "node ./scripts/protoc.mjs web",
-    "codegen:proto:node": "node ./scripts/protoc.mjs node",
-    "codegen:proto:types": "node ./scripts/protoc.mjs types",
-    "codegen:proto:json-schema": "node ./scripts/protoc.mjs json-schema",
-    "protoc": "pnpm codegen:proto",
-    "protoc-web": "pnpm codegen:proto:web",
-    "protoc-node": "pnpm codegen:proto:node",
-    "protoc-codegen": "pnpm codegen:proto:types",
-    "protoc-json-schema": "pnpm codegen:proto:json-schema",
     "lint:fix": "pnpm lint --fix",
     "lint": "eslint .",
     "style:fix": "prettier --write .",
@@ -43,7 +33,6 @@
     "@iracing-data/api-schema-to-openapi": "workspace:*",
     "@iracing-data/oauth-schema-to-openapi": "workspace:*",
     "@openapitools/openapi-generator-cli": "^2.31.1",
-    "@types/google-protobuf": "^3.15.12",
     "@types/lodash": "^4.17.15",
     "@types/node": "^24",
     "@typescript-eslint/eslint-plugin": "8.49.0",
@@ -55,8 +44,6 @@
     "eslint-plugin-prettier": "5.5.5",
     "prettier": "3.7.3",
     "prettier-config-standard": "7.0.0",
-    "protoc-gen-grpc-web": "^1.5.0",
-    "protoc-gen-ts": "0.8.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },
@@ -65,11 +52,8 @@
     "packages/*",
     "packages/api/*",
     "packages/api/client/*",
-    "packages/events/*",
     "packages/helpers/*",
-    "packages/oauth/*",
-    "packages/telemetry/*",
-    "packages/telemetry/client/*"
+    "packages/oauth/*"
   ],
   "packageManager": "pnpm@12.4.2+sha512.08adc6613180275c7c9edada39dcf08c9c61ad4e7eaf330a4f3461f102b0f907423454d117f98e72d47fef0616070644d7bffc973a6a57f5090a6d7c368b07c9"
 }
