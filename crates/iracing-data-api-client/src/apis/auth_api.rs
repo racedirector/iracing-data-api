@@ -17,7 +17,7 @@ use super::{Error, configuration, ContentType};
 /// struct for passing parameters to the method [`post_auth`]
 #[derive(Clone, Debug)]
 pub struct PostAuthParams {
-    pub post_auth_request: Option<models::PostAuthRequest>
+    pub post_auth_request: models::PostAuthRequest
 }
 
 

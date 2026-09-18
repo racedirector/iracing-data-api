@@ -18,7 +18,7 @@ Method | HTTP request | Description
 
 Name | Type | Description  | Required | Notes
 ------------- | ------------- | ------------- | ------------- | -------------
-**post_auth_request** | Option<[**PostAuthRequest**](PostAuthRequest.md)> |  |  |
+**post_auth_request** | [**PostAuthRequest**](PostAuthRequest.md) |  | [required] |
 
 ### Return type
 

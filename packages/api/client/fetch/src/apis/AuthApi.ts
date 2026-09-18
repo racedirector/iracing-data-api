@@ -20,7 +20,7 @@ import {
 } from "../models/index";
 
 export interface PostAuthOperationRequest {
-  post_auth_request?: PostAuthRequest;
+  post_auth_request: PostAuthRequest;
 }
 
 /**
@@ -33,6 +33,13 @@ export class AuthApi extends runtime.BaseAPI {
     requestParameters: PostAuthOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<void>> {
+    if (requestParameters["post_auth_request"] == null) {
+      throw new runtime.RequiredError(
+        "post_auth_request",
+        'Required parameter "post_auth_request" was null or undefined when calling postAuth().',
+      );
+    }
+
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -67,7 +74,7 @@ export class AuthApi extends runtime.BaseAPI {
   /**
    */
   async postAuth(
-    requestParameters: PostAuthOperationRequest = {},
+    requestParameters: PostAuthOperationRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<void> {
     await this.postAuthRaw(requestParameters, initOverrides);

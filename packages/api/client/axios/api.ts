@@ -198,14 +198,16 @@ export const AuthApiAxiosParamCreator = function (
   return {
     /**
      *
-     * @param {PostAuthRequest} [post_auth_request]
+     * @param {PostAuthRequest} post_auth_request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     postAuth: async (
-      post_auth_request?: PostAuthRequest,
+      post_auth_request: PostAuthRequest,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
+      // verify required parameter 'post_auth_request' is not null or undefined
+      assertParamExists("postAuth", "post_auth_request", post_auth_request);
       const localVarPath = `/auth`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -258,12 +260,12 @@ export const AuthApiFp = function (configuration?: Configuration) {
   return {
     /**
      *
-     * @param {PostAuthRequest} [post_auth_request]
+     * @param {PostAuthRequest} post_auth_request
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async postAuth(
-      post_auth_request?: PostAuthRequest,
+      post_auth_request: PostAuthRequest,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (axios?: AxiosInstance, basePath?: string) => AxiosPromise<void>
@@ -304,7 +306,7 @@ export const AuthApiFactory = function (
      * @throws {RequiredError}
      */
     postAuth(
-      requestParameters: AuthApiPostAuthRequest = {},
+      requestParameters: AuthApiPostAuthRequest,
       options?: RawAxiosRequestConfig,
     ): AxiosPromise<void> {
       return localVarFp
@@ -318,7 +320,7 @@ export const AuthApiFactory = function (
  * Request parameters for postAuth operation in AuthApi.
  */
 export interface AuthApiPostAuthRequest {
-  readonly post_auth_request?: PostAuthRequest;
+  readonly post_auth_request: PostAuthRequest;
 }
 
 /**
@@ -332,7 +334,7 @@ export class AuthApi extends BaseAPI {
    * @throws {RequiredError}
    */
   public postAuth(
-    requestParameters: AuthApiPostAuthRequest = {},
+    requestParameters: AuthApiPostAuthRequest,
     options?: RawAxiosRequestConfig,
   ) {
     return AuthApiFp(this.configuration)

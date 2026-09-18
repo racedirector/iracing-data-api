@@ -7,7 +7,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 |[**postAuth**](#postauth) | **POST** /auth | |
 
 # **postAuth**
-> postAuth()
+> postAuth(post_auth_request)
 
 
 ### Example
@@ -22,7 +22,7 @@ import {
 const configuration = new Configuration();
 const apiInstance = new AuthApi(configuration);
 
-let post_auth_request: PostAuthRequest; // (optional)
+let post_auth_request: PostAuthRequest; //
 
 const { status, data } = await apiInstance.postAuth(
     post_auth_request

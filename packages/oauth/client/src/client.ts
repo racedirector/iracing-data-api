@@ -2,7 +2,6 @@ import {
   IRacingOAuthTokenResponseSchema,
   IRacingOAuthTokenResponse,
   IRacingOAuthPasswordLimitedGrantParametersSchema,
-  IRacingOAuthProfileResponse,
   IRacingOAuthProfileResponseSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";

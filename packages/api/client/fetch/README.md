@@ -29,7 +29,7 @@ async function example() {
   const api = new AuthApi(config);
 
   const body = {
-    // PostAuthRequest (optional)
+    // PostAuthRequest
     post_auth_request: ...,
   } satisfies PostAuthOperationRequest;
 

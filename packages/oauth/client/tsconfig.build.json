@@ -3,7 +3,9 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "noUnusedLocals": false
+    "noUnusedLocals": true,
+    "module": "nodenext",
+    "moduleResolution": "nodenext"
   },
   "include": ["src/**/*.ts"],
   "exclude": ["node_modules", "bin", "dist", "**/*.test.ts", "**/*.spec.ts"]

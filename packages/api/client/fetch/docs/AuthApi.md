@@ -32,7 +32,7 @@ async function example() {
   const api = new AuthApi(config);
 
   const body = {
-    // PostAuthRequest (optional)
+    // PostAuthRequest
     post_auth_request: ...,
   } satisfies PostAuthOperationRequest;
 
@@ -53,7 +53,7 @@ example().catch(console.error);
 
 | Name | Type | Description  | Notes |
 |------------- | ------------- | ------------- | -------------|
-| **post_auth_request** | [PostAuthRequest](PostAuthRequest.md) |  | [Optional] |
+| **post_auth_request** | [PostAuthRequest](PostAuthRequest.md) |  | |
 
 ### Return type
 
