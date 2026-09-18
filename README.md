@@ -1,16 +1,16 @@
 # iracing-data-api
 
-A monorepo of TypeScript packages for working with the iRacing `/data` API and telemetry services. Packages cover generated clients, validation schemas, event emitters, telemetry consumers, and helper CLIs.
+A monorepo of TypeScript packages for working with the iRacing `/data` API and its OAuth authentication flow, plus a generated Rust client. Packages cover Zod validation schemas, OpenAPI generation, generated HTTP clients (Fetch and Axios), an OAuth client, and a Better Call router.
 
 ## Packages
 
 ### API
 
 - [@iracing-data/api-schema](packages/api/schema/README.md) – Zod schemas for `/data` endpoints.
-- [@iracing-data/api-schema-to-openapi](packages/helpers/api-schema-to-openapi/README.md) – Generate OpenAPI docs from the schemas.
+- [@iracing-data/api-schema-to-openapi](packages/helpers/api-schema-to-openapi/README.md) – Generate OpenAPI specs from the schemas.
 - [@iracing-data/api-client-fetch](packages/api/client/fetch/README.md) – Fetch-based API client.
 - [@iracing-data/api-client-axios](packages/api/client/axios/README.md) – Axios-based API client.
-- [@iracing-data/api-router](packages/api/router/README.md) – Better Call router bundling generated routes.
+- [@iracing-data/api-router](packages/api/router/README.md) – Better Call router bundling generated `/data` routes.
 
 ### OAuth
 
@@ -18,47 +18,13 @@ A monorepo of TypeScript packages for working with the iRacing `/data` API and t
 - [@iracing-data/oauth-schema-to-openapi](packages/helpers/oauth-schema-to-openapi/README.md) – OpenAPI generation from OAuth schemas.
 - [@iracing-data/oauth-client](packages/oauth/client/README.md) – OAuth client implementation.
 
-### Telemetry
+## Rust
 
-- [@iracing-data/telemetry-types](packages/telemetry/types/README.md) – Generated telemetry TypeScript types.
-- [@iracing-data/telemetry-client-grpc-node](packages/telemetry/client/grpc-node/README.md) – Node gRPC telemetry client.
-- [@iracing-data/telemetry-client-grpc-web](packages/telemetry/client/grpc-web/README.md) – Browser gRPC-Web telemetry client.
-- [@iracing-data/telemetry-client-ws](packages/telemetry/client/ws/README.md) – WebSocket telemetry client.
-- [@iracing-data/telemetry-client-http](packages/telemetry/client/http/README.md) – Axios HTTP telemetry client.
-
-### Telemetry Event Emitters
-
-- [@iracing-data/session-state-events](packages/events/session-state-events/README.md)
-- [@iracing-data/track-location-events](packages/events/track-location-events/README.md)
-- [@iracing-data/car-track-location-events](packages/events/car-track-location-events/README.md)
-- [@iracing-data/pit-lane-events](packages/events/pit-lane-events/README.md)
-- [@iracing-data/session-flag-events](packages/events/session-flag-events/README.md)
-- [@iracing-data/car-session-flag-events](packages/events/car-session-flag-events/README.md)
-- [@iracing-data/pace-flag-events](packages/events/pace-flag-events/README.md)
-- [@iracing-data/pace-order-events](packages/events/pace-order-events/README.md)
-- [@iracing-data/player-pit-stop-events](packages/events/player-pit-stop-events/README.md)
-- [@iracing-data/driver-swap-events](packages/events/driver-swap-events/README.md)
-
-### Helpers
-
-- [@iracing-data/helpers/sync-car-assets](packages/helpers/sync-car-assets/README.md)
-- [@iracing-data/helpers/sync-track-assets](packages/helpers/sync-track-assets/README.md)
-- [@iracing-data/helpers/sync-telemetry-json-schema](packages/helpers/sync-telemetry-json-schema/README.md)
-- [@iracing-data/helpers/iracing-json-schema-to-typescript](packages/helpers/iracing-json-schema-to-typescript/README.md)
-
-## Apps
-
-- [race-events](apps/race-events/README.md) – Example CLI that logs race events from telemetry.
-- [@iracing-data/sync-car-assets-cli](apps/sync-car-assets-cli/README.md) – Download car assets via CLI.
-- [@iracing-data/sync-track-assets-cli](apps/sync-track-assets-cli/README.md) – Download track assets via CLI.
+- [iracing-data-api-client](crates/iracing-data-api-client/README.md) – Generated Rust client for the iRacing `/data` API. Run the member lookup example with `cargo run --example get_member -- --access-token "$IRACING_ACCESS_TOKEN" --customer-ids 378767 --include-licenses`.
 
 ## Examples
 
 See [examples/README.md](./examples/README.md).
-
-## Rust
-
-- [iracing-data-api-client](crates/iracing-data-api-client/README.md) – Generated Rust client for the iRacing `/data` API. Use `cargo get-member --access-token "$IRACING_ACCESS_TOKEN" --customer-ids 378767 --include-licenses` to run the member lookup example.
 
 ## Development
 
@@ -68,19 +34,21 @@ This repo uses [pnpm](https://pnpm.io/) for dependency management:
 pnpm install
 ```
 
-Use `pnpm --filter <package>` to run scripts for a specific workspace package or app. See each linked README for package-specific instructions.
+Use `pnpm --filter <package>` to run scripts for a specific workspace package or example. See each linked README for package-specific instructions.
 
-Telemetry protobuf generation is available through cross-platform Node scripts:
+### Codegen
+
+OpenAPI specs are generated from the Zod schemas into `openapi/` as both JSON and YAML:
 
 ```bash
-pnpm codegen:proto
-pnpm codegen:proto:web
-pnpm codegen:proto:node
-pnpm codegen:proto:types
-pnpm codegen:proto:json-schema
+pnpm codegen:openapi
 ```
 
-The same runner can be called directly with `node ./scripts/protoc.mjs <target>`, or from POSIX shells with `./scripts/protoc.sh <target>`. Install `protoc` separately and run `pnpm install` first so the local protoc plugins are available.
+The generated specs feed the OpenAPI Generator, which produces the Fetch and Axios clients plus the Rust crate:
+
+```bash
+pnpm codegen:client
+```
 
 ## Releasing
 
