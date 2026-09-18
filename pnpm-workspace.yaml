@@ -10,3 +10,9 @@ packages:
   - "packages/telemetry/*"
   - "packages/telemetry/client/*"
   - "services/*"
+allowBuilds:
+  "@nestjs/core": false
+  "@openapitools/openapi-generator-cli": false
+  esbuild: true
+  protobufjs: false
+  protoc-gen-grpc-web: true
