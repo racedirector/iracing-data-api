@@ -1,9 +1,0 @@
-{
-  "extends": "../../../tsconfig/node.json",
-  "compilerOptions": {
-    "module": "esnext",
-    "target": "esnext",
-    "noUnusedParameters": false,
-    "noUnusedLocals": false
-  }
-}
