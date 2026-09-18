@@ -6,6 +6,10 @@ import { z } from "zod";
 
 // Primitives
 
+const EpochSecondsSchema = z.int().nonnegative().brand<"EpochSeconds">();
+
+const IpAddressSchema = z.union([z.ipv4(), z.ipv6()]);
+
 export const IRacingOAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
 });
@@ -170,7 +174,7 @@ export const IRacingOAuthTokenResponseSchema = z
       description:
         "The access token may be used to authorize a connection to a resource server. The value is considered opaque and its format may change without warning at our discretion.",
     }),
-    token_type: z.literal("bearer"),
+    token_type: z.literal("Bearer"),
     expires_in: z.number().meta({
       description:
         "The number of seconds after which this access token will no longer be considered valid.",
@@ -256,20 +260,17 @@ export const IRacingOAuthJWTAccessTokenPayloadSchema = z
       description: "The UUID identifier of the session.",
     }),
     iss: z.url().meta({
-      description:
-        "The issuer of the access token; the authorization server.",
+      description: "The issuer of the access token; the authorization server.",
     }),
     exp: z.number().int().nonnegative().meta({
       description:
         "The expiration time of the access token in seconds since the Unix epoch.",
     }),
     aud: z.array(z.string().min(1)).meta({
-      description:
-        "The audiences for which the access token is valid.",
+      description: "The audiences for which the access token is valid.",
     }),
     sub: z.string().nullable().meta({
-      description:
-        "The subject of the access token. This claim may be null.",
+      description: "The subject of the access token. This claim may be null.",
     }),
     client_id: z.string().min(1).meta({
       description: "The identifier of the client application.",
@@ -337,22 +338,22 @@ export const IRacingOAuthSessionSchema = z.object({
   client_developer_url: z.string().nullable(),
   client_developer_email: z.string().nullable(),
   scope: z.string().nullable(),
-  scope_descriptions: z.string().nullable(),
-  // auth_time:
-  // last_activity:
-  // session_expiration
+  scope_descriptions: z.string().array().nullable(),
+  auth_time: EpochSecondsSchema,
+  last_activity: EpochSecondsSchema,
+  session_expiration: EpochSecondsSchema,
   current_session: z.boolean(),
   impersonated: z.boolean(),
   impersonation_note: z.string().nullable(),
-  first_ip: z.ipv4().nullable(),
+  first_ip: IpAddressSchema.nullable(),
   first_continent: z.string().nullable(),
   first_country: z.string().nullable(),
-  first_subdivisions: z.string().nullable(),
+  first_subdivisions: z.string().array().nullable(),
   first_city: z.string().nullable(),
   first_user_agent_header: z.string().nullable(),
   first_user_agent_operating_system: z.string().nullable(),
   first_user_agent_browser: z.string().nullable(),
-  last_ip: z.ipv4().nullable(),
+  last_ip: IpAddressSchema.nullable(),
   last_continent: z.string().nullable(),
   last_country: z.string().nullable(),
   last_subdivisions: z.string().nullable(),

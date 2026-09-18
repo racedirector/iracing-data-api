@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { IRacingOAuthScopesSchema } from "@iracing-data/oauth-schema";
 
-const DEFAULT_OAUTH_URL = "https://oauth.iracing.com/oauth2";
+const BASE_URL = "https://oauth.iracing.com";
+const DEFAULT_OAUTH_URL = `${BASE_URL}/oauth2`;
 const DEFAULT_AUTH_URL = `${DEFAULT_OAUTH_URL}/authorize`;
 const DEFAULT_TOKEN_URL = `${DEFAULT_OAUTH_URL}/token`;
 const DEFAULT_USER_INFO_URL = `${DEFAULT_OAUTH_URL}/iracing/profile`;
@@ -77,7 +78,7 @@ export const IRacingOAuthClientMetadataSchema = z
       }),
     issuer: z
       .url()
-      .default(DEFAULT_OAUTH_URL)
+      .default(BASE_URL)
       .meta({
         id: "issuer",
         title: "Issuer",
