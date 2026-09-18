@@ -1,5 +1,0 @@
-{
-  "main": "build/index.cjs",
-  "output": "build/race-events.blob",
-  "disableExperimentalSEAWarning": true
-}
