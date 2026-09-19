@@ -262,8 +262,8 @@ importers:
         version: 17.4.2
     devDependencies:
       '@commander-js/extra-typings':
-        specifier: ^14.0.0
-        version: 14.0.0(commander@14.0.2)
+        specifier: ^15.0.0
+        version: 15.0.0(commander@14.0.2)
       '@types/node':
         specifier: ^24.10.0
         version: 24.10.1
@@ -287,8 +287,8 @@ importers:
         version: 4.6.5
     devDependencies:
       '@commander-js/extra-typings':
-        specifier: ^14.0.0
-        version: 14.0.0(commander@14.0.2)
+        specifier: ^15.0.0
+        version: 15.0.0(commander@14.0.2)
       tsx:
         specifier: ^4.21.0
         version: 4.21.0
@@ -349,8 +349,8 @@ importers:
         version: 6.0.2(zod@4.6.5)
     devDependencies:
       '@commander-js/extra-typings':
-        specifier: ^14.0.0
-        version: 14.0.0(commander@14.0.2)
+        specifier: ^15.0.0
+        version: 15.0.0(commander@14.0.2)
 
   packages/helpers/oauth-schema-to-openapi:
     dependencies:
@@ -371,8 +371,8 @@ importers:
         version: 6.0.2(zod@4.6.5)
     devDependencies:
       '@commander-js/extra-typings':
-        specifier: ^14.0.0
-        version: 14.0.0(commander@14.0.2)
+        specifier: ^15.0.0
+        version: 15.0.0(commander@14.0.2)
 
   packages/oauth/client:
     dependencies:
@@ -410,10 +410,10 @@ packages:
   '@borewit/text-codec@0.1.1':
     resolution: {integrity: sha512-5L/uBxmjaCIX5h8Z+uu+kA9BQLkc/Wl06UGR5ajNRxu+/XjonB5i8JpgFMrPj3LXTCPA0pv8yxUvbUi+QthGGA==}
 
-  '@commander-js/extra-typings@14.0.0':
-    resolution: {integrity: sha512-hIn0ncNaJRLkZrxBIp5AsW/eXEHNKYQBh0aPdoUqNgD+Io3NIykQqpKFyKcuasZhicGaEZJX/JBSIkZ4e5x8Dg==}
+  '@commander-js/extra-typings@15.0.0':
+    resolution: {integrity: sha512-yeJlba62xqmkgELUsn7356MEnzLLu/fw2x4lofFqGnXh6YysRdEs2BaLeLtg1+KU0AXvMeqQvTTp+3hBEBK+EA==}
     peerDependencies:
-      commander: ~14.0.0
+      commander: ~15.0.0
 
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
@@ -2756,7 +2756,7 @@ snapshots:
 
   '@borewit/text-codec@0.1.1': {}
 
-  '@commander-js/extra-typings@14.0.0(commander@14.0.2)':
+  '@commander-js/extra-typings@15.0.0(commander@14.0.2)':
     dependencies:
       commander: 14.0.2
 
