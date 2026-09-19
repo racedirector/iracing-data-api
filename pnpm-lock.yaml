@@ -381,7 +381,7 @@ importers:
         version: link:../schema
       jose:
         specifier: ^6.2.2
-        version: 6.2.2
+        version: 6.2.12
       oauth4webapi:
         specifier: ^3.8.3
         version: 3.8.3
@@ -1861,8 +1861,8 @@ packages:
     resolution: {integrity: sha512-RKYVTCjAnRthyJes037NX/IiqeidgN1xc3j1RjFfECFp28A1GVwK9nA+i0rJPaHqSZwygLzRnFlzUuHFoWWy+Q==}
     engines: {node: '>=6'}
 
-  jose@6.2.2:
-    resolution: {integrity: sha512-d7kPDd34KO/YnzaDOlikGpOurfF0ByC2sEV4cANCtdqLlTfBlw2p14O/5d/zv40gJPbIQxfES3nSx1/oYNyuZQ==}
+  jose@6.2.12:
+    resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
 
   js-yaml@4.1.1:
     resolution: {integrity: sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==}
@@ -4319,7 +4319,7 @@ snapshots:
 
   iterare@1.2.1: {}
 
-  jose@6.2.2: {}
+  jose@6.2.12: {}
 
   js-yaml@4.1.1:
     dependencies:
