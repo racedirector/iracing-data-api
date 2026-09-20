@@ -1,0 +1,67 @@
+name: Feature or improvement
+description: Propose a focused repo, package, documentation, generation, or release improvement.
+title: "Improve "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for scoped improvements, new package behavior, docs/examples, generated-client presentation, release tooling, or discovery work.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What should change, and who benefits?
+      placeholder: Improve generated client README introductions so npm users immediately understand install, auth, and package selection.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - OAuth
+        - Data API schemas
+        - Generated clients
+        - Router
+        - Examples
+        - Documentation
+        - Release or publishing
+        - Package metadata or discoverability
+        - Repository maintenance
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What is missing, confusing, brittle, or hard to discover today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed change
+      description: Keep this practical. Bullet lists are welcome when there are several concrete changes.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What would make this ready to close?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+  - type: textarea
+    id: validation
+    attributes:
+      label: Suggested validation
+      description: Mention useful checks such as package builds, codegen, README review, npm metadata checks, or examples to run.
+      placeholder: pnpm --filter @iracing-data/oauth-client build
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Related issues, PRs, links to iRacing docs, generated output, or follow-up work to keep out of scope.

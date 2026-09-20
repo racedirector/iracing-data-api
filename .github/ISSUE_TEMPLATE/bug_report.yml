@@ -1,0 +1,81 @@
+name: Bug report
+description: Report broken behavior in an iRacing Data API package, OAuth flow, generated client, router, or example.
+title: "Bug: "
+labels: []
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report this. Clear repro details help a lot, especially for auth, generated clients, and examples.
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What failed, and what did you expect instead?
+      placeholder: The OAuth client returns 401 after refreshing a stored session, but I expected it to reuse the refreshed access token.
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Affected area
+      options:
+        - OAuth client
+        - OAuth schemas or OpenAPI
+        - Data API schemas or OpenAPI
+        - Fetch generated client
+        - Axios generated client
+        - Rust generated client
+        - Better Call router
+        - Example or documentation
+        - Release, packaging, or npm metadata
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: package
+    attributes:
+      label: Package or path
+      description: Name the package, example, or path if you know it.
+      placeholder: packages/oauth/client
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: Include commands, code snippets, request shape, relevant environment variables, or example inputs. Redact secrets and tokens.
+      placeholder: |
+        1. pnpm --filter @iracing-data/oauth-client build
+        2. Run ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual result
+      description: Paste the error, status code, response body, stack trace, or generated output difference.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What should have happened?
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Include versions that matter for the report.
+      value: |
+        - Node:
+        - pnpm:
+        - Package version or commit:
+        - Runtime:
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Links, screenshots, related issues, or notes about a likely fix.
