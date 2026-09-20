@@ -15,4 +15,8 @@ $OPENAPI_GENERATOR generate \
   -g typescript-axios \
   -i $OPENAPI_DOC \
   -o $OUTPUT_PACKAGE \
-  --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-axios'
+  --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-axios' \
+  "$@"
+
+node "$SCRIPT_DIR/normalize-client-presentation.js" axios
+pnpm --dir "$ROOT_DIR" exec prettier --write "$OUTPUT_PACKAGE/package.json" "$OUTPUT_PACKAGE/README.md"

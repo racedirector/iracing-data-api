@@ -1,8 +1,8 @@
 {
   "name": "@iracing-data/oauth-client",
   "version": "0.0.1-alpha.8",
-  "description": "OAuth client implementation for the iRacing /data API.",
-  "license": "ISC",
+  "description": "OAuth 2.0 client for iRacing with authorization-code flow, token refresh, and pluggable session storage.",
+  "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -28,5 +28,21 @@
   },
   "devDependencies": {
     "vitest": "^4.1.9"
-  }
+  },
+  "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/oauth/client#readme",
+  "bugs": {
+    "url": "https://github.com/racedirector/iracing-data-api/issues"
+  },
+  "keywords": [
+    "iracing",
+    "iracing-api",
+    "iracing-data",
+    "iracing-data-api",
+    "sim-racing",
+    "typescript",
+    "oauth",
+    "oauth2",
+    "authentication",
+    "authorization"
+  ]
 }

@@ -1,20 +1,25 @@
 {
   "name": "@iracing-data/api-client-axios",
   "version": "0.0.1",
-  "description": "OpenAPI client for @iracing-data/api-client-axios",
-  "author": "OpenAPI-Generator Contributors",
+  "description": "Typed Axios client for the iRacing Data API, generated from maintained OpenAPI schemas.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/GIT_USER_ID/GIT_REPO_ID.git"
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "packages/api/client/axios"
   },
   "keywords": [
-    "axios",
+    "iracing",
+    "iracing-api",
+    "iracing-data",
+    "iracing-data-api",
+    "sim-racing",
     "typescript",
-    "openapi-client",
-    "openapi-generator",
-    "@iracing-data/api-client-axios"
+    "api-client",
+    "sdk",
+    "axios",
+    "openapi"
   ],
-  "license": "Unlicense",
+  "license": "MIT",
   "main": "./dist/index.js",
   "typings": "./dist/index.d.ts",
   "scripts": {
@@ -27,5 +32,9 @@
   "devDependencies": {
     "@types/node": "12.11.5 - 12.20.42",
     "typescript": "^4.0 || ^5.0"
+  },
+  "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/api/client/axios#readme",
+  "bugs": {
+    "url": "https://github.com/racedirector/iracing-data-api/issues"
   }
 }

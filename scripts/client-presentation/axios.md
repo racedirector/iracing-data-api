@@ -1,25 +1,29 @@
-# @iracing-data/api-router
+# @iracing-data/api-client-axios
 
-Better Call router for the iRacing Data API using typed clients and Zod schemas.
+Typed Axios client for the iRacing Data API, generated from maintained OpenAPI schemas.
+
+Access cars, tracks, members, results, seasons, leagues, stats, and other iRacing Data API resources with typed methods and responses. Choose this client when your application already uses Axios.
 
 ## Installation
 
 ```bash
-pnpm add @iracing-data/api-router
+pnpm add @iracing-data/api-client-axios
 ```
 
-## Usage
+## Authentication and usage
+
+Obtain an iRacing OAuth 2.0 access token with [@iracing-data/oauth-client](https://www.npmjs.com/package/@iracing-data/oauth-client), then pass it as a bearer token. The API client does not perform login or refresh tokens; provide a current token for each session. Keep client secrets on your server.
 
 ```typescript
-import createRouter, { toNodeHandler } from "@iracing-data/api-router";
+import { CarApi, Configuration } from "@iracing-data/api-client-axios";
 
-const router = createRouter();
-const handler = toNodeHandler(router);
-
-// handler can be mounted in http.createServer or frameworks that accept Node handlers
+const api = new CarApi(
+  new Configuration({ accessToken: process.env.IRACING_ACCESS_TOKEN! }),
+);
+const response = (await api.getCar()).data;
 ```
 
-The package re-exports the generated fetch client and middleware helpers so you can compose routes or mount them alongside other services.
+This Node.js example uses an access token from the environment. Some Data API endpoints return a link to the resource data; follow that link separately without forwarding your bearer token.
 
 ## Related @iracing-data packages
 

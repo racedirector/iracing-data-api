@@ -1,6 +1,6 @@
 # @iracing-data/oauth-client
 
-OAuth 2.0 client for iRacing based on the official specification at <https://oauth.iracing.com/oauth2/book/introduction.html>.
+OAuth 2.0 client for iRacing with authorization-code flow, token refresh, and pluggable session storage.
 
 ## Installation
 
@@ -60,3 +60,16 @@ control how the client tracks authorization state and OAuth tokens. See
 implementation.
 
 See [`examples/oauth-example`](../../../examples/oauth-example) for a more complete walkthrough.
+
+## Related @iracing-data packages
+
+Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iracing-data/api-client-fetch) for general iRacing Data API usage.
+
+- [OAuth client](https://www.npmjs.com/package/@iracing-data/oauth-client): authentication and token refresh.
+- [Axios client](https://www.npmjs.com/package/@iracing-data/api-client-axios): use your existing Axios stack.
+- [API schemas](https://www.npmjs.com/package/@iracing-data/api-schema): runtime validation and TypeScript types.
+- [OAuth schemas](https://www.npmjs.com/package/@iracing-data/oauth-schema): OAuth request and response validation.
+- [API router](https://www.npmjs.com/package/@iracing-data/api-router): Better Call server routes.
+- [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
+
+See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.

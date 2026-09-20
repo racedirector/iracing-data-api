@@ -1,6 +1,6 @@
 # @iracing-data/api-schema-to-openapi
 
-Generate an OpenAPI definition from the Zod schema used by the `/data` API.
+Generate OpenAPI JSON or YAML for the iRacing Data API from maintained Zod schemas.
 
 ## Installation
 
@@ -49,3 +49,16 @@ await generateOpenAPISpec({
 ```
 
 The generator consumes schemas from `@iracing-data/api-schema` and writes an OpenAPI document for client generation and documentation.
+
+## Related @iracing-data packages
+
+Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iracing-data/api-client-fetch) for general iRacing Data API usage.
+
+- [OAuth client](https://www.npmjs.com/package/@iracing-data/oauth-client): authentication and token refresh.
+- [Axios client](https://www.npmjs.com/package/@iracing-data/api-client-axios): use your existing Axios stack.
+- [API schemas](https://www.npmjs.com/package/@iracing-data/api-schema): runtime validation and TypeScript types.
+- [OAuth schemas](https://www.npmjs.com/package/@iracing-data/oauth-schema): OAuth request and response validation.
+- [API router](https://www.npmjs.com/package/@iracing-data/api-router): Better Call server routes.
+- [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
+
+See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.

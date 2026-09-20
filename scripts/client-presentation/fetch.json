@@ -1,22 +1,11 @@
 {
-  "name": "@iracing-data/api-client-fetch",
-  "version": "0.0.1",
   "description": "Typed Fetch client for the iRacing Data API, generated from maintained OpenAPI schemas.",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/racedirector/iracing-data-api.git",
     "directory": "packages/api/client/fetch"
   },
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "prepare": "npm run build"
-  },
-  "devDependencies": {
-    "typescript": "^4.0 || ^5.0"
-  },
-  "license": "MIT",
   "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/api/client/fetch#readme",
   "bugs": {
     "url": "https://github.com/racedirector/iracing-data-api/issues"

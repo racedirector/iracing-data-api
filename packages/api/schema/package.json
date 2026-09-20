@@ -1,8 +1,8 @@
 {
   "name": "@iracing-data/api-schema",
   "version": "0.0.1-alpha.1",
-  "description": "Zod schemas for iRacing /data API request parameters and responses.",
-  "license": "ISC",
+  "description": "Zod schemas and TypeScript types for iRacing Data API requests and responses.",
+  "license": "MIT",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "files": [
@@ -23,5 +23,21 @@
   },
   "dependencies": {
     "zod": "^4.3.6"
-  }
+  },
+  "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/api/schema#readme",
+  "bugs": {
+    "url": "https://github.com/racedirector/iracing-data-api/issues"
+  },
+  "keywords": [
+    "iracing",
+    "iracing-api",
+    "iracing-data",
+    "iracing-data-api",
+    "sim-racing",
+    "typescript",
+    "zod",
+    "schema",
+    "validation",
+    "types"
+  ]
 }
