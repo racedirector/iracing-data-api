@@ -15,4 +15,8 @@ $OPENAPI_GENERATOR generate \
   -g typescript-fetch \
   -i $OPENAPI_DOC \
   -o $OUTPUT_PACKAGE \
-  --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-fetch'
+  --additional-properties=useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/api-client-fetch' \
+  "$@"
+
+node "$SCRIPT_DIR/normalize-client-presentation.js" fetch
+pnpm --dir "$ROOT_DIR" exec prettier --write "$OUTPUT_PACKAGE/package.json" "$OUTPUT_PACKAGE/README.md"

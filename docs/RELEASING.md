@@ -220,3 +220,21 @@ For the Rust library crate (`crates/iracing-data-api-client`), use an explicit t
 ```bash
 dist plan --tag=iracing-data-api-client-v0.0.1
 ```
+
+## Verify package presentation and provenance
+
+Before each stable release, inspect the package description, keywords, MIT license metadata, repository directory, homepage, bugs link, and README on the release commit. The Fetch client is the default entry point; generated client presentation is maintained under `scripts/client-presentation`.
+
+For each package, confirm its npm trusted publisher settings name the GitHub owner `racedirector`, repository `iracing-data-api`, workflow `release.yml`, and environment `npm`. These registry settings cannot be verified from the repository alone. The release job grants `id-token: write` and clears token variables for OIDC publishing. See [npm trusted publishing](https://docs.npmjs.com/trusted-publishers/) for current requirements.
+
+After publishing, verify the exact version rather than only the mutable `latest` tag:
+
+```bash
+pnpm view @iracing-data/api-client-fetch@0.0.1 dist.attestations --json
+```
+
+Check the provenance link on that version's npm page and verify that it identifies this repository, the `release.yml` workflow, and the intended release commit. Record the version and workflow run in the release notes. Missing attestations or an unexpected source must be investigated before marking stable-release verification complete. A successful build or `id-token: write` alone does not prove provenance.
+
+Auditing and deprecating older packages in the npm scope is a separate maintenance task: confirm ownership and migration paths before changing registry deprecation messages.
+
+On 2026-09-19, the public attestation for `@iracing-data/oauth-schema@0.0.1` identified this repository, `.github/workflows/release.yml`, tag `@iracing-data/oauth-schema@0.0.1`, and commit `5225abf7a62e6dc7108693743ea4025ce48b8ce8` ([release run](https://github.com/racedirector/iracing-data-api/actions/runs/35360484040)). The other seven workspace packages did not yet have a stable `0.0.1` version on npm; repeat the check when each is published. This observation does not verify private npm trusted publisher settings.

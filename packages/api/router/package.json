@@ -1,7 +1,7 @@
 {
   "name": "@iracing-data/api-router",
   "version": "0.0.1-alpha.0",
-  "description": "better-call based router for the iRacing `/data` API.",
+  "description": "Better Call router for the iRacing Data API using typed clients and Zod schemas.",
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc --build tsconfig.build.json"
@@ -10,5 +10,27 @@
     "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/api-schema": "workspace:*",
     "better-call": "^1.1.0"
-  }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "packages/api/router"
+  },
+  "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/api/router#readme",
+  "bugs": {
+    "url": "https://github.com/racedirector/iracing-data-api/issues"
+  },
+  "keywords": [
+    "iracing",
+    "iracing-api",
+    "iracing-data",
+    "iracing-data-api",
+    "sim-racing",
+    "typescript",
+    "better-call",
+    "router",
+    "server",
+    "zod"
+  ]
 }

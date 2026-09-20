@@ -1,0 +1,25 @@
+{
+  "description": "Typed Axios client for the iRacing Data API, generated from maintained OpenAPI schemas.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "packages/api/client/axios"
+  },
+  "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/api/client/axios#readme",
+  "bugs": {
+    "url": "https://github.com/racedirector/iracing-data-api/issues"
+  },
+  "keywords": [
+    "iracing",
+    "iracing-api",
+    "iracing-data",
+    "iracing-data-api",
+    "sim-racing",
+    "typescript",
+    "api-client",
+    "sdk",
+    "axios",
+    "openapi"
+  ]
+}

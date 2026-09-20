@@ -18,5 +18,29 @@
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^15.0.0"
-  }
+  },
+  "description": "Generate OpenAPI JSON or YAML for the iRacing Data API from maintained Zod schemas.",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "packages/helpers/api-schema-to-openapi"
+  },
+  "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/helpers/api-schema-to-openapi#readme",
+  "bugs": {
+    "url": "https://github.com/racedirector/iracing-data-api/issues"
+  },
+  "keywords": [
+    "iracing",
+    "iracing-api",
+    "iracing-data",
+    "iracing-data-api",
+    "sim-racing",
+    "typescript",
+    "openapi",
+    "codegen",
+    "generator",
+    "cli",
+    "zod"
+  ]
 }
