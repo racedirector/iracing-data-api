@@ -9,7 +9,7 @@
   },
   "dependencies": {
     "@iracing-data/oauth-client": "workspace:*",
-    "commander": "^14.0.2",
+    "commander": "^15.0.0",
     "dotenv": "17.4.2"
   },
   "devDependencies": {
