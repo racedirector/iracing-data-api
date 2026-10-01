@@ -1,0 +1,95 @@
+{
+  "workspaces": [
+    {
+      "path": "examples/oauth-example",
+      "name": "iracing-oauth-example",
+      "ecosystem": "npm",
+      "kind": "example",
+      "owner": "examples"
+    },
+    {
+      "path": "examples/oauth-example-cli",
+      "name": "iracing-oauth-example-cli",
+      "ecosystem": "npm",
+      "kind": "example",
+      "owner": "examples"
+    },
+    {
+      "path": "examples/oauth-password-limited",
+      "name": "iracing-password-limited-oauth",
+      "ecosystem": "npm",
+      "kind": "example",
+      "owner": "examples"
+    },
+    {
+      "path": ".",
+      "name": "iracing-data-api",
+      "ecosystem": "npm",
+      "kind": "repository-root",
+      "owner": "repository"
+    },
+    {
+      "path": "packages/api/client/axios",
+      "name": "@iracing-data/api-client-axios",
+      "ecosystem": "npm",
+      "kind": "generated-public-client",
+      "owner": "codegen"
+    },
+    {
+      "path": "packages/api/client/fetch",
+      "name": "@iracing-data/api-client-fetch",
+      "ecosystem": "npm",
+      "kind": "generated-public-client",
+      "owner": "codegen"
+    },
+    {
+      "path": "packages/api/router",
+      "name": "@iracing-data/api-router",
+      "ecosystem": "npm",
+      "kind": "internal-tool",
+      "owner": "api"
+    },
+    {
+      "path": "packages/api/schema",
+      "name": "@iracing-data/api-schema",
+      "ecosystem": "npm",
+      "kind": "public-release-target",
+      "owner": "api"
+    },
+    {
+      "path": "packages/helpers/api-schema-to-openapi",
+      "name": "@iracing-data/api-schema-to-openapi",
+      "ecosystem": "npm",
+      "kind": "internal-tool",
+      "owner": "codegen"
+    },
+    {
+      "path": "packages/helpers/oauth-schema-to-openapi",
+      "name": "@iracing-data/oauth-schema-to-openapi",
+      "ecosystem": "npm",
+      "kind": "internal-tool",
+      "owner": "codegen"
+    },
+    {
+      "path": "packages/oauth/client",
+      "name": "@iracing-data/oauth-client",
+      "ecosystem": "npm",
+      "kind": "public-release-target",
+      "owner": "oauth"
+    },
+    {
+      "path": "packages/oauth/schema",
+      "name": "@iracing-data/oauth-schema",
+      "ecosystem": "npm",
+      "kind": "public-release-target",
+      "owner": "oauth"
+    },
+    {
+      "path": "crates/iracing-data-api-client",
+      "name": "iracing-data-api-client",
+      "ecosystem": "cargo",
+      "kind": "generated-public-client",
+      "owner": "codegen"
+    }
+  ]
+}

@@ -42,5 +42,6 @@
     "generator",
     "cli",
     "zod"
-  ]
+  ],
+  "private": true
 }

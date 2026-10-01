@@ -86,6 +86,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate topology and publication ownership
+        run: pnpm check:topology --release "${{ steps.pkg.outputs.name }}"
+
       # Guard against tagging the wrong commit — the tag version must match
       # the version declared in the package's package.json.
       - name: Verify tag version matches package.json

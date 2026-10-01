@@ -42,7 +42,7 @@ This file applies to the entire repository. Add more specific AGENTS.md files in
 ## Definitions
 
 - **Workspace root**: the repository top-level directory containing `package.json` and the pnpm workspace configuration.
-- **Package**: any workspace member under `apps/*` or `packages/*` (including nested client packages).
+- **Package**: any workspace member under `packages/*`, `examples/*`, or `crates/*` (including nested client packages). See `workspace-policy.json` for publication classification and ownership areas.
 - **Scoped command**: a pnpm command run with `--filter` to target one package or a small subset.
 - **Codegen**: scripts under `codegen*` in `package.json` that produce OpenAPI specs or generated clients.
 - **Generated artifacts**: files produced by generators (OpenAPI output, client SDK files, protocol-derived files) rather than hand-authored source.

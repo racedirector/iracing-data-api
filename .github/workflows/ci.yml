@@ -26,6 +26,12 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate workspace topology
+        run: pnpm check:topology
+
+      - name: Test topology policy
+        run: pnpm test:topology
+
       - name: Run lint
         run: pnpm lint
 
