@@ -1,5 +1,5 @@
-import { z } from "zod";
 import { IRacingOAuthScopesSchema } from "@iracing-data/oauth-schema";
+import { z } from "zod";
 
 const BASE_URL = "https://oauth.iracing.com";
 const DEFAULT_OAUTH_URL = `${BASE_URL}/oauth2`;

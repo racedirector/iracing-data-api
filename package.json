@@ -26,7 +26,14 @@
     "dev:pkg": "pnpm --recursive --parallel --stream dev",
     "test": "pnpm --recursive --if-present test",
     "check:topology": "node scripts/check-topology.js",
-    "test:topology": "node --test scripts/check-topology.test.js"
+    "test:topology": "node --test scripts/check-topology.test.js",
+    "verify": "node scripts/verify.mjs",
+    "verify:repo": "node scripts/verify.mjs repo",
+    "verify:js": "node scripts/verify.mjs js",
+    "verify:examples": "node scripts/verify.mjs examples",
+    "verify:generated": "node scripts/verify.mjs generated",
+    "verify:rust": "node scripts/verify.mjs rust",
+    "test:verification": "node --test scripts/verify.test.mjs"
   },
   "keywords": [],
   "author": "",

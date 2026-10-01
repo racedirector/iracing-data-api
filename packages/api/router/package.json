@@ -4,7 +4,8 @@
   "description": "Better Call router for the iRacing Data API using typed clients and Zod schemas.",
   "main": "dist/index.js",
   "scripts": {
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsc --build tsconfig.build.json",
+    "test": "node --test test/*.test.cjs"
   },
   "dependencies": {
     "@iracing-data/api-client-fetch": "workspace:*",

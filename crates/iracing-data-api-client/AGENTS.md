@@ -15,4 +15,4 @@ cargo check -p iracing-data-api-client
 cargo test -p iracing-data-api-client
 ```
 
-Generation requires Java/OpenAPI Generator and Rust/rustfmt. Inspect generated diffs, including Cargo metadata and documentation, and run focused Rust checks even though the current JavaScript CI does not run them. Report unavailable toolchains or dependency downloads instead of treating unrun checks as passing. A shared contract change also requires the Fetch and Axios generation/builds.
+Generation requires Java/OpenAPI Generator and Rust/rustfmt. Inspect generated diffs, including Cargo metadata and documentation, and run focused Rust checks through `pnpm verify:rust`, which CI also runs. Report unavailable toolchains or dependency downloads instead of treating unrun checks as passing. A shared contract change also requires the Fetch and Axios generation/builds.

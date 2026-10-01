@@ -1,5 +1,5 @@
-import { SimpleStore } from "../storage";
 import { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";
+import { SimpleStore } from "../storage";
 
 export interface InternalState {
   iss: string;

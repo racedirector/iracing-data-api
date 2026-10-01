@@ -1,17 +1,17 @@
 import crypto from "node:crypto";
 import {
-  createRemoteJWKSet,
-  decodeJwt,
-  decodeProtectedHeader,
-  jwtVerify,
-} from "jose";
-import {
   IRacingOAuthJWTAccessToken,
   IRacingOAuthJWTAccessTokenAlgorithmValues,
   IRacingOAuthJWTAccessTokenHeaderSchema,
   IRacingOAuthJWTAccessTokenPayloadSchema,
   IRacingOAuthJWTAccessTokenSchema,
 } from "@iracing-data/oauth-schema";
+import {
+  createRemoteJWKSet,
+  decodeJwt,
+  decodeProtectedHeader,
+  jwtVerify,
+} from "jose";
 import { OAuthClaimsError } from "./errors";
 
 /**

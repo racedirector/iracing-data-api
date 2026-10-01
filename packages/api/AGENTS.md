@@ -17,4 +17,4 @@ pnpm --filter '@iracing-data/api-schema...' build
 pnpm --filter '@iracing-data/api-router...' build
 ```
 
-For schema changes affecting OpenAPI, or edits to the authored OpenAPI mappings, follow [OpenAPI guidance](../../openapi/AGENTS.md): build the API generator, regenerate both API formats, then all three Data API SDKs and build affected consumers. Inspect router usage after a generated client API changes. Run root lint/style for TypeScript changes. The router currently has no declared test script; do not describe a build as runtime test coverage.
+For schema changes affecting OpenAPI, or edits to the authored OpenAPI mappings, follow [OpenAPI guidance](../../openapi/AGENTS.md): build the API generator, regenerate both API formats, then all three Data API SDKs and build affected consumers. Inspect router usage after a generated client API changes. Run root lint/style for TypeScript changes. Run `pnpm --filter @iracing-data/api-router test` after building the router. Its offline middleware tests protect required-header validation and client construction; do not describe these as full route coverage.

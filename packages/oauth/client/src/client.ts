@@ -5,6 +5,7 @@ import {
   IRacingOAuthProfileResponseSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
+import { ClientMetadataError, SessionNotFoundError } from "./errors";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
 import {
   IRacingOAuthClientMetadata,
@@ -21,7 +22,6 @@ import {
   maskSecret,
   validateAccessToken as validateDecodedAccessToken,
 } from "./utils";
-import { ClientMetadataError, SessionNotFoundError } from "./errors";
 
 export type OAuthClientOptions = {
   // Config
