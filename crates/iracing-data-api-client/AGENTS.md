@@ -1,0 +1,18 @@
+# Generated Rust Data API client
+
+Inherits [root guidance](../../AGENTS.md). This crate is a generated public client in the Cargo workspace; it is independently versioned. Classification does not provide an automated Cargo publication workflow.
+
+Rust source, models, endpoint documentation, and generator support files come from `openapi/iracing.json`. Fix contracts in authored schemas/mappings per [OpenAPI guidance](../../openapi/AGENTS.md). Fix generation in `scripts/openapi-generator-rust.sh`, its post-process script, or `openapitools.json`; do not hand-patch generated Rust.
+
+The wrapper selects the Rust generator options, runs rustfmt post-processing, and restores workspace lint inheritance in the generated manifest. Release versions in `Cargo.toml` are reviewed decisions: inspect generation for overwritten versions, dependencies, or manifest settings. Keep authored guidance when cleaning generated output.
+
+From the repository root, after regenerating the Data API OpenAPI input:
+
+```bash
+pnpm codegen:client:api:rust
+cargo fmt --all -- --check
+cargo check -p iracing-data-api-client
+cargo test -p iracing-data-api-client
+```
+
+Generation requires Java/OpenAPI Generator and Rust/rustfmt. Inspect generated diffs, including Cargo metadata and documentation, and run focused Rust checks even though the current JavaScript CI does not run them. Report unavailable toolchains or dependency downloads instead of treating unrun checks as passing. A shared contract change also requires the Fetch and Axios generation/builds.

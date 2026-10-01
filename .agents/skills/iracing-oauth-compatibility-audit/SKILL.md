@@ -9,10 +9,10 @@ Determine whether the current official iRacing Auth Service contract and this re
 
 ## Sources and authority
 
-1. Read all applicable repository instructions and inspect the current working tree.
+1. Read [root guidance](../../../AGENTS.md), [OAuth guidance](../../../packages/oauth/AGENTS.md), and [OpenAPI guidance](../../../openapi/AGENTS.md); inspect the current working tree. Use `workspace-policy.json` and current manifests for package classification and dependency direction.
 2. Start live research at <https://oauth.iracing.com/oauth2/book/introduction.html>. Traverse the current book navigation and official-domain search results; do not assume the saved page list is exhaustive.
 3. Treat current official iRacing documentation as the source of truth for current behavior. Use general OAuth specifications only to explain context or fill a clearly identified gap, never to override an iRacing-specific rule.
-4. Read [references/repository-map.md](references/repository-map.md) as a starting map, then verify every relevant path, export, dependency, and symbol against the current tree.
+4. Read [references/repository-map.md](references/repository-map.md) for search seeds, then discover relevant paths, exports, dependencies, and symbols from the current tree. Ownership and regeneration rules live in canonical guidance, not the search reference.
 5. Read [references/audit-method.md](references/audit-method.md) for the comparison matrix, protocol surfaces, evidence rules, severity rules, and reporting template.
 6. Read [references/protocol-baseline.md](references/protocol-baseline.md) only when comparing with the last recorded audit or deciding whether a mismatch is a confirmed upstream change. The live documentation remains authoritative.
 
