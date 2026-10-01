@@ -41,7 +41,7 @@ This repo uses [pnpm](https://pnpm.io/) for dependency management:
 pnpm install
 ```
 
-Use `pnpm --filter <package>` to run scripts for a specific workspace package or example. See each linked README for package-specific instructions.
+Use `pnpm --filter <package>` to run scripts for a specific workspace package or example. See each linked README for package-specific instructions. Read [repository guidance](AGENTS.md) and its scoped guides for canonical source/generated ownership, dependency-aware codegen commands, and current verification entrypoints.
 
 ### Workspace policy
 

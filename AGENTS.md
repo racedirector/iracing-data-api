@@ -1,56 +1,58 @@
-# Agent Guidance
+# Repository guidance
 
-This file applies to the entire repository. Add more specific AGENTS.md files in subdirectories if future work needs additional rules.
+Applies throughout the repository; read the nearest scoped `AGENTS.md` before editing. Use the current working tree as the implementation authority and preserve unrelated changes.
 
-## Purpose
+## Package and publication model
 
-- Treat this document as the shared operating guide for both human developers and coding agents.
-- Keep changes scoped, reversible, and easy to review.
-- Prefer consistency with existing workspace patterns over introducing new tooling conventions.
+Use `workspace-policy.json` for package classifications and ownership areas, `pnpm-workspace.yaml` for npm membership, and `Cargo.toml` for Cargo membership. Discover package names, versions, dependencies, and scripts from their manifests rather than maintaining another inventory. See [workspace policy](docs/WORKSPACE-POLICY.md) for the maintenance procedure.
 
-## Workflow
+- `public-release-target`: authored public schema or runtime package.
+- `generated-public-client`: public SDK derived from the Data API OpenAPI contract.
+- `internal-tool`: private router or OpenAPI build tooling.
+- `example`: private consumer demonstrating public packages.
+- `repository-root`: private orchestration workspace.
 
-- Use **pnpm** for all scripts and installs (see `packageManager` in `package.json`).
-- When running scripts on a single package, prefer `pnpm --filter <name> <script>` to avoid rebuilding unrelated workspaces.
-- Code generation commands are namespaced in `package.json` (for example `pnpm codegen`, `pnpm codegen:openapi`). Run only what you need to keep generated files in sync.
-- For scoped changes, run the narrowest command that validates your edits before running full-repo checks.
+Public packages are independently versioned. `dist-workspace.toml` defines the managed release set; classification alone does not create a publishing workflow. Follow [release instructions](docs/RELEASING.md), including package-specific version bumps and dependency order. A guidance-only change does not require a package version bump.
 
-## Code Style
+## Canonical source and derived artifacts
 
-- Follow the existing ESLint/Prettier configuration. If you touch JavaScript/TypeScript files, run `pnpm lint` and `pnpm style` (or `pnpm format` to auto-fix) before committing.
-- TypeScript lives across multiple packages; keep shared types in the relevant `packages/*` locations rather than duplicating them.
-- Do **not** wrap imports in `try/catch` blocks.
-- Match naming and file structure already used by the nearest package.
+| Authored source                                                                                                                                  | Derived surface                                                             | Regeneration / ownership guidance                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Data API Zod schemas in `packages/api/schema/src` plus endpoint, response, and document mappings in `packages/helpers/api-schema-to-openapi/src` | `openapi/iracing.json` and `openapi/iracing.yaml`                           | [API guidance](packages/api/AGENTS.md), [OpenAPI guidance](openapi/AGENTS.md)                                |
+| OAuth Zod schemas in `packages/oauth/schema/src` plus mappings in `packages/helpers/oauth-schema-to-openapi/src`                                 | `openapi/oauth.json` and `openapi/oauth.yaml`                               | [OAuth guidance](packages/oauth/AGENTS.md), [OpenAPI guidance](openapi/AGENTS.md)                            |
+| `openapi/iracing.json`, `openapitools.json`, generation/post-processing scripts                                                                  | Fetch, Axios, and Rust source, endpoint/model docs, generator support files | [TypeScript clients](packages/api/client/AGENTS.md), [Rust client](crates/iracing-data-api-client/AGENTS.md) |
+| `scripts/client-presentation` templates and `scripts/normalize-client-presentation.js`                                                           | Fetch/Axios manifest presentation metadata and README introductions         | [TypeScript clients](packages/api/client/AGENTS.md)                                                          |
+| Authored TypeScript and compiler configuration                                                                                                   | `dist/` and TypeScript build caches                                         | Package `build` script; do not hand-edit build output                                                        |
 
-## Testing and Checks
+The OAuth client and API router are **authored runtime code**, not generated clients. The router consumes schemas and the Fetch client; it is not the source for OpenAPI generation. OAuth OpenAPI does not feed the current Data API SDK generation scripts.
 
-- Use `pnpm test --filter <package>` or package-specific scripts when applicable. If no tests exist for your change, run the most relevant lint/format commands.
-- For apps or generated clients, consider running `pnpm build --filter <package>` to ensure type safety.
-- When changes affect generated output, run only the corresponding codegen task(s) and verify affected packages build.
+Do not patch generated source, OpenAPI output, generated documentation, or generator bookkeeping by hand. Fix the schema, mapping, generator configuration, post-processing, or presentation template that owns the change, then regenerate the affected branch. Package release versions are authored decisions even inside generated manifests: inspect regeneration for overwritten versions or configuration and retain the reviewed release intent. Scoped `AGENTS.md` files are authored guidance, not generator output.
 
-## Documentation
+## Commands and verification
 
-- Update the closest README when you change behavior or add commands. Keep instructions concise and prefer linking to package-level READMEs.
-- For new automation or maintenance workflows, add a short “how to run” note near the package that owns the workflow.
+Run from the repository root unless explicitly stated. Use the Node version in `.nvmrc` and pnpm pinned by `packageManager` in `package.json`.
 
-## Repository Hygiene
+```bash
+pnpm install --frozen-lockfile
+pnpm check:topology
+pnpm test:topology
+pnpm lint
+pnpm style
+pnpm test
+```
 
-- Avoid committing generated artifacts unless your change requires regenerating them. If regeneration is necessary, include the exact script you ran in your commit message or PR description.
-- This is a monorepo; be mindful of cross-package dependencies and update versioned references consistently.
-- Keep PRs focused: separate refactors from behavior changes whenever practical.
+These are current entrypoints, not a unified verification command. CI currently runs topology checks, lint, and package tests; it does not establish codegen reproducibility or run every build. Report existing failures and environment limits accurately; do not claim skipped checks passed.
 
-## Definitions
+For scoped work, read the package's scripts and use `pnpm --filter <package-name> <script>`. Build dependencies with `pnpm --filter '<package-name>...' build`. Do not invent a test script for packages that lack one. `pnpm test` runs declared workspace tests; it does not run `test:topology`. For documentation-only edits, run `pnpm exec prettier --check <edited-markdown-paths>` and `git diff --check`; no codegen is needed.
 
-- **Workspace root**: the repository top-level directory containing `package.json` and the pnpm workspace configuration.
-- **Package**: any workspace member under `packages/*`, `examples/*`, or `crates/*` (including nested client packages). See `workspace-policy.json` for publication classification and ownership areas.
-- **Scoped command**: a pnpm command run with `--filter` to target one package or a small subset.
-- **Codegen**: scripts under `codegen*` in `package.json` that produce OpenAPI specs or generated clients.
-- **Generated artifacts**: files produced by generators (OpenAPI output, client SDK files, protocol-derived files) rather than hand-authored source.
-- **Behavior change**: any change that alters runtime behavior, public interfaces, generated API shape, or developer workflows.
-- **Mechanical change**: formatting, file moves, renames, or non-functional refactors with no behavior impact.
+When schemas or OpenAPI mappings change, build the relevant generator with dependencies before invoking codegen; then regenerate the affected JSON/YAML pair and downstream clients. Exact commands are in scoped guidance. `pnpm codegen` runs both OpenAPI branches and all Data API SDK generators; use it only when the whole graph is affected. Review generated diffs and build affected consumers. For TypeScript changes also run lint/style and applicable tests. Do not wrap imports in `try/catch`.
 
-## Pull Request Expectations
+## Tooling and judgment
 
-- Summarize **what** changed, **why** it changed, and **how** you validated it.
-- Call out any generated files and include the exact commands used to regenerate them.
-- If checks were skipped due to environment limits, explicitly mention what was skipped and why.
+Delegate membership, publication-policy, reference, and release-target invariants to `pnpm check:topology` and its tests rather than restating their implementation here. Add deterministic checks for new machine-verifiable invariants. Agents supply interpretation: upstream contract evidence, schema compatibility, public API impact, runtime behavior, and release scope. Do not silently change public contracts based on inferred upstream drift; establish evidence and explain the decision in the PR.
+
+Repository skills must reference this guide, applicable scoped guidance, and executable checks instead of maintaining competing topology or ownership lists.
+
+## Pull requests
+
+Keep changes focused. Update the nearest documentation for behavior or command changes. Describe the problem, resulting behavior, validation results and limitations, and package/release impact. List exact generation commands and affected generated files; say when none were regenerated. Separate unrelated fixes or broad generated churn from the requested work.
