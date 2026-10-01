@@ -34,7 +34,7 @@
     "@iracing-data/oauth-schema-to-openapi": "workspace:*",
     "@openapitools/openapi-generator-cli": "^2.31.1",
     "@types/lodash": "^4.17.15",
-    "@types/node": "^24",
+    "@types/node": "^26",
     "@typescript-eslint/eslint-plugin": "8.49.0",
     "@typescript-eslint/parser": "8.70.0",
     "dotenv": "17.4.2",
