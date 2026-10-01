@@ -1,15 +1,9 @@
 packages:
-  - "apps/*"
   - "examples/*"
-  - "packages/*"
   - "packages/api/*"
   - "packages/api/client/*"
-  - "packages/events/*"
   - "packages/helpers/*"
   - "packages/oauth/*"
-  - "packages/telemetry/*"
-  - "packages/telemetry/client/*"
-  - "services/*"
 allowBuilds:
   "@nestjs/core": false
   "@openapitools/openapi-generator-cli": false

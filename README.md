@@ -43,6 +43,10 @@ pnpm install
 
 Use `pnpm --filter <package>` to run scripts for a specific workspace package or example. See each linked README for package-specific instructions.
 
+### Workspace policy
+
+Run `pnpm check:topology` to validate workspace membership, TypeScript references, publication classification, and the managed release set. Run `pnpm test:topology` to test the policy checker. CI runs both commands. See [workspace ownership and publication policy](docs/WORKSPACE-POLICY.md) before adding or changing a workspace.
+
 ### Codegen
 
 OpenAPI specs are generated from the Zod schemas into `openapi/` as both JSON and YAML:

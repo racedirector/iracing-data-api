@@ -43,5 +43,6 @@
     "codegen",
     "generator",
     "cli"
-  ]
+  ],
+  "private": true
 }

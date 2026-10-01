@@ -4,7 +4,9 @@ This document describes the end-to-end process for publishing `@iracing-data` pa
 
 ## Published packages
 
-Each package is versioned and released independently.
+Each public package is versioned and released independently. [`workspace-policy.json`](../workspace-policy.json) classifies every workspace; the public subset must match `dist-workspace.toml`. The router and both OpenAPI generators are private internal tools, and examples and the repository root are also private. See [workspace policy](WORKSPACE-POLICY.md).
+
+The release workflow runs `pnpm check:topology --release <package-name>` before building or publishing, rejecting internal or unknown targets.
 
 | Package                          | Path                        | Current version    |
 | -------------------------------- | --------------------------- | ------------------ |
