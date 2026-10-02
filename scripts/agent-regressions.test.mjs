@@ -76,6 +76,29 @@ test("references cannot escape through a symlink", (t) => {
   assert.throws(() => validateSuite(changed, temporary), /repository file/);
 });
 
+test("missing files identify the scenario and field", () => {
+  for (const field of ["inputs", "references"]) {
+    const changed = copy();
+    changed.scenarios[0][field].push("missing-file.md");
+    assert.throws(() => validateSuite(changed), {
+      message: `data-api-schema ${field}: missing file missing-file.md`,
+    });
+  }
+});
+
+test("other realpath errors are rethrown unchanged", (t) => {
+  const failure = Object.assign(new Error("permission denied"), {
+    code: "EACCES",
+  });
+  t.mock.method(fs, "realpathSync", () => {
+    throw failure;
+  });
+  assert.throws(
+    () => validateSuite(suite),
+    (error) => error === failure,
+  );
+});
+
 test("prompt output withholds grading rubrics; invalid CLI requests fail", () => {
   const output = run(["--show", "fetch-readme"], suite);
   assert.match(output, /read-only planning/);

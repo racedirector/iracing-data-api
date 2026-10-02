@@ -30,10 +30,15 @@ export function validateSuite(suite, directory = root) {
       )
         throw new Error(`${label}: unsafe path`);
       const absolute = path.join(directory, value);
-      const relative = path.relative(
-        fs.realpathSync(directory),
-        fs.realpathSync(absolute),
-      );
+      let resolved;
+      try {
+        resolved = fs.realpathSync(absolute);
+      } catch (error) {
+        if (error.code === "ENOENT")
+          throw new Error(`${label}: missing file ${value}`);
+        throw error;
+      }
+      const relative = path.relative(fs.realpathSync(directory), resolved);
       if (
         relative.startsWith(`..${path.sep}`) ||
         path.isAbsolute(relative) ||
