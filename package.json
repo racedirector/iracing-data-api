@@ -37,7 +37,8 @@
     "check:generated": "node scripts/check-generated.mjs",
     "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs",
     "impact": "node scripts/workspace-impact.mjs",
-    "test:impact": "node --test scripts/workspace-impact.test.mjs"
+    "test:impact": "node --test scripts/workspace-impact.test.mjs",
+    "test:dependencies": "node --test scripts/dependency-updates.test.mjs"
   },
   "keywords": [],
   "author": "",

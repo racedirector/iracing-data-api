@@ -16,6 +16,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.1.0
@@ -37,6 +39,20 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Report dependency change impact
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+        env:
+          IMPACT_BASE: ${{ github.event.pull_request.base.sha }}
+        run: node scripts/workspace-impact.mjs --base "$IMPACT_BASE" --json > "$RUNNER_TEMP/dependency-impact.json"
+
+      - name: Upload dependency impact
+        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-impact
+          path: ${{ runner.temp }}/dependency-impact.json
+          retention-days: 14
 
       - name: Verify repository
         run: pnpm verify
