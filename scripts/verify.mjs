@@ -40,7 +40,11 @@ export function verificationPlan(subsystem, policy) {
     case "examples":
       return [build(["example"])];
     case "generated":
-      return [build(["generated-public-client"])];
+      return [
+        pnpm("generated: normalization and drift tests", "test:codegen"),
+        pnpm("generated: regenerate and compare", "check:generated"),
+        build(["generated-public-client"]),
+      ];
     case "rust":
       return [
         {

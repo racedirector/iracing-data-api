@@ -1,21 +1,20 @@
 # PostAuthRequest
 
-
 ## Properties
 
-Name | Type | Description | Notes
------------- | ------------- | ------------- | -------------
-**email** | **string** |  | [default to undefined]
-**password** | **string** |  | [default to undefined]
+| Name         | Type       | Description | Notes                  |
+| ------------ | ---------- | ----------- | ---------------------- |
+| **email**    | **string** |             | [default to undefined] |
+| **password** | **string** |             | [default to undefined] |
 
 ## Example
 
 ```typescript
-import { PostAuthRequest } from '@iracing-data/api-client-axios';
+import { PostAuthRequest } from "@iracing-data/api-client-axios";
 
 const instance: PostAuthRequest = {
-    email,
-    password,
+  email,
+  password,
 };
 ```
 

@@ -5,7 +5,7 @@ target/**
 node_modules/**
 # pnpm owns lockfile serialization; verify installation with --frozen-lockfile.
 pnpm-lock.yaml
-# Generated output is validated through verify:generated, then freshness in #265.
+# Generated output is validated through verify:generated, including regeneration freshness.
 openapi/*.json
 openapi/*.yaml
 packages/api/client/axios/**

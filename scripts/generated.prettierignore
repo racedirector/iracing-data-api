@@ -1,0 +1,3 @@
+# Explicitly format generated output without authored-file exclusions.
+node_modules/**
+dist/**

@@ -5,16 +5,8 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",
-    "lib": [
-      "es6",
-      "dom"
-    ],
-    "typeRoots": [
-      "node_modules/@types"
-    ]
+    "lib": ["es6", "dom"],
+    "typeRoots": ["node_modules/@types"]
   },
-  "exclude": [
-    "dist",
-    "node_modules"
-  ]
+  "exclude": ["dist", "node_modules"]
 }

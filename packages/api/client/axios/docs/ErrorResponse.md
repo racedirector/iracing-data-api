@@ -1,23 +1,22 @@
 # ErrorResponse
 
-
 ## Properties
 
-Name | Type | Description | Notes
------------- | ------------- | ------------- | -------------
-**error** | **string** |  | [default to undefined]
-**message** | **string** |  | [optional] [default to undefined]
-**note** | **string** |  | [optional] [default to undefined]
+| Name        | Type       | Description | Notes                             |
+| ----------- | ---------- | ----------- | --------------------------------- |
+| **error**   | **string** |             | [default to undefined]            |
+| **message** | **string** |             | [optional] [default to undefined] |
+| **note**    | **string** |             | [optional] [default to undefined] |
 
 ## Example
 
 ```typescript
-import { ErrorResponse } from '@iracing-data/api-client-axios';
+import { ErrorResponse } from "@iracing-data/api-client-axios";
 
 const instance: ErrorResponse = {
-    error,
-    message,
-    note,
+  error,
+  message,
+  note,
 };
 ```
 

@@ -13,7 +13,7 @@ ROOT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
 case "$FILE_PATH" in
   *.ts|*.tsx|*.js|*.mjs|*.cjs|*.json|*.md|*.yaml|*.yml)
-    pnpm --dir "$ROOT_DIR" exec prettier --write "$FILE_PATH"
+    pnpm --dir "$ROOT_DIR" exec prettier --write --config "$SCRIPT_DIR/generated.prettier.json" --ignore-path "$SCRIPT_DIR/generated.prettierignore" "$FILE_PATH"
     ;;
 esac
 

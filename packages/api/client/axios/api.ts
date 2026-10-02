@@ -4783,9 +4783,7 @@ export const DocApiFp = function (configuration?: Configuration) {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    async getDocs(
-      options?: RawAxiosRequestConfig,
-    ): Promise<
+    async getDocs(options?: RawAxiosRequestConfig): Promise<
       (
         axios?: AxiosInstance,
         basePath?: string,
@@ -6999,9 +6997,7 @@ export const DocApiFactory = function (
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getDocs(
-      options?: RawAxiosRequestConfig,
-    ): AxiosPromise<{
+    getDocs(options?: RawAxiosRequestConfig): AxiosPromise<{
       [key: string]: { [key: string]: IracingServiceMethodDocs };
     }> {
       return localVarFp

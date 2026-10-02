@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "codegen": "pnpm codegen:openapi && pnpm codegen:client",
+    "codegen": "node scripts/check-generated.mjs --write",
     "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api:axios": "./scripts/openapi-generator-axios.sh",
@@ -33,7 +33,9 @@
     "verify:examples": "node scripts/verify.mjs examples",
     "verify:generated": "node scripts/verify.mjs generated",
     "verify:rust": "node scripts/verify.mjs rust",
-    "test:verification": "node --test scripts/verify.test.mjs"
+    "test:verification": "node --test scripts/verify.test.mjs",
+    "check:generated": "node scripts/check-generated.mjs",
+    "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs"
   },
   "keywords": [],
   "author": "",

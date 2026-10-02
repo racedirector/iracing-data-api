@@ -2,17 +2,13 @@
 
 All URIs are relative to *https://members-ng.iracing.com*
 
-| Method | HTTP request | Description |
-|------------- | ------------- | -------------|
-| [**postAuth**](AuthApi.md#postauthoperation) | **POST** /auth |  |
-
-
+| Method                                       | HTTP request   | Description |
+| -------------------------------------------- | -------------- | ----------- |
+| [**postAuth**](AuthApi.md#postauthoperation) | **POST** /auth |             |
 
 ## postAuth
 
 > postAuth(post_auth_request)
-
-
 
 ### Example
 
@@ -25,7 +21,7 @@ import type { PostAuthOperationRequest } from '@iracing-data/api-client-fetch';
 
 async function example() {
   console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
-  const config = new Configuration({ 
+  const config = new Configuration({
     // Configure HTTP bearer authorization: bearerAuth
     accessToken: "YOUR BEARER TOKEN",
   });
@@ -50,10 +46,9 @@ example().catch(console.error);
 
 ### Parameters
 
-
-| Name | Type | Description  | Notes |
-|------------- | ------------- | ------------- | -------------|
-| **post_auth_request** | [PostAuthRequest](PostAuthRequest.md) |  | |
+| Name                  | Type                                  | Description | Notes |
+| --------------------- | ------------------------------------- | ----------- | ----- |
+| **post_auth_request** | [PostAuthRequest](PostAuthRequest.md) |             |       |
 
 ### Return type
 
@@ -68,6 +63,4 @@ example().catch(console.error);
 - **Content-Type**: `application/json`
 - **Accept**: Not defined
 
-
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
-

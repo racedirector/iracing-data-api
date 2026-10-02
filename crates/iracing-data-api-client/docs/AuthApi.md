@@ -2,27 +2,23 @@
 
 All URIs are relative to *https://members-ng.iracing.com*
 
-Method | HTTP request | Description
-------------- | ------------- | -------------
-[**post_auth**](AuthApi.md#post_auth) | **POST** /auth | 
-
-
+| Method                                | HTTP request   | Description |
+| ------------------------------------- | -------------- | ----------- |
+| [**post_auth**](AuthApi.md#post_auth) | **POST** /auth |
 
 ## post_auth
 
 > post_auth(post_auth_request)
 
-
 ### Parameters
 
-
-Name | Type | Description  | Required | Notes
-------------- | ------------- | ------------- | ------------- | -------------
-**post_auth_request** | [**PostAuthRequest**](PostAuthRequest.md) |  | [required] |
+| Name                  | Type                                      | Description | Required   | Notes |
+| --------------------- | ----------------------------------------- | ----------- | ---------- | ----- |
+| **post_auth_request** | [**PostAuthRequest**](PostAuthRequest.md) |             | [required] |
 
 ### Return type
 
- (empty response body)
+(empty response body)
 
 ### Authorization
 
@@ -34,4 +30,3 @@ Name | Type | Description  | Required | Notes
 - **Accept**: Not defined
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
-
