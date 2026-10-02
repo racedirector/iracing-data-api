@@ -82,13 +82,19 @@ Each finding must include:
 ```text
 Finding:
 Classification:
-Official documentation:
+Official documentation and snapshot provenance/hash/pointer (if available):
+Upstream fact:
+Repository mismatch:
+Interpretation:
+Canonical authored owner and generation edge:
 Current repository behavior:
 Affected package(s):
 Affected file(s) / symbol(s):
 Impact:
 Recommended change:
-Tests to add or update:
+Tests to add or update (discovered commands and coverage limits):
+Downstream consumers and required validation:
+Implementation and independent-package release order:
 Breaking public API?: yes | no | possibly
 Confidence: high | medium | low
 ```
@@ -97,7 +103,7 @@ End with:
 
 ### Recommended implementation order
 
-Give a dependency-aware order: canonical schema changes before client consumers and generated contracts; security/token-continuity fixes before optional endpoint additions. Mention rollout or migration needs for breaking API changes.
+Give a dependency-aware order: canonical schema changes before client consumers and generated contracts; security/token-continuity fixes before optional endpoint additions. Mention rollout or migration needs for breaking API changes. Discover package dependencies, independent versions and managed release ownership at runtime; distinguish implementation/generation order from publication order. Use the current release guide and never authorize release from an audit.
 
 ### No-action findings
 

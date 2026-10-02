@@ -39,6 +39,8 @@ pnpm verify
 
 `pnpm verify` is the normal local and CI pre-merge contract. Focused `verify:repo`, `verify:js`, `verify:examples`, `verify:generated`, and `verify:rust` commands share the same runner. See [verification](docs/VERIFICATION.md) for coverage and prerequisites. Report failures and environment limits accurately; do not claim skipped checks passed.
 
+For change and release planning, run `pnpm impact --base <ref>`; see [change impact](docs/CHANGE-IMPACT.md). Treat release candidates as review inputs, not automatic version bumps or publishing authorization.
+
 For scoped work, read the package's scripts and use `pnpm --filter <package-name> <script>`. Build dependencies with `pnpm --filter '<package-name>...' build`. Do not invent a test script for packages that lack one. `pnpm test` runs declared workspace tests; it does not run `test:topology`. For documentation-only edits, run `pnpm exec prettier --check <edited-markdown-paths>` and `git diff --check`; no codegen is needed.
 
 When schemas or OpenAPI mappings change, build the relevant generator with dependencies before invoking codegen; then regenerate the affected JSON/YAML pair and downstream clients. Exact commands are in scoped guidance. `pnpm codegen` runs both OpenAPI branches and all Data API SDK generators; use it only when the whole graph is affected. Review generated diffs and build affected consumers. For TypeScript changes also run lint/style and applicable tests. Do not wrap imports in `try/catch`.
@@ -47,7 +49,7 @@ When schemas or OpenAPI mappings change, build the relevant generator with depen
 
 Delegate membership, publication-policy, reference, and release-target invariants to `pnpm check:topology` and its tests rather than restating their implementation here. Add deterministic checks for new machine-verifiable invariants. Agents supply interpretation: upstream contract evidence, schema compatibility, public API impact, runtime behavior, and release scope. Do not silently change public contracts based on inferred upstream drift; establish evidence and explain the decision in the PR.
 
-Repository skills must reference this guide, applicable scoped guidance, and executable checks instead of maintaining competing topology or ownership lists.
+Repository skills must reference this guide, applicable scoped guidance, and executable checks instead of maintaining competing topology or ownership lists. When changing guidance, skills, ownership policy, or workflow tooling, run the manual [agent regression scenarios](agent-regressions/README.md); CI validates their fixtures without evaluating a model.
 
 ## Pull requests
 

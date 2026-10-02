@@ -1,0 +1,15 @@
+{
+  "car": {
+    "get": {
+      "link": "https://members-ng.iracing.com/data/car/get",
+      "parameters": {
+        "car_ids": {
+          "type": "numbers",
+          "required": false,
+          "note": "Comma separated IDs"
+        }
+      },
+      "expirationSeconds": 900
+    }
+  }
+}

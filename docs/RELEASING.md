@@ -64,6 +64,8 @@ git push -u origin feature/my-change
 
 ### 2. Decide which packages need a release
 
+Start with `pnpm impact --base <ref>` (or `--json`) to identify candidate packages, regeneration/verification commands, and dependency order. See [change impact](CHANGE-IMPACT.md). The report does not select versions or prove publish readiness; confirm the actual release set with the checks below.
+
 Release each package independently. Only tag a package when that package has a user-visible change, a public API change, or a packaging/build change that needs to be published.
 
 To compare a package with its latest release tag:

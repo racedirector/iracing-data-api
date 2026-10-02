@@ -10,12 +10,12 @@
   "dependencies": {
     "@iracing-data/oauth-client": "workspace:*",
     "commander": "^15.0.0",
-    "dotenv": "17.4.2"
+    "dotenv": "18.0.4"
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^15.0.0",
     "@types/node": "^26.6.2",
-    "tsx": "^4.21.0"
+    "tsx": "^4.23.15"
   },
   "private": true
 }

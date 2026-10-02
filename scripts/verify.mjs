@@ -29,6 +29,14 @@ export function verificationPlan(subsystem, policy) {
         pnpm("repo: topology", "check:topology"),
         pnpm("repo: topology tests", "test:topology"),
         pnpm("repo: verification tests", "test:verification"),
+        pnpm("repo: upstream contract tests", "test:upstream"),
+        pnpm("repo: impact tests", "test:impact"),
+        pnpm("repo: dependency automation tests", "test:dependencies"),
+        pnpm("repo: agent regression fixtures", "check:agent-regressions"),
+        pnpm(
+          "repo: agent regression validator tests",
+          "test:agent-regressions",
+        ),
         pnpm("repo: lint authored code", "lint"),
         pnpm("repo: format authored files", "style"),
       ];

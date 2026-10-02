@@ -35,7 +35,14 @@
     "verify:rust": "node scripts/verify.mjs rust",
     "test:verification": "node --test scripts/verify.test.mjs",
     "check:generated": "node scripts/check-generated.mjs",
-    "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs"
+    "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs",
+    "impact": "node scripts/workspace-impact.mjs",
+    "test:impact": "node --test scripts/workspace-impact.test.mjs",
+    "test:dependencies": "node --test scripts/dependency-updates.test.mjs",
+    "check:agent-regressions": "node scripts/agent-regressions.mjs",
+    "test:agent-regressions": "node --test scripts/agent-regressions.test.mjs",
+    "upstream:contract": "node scripts/upstream-contract.mjs",
+    "test:upstream": "node --test scripts/upstream-contract.test.mjs"
   },
   "keywords": [],
   "author": "",
@@ -48,7 +55,7 @@
     "@types/node": "^26",
     "@typescript-eslint/eslint-plugin": "8.70.0",
     "@typescript-eslint/parser": "8.70.1",
-    "dotenv": "17.4.2",
+    "dotenv": "18.0.4",
     "eslint": "^9",
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "^2.31.0",
@@ -58,7 +65,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "yaml": "^2.9.1",
-    "smol-toml": "^1.4.2"
+    "smol-toml": "^1.4.2",
+    "parse5": "8.0.0"
   },
   "engines": {
     "node": ">=24 <25",
