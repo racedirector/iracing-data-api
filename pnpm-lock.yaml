@@ -392,8 +392,8 @@ importers:
         specifier: ^6.2.2
         version: 6.2.12
       oauth4webapi:
-        specifier: ^3.8.3
-        version: 3.8.3
+        specifier: ^3.8.8
+        version: 3.8.8
       zod:
         specifier: ^4.3.6
         version: 4.6.5
@@ -2287,8 +2287,8 @@ packages:
       encoding:
         optional: true
 
-  oauth4webapi@3.8.3:
-    resolution: {integrity: sha512-pQ5BsX3QRTgnt5HxgHwgunIRaDXBdkT23tf8dfzmtTIL2LTpdmxgbpbBm0VgFWAIDlezQvQCTgnVIUmHupXHxw==}
+  oauth4webapi@3.8.8:
+    resolution: {integrity: sha512-8N28E+a/oxfXWBgOMt+ZP/JUf/XR+IFbvkAEPP3gznXOMv9BpAAwiIj0TFNz3tGTPc0ZQ8zmWBNgN1nAys0gng==}
 
   object-inspect@1.13.4:
     resolution: {integrity: sha512-W67iLl4J2EXEGTbfeHCffrjDfitvLANg0UlX3wFUUSTx92KXRFegMHUVgSqE+wvhAbi4WqjGg9czysTV2Epbew==}
@@ -4844,7 +4844,7 @@ snapshots:
     dependencies:
       whatwg-url: 5.0.0
 
-  oauth4webapi@3.8.3: {}
+  oauth4webapi@3.8.8: {}
 
   object-inspect@1.13.4: {}
 
