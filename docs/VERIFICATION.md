@@ -23,3 +23,5 @@ Prettier checks authored files. `.prettierignore` excludes compiled output, gene
 OpenAPI Generator is pinned by `openapitools.json`; Prettier configuration and Rust toolchain are pinned in repository files. npm client versions are passed explicitly from their manifests; Rust build/dependency/version settings remain authored in `Cargo.toml`, while public presentation metadata comes from `scripts/client-presentation/rust.json`. Generator network downloads may be required on the first run.
 
 For a failing step, rerun its focused command after correcting the owning source. See [root guidance](../AGENTS.md) for authored/generated boundaries. Do not manually patch generated source to bypass a check.
+
+Workspace impact regression tests run in `verify:repo` via `pnpm test:impact`. See [change impact](CHANGE-IMPACT.md) for read-only package and release planning.
