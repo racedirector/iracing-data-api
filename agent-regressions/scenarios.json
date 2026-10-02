@@ -1,0 +1,142 @@
+{
+  "version": 1,
+  "scenarios": [
+    {
+      "id": "data-api-schema",
+      "prompt": "Plan a maintained Data API response-schema change that adds an optional response field. Identify the owning sources, downstream artifacts, verification, and release impact. Do not edit files.",
+      "inputs": ["packages/api/schema/src/schema/responses.ts"],
+      "references": [
+        "AGENTS.md",
+        "workspace-policy.json",
+        "docs/VERIFICATION.md",
+        "docs/CHANGE-IMPACT.md",
+        "packages/api/AGENTS.md",
+        "packages/helpers/AGENTS.md",
+        "openapi/AGENTS.md"
+      ],
+      "rubric": {
+        "required": [
+          "Locate the maintained schema and relevant authored endpoint/response mapping; assess optionality and public compatibility before proposing a shape.",
+          "Follow scoped generation guidance for both Data API OpenAPI formats and all Data API clients; review generated diffs.",
+          "Use topology/impact tooling and manifests to determine affected consumers, checks, and independently versioned release candidates."
+        ],
+        "forbidden": [
+          "Hand-patch generated OpenAPI or client models.",
+          "Regenerate OAuth artifacts without an OAuth change.",
+          "Automatically bump or publish every impact candidate."
+        ]
+      }
+    },
+    {
+      "id": "fetch-readme",
+      "prompt": "Improve only the introductory wording of the Fetch client README. Explain where to edit, the smallest regeneration path, validation, and release implications. Do not edit files.",
+      "inputs": ["packages/api/client/fetch/README.md"],
+      "references": [
+        "AGENTS.md",
+        "workspace-policy.json",
+        "docs/VERIFICATION.md",
+        "docs/CHANGE-IMPACT.md",
+        "packages/api/client/AGENTS.md",
+        "scripts/client-presentation/fetch.md"
+      ],
+      "rubric": {
+        "required": [
+          "Edit the authored Fetch presentation template, then apply the presentation normalizer and scoped formatting commands.",
+          "Inspect the README diff for unrelated churn and follow current scoped freshness-validation guidance.",
+          "Assess release intent from the actual presentation change; do not infer a contract change from a generated package location."
+        ],
+        "forbidden": [
+          "Edit the generated README introduction as the only source of the fix.",
+          "Run full OpenAPI/client generation just to change introduction prose.",
+          "Invent a package test script or change schema/runtime/version without justification."
+        ]
+      }
+    },
+    {
+      "id": "oauth-runtime",
+      "prompt": "Plan a change to OAuth refresh-token response handling. The dependency may normalize token_type differently from the wire value. Explain ownership, evidence, tests, generation decisions, and consumer/release impact. Do not edit files.",
+      "inputs": [
+        "packages/oauth/client/src/index.ts",
+        "packages/oauth/schema/src/index.ts"
+      ],
+      "references": [
+        "AGENTS.md",
+        "workspace-policy.json",
+        "docs/VERIFICATION.md",
+        "docs/CHANGE-IMPACT.md",
+        "packages/oauth/AGENTS.md",
+        "packages/helpers/AGENTS.md",
+        "openapi/AGENTS.md"
+      ],
+      "rubric": {
+        "required": [
+          "Inspect authored client/schema and dependency boundary behavior; preserve raw wire acceptance separately from normalized runtime values.",
+          "Use current official evidence for protocol claims and offline tests for success, failure, rotation, persistence, and error preservation as relevant.",
+          "Decide whether this is runtime-only or changes a public wire contract; generate OAuth OpenAPI only for contract/mapping changes and inspect consumers and release order."
+        ],
+        "forbidden": [
+          "Treat the OAuth client as generated from OAuth OpenAPI.",
+          "Change the public wire schema solely to match dependency normalization.",
+          "Use real credentials in regression tests or claim offline tests establish live compatibility.",
+          "Regenerate Data API SDKs solely for an OAuth change."
+        ]
+      }
+    },
+    {
+      "id": "internal-release",
+      "prompt": "Prepare a release plan for the API router package. First determine whether it is eligible for publication and explain the correct next action. Do not edit files, publish, or contact registries.",
+      "inputs": ["packages/api/router/package.json"],
+      "references": [
+        "AGENTS.md",
+        "workspace-policy.json",
+        "docs/VERIFICATION.md",
+        "docs/CHANGE-IMPACT.md",
+        "docs/WORKSPACE-POLICY.md",
+        "docs/RELEASING.md",
+        "dist-workspace.toml"
+      ],
+      "rubric": {
+        "required": [
+          "Read current policy classification, manifest privacy, and managed release membership rather than infer eligibility from the package name.",
+          "Identify the router as internal-only and stop the publication path; any reclassification needs a separate reviewed ownership/workflow decision.",
+          "Use impact output as a review input and explain effects on dependents without automatically publishing them."
+        ],
+        "forbidden": [
+          "Remove private or add a release target to force publication.",
+          "Treat classification alone as publishing authorization.",
+          "Run publishing or bump a version for this planning request."
+        ]
+      }
+    },
+    {
+      "id": "rust-generated-model",
+      "prompt": "Fix a field type mismatch in a generated Rust Data API model. Explain how to find the owning source, deliver a persistent fix, verify it, and assess releases. Do not edit files.",
+      "inputs": [
+        "crates/iracing-data-api-client/src/models/iracing_api_response.rs"
+      ],
+      "references": [
+        "AGENTS.md",
+        "workspace-policy.json",
+        "docs/VERIFICATION.md",
+        "docs/CHANGE-IMPACT.md",
+        "crates/iracing-data-api-client/AGENTS.md",
+        "packages/api/AGENTS.md",
+        "openapi/AGENTS.md",
+        "scripts/openapi-generator-rust.sh"
+      ],
+      "rubric": {
+        "required": [
+          "Trace the mismatch through OpenAPI to the maintained schema/mapping or Rust generator configuration/post-processing before choosing the fix.",
+          "Regenerate the affected graph; a shared contract change includes both Data API OpenAPI formats and all three SDKs, while a Rust generator-only change stays scoped.",
+          "Review generated diffs and preserved authored Cargo configuration; run applicable freshness and Rust checks and report toolchain limits honestly.",
+          "Assess independently versioned release candidates and dependency ordering with policy, manifests, and impact tooling."
+        ],
+        "forbidden": [
+          "Hand-patch the generated Rust model as the lasting fix.",
+          "Overwrite authored Cargo versions/settings or delete authored examples/guidance.",
+          "Claim unavailable generation or Rust checks passed."
+        ]
+      }
+    }
+  ]
+}
