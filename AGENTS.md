@@ -34,14 +34,10 @@ Run from the repository root unless explicitly stated. Use the Node version in `
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm check:topology
-pnpm test:topology
-pnpm lint
-pnpm style
-pnpm test
+pnpm verify
 ```
 
-These are current entrypoints, not a unified verification command. CI currently runs topology checks, lint, and package tests; it does not establish codegen reproducibility or run every build. Report existing failures and environment limits accurately; do not claim skipped checks passed.
+`pnpm verify` is the normal local and CI pre-merge contract. Focused `verify:repo`, `verify:js`, `verify:examples`, `verify:generated`, and `verify:rust` commands share the same runner. See [verification](docs/VERIFICATION.md) for coverage and prerequisites. Report failures and environment limits accurately; do not claim skipped checks passed.
 
 For scoped work, read the package's scripts and use `pnpm --filter <package-name> <script>`. Build dependencies with `pnpm --filter '<package-name>...' build`. Do not invent a test script for packages that lack one. `pnpm test` runs declared workspace tests; it does not run `test:topology`. For documentation-only edits, run `pnpm exec prettier --check <edited-markdown-paths>` and `git diff --check`; no codegen is needed.
 

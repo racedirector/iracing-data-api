@@ -1,13 +1,13 @@
 import tseslint from "@typescript-eslint/eslint-plugin";
 import parser from "@typescript-eslint/parser";
+import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
 import eslintPluginPrettier from "eslint-plugin-prettier";
-import eslintConfigPrettier from "eslint-config-prettier";
 
 export default [
   {
     ignores: [
-      "dist/**",
+      "**/dist/**",
       "bin/**",
       "node_modules/**",
       "openapi/**",
@@ -17,12 +17,11 @@ export default [
       "packages/**/src/**/telemetry.ts",
       "packages/**/src/**/session.ts",
       "packages/api/client/**",
-      "packages/oauth/client/**",
       "packages/telemetry/client/**",
     ],
   },
   {
-    files: ["**/*.{js,ts}"],
+    files: ["**/*.{js,mjs,ts}"],
     languageOptions: {
       parser,
       parserOptions: {
@@ -117,7 +116,7 @@ export default [
     },
   },
   {
-    files: ["**/*.js"],
+    files: ["**/*.{js,mjs}"],
     rules: {
       "@typescript-eslint/no-var-requires": "off",
     },

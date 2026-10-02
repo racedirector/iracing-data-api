@@ -21,7 +21,9 @@ import { createMiddleware } from "better-call";
 
 export const iracingClientMiddleware = createMiddleware(
   {
-    requireHeaders: true,
+    // Better Call accepts middleware with optional input headers; runtime
+    // validation still requires them before this handler executes.
+    requireHeaders: true as boolean,
     metadata: {
       openapi: {
         parameters: [

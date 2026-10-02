@@ -4,9 +4,10 @@ import type { GetOptions, Key, SimpleStore, Value } from "./index";
  * A minimal in-memory implementation of the {@link SimpleStore} interface for
  * quickly wiring up local state and session storage.
  */
-export class InMemoryStore<K extends Key = string, V extends Value = Value>
-  implements SimpleStore<K, V>
-{
+export class InMemoryStore<
+  K extends Key = string,
+  V extends Value = Value,
+> implements SimpleStore<K, V> {
   private state = new Map<K, V>();
 
   constructor(entries?: Iterable<readonly [K, V]>) {

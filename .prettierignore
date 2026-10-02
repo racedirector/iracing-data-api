@@ -1,0 +1,15 @@
+# Compiled output and caches
+**/dist/**
+**/bin/**
+target/**
+node_modules/**
+# pnpm owns lockfile serialization; verify installation with --frozen-lockfile.
+pnpm-lock.yaml
+# Generated output is validated through verify:generated, then freshness in #265.
+openapi/*.json
+openapi/*.yaml
+packages/api/client/axios/**
+packages/api/client/fetch/**
+crates/iracing-data-api-client/**
+# Scoped guidance is authored and remains formatting-checked.
+!crates/iracing-data-api-client/AGENTS.md

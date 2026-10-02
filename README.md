@@ -43,6 +43,10 @@ pnpm install
 
 Use `pnpm --filter <package>` to run scripts for a specific workspace package or example. See each linked README for package-specific instructions. Read [repository guidance](AGENTS.md) and its scoped guides for canonical source/generated ownership, dependency-aware codegen commands, and current verification entrypoints.
 
+### Verification
+
+Run `pnpm verify` before opening a PR. CI uses the same command for authored formatting/lint, topology, TypeScript builds/tests, example compilation, generated client builds, and Rust checks. See [verification](docs/VERIFICATION.md) for focused commands and toolchain prerequisites.
+
 ### Workspace policy
 
 Run `pnpm check:topology` to validate workspace membership, TypeScript references, publication classification, and the managed release set. Run `pnpm test:topology` to test the policy checker. CI runs both commands. See [workspace ownership and publication policy](docs/WORKSPACE-POLICY.md) before adding or changing a workspace.
