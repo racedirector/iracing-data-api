@@ -45,7 +45,7 @@ Use `pnpm --filter <package>` to run scripts for a specific workspace package or
 
 ### Verification
 
-Run `pnpm verify` before opening a PR. CI uses the same command for authored formatting/lint, topology, TypeScript builds/tests, example compilation, generated client builds, and Rust checks. See [verification](docs/VERIFICATION.md) for focused commands and toolchain prerequisites.
+Run `pnpm verify` before opening a PR. CI uses the same command for authored formatting/lint, topology, TypeScript builds/tests, example compilation, generated-output freshness/client builds, and Rust checks. See [verification](docs/VERIFICATION.md) for focused commands and toolchain prerequisites.
 
 ### Workspace policy
 
@@ -59,11 +59,13 @@ OpenAPI specs are generated from the Zod schemas into `openapi/` as both JSON an
 pnpm codegen:openapi
 ```
 
-The generated specs feed the OpenAPI Generator, which produces the Fetch and Axios clients plus the Rust crate:
+The generated Data API spec feeds OpenAPI Generator, which produces the Fetch and Axios clients plus the Rust crate:
 
 ```bash
 pnpm codegen:client
 ```
+
+For full dependency-aware regeneration and stale-file cleanup, run `pnpm codegen`. Run `pnpm verify:generated` to regenerate all four OpenAPI specs and three clients in isolation and compare their committed output without changing local artifacts. Java 17 and the pinned Rust toolchain are required. See [verification](docs/VERIFICATION.md).
 
 ## Releasing
 
@@ -72,3 +74,5 @@ Published packages live under the `@iracing-data` scope on npm. Releases are aut
 ### Generated client presentation
 
 The Fetch and Axios generation scripts normalize package metadata and README introductions after OpenAPI Generator runs. Edit the files in [scripts/client-presentation](scripts/client-presentation), then run the corresponding `pnpm codegen:client:api:fetch` or `pnpm codegen:client:api:axios` command. Generated endpoint and model documentation remains below the introduction. For presentation-only updates, run `pnpm exec node scripts/normalize-client-presentation.js fetch` (or `axios`) and format the affected package manifest and README with `pnpm exec prettier --write`.
+
+Rust crate presentation is maintained in `scripts/client-presentation/rust.json` and `rust.md`. Regeneration preserves authored Cargo dependency/build/version settings and Rust examples, while applying the presentation overlay and workspace lint inheritance.

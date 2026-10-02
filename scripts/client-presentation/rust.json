@@ -1,0 +1,10 @@
+{
+  "description": "Typed Rust client for the iRacing Data API, generated from maintained OpenAPI schemas.",
+  "license": "MIT",
+  "authors": ["iRacing Data API contributors"],
+  "repository": "https://github.com/racedirector/iracing-data-api",
+  "homepage": "https://github.com/racedirector/iracing-data-api",
+  "documentation": "https://docs.rs/iracing-data-api-client",
+  "keywords": ["iracing", "sim-racing", "api-client", "openapi"],
+  "categories": ["api-bindings"]
+}

@@ -4,21 +4,21 @@ An iRacing API Service Method Parameters object.
 
 ## Properties
 
-Name | Type | Description | Notes
------------- | ------------- | ------------- | -------------
-**type** | **string** |  | [default to undefined]
-**note** | **string** |  | [optional] [default to undefined]
-**required** | **boolean** |  | [optional] [default to undefined]
+| Name         | Type        | Description | Notes                             |
+| ------------ | ----------- | ----------- | --------------------------------- |
+| **type**     | **string**  |             | [default to undefined]            |
+| **note**     | **string**  |             | [optional] [default to undefined] |
+| **required** | **boolean** |             | [optional] [default to undefined] |
 
 ## Example
 
 ```typescript
-import { IracingServiceMethodParametersDocs } from '@iracing-data/api-client-axios';
+import { IracingServiceMethodParametersDocs } from "@iracing-data/api-client-axios";
 
 const instance: IracingServiceMethodParametersDocs = {
-    type,
-    note,
-    required,
+  type,
+  note,
+  required,
 };
 ```
 

@@ -28,7 +28,7 @@ test("build selection follows policy and includes dependency closure", () => {
     "--fail-if-no-match",
     "build",
   ]);
-  assert.deepEqual(verificationPlan("generated", policy)[0].args, [
+  assert.deepEqual(verificationPlan("generated", policy).at(-1).args, [
     "--filter",
     "sdk...",
     "--fail-if-no-match",

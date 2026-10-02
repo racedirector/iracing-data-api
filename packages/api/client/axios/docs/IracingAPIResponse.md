@@ -4,19 +4,19 @@ Response from iRacing `/data` API.
 
 ## Properties
 
-Name | Type | Description | Notes
------------- | ------------- | ------------- | -------------
-**link** | **string** | A link to the cached data | [default to undefined]
-**expires** | **string** |  | [default to undefined]
+| Name        | Type       | Description               | Notes                  |
+| ----------- | ---------- | ------------------------- | ---------------------- |
+| **link**    | **string** | A link to the cached data | [default to undefined] |
+| **expires** | **string** |                           | [default to undefined] |
 
 ## Example
 
 ```typescript
-import { IracingAPIResponse } from '@iracing-data/api-client-axios';
+import { IracingAPIResponse } from "@iracing-data/api-client-axios";
 
 const instance: IracingAPIResponse = {
-    link,
-    expires,
+  link,
+  expires,
 };
 ```
 

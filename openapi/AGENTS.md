@@ -25,4 +25,4 @@ Run only affected branches. `pnpm codegen:openapi` runs both branches/formats bu
 
 Data API contract changes then require `pnpm codegen:client:api` (Fetch, Axios, and Rust), followed by the builds in [TypeScript client guidance](../packages/api/client/AGENTS.md) and [Rust guidance](../crates/iracing-data-api-client/AGENTS.md). Those scripts read `iracing.json`; there is currently no OAuth SDK generation edge. For OAuth output, validate the authored schema/runtime consumers per [OAuth guidance](../packages/oauth/AGENTS.md).
 
-Include the exact build/codegen commands and resulting artifacts in the PR. Do not conflate formatter churn with semantic changes or claim a stale-output CI gate exists; reproducibility enforcement is separate work.
+Include the exact build/codegen commands and resulting artifacts in the PR. Run `pnpm verify:generated` to regenerate in isolation and compare committed output. `pnpm codegen` uses the same path with output replacement. Inspect changes before committing; do not conflate formatter churn with semantic changes.
