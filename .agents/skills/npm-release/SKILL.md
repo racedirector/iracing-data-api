@@ -28,7 +28,7 @@ Use this repository's package-specific, tag-triggered release flow. Do not subst
 
 ## Discover and resolve packages
 
-1. Read `pnpm-workspace.yaml`, `dist-workspace.toml`, and the `package.json` at every `npm:` member. Do not copy versions from this skill.
+1. Run `pnpm impact --base <ref> --json` using the intended comparison base, and read [change impact](../../../docs/CHANGE-IMPACT.md). Use its managed candidates, generation/verification commands, and ordering as evidence; independently choose the actual release set. It does not choose SemVer or verify registry/tag/CI readiness. Read `pnpm-workspace.yaml`, `dist-workspace.toml`, and the `package.json` at every `npm:` member. Do not copy versions from this skill.
 2. Run `pnpm check:topology --release <package-name>` for each candidate. Separately require a valid SemVer version in the selected manifest; topology validation is not version selection or registry conflict detection.
 3. Match user input in this order: exact full package name, exact unscoped suffix, then a unique case-insensitive substring among managed candidates. Ask only if no candidate or multiple candidates remain; never guess between `api-schema`, `oauth-schema`, or the two generated clients.
 4. Read every selected manifest's current version immediately before calculating its target.

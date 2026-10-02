@@ -35,7 +35,9 @@
     "verify:rust": "node scripts/verify.mjs rust",
     "test:verification": "node --test scripts/verify.test.mjs",
     "check:generated": "node scripts/check-generated.mjs",
-    "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs"
+    "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs",
+    "impact": "node scripts/workspace-impact.mjs",
+    "test:impact": "node --test scripts/workspace-impact.test.mjs"
   },
   "keywords": [],
   "author": "",
