@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@commander-js/extra-typings": "^15.0.0",
-    "@types/node": "^26.6.2",
+    "@types/node": "^26.6.3",
     "tsx": "^4.21.0"
   },
   "private": true
