@@ -2,7 +2,7 @@
 
 Last audited: **2026-09-18**
 
-This concise baseline helps future audits establish historical evidence. It is not a frozen specification and never replaces live official documentation. Update it only after completing a live audit; retain meaningful prior versions in git history so a later audit can distinguish confirmed upstream change from a newly discovered repository mismatch.
+This concise baseline helps future audits establish historical evidence. It is not a frozen specification and never replaces live official documentation. Update it only when explicitly requested after completing a live audit; retain meaningful prior versions in git history so a later audit can distinguish confirmed upstream change from a newly discovered repository mismatch.
 
 ## Official pages examined
 
@@ -53,4 +53,4 @@ This concise baseline helps future audits establish historical evidence. It is n
 
 ## Baseline maintenance
 
-After a future live audit, update the date, page list, and only contract facts that materially affect compatibility. In the audit report, cite the git diff or historical version of this file before labeling a difference a confirmed upstream change. Do not paste large sections of the external documentation here.
+Only when explicitly requested after a future live audit, update the date, page list, and only contract facts that materially affect compatibility. In the audit report, cite the git diff or historical version of this file before labeling a difference a confirmed upstream change. Do not paste large sections of the external documentation here.
