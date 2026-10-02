@@ -23,6 +23,15 @@ import {
   validateAccessToken as validateDecodedAccessToken,
 } from "./utils";
 
+// oauth4webapi validates token_type and normalizes it to lowercase. Restore
+// the public schema representation only after dependency processing.
+function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
+  return IRacingOAuthTokenResponseSchema.parseAsync({
+    ...result,
+    token_type: result.token_type === "bearer" ? "Bearer" : result.token_type,
+  });
+}
+
 export type OAuthClientOptions = {
   // Config
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
@@ -184,7 +193,7 @@ export class OAuthClient {
       response,
     );
 
-    const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
+    const token = await parseProcessedTokenResponse(result);
 
     // !!!: Store the password limited session by username.
     // !!!: Sessions are typically stored by the iRacing customer ID.
@@ -260,7 +269,7 @@ export class OAuthClient {
       response,
     );
 
-    const token = await IRacingOAuthTokenResponseSchema.parseAsync(result);
+    const token = await parseProcessedTokenResponse(result);
 
     /**
      * Using the returned token, make a request to the configured user info endpoint
@@ -308,7 +317,7 @@ export class OAuthClient {
         response,
       );
 
-      return await IRacingOAuthTokenResponseSchema.parseAsync(result);
+      return await parseProcessedTokenResponse(result);
     } catch (error) {
       if (error instanceof oauth.ResponseBodyError) {
         throw OAuthRefreshError.from(error);

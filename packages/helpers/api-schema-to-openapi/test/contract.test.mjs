@@ -1,0 +1,119 @@
+import assert from "node:assert/strict";
+import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
+import { test } from "node:test";
+import { parse } from "yaml";
+import generator from "../dist/index.js";
+
+const { generateOpenAPISpec } = generator;
+
+async function generate(t) {
+  const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "iracing-contract-"));
+  t.after(() => fs.rmSync(outputDir, { recursive: true, force: true }));
+  t.mock.method(console, "log", () => {});
+  await generateOpenAPISpec({ outputDir, fileName: "contract.json" });
+  await generateOpenAPISpec({ outputDir, fileName: "contract.yaml" });
+  const document = JSON.parse(
+    fs.readFileSync(path.join(outputDir, "contract.json"), "utf8"),
+  );
+  assert.deepEqual(
+    parse(fs.readFileSync(path.join(outputDir, "contract.yaml"), "utf8")),
+    document,
+  );
+  assert.equal(document.openapi, "3.1.1");
+  return document;
+}
+
+function assertReferencesAndOperations(document) {
+  const operationIds = new Set();
+  for (const item of Object.values(document.paths)) {
+    for (const method of ["get", "post", "put", "patch", "delete"]) {
+      const operation = item[method];
+      if (!operation) continue;
+      assert.ok(operation.operationId);
+      assert.ok(
+        !operationIds.has(operation.operationId),
+        `Duplicate operationId: ${operation.operationId}`,
+      );
+      operationIds.add(operation.operationId);
+    }
+  }
+  function visit(value) {
+    if (!value || typeof value !== "object") return;
+    if (value.$ref) {
+      assert.ok(value.$ref.startsWith("#/"));
+      const resolved = value.$ref
+        .slice(2)
+        .split("/")
+        .reduce(
+          (node, key) =>
+            node?.[key.replaceAll("~1", "/").replaceAll("~0", "~")],
+          document,
+        );
+      assert.notEqual(
+        resolved,
+        undefined,
+        `Unresolved reference: ${value.$ref}`,
+      );
+    }
+    for (const child of Object.values(value)) visit(child);
+  }
+  visit(document);
+}
+
+function dereference(document, schema) {
+  return schema.$ref
+    ? schema.$ref
+        .slice(2)
+        .split("/")
+        .reduce((node, key) => node[key], document)
+    : schema;
+}
+
+test("Data API JSON/YAML preserve query mapping, authentication, and response envelopes", async (t) => {
+  const document = await generate(t);
+  assertReferencesAndOperations(document);
+  assert.equal(document.servers[0].url, "https://members-ng.iracing.com/");
+  assert.deepEqual(document.security, [{ bearerAuth: [] }]);
+  assert.equal(document.components.securitySchemes.bearerAuth.scheme, "bearer");
+  const member = document.paths["/data/member/get"].get;
+  assert.equal(member.operationId, "getMember");
+  const customer = member.parameters.find(
+    (parameter) => parameter.name === "cust_ids",
+  );
+  assert.equal(customer.in, "query");
+  assert.equal(customer.required, true);
+  const results = document.paths["/data/results/get"].get;
+  assert.equal(results.operationId, "getResults");
+  const subsession = results.parameters.find(
+    (parameter) => parameter.name === "subsession_id",
+  );
+  assert.equal(subsession.in, "query");
+  assert.equal(subsession.required, true);
+  assert.equal(subsession.schema.type, "number");
+  for (const operation of [member, results]) {
+    for (const [status, name] of [
+      [200, "Success"],
+      [401, "Unauthorized"],
+      [429, "RateLimited"],
+      [503, "Maintenance"],
+    ]) {
+      assert.equal(
+        operation.responses[status].$ref,
+        `#/components/responses/${name}`,
+      );
+    }
+  }
+  const success = dereference(
+    document,
+    document.components.responses.Success.content["application/json"].schema,
+  );
+  assert.ok(success.properties.link);
+  assert.ok(success.properties.expires);
+  assert.ok(document.components.responses.Success.headers["x-ratelimit-limit"]);
+  assert.ok(
+    document.components.responses.Success.headers["x-ratelimit-remaining"],
+  );
+  assert.ok(document.components.responses.Success.headers["x-ratelimit-reset"]);
+});
