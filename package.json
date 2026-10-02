@@ -56,7 +56,7 @@
     "prettier": "3.9.8",
     "prettier-config-standard": "7.0.0",
     "ts-node": "^10.9.2",
-    "typescript": "^5.9.2",
+    "typescript": "^6.0.3",
     "yaml": "^2.9.1",
     "smol-toml": "^1.4.2"
   },
