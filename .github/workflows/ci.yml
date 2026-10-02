@@ -48,7 +48,7 @@ jobs:
 
       - name: Upload dependency impact
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: dependency-impact
           path: ${{ runner.temp }}/dependency-impact.json
