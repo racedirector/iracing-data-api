@@ -34,3 +34,8 @@ pnpm --filter @iracing-data/oauth-client --filter @iracing-data/api-schema-to-op
 ```
 
 `verify:js` performs these dependency builds and discovers the new test scripts through the existing workspace test command. `verify:examples` compiles all example consumers, including OAuth examples, without using credentials. OAuth Fetch tests reject unexpected requests and use synthetic token payloads; JWT expiry fixtures are structural test data, not signature validation evidence.
+
+Agent regression fixtures and validator tests run in `verify:repo`. When guidance,
+skills, ownership, or workflow tooling changes, run the five manual reasoning
+scenarios described in [agent regressions](../agent-regressions/README.md). CI
+checks fixture structure/references only and never runs a live model evaluation.

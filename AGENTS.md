@@ -49,7 +49,7 @@ When schemas or OpenAPI mappings change, build the relevant generator with depen
 
 Delegate membership, publication-policy, reference, and release-target invariants to `pnpm check:topology` and its tests rather than restating their implementation here. Add deterministic checks for new machine-verifiable invariants. Agents supply interpretation: upstream contract evidence, schema compatibility, public API impact, runtime behavior, and release scope. Do not silently change public contracts based on inferred upstream drift; establish evidence and explain the decision in the PR.
 
-Repository skills must reference this guide, applicable scoped guidance, and executable checks instead of maintaining competing topology or ownership lists.
+Repository skills must reference this guide, applicable scoped guidance, and executable checks instead of maintaining competing topology or ownership lists. When changing guidance, skills, ownership policy, or workflow tooling, run the manual [agent regression scenarios](agent-regressions/README.md); CI validates their fixtures without evaluating a model.
 
 ## Pull requests
 
