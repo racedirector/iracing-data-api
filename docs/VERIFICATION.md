@@ -10,7 +10,7 @@ CI runs this same command on one Ubuntu job. Each step prints its subsystem and 
 
 | Command                 | Coverage                                                                                                                                                                   |
 | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm verify:repo`      | Workspace policy, policy mutation tests, verification-runner tests, authored ESLint and Prettier checks                                                                    |
+| `pnpm verify:repo`      | Workspace policy, policy mutation tests, verification-runner and offline upstream-contract tests, authored ESLint and Prettier checks                                      |
 | `pnpm verify:js`        | Authored npm packages/tools and dependency builds, followed by all declared workspace tests                                                                                |
 | `pnpm verify:examples`  | Every policy-classified example and its dependency builds                                                                                                                  |
 | `pnpm verify:generated` | Presentation/diff regression tests; isolated regeneration of all OpenAPI JSON/YAML and Fetch/Axios/Rust clients; stale-output comparison; generated npm client compilation |
@@ -39,3 +39,5 @@ Agent regression fixtures and validator tests run in `verify:repo`. When guidanc
 skills, ownership, or workflow tooling changes, run the five manual reasoning
 scenarios described in [agent regressions](../agent-regressions/README.md). CI
 checks fixture structure/references only and never runs a live model evaluation.
+
+Upstream evidence capture is opt-in and separate from verification. See [upstream contract tooling](UPSTREAM-CONTRACT.md) for live capture, credential handling, fixture mode, and automation. Verification never requires an iRacing token.

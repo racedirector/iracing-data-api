@@ -13,3 +13,6 @@ packages/api/client/fetch/**
 crates/iracing-data-api-client/**
 # Scoped guidance is authored and remains formatting-checked.
 !crates/iracing-data-api-client/AGENTS.md
+
+# Private upstream evidence; never a maintained public contract.
+.upstream-contract/
