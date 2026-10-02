@@ -40,7 +40,9 @@
     "test:impact": "node --test scripts/workspace-impact.test.mjs",
     "test:dependencies": "node --test scripts/dependency-updates.test.mjs",
     "check:agent-regressions": "node scripts/agent-regressions.mjs",
-    "test:agent-regressions": "node --test scripts/agent-regressions.test.mjs"
+    "test:agent-regressions": "node --test scripts/agent-regressions.test.mjs",
+    "upstream:contract": "node scripts/upstream-contract.mjs",
+    "test:upstream": "node --test scripts/upstream-contract.test.mjs"
   },
   "keywords": [],
   "author": "",
@@ -63,7 +65,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "yaml": "^2.9.1",
-    "smol-toml": "^1.4.2"
+    "smol-toml": "^1.4.2",
+    "parse5": "8.0.0"
   },
   "engines": {
     "node": ">=24 <25",
