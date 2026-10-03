@@ -242,3 +242,5 @@ Check the provenance link on that version's npm page and verify that it identifi
 Auditing and deprecating older packages in the npm scope is a separate maintenance task: confirm ownership and migration paths before changing registry deprecation messages.
 
 On 2026-09-19, the public attestation for `@iracing-data/oauth-schema@0.0.1` identified this repository, `.github/workflows/release.yml`, tag `@iracing-data/oauth-schema@0.0.1`, and commit `5225abf7a62e6dc7108693743ea4025ce48b8ce8` ([release run](https://github.com/racedirector/iracing-data-api/actions/runs/35360484040)). The other seven workspace packages did not yet have a stable `0.0.1` version on npm; repeat the check when each is published. This observation does not verify private npm trusted publisher settings.
+
+See [repository protection and recovery](REPOSITORY-PROTECTION.md) for release-tag protections and exceptional maintainer bypass.
