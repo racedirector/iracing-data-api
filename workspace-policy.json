@@ -1,6 +1,13 @@
 {
   "workspaces": [
     {
+      "path": "examples/data-api-first-call",
+      "name": "iracing-data-api-first-call",
+      "ecosystem": "npm",
+      "kind": "example",
+      "owner": "examples"
+    },
+    {
       "path": "examples/oauth-example",
       "name": "iracing-oauth-example",
       "ecosystem": "npm",
