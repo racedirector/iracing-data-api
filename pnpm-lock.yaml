@@ -226,6 +226,9 @@ importers:
 
   apps/iracing-data-cli:
     dependencies:
+      '@iracing-data/oauth-client':
+        specifier: workspace:*
+        version: link:../../packages/oauth/client
       commander:
         specifier: ^15.0.0
         version: 15.0.0
