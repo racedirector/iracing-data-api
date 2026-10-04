@@ -224,6 +224,28 @@ importers:
         specifier: ^2.9.1
         version: 2.9.1
 
+  apps/iracing-data-cli:
+    dependencies:
+      '@iracing-data/oauth-client':
+        specifier: workspace:*
+        version: link:../../packages/oauth/client
+      commander:
+        specifier: ^15.0.0
+        version: 15.0.0
+      yaml:
+        specifier: ^2.9.1
+        version: 2.9.1
+    devDependencies:
+      '@commander-js/extra-typings':
+        specifier: ^15.0.0
+        version: 15.0.0(commander@15.0.0)
+      '@types/node':
+        specifier: ^26.6.2
+        version: 26.6.3
+      tsx:
+        specifier: ^4.23.15
+        version: 4.23.15
+
   examples/data-api-first-call:
     dependencies:
       '@iracing-data/api-client-fetch':

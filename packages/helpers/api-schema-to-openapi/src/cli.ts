@@ -1,11 +1,54 @@
 #!/usr/bin/env node
 
+import fs from "node:fs";
 import path from "node:path";
 import { Command, Option } from "@commander-js/extra-typings";
-import { generateOpenAPISpec } from "./";
+import { stringify as stringifyYAML } from "yaml";
+import { document } from "./";
 
 function inferFormatFromFileName(fileName?: string): "yaml" | undefined {
   return fileName && /\.ya?ml$/i.test(fileName) ? "yaml" : undefined;
+}
+
+function resolveFormat(
+  fileName: string,
+  format?: "json" | "yaml",
+): "json" | "yaml" {
+  if (format !== undefined) return format;
+  return /\.ya?ml$/i.test(fileName) ? "yaml" : "json";
+}
+
+export async function generateOpenAPISpec({
+  outputDir = __dirname,
+  fileName = "openapi.json",
+  format,
+}: {
+  outputDir?: string;
+  fileName?: string;
+  format?: "json" | "yaml";
+}) {
+  const outputPath = path.join(outputDir, fileName);
+
+  // Create the output dir if it doesn't exist
+  if (!fs.existsSync(outputDir)) {
+    fs.mkdirSync(outputDir, { recursive: true });
+  }
+
+  // Remove the existing file
+  if (fs.existsSync(outputPath)) {
+    fs.unlinkSync(outputPath);
+  }
+
+  // Write to file.
+  console.log(`Writing to ${outputPath}`);
+  const outputFormat = resolveFormat(fileName, format);
+
+  fs.writeFileSync(
+    outputPath,
+    outputFormat === "yaml"
+      ? stringifyYAML(document)
+      : JSON.stringify(document),
+  );
 }
 
 const program = new Command("iracing-api-openapi")

@@ -2,6 +2,9 @@
   "include": [],
   "references": [
     {
+      "path": "./apps/iracing-data-cli"
+    },
+    {
       "path": "./examples/data-api-first-call"
     },
     {
