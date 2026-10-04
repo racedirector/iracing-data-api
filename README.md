@@ -13,6 +13,17 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 
 With an existing bearer token, follow the [Fetch-first quickstart](examples/data-api-first-call/README.md): install `@iracing-data/api-client-fetch`, set `IRACING_ACCESS_TOKEN`, call `CarApi.getCar()`, and fetch the returned cached-data link without forwarding authorization. The runnable example prints the cars JSON and reports HTTP failures. [Token acquisition and refresh](packages/oauth/client/README.md) are a separate step.
 
+## OpenAPI contracts
+
+| Contract | JSON                                 | YAML                                 | Package/runtime surface                                                                                                                                |
+| -------- | ------------------------------------ | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Data API | [iracing.json](openapi/iracing.json) | [iracing.yaml](openapi/iracing.yaml) | iRacing `/data` endpoints; input to the generated Fetch, Axios, and Rust clients.                                                                      |
+| OAuth    | [oauth.json](openapi/oauth.json)     | [oauth.yaml](openapi/oauth.yaml)     | iRacing Auth Service requests/responses shared with the OAuth schemas and authored OAuth client. The OAuth client is not generated from this contract. |
+
+Use these contracts to inspect operations and authentication, import into API tooling, or generate an external client. For tools requiring a URL, use the raw [Data API JSON](https://raw.githubusercontent.com/racedirector/iracing-data-api/main/openapi/iracing.json) or [OAuth JSON](https://raw.githubusercontent.com/racedirector/iracing-data-api/main/openapi/oauth.json). Main tracks the current repository contract; pin a commit when reproducible external generation matters, rather than assuming independently versioned packages share a release.
+
+The JSON/YAML files are generated artifacts. Maintained inputs are the [Data API Zod schemas](packages/api/schema/src) and [endpoint mappings](packages/helpers/api-schema-to-openapi/src), and the [OAuth Zod schemas](packages/oauth/schema/src) and [endpoint mappings](packages/helpers/oauth-schema-to-openapi/src). Change those inputs rather than editing OpenAPI output. [Deterministic verification](docs/VERIFICATION.md) checks both formats and downstream Data API clients for freshness. These repository contracts describe maintained coverage; generation alone does not verify live upstream behavior.
+
 ## Packages
 
 ### API
