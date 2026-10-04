@@ -210,13 +210,14 @@ export class OAuthClient {
    * Given the parameters from the authorization server,
    * fetches the token.
    * @param params The query parameters from the authorization server.
+   * @param sessionId Optional explicit storage key. When provided, no profile lookup is required.
    * @returns The auth token.
    *
    * @throws {Error} If the client is not configured with a redirect URI.
    * @throws {OAuthCallbackError} If the callback is missing the `state` or `code` parameter,
    *   or if the authorization session cannot be found.
    * @throws {OAuthCallbackError} If the authorization server returns an OAuth error response.
-   * @throws {Error} If token exchange, token parsing, or profile lookup fails.
+   * @throws {Error} If token exchange or token parsing fails, or if profile lookup fails when no explicit session ID is supplied.
    */
   async callback(params: URLSearchParams, sessionId?: string) {
     if (!this.clientMetadata.redirectUri) {
@@ -275,9 +276,14 @@ export class OAuthClient {
 
     const token = await parseProcessedTokenResponse(result);
 
+    if (sessionId) {
+      await this.storeSession(sessionId, token);
+      return token;
+    }
+
     /**
-     * Using the returned token, make a request to the configured user info endpoint
-     * to fetch the user's profile for session caching.
+     * Without an application-owned session key, fetch the configured user profile
+     * so the iRacing customer ID can be used for session caching.
      */
     const profileResponse = await oauth.protectedResourceRequest(
       token.access_token,
@@ -289,11 +295,7 @@ export class OAuthClient {
     const profile =
       await IRacingOAuthProfileResponseSchema.parseAsync(profileJson);
 
-    // Store the session by the provided session ID when available, otherwise fall back to the iRacing customer id.
-    await this.storeSession(
-      sessionId ?? profile.iracing_cust_id.toString(),
-      token,
-    );
+    await this.storeSession(profile.iracing_cust_id.toString(), token);
 
     return token;
   }
