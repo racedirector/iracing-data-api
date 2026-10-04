@@ -1,0 +1,90 @@
+name: Task / improvement
+description: Propose bounded maintenance, refactoring, documentation, release, packaging, migration, testing, or repository work.
+title: "Task: "
+labels:
+  - "type:task"
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for bounded implementation/support work that is not itself a new externally consumable capability.
+
+        See the [issue triage and labeling guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for the repository's type, area, and status taxonomy.
+
+        Maintainers should generally create epics and spikes directly during planning rather than through public request forms.
+  - type: dropdown
+    id: category
+    attributes:
+      label: Work category
+      options:
+        - Maintenance
+        - Refactoring
+        - Documentation
+        - Release or publishing
+        - Packaging or package metadata
+        - Migration or cleanup
+        - Testing or verification
+        - Repository tooling, CI, or automation
+        - Security hardening
+        - Other
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: This helps maintainers assign the appropriate area:* label during triage.
+      options:
+        - Repository / CI / automation
+        - OSS adoption / package-family presentation
+        - Documentation
+        - Release / publishing
+        - Rust client
+        - OAuth
+        - Data API
+        - MCP application
+        - Multiple / cross-cutting
+        - Other
+    validations:
+      required: true
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: What bounded piece of work should be completed?
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What maintenance burden, ambiguity, inconsistency, risk, or workflow problem exists today?
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope
+      description: Describe the intended change and explicitly call out important non-goals when useful.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: What observable conditions make this issue complete?
+      placeholder: |
+        - [ ] ...
+        - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: validation
+    attributes:
+      label: Validation
+      description: List relevant builds, tests, verification commands, generated-artifact checks, or manual checks.
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Dependencies and related work
+      description: Link blocking issues, parent epics, related PRs, or follow-up work. Use explicit dependency relationships when available rather than inventing dependency labels.
