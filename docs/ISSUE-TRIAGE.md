@@ -63,6 +63,12 @@ Area labels describe the code/product ownership affected, not technologies menti
 
 Every open issue should have exactly one priority label.
 
+The public issue forms apply `priority:P2` by default. During triage, replace that
+label when another priority is warranted; do not add a second priority label.
+Issues created through blank issues, the CLI, or the API require explicit priority
+assignment. Keep `priority:P2` defined in the repository so the form default can
+be applied.
+
 | Label         | Meaning                                                                                                                                                          |
 | ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `priority:P0` | Immediate critical work: active production outage, severe security exposure, data-loss risk, release-stop condition, or equivalent interruption-worthy incident. |
@@ -82,8 +88,14 @@ GitHub also supports organization-level custom issue fields, including single-se
 
 | Label                   | Use for                                                                                                     |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------- |
-| `status:blocked`        | The issue cannot proceed until a concrete dependency, decision, or prerequisite is resolved.                |
 | `status:ready-to-close` | Work is effectively complete and the remaining action is closure/reconciliation rather than implementation. |
+
+Use GitHub's native **blocked by** and **blocking** issue relationships for
+prerequisites. The `status:blocked` label is retired. Link the concrete prerequisite
+issue before removing a legacy blocked label. Record decisions or missing context
+in the issue description; create a dependency only when a concrete prerequisite
+issue exists. An epic coordinating active work is not automatically blocked by
+all of its children.
 
 Do not add labels such as `status:ready`, `status:in-progress`, or `status:done` merely to mirror GitHub state.
 
@@ -91,7 +103,7 @@ Do not add labels such as `status:ready`, `status:in-progress`, or `status:done`
 
 Use this exact palette for existing taxonomy labels. Priority carries the strongest
 visual hierarchy: critical red, urgent orange/red, planned amber, then quiet pale
-blue. Status uses danger red and completion green. Area colors keep the proposed
+blue. The ready-to-close status uses completion green. Area colors keep the proposed
 hue families but use lighter, muted shades so ownership does not compete with
 urgency; documentation uses teal to distinguish it from the two API/auth blues.
 Release green is deliberately lighter than completion green.
@@ -102,7 +114,6 @@ Release green is deliberately lighter than completion green.
 | `priority:P1`           | `D93F0B` |
 | `priority:P2`           | `FBCA04` |
 | `priority:P3`           | `C5DEF5` |
-| `status:blocked`        | `B60205` |
 | `status:ready-to-close` | `0E8A16` |
 | `area:mcp`              | `BAA2EF` |
 | `area:oauth`            | `8FB4E8` |
@@ -116,7 +127,7 @@ Release green is deliberately lighter than completion green.
 Hex values omit the leading `#` for GitHub's API/CLI. Color is a scanning aid;
 retain the explicit label names so meaning does not depend on color perception.
 For a new taxonomy label, choose an explicit color before creating it: reserve
-strong red/orange/amber for urgency, strong red/green for exceptional status, and
+strong red/orange/amber for urgency, strong green for completion status, and
 muted distinct hues for areas. Compare it with the existing palette and record
 its exact hex here; do not accept GitHub's default `EDEDED`.
 
@@ -138,7 +149,7 @@ When an issue is created or reviewed:
 2. Assign exactly one `priority:P0`–`priority:P3` label.
 3. Assign the smallest accurate set of `area:*` labels.
 4. Add `status:*` only when an exceptional lifecycle state materially improves filtering.
-5. Record explicit dependencies using GitHub relationships when available; do not encode dependencies as ad-hoc labels.
+5. Record explicit dependencies using GitHub's native blocked-by/blocking relationships; do not encode dependencies as labels.
 6. Remove generic/default labels that duplicate structured metadata.
 7. Revisit metadata when scope or scheduling changes. A completed spike should normally produce implementation issues rather than being converted into a task.
 
@@ -150,12 +161,17 @@ is:issue is:open type:"Feature"
 is:issue is:open type:"Task"
 is:issue is:open label:"priority:P0"
 is:issue is:open label:"priority:P1"
-is:issue is:open label:"priority:P2" -label:"status:blocked"
+is:issue is:open label:"priority:P2"
 is:issue is:open label:"priority:P3"
 is:issue is:open label:"area:mcp"
 is:issue is:open label:"area:oauth" type:"Bug"
-is:issue is:open label:"status:blocked"
 ```
+
+For dependency inspection, use the issue's native relationships or the
+[GitHub issue dependency API](https://docs.github.com/en/rest/issues/issue-dependencies):
+`GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocked_by`
+and `GET /repos/{owner}/{repo}/issues/{issue_number}/dependencies/blocking`.
+The priority filter above includes both blocked and unblocked issues.
 
 ## Examples
 

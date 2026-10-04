@@ -60,7 +60,7 @@ Use `pnpm --filter <package>` to run scripts for a specific workspace package or
 
 ### Issues and triage
 
-Before creating or triaging backlog work, see [issue triage and prioritization](docs/ISSUE-TRIAGE.md). Use GitHub's native Issue Type for work classification, assign the smallest accurate set of `area:*` labels, and assign exactly one `priority:P0`–`priority:P3` label. Use `status:*` only when an exceptional lifecycle state materially improves filtering.
+Before creating or triaging backlog work, see [issue triage and prioritization](docs/ISSUE-TRIAGE.md). Use GitHub's native Issue Type for work classification, assign the smallest accurate set of `area:*` labels, and assign exactly one `priority:P0`–`priority:P3` label. Use native blocked-by/blocking issue relationships for prerequisites; reserve `status:*` for exceptional lifecycle information such as ready-to-close.
 
 ### Verification
 

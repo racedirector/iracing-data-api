@@ -2,7 +2,7 @@ name: Task / improvement
 description: Propose bounded maintenance, refactoring, documentation, release, packaging, migration, testing, or repository work.
 title: "Task: "
 type: Task
-labels: []
+labels: ["priority:P2"]
 body:
   - type: markdown
     attributes:
