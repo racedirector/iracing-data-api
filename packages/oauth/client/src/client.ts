@@ -52,6 +52,10 @@ export class OAuthClient {
   private readonly clientMetadata: IRacingOAuthClientMetadata;
   private readonly stateStore: StateStore;
   private readonly sessionStore: SessionStore;
+  private readonly sessionRefreshes = new Map<
+    string,
+    Promise<IRacingOAuthTokenResponse>
+  >();
 
   protected authorizationServer: oauth.AuthorizationServer;
   protected authorizationClient: oauth.Client;
@@ -427,7 +431,7 @@ export class OAuthClient {
    * Refreshes a stored session using its refresh token and persists the updated result.
    *
    * @param sessionId - The session identifier to refresh.
-   * @returns The refreshed token response.
+   * @returns The complete persisted session.
    * @throws {OAuthRefreshError} If the session does not exist, is missing a refresh token,
    *   or the refresh token is expired.
    */
@@ -436,6 +440,12 @@ export class OAuthClient {
 
     if (!session) {
       throw OAuthRefreshError.sessionNotFound(sessionId);
+    }
+
+    // A delayed restoration may have read the old session before another
+    // refresh finished. Recheck storage before using a single-use token.
+    if (!isAccessTokenExpired(session.access_token)) {
+      return session;
     }
 
     if (!session.refresh_token) {
@@ -448,12 +458,13 @@ export class OAuthClient {
 
     const refreshed = await this.refresh(session.refresh_token);
 
-    await this.storeSession(sessionId, {
+    const updatedSession = {
       ...session,
       ...refreshed,
-    });
+    };
+    await this.storeSession(sessionId, updatedSession);
 
-    return refreshed;
+    return updatedSession;
   }
 
   /**
@@ -484,8 +495,18 @@ export class OAuthClient {
       // Check if the session is expired
       const isExpired = isAccessTokenExpired(session.access_token);
       if (isExpired) {
-        // Refresh the session
-        return await this.refreshSessionForSessionId(sessionId);
+        let refresh = this.sessionRefreshes.get(sessionId);
+        if (!refresh) {
+          refresh = this.refreshSessionForSessionId(sessionId).finally(() => {
+            // Keep coordination through persistence, and clear failures so a
+            // subsequent restoration can retry without a cached rejection.
+            if (this.sessionRefreshes.get(sessionId) === refresh) {
+              this.sessionRefreshes.delete(sessionId);
+            }
+          });
+          this.sessionRefreshes.set(sessionId, refresh);
+        }
+        return await refresh;
       }
 
       return session;

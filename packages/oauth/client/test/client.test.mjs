@@ -24,9 +24,8 @@ const token = (overrides = {}) => ({
 });
 const json = (body, status = 200) => Response.json(body, { status });
 
-function setup(metadata = {}) {
+function setup(metadata = {}, sessionStore = new InMemoryStore()) {
   const stateStore = new InMemoryStore();
-  const sessionStore = new InMemoryStore();
   const client = new OAuthClient({
     clientMetadata: {
       clientId: "fixture-client",
@@ -38,6 +37,10 @@ function setup(metadata = {}) {
     sessionStore,
   });
   return { client, stateStore, sessionStore };
+}
+
+function deferred() {
+  return Promise.withResolvers();
 }
 
 // No request can reach the network: every test starts with a rejecting fetch.
@@ -336,7 +339,10 @@ test("refresh preserves a stored refresh token when the response omits rotation"
   sessionStore.set("session", stored);
   const issued = token();
   mockFetch(async () => json(issued));
-  assert.deepEqual(await client.restoreSessionForId("session"), issued);
+  assert.deepEqual(await client.restoreSessionForId("session"), {
+    ...stored,
+    ...issued,
+  });
   assert.deepEqual(sessionStore.get("session"), { ...stored, ...issued });
 });
 
@@ -363,5 +369,226 @@ for (const profile of [
       assert.equal(sessionStore.get("explicit-session"), undefined);
     }
     assert.equal(stateStore.get(state), undefined);
+  });
+}
+
+test("concurrent restorations share refresh through persistence and use rotated tokens later", async () => {
+  const backing = new InMemoryStore();
+  const writeStarted = deferred();
+  const allowWrite = deferred();
+  let writes = 0;
+  const { client } = setup(
+    {},
+    {
+      get: (id) => backing.get(id),
+      del: (id) => backing.del(id),
+      async set(id, session) {
+        writes++;
+        writeStarted.resolve();
+        await allowWrite.promise;
+        backing.set(id, session);
+      },
+    },
+  );
+  const old = token({
+    access_token: jwt(1),
+    refresh_token: jwt(future()),
+    scope: "iracing.auth iracing.profile",
+  });
+  const rotated = token({ refresh_token: jwt(future() + 1) });
+  const expected = { ...old, ...rotated };
+  backing.set("session", old);
+  const requestStarted = deferred();
+  const response = deferred();
+  const refreshTokens = [];
+  mockFetch(async (url, options) => {
+    assert.equal(String(url), "https://oauth.iracing.com/oauth2/token");
+    const body = new URLSearchParams(options.body);
+    assert.equal(body.get("grant_type"), "refresh_token");
+    refreshTokens.push(body.get("refresh_token"));
+    requestStarted.resolve();
+    return response.promise;
+  });
+  let completed = 0;
+  const restore = () =>
+    client.restoreSessionForId("session").then((session) => {
+      completed++;
+      assert.deepEqual(backing.get("session"), session);
+      return session;
+    });
+  const callers = Array.from({ length: 5 }, restore);
+  await requestStarted.promise;
+  assert.deepEqual(refreshTokens, [old.refresh_token]);
+  response.resolve(json(rotated));
+  await writeStarted.promise;
+  assert.equal(completed, 0);
+  assert.deepEqual(backing.get("session"), old);
+  // Callers arriving while the rotated session is being written also wait.
+  callers.push(restore());
+  allowWrite.resolve();
+  const results = await Promise.all(callers);
+  for (const session of results) assert.deepEqual(session, expected);
+  assert.equal(writes, 1);
+  assert.deepEqual(await client.restoreSessionForId("session"), expected);
+  assert.equal(refreshTokens.length, 1);
+
+  backing.set("session", { ...expected, access_token: jwt(1) });
+  const next = token({ refresh_token: jwt(future() + 2) });
+  mockFetch(async (_url, options) => {
+    refreshTokens.push(new URLSearchParams(options.body).get("refresh_token"));
+    return json(next);
+  });
+  assert.deepEqual(await client.restoreSessionForId("session"), {
+    ...expected,
+    ...next,
+  });
+  assert.deepEqual(refreshTokens, [old.refresh_token, rotated.refresh_token]);
+  assert.equal(writes, 2);
+});
+
+test("a delayed stale read rechecks the persisted session after refresh completes", async () => {
+  const backing = new InMemoryStore();
+  const staleRead = deferred();
+  let reads = 0;
+  const { client } = setup(
+    {},
+    {
+      get(id) {
+        return ++reads === 1 ? staleRead.promise : backing.get(id);
+      },
+      set: (id, session) => backing.set(id, session),
+      del: (id) => backing.del(id),
+    },
+  );
+  const old = token({ access_token: jwt(1), refresh_token: jwt(future()) });
+  const rotated = token({ refresh_token: jwt(future() + 1) });
+  backing.set("session", old);
+  let requests = 0;
+  mockFetch(async () => {
+    requests++;
+    return json(rotated);
+  });
+  const delayed = client.restoreSessionForId("session");
+  assert.deepEqual(await client.restoreSessionForId("session"), rotated);
+  staleRead.resolve(old);
+  assert.deepEqual(await delayed, rotated);
+  assert.equal(requests, 1);
+});
+
+for (const failure of ["oauth", "transport", "malformed", "persistence"]) {
+  test(`concurrent ${failure} failure clears refresh coordination for retry`, async () => {
+    const backing = new InMemoryStore();
+    const response = deferred();
+    const started = deferred();
+    const storeFailure = new Error("Fixture persistence failure");
+    let failWrite = failure === "persistence";
+    const { client } = setup(
+      {},
+      {
+        get: (id) => backing.get(id),
+        del: (id) => backing.del(id),
+        set(id, session) {
+          if (failWrite) throw storeFailure;
+          backing.set(id, session);
+        },
+      },
+    );
+    const old = token({ access_token: jwt(1), refresh_token: jwt(future()) });
+    backing.set("session", old);
+    let requests = 0;
+    mockFetch(async () => {
+      requests++;
+      started.resolve();
+      await response.promise;
+      if (failure === "transport") throw new Error("Fixture transport failure");
+      if (failure === "oauth") {
+        return json(
+          { error: "invalid_grant", error_description: "Fixture denial" },
+          400,
+        );
+      }
+      if (failure === "malformed") return json({ token_type: "Bearer" });
+      return json(token({ refresh_token: jwt(future() + 1) }));
+    });
+    const callers = Array.from({ length: 4 }, () =>
+      client.restoreSessionForId("session"),
+    );
+    const outcomes = Promise.allSettled(callers);
+    await started.promise;
+    response.resolve();
+    const results = await outcomes;
+    assert.equal(requests, 1);
+    for (const result of results) {
+      assert.equal(result.status, "rejected");
+      assert.equal(result.reason, results[0].reason);
+      if (failure === "oauth") {
+        assert.ok(result.reason instanceof OAuthRefreshError);
+        assert.equal(result.reason.description, "Fixture denial");
+      }
+      if (failure === "persistence") assert.equal(result.reason, storeFailure);
+    }
+    assert.deepEqual(backing.get("session"), old);
+    failWrite = false;
+    const rotated = token({ refresh_token: jwt(future() + 2) });
+    mockFetch(async () => {
+      requests++;
+      return json(rotated);
+    });
+    assert.deepEqual(await client.restoreSessionForId("session"), rotated);
+    assert.equal(requests, 2);
+  });
+}
+
+test("different session IDs refresh independently while valid and missing sessions bypass refresh", async () => {
+  const { client, sessionStore } = setup();
+  const started = { a: deferred(), b: deferred() };
+  const responses = { a: deferred(), b: deferred() };
+  const old = {
+    a: token({ access_token: jwt(1), refresh_token: jwt(future()) }),
+    b: token({ access_token: jwt(1), refresh_token: jwt(future() + 1) }),
+  };
+  for (const id of ["a", "b"]) sessionStore.set(id, old[id]);
+  const valid = token();
+  sessionStore.set("valid", valid);
+  let requests = 0;
+  mockFetch(async (_url, options) => {
+    requests++;
+    const refreshToken = new URLSearchParams(options.body).get("refresh_token");
+    const id = refreshToken === old.a.refresh_token ? "a" : "b";
+    assert.equal(refreshToken, old[id].refresh_token);
+    started[id].resolve();
+    return responses[id].promise;
+  });
+  const a = client.restoreSessionForId("a");
+  await started.a.promise;
+  const b = client.restoreSessionForId("b");
+  await started.b.promise;
+  assert.deepEqual(await client.restoreSessionForId("valid"), valid);
+  assert.equal(await client.restoreSessionForId("missing"), undefined);
+  const rotatedB = token({ refresh_token: jwt(future() + 2) });
+  responses.b.resolve(json(rotatedB));
+  assert.deepEqual(await b, rotatedB);
+  assert.deepEqual(sessionStore.get("a"), old.a);
+  const rotatedA = token({ refresh_token: jwt(future() + 3) });
+  responses.a.resolve(json(rotatedA));
+  assert.deepEqual(await a, rotatedA);
+  assert.equal(requests, 2);
+});
+
+for (const field of ["access_token", "refresh_token"]) {
+  test(`malformed stored ${field} fails before network and allows corrected session retry`, async () => {
+    const { client, sessionStore } = setup();
+    sessionStore.set(
+      "session",
+      token({
+        access_token: jwt(1),
+        refresh_token: jwt(future()),
+        [field]: "malformed",
+      }),
+    );
+    await assert.rejects(client.restoreSessionForId("session"));
+    const valid = token();
+    sessionStore.set("session", valid);
+    assert.deepEqual(await client.restoreSessionForId("session"), valid);
   });
 }
