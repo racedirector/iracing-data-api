@@ -1,67 +1,75 @@
-name: Feature or improvement
-description: Propose a focused repo, package, documentation, generation, or release improvement.
-title: "Improve "
-labels: []
+name: Feature request
+description: Propose a new externally consumable capability or materially new public behavior.
+title: "Feature: "
+labels:
+  - "type:feature"
 body:
   - type: markdown
     attributes:
       value: |
-        Use this for scoped improvements, new package behavior, docs/examples, generated-client presentation, release tooling, or discovery work.
+        Use this form for new user/developer-facing capability. For maintenance, refactoring, documentation, release, packaging, migration, or repository work, use the **Task / improvement** form instead.
+
+        See the [issue triage and labeling guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for the repository's type, area, and status taxonomy.
   - type: textarea
     id: summary
     attributes:
       label: Summary
-      description: What should change, and who benefits?
-      placeholder: Improve generated client README introductions so npm users immediately understand install, auth, and package selection.
+      description: What new capability should exist, and who benefits from it?
+      placeholder: Add a first-class MCP tool that lets agents retrieve bounded iRacing subsession results by subsession ID.
     validations:
       required: true
   - type: dropdown
     id: area
     attributes:
       label: Area
+      description: This helps maintainers assign the appropriate area:* label during triage.
       options:
         - OAuth
-        - Data API schemas
+        - Data API schemas or client behavior
         - Generated clients
-        - Router
-        - Examples
-        - Documentation
-        - Release or publishing
-        - Package metadata or discoverability
-        - Repository maintenance
+        - Better Call router
+        - MCP application
+        - Rust client
+        - Examples or public developer experience
         - Other
     validations:
       required: true
   - type: textarea
     id: problem
     attributes:
-      label: Problem
-      description: What is missing, confusing, brittle, or hard to discover today?
+      label: Problem or use case
+      description: What user/developer workflow is currently impossible, awkward, or missing?
     validations:
       required: true
   - type: textarea
     id: proposal
     attributes:
-      label: Proposed change
-      description: Keep this practical. Bullet lists are welcome when there are several concrete changes.
+      label: Proposed behavior
+      description: Describe the externally observable capability or contract. Keep implementation details secondary unless they constrain the public behavior.
     validations:
       required: true
   - type: textarea
     id: acceptance
     attributes:
       label: Acceptance criteria
-      description: What would make this ready to close?
+      description: What would make the feature complete and usable?
       placeholder: |
         - [ ] ...
         - [ ] ...
+    validations:
+      required: true
+  - type: textarea
+    id: compatibility
+    attributes:
+      label: Compatibility considerations
+      description: Note expected API/schema compatibility, migration concerns, or intentionally deferred behavior.
   - type: textarea
     id: validation
     attributes:
       label: Suggested validation
-      description: Mention useful checks such as package builds, codegen, README review, npm metadata checks, or examples to run.
-      placeholder: pnpm --filter @iracing-data/oauth-client build
+      description: Mention useful contract, build, integration, example, or compatibility checks.
   - type: textarea
     id: context
     attributes:
       label: Additional context
-      description: Related issues, PRs, links to iRacing docs, generated output, or follow-up work to keep out of scope.
+      description: Related issues, PRs, upstream iRacing documentation, examples, or follow-up work to keep out of scope.
