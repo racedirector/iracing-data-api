@@ -1,7 +1,7 @@
 name: Feature request
 description: Propose a new externally consumable capability or materially new public behavior.
 title: "Feature: "
-type: feature
+type: Feature
 labels: []
 body:
   - type: markdown
