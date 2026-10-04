@@ -6,8 +6,8 @@ import {
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
 import { openUrlInBrowser } from "./browser.js";
-import type { AddressInfo } from "node:net";
 import type { Diagnostics } from "./diagnostics.js";
+import type { AddressInfo } from "node:net";
 
 const CALLBACK_HOST = "127.0.0.1";
 const CALLBACK_PATH = "/oauth/iracing/callback";
