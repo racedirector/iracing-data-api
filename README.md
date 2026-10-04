@@ -60,7 +60,7 @@ Use `pnpm --filter <package>` to run scripts for a specific workspace package or
 
 ### Issues and triage
 
-Before creating or triaging backlog work, see [issue triage and labeling](docs/ISSUE-TRIAGE.md). Every open issue should have exactly one `type:*` label, the smallest accurate set of `area:*` labels, and a `status:*` label only when an exceptional lifecycle state materially improves filtering. Public issue forms assign `type:bug`, `type:feature`, or `type:task`; epics and spikes are normally created by maintainers during planning.
+Before creating or triaging backlog work, see [issue triage and prioritization](docs/ISSUE-TRIAGE.md). Use GitHub's native Issue Type for work classification, assign the smallest accurate set of `area:*` labels, and assign exactly one `priority:P0`–`priority:P3` label. Use `status:*` only when an exceptional lifecycle state materially improves filtering.
 
 ### Verification
 
