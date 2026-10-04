@@ -15,53 +15,51 @@ const CommaSeparatedSessionIdsSchema = z.codec(z.string(), z.array(z.uuid()), {
   encode: (value) => value.join(","),
 });
 
-export const IRacingOAuthClientIdSchema = z.string().meta({
+export const OAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
 });
 
-export const IRacingOAuthClientSecretSchema = z.string().meta({
+export const OAuthClientSecretSchema = z.string().meta({
   description: "The client secret issued during registration.",
 });
 
-export const IRacingOAuthScopeAuthSchema = z.literal("iracing.auth").meta({
+export const OAuthScopeAuthSchema = z.literal("iracing.auth").meta({
   description: "OAuth scope that grants authorization for iRacing services.",
 });
 
-export const IRacingOAuthScopeProfileSchema = z
-  .literal("iracing.profile")
-  .meta({
-    description: "OAuth scope that grants access to the iRacing profile.",
-  });
+export const OAuthScopeProfileSchema = z.literal("iracing.profile").meta({
+  description: "OAuth scope that grants access to the iRacing profile.",
+});
 
-export const IRacingOAuthScopesSchema = z.union([
-  IRacingOAuthScopeAuthSchema,
-  IRacingOAuthScopeProfileSchema,
+export const OAuthScopesSchema = z.union([
+  OAuthScopeAuthSchema,
+  OAuthScopeProfileSchema,
 ]);
 
-export const IRacingOAuthScopesStringSchema = z.string().meta({
+export const OAuthScopesStringSchema = z.string().meta({
   description:
     "One or more scopes to request, if any, separated by whitespace.",
 });
 
 // Headers
 
-export const IRacingOAuthRequestIdHeaderKey = "x-request-id";
-export const IRacingOAuthRequestIdHeaderSchema = z.string().meta({
+export const OAuthRequestIdHeaderKey = "x-request-id";
+export const OAuthRequestIdHeaderSchema = z.string().meta({
   title: "Request ID",
   description:
     "Each incoming request is assigned a request identifier. The request identifier is used to associate log messages with the request. Please include the value of the received x-request-id header when reporting issues.",
   header: {
-    id: IRacingOAuthRequestIdHeaderKey,
+    id: OAuthRequestIdHeaderKey,
   },
 });
 
-export const IRacingOAuthHeadersSchema = z.object({
-  [IRacingOAuthRequestIdHeaderKey]: IRacingOAuthRequestIdHeaderSchema,
+export const OAuthHeadersSchema = z.object({
+  [OAuthRequestIdHeaderKey]: OAuthRequestIdHeaderSchema,
 });
 
 // Requests and responses
 
-export const IRacingOAuthErrorResponseSchema = z.object({
+export const OAuthErrorResponseSchema = z.object({
   status: z.number(),
   status_reason: z.string(),
   error: z.string(),
@@ -70,8 +68,8 @@ export const IRacingOAuthErrorResponseSchema = z.object({
   state: z.string().optional(),
 });
 
-export const IRacingOAuthAuthorizeParametersSchema = z.object({
-  client_id: IRacingOAuthClientIdSchema,
+export const OAuthAuthorizeParametersSchema = z.object({
+  client_id: OAuthClientIdSchema,
   redirect_uri: z.url().meta({
     description:
       "A redirect URI registered to the client, which must match exactly.",
@@ -95,14 +93,14 @@ export const IRacingOAuthAuthorizeParametersSchema = z.object({
     description:
       "This state value will be returned unmodified at the end of the authentication and authorization flow. It may be used to store request-specific data and in the prevention of CSRF attacks.",
   }),
-  scope: IRacingOAuthScopesStringSchema.optional(),
+  scope: OAuthScopesStringSchema.optional(),
   prompt: z.string().optional().meta({
     description:
       "Space-delimited, case-sensitive list of ASCII string values which influence how the authorization server interacts with the user.",
   }),
 });
 
-export const IRacingOAuthCllbackParametersSchema = z
+export const OAuthCallbackParametersSchema = z
   .object({
     state: z.string(),
     code: z.string(),
@@ -112,11 +110,11 @@ export const IRacingOAuthCllbackParametersSchema = z
       "Parameters are added to the query string of the `redirect_uri`.",
   });
 
-export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema = z
+export const OAuthTokenAuthorizationCodeGrantParametersSchema = z
   .object({
     grant_type: z.literal("authorization_code"),
-    client_id: IRacingOAuthClientIdSchema,
-    client_secret: IRacingOAuthClientSecretSchema.optional(),
+    client_id: OAuthClientIdSchema,
+    client_secret: OAuthClientSecretSchema.optional(),
     code: z
       .string()
       .meta({ description: "As returned to the redirect_uri of the client." }),
@@ -132,11 +130,11 @@ export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema = z
     id: "authorizationCodeGrant",
   });
 
-export const IRacingOAuthTokenRefreshGrantParametersSchema = z
+export const OAuthTokenRefreshGrantParametersSchema = z
   .object({
     grant_type: z.literal("refresh_token"),
-    client_id: IRacingOAuthClientIdSchema,
-    client_secret: IRacingOAuthClientSecretSchema.optional(),
+    client_id: OAuthClientIdSchema,
+    client_secret: OAuthClientSecretSchema.optional(),
     refresh_token: z.string().meta({
       description: "As returned in the `/token` response.",
     }),
@@ -145,11 +143,11 @@ export const IRacingOAuthTokenRefreshGrantParametersSchema = z
     id: "refreshTokenGrant",
   });
 
-export const IRacingOAuthPasswordLimitedGrantParametersSchema = z
+export const OAuthPasswordLimitedGrantParametersSchema = z
   .object({
     grant_type: z.literal("password_limited"),
-    client_id: IRacingOAuthClientIdSchema,
-    client_secret: IRacingOAuthClientSecretSchema,
+    client_id: OAuthClientIdSchema,
+    client_secret: OAuthClientSecretSchema,
     username: z.string().meta({
       description: "The email address or other issued identifier for a user.",
     }),
@@ -157,23 +155,23 @@ export const IRacingOAuthPasswordLimitedGrantParametersSchema = z
       description:
         "The password of the user. Password must be masked with the `username` before it is sent to the server.",
     }),
-    scope: IRacingOAuthScopesStringSchema.optional(),
+    scope: OAuthScopesStringSchema.optional(),
   })
   .meta({
     id: "passwordLimitedGrant",
   });
 
-export const IRacingOAuthTokenParametersSchema = z
+export const OAuthTokenParametersSchema = z
   .discriminatedUnion("grant_type", [
-    IRacingOAuthTokenAuthorizationCodeGrantParametersSchema,
-    IRacingOAuthTokenRefreshGrantParametersSchema,
-    IRacingOAuthPasswordLimitedGrantParametersSchema,
+    OAuthTokenAuthorizationCodeGrantParametersSchema,
+    OAuthTokenRefreshGrantParametersSchema,
+    OAuthPasswordLimitedGrantParametersSchema,
   ])
   .meta({
     id: "tokenGrantParameters",
   });
 
-export const IRacingOAuthTokenResponseSchema = z
+export const OAuthTokenResponseSchema = z
   .object({
     access_token: z.string().meta({
       description:
@@ -192,13 +190,13 @@ export const IRacingOAuthTokenResponseSchema = z
       description:
         "The number of seconds after which this refresh token will no longer be considered valid. The server may not issue a refresh token, in which case this field will be omitted.",
     }),
-    scope: IRacingOAuthScopesStringSchema.optional(),
+    scope: OAuthScopesStringSchema.optional(),
   })
   .meta({
     id: "tokenGrantResponse",
   });
 
-export const IRacingOAuthJWTAccessTokenAlgorithmValues = [
+export const OAuthJWTAccessTokenAlgorithmValues = [
   "HS256",
   "HS384",
   "HS512",
@@ -215,10 +213,10 @@ export const IRacingOAuthJWTAccessTokenAlgorithmValues = [
   "EdDSA",
 ] as const;
 
-export const IRacingOAuthJWTAccessTokenAlgorithmSchema = z
+export const OAuthJWTAccessTokenAlgorithmSchema = z
   .string()
   .trim()
-  .pipe(z.enum(IRacingOAuthJWTAccessTokenAlgorithmValues))
+  .pipe(z.enum(OAuthJWTAccessTokenAlgorithmValues))
   .meta({
     id: "jwtAccessTokenAlgorithm",
     title: "JWT Access Token Algorithm",
@@ -226,13 +224,13 @@ export const IRacingOAuthJWTAccessTokenAlgorithmSchema = z
       "The signed JWT algorithm used by the iRacing access token header. `none` is explicitly disallowed.",
   });
 
-export const IRacingOAuthJWTAccessTokenHeaderSchema = z
+export const OAuthJWTAccessTokenHeaderSchema = z
   .object({
     kid: z.string().min(1).meta({
       description:
         "The key identifier used to look up the correct signing key in the JWKS document.",
     }),
-    alg: IRacingOAuthJWTAccessTokenAlgorithmSchema,
+    alg: OAuthJWTAccessTokenAlgorithmSchema,
     jku: z.url().refine(
       (value) => {
         const url = new URL(value);
@@ -259,7 +257,7 @@ export const IRacingOAuthJWTAccessTokenHeaderSchema = z
       "The decoded JWS header for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
   });
 
-export const IRacingOAuthJWTAccessTokenPayloadSchema = z
+export const OAuthJWTAccessTokenPayloadSchema = z
   .object({
     session_id: z.uuid().meta({
       description: "The UUID identifier of the session.",
@@ -315,10 +313,10 @@ export const IRacingOAuthJWTAccessTokenPayloadSchema = z
       "The decoded payload for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
   });
 
-export const IRacingOAuthJWTAccessTokenSchema = z
+export const OAuthJWTAccessTokenSchema = z
   .object({
-    header: IRacingOAuthJWTAccessTokenHeaderSchema,
-    payload: IRacingOAuthJWTAccessTokenPayloadSchema,
+    header: OAuthJWTAccessTokenHeaderSchema,
+    payload: OAuthJWTAccessTokenPayloadSchema,
   })
   .meta({
     id: "jwtAccessToken",
@@ -327,7 +325,7 @@ export const IRacingOAuthJWTAccessTokenSchema = z
       "The decoded and parsed JWT access token structure for iRacing.",
   });
 
-export const IRacingOAuthSessionSchema = z.object({
+export const OAuthSessionSchema = z.object({
   session_id: z.string().meta({
     description:
       "A session identifier. This value is considered opaque and its format may change without warning at our discretion.",
@@ -368,75 +366,174 @@ export const IRacingOAuthSessionSchema = z.object({
   last_user_agent_browser: z.string().nullable(),
 });
 
-export const IRacingOAuthSessionsSchema = z.object({
-  sessions: z.array(IRacingOAuthSessionSchema),
+export const OAuthSessionsSchema = z.object({
+  sessions: z.array(OAuthSessionSchema),
 });
 
-export const IRacingOAuthProfileResponseSchema = z.object({
+export const OAuthProfileResponseSchema = z.object({
   iracing_name: z.string(),
   iracing_cust_id: z.number(),
 });
 
-export const IRacingOAuthRevokeCurrentSessionInputSchema = z.object({
+export const OAuthRevokeCurrentSessionInputSchema = z.object({
   forget_browser: z.boolean().optional(),
 });
 
-export const IRacingOAuthRevokeSessionsInputSchema = z.object({
+export const OAuthRevokeSessionsInputSchema = z.object({
   session_ids: CommaSeparatedSessionIdsSchema,
 });
 
 // Types
-export type IRacingOAuthClientId = z.infer<typeof IRacingOAuthClientIdSchema>;
-export type IRacingOAuthClientSecret = z.infer<
-  typeof IRacingOAuthClientSecretSchema
+export type OAuthClientId = z.infer<typeof OAuthClientIdSchema>;
+export type OAuthClientSecret = z.infer<typeof OAuthClientSecretSchema>;
+export type OAuthScopeAuth = z.infer<typeof OAuthScopeAuthSchema>;
+export type OAuthScopeProfile = z.infer<typeof OAuthScopeProfileSchema>;
+export type OAuthScopes = z.infer<typeof OAuthScopesSchema>;
+export type OAuthScopesString = z.infer<typeof OAuthScopesStringSchema>;
+export type OAuthRequestIdHeader = z.infer<typeof OAuthRequestIdHeaderSchema>;
+export type OAuthHeaders = z.infer<typeof OAuthHeadersSchema>;
+export type OAuthAuthorizeParameters = z.infer<
+  typeof OAuthAuthorizeParametersSchema
 >;
-export type IRacingOAuthScopeAuth = z.infer<typeof IRacingOAuthScopeAuthSchema>;
-export type IRacingOAuthScopeProfile = z.infer<
-  typeof IRacingOAuthScopeProfileSchema
+export type OAuthTokenAuthorizationCodeGrantParameters = z.infer<
+  typeof OAuthTokenAuthorizationCodeGrantParametersSchema
 >;
-export type IRacingOAuthScopes = z.infer<typeof IRacingOAuthScopesSchema>;
-export type IRacingOAuthScopesString = z.infer<
-  typeof IRacingOAuthScopesStringSchema
+export type OAuthTokenRefreshGrantParameters = z.infer<
+  typeof OAuthTokenRefreshGrantParametersSchema
 >;
-export type IRacingOAuthRequestIdHeader = z.infer<
-  typeof IRacingOAuthRequestIdHeaderSchema
+export type OAuthTokenParameters = z.infer<typeof OAuthTokenParametersSchema>;
+export type OAuthTokenResponse = z.infer<typeof OAuthTokenResponseSchema>;
+export type OAuthJWTAccessTokenAlgorithm = z.infer<
+  typeof OAuthJWTAccessTokenAlgorithmSchema
 >;
-export type IRacingOAuthHeaders = z.infer<typeof IRacingOAuthHeadersSchema>;
-export type IRacingOAuthAuthorizeParameters = z.infer<
-  typeof IRacingOAuthAuthorizeParametersSchema
+export type OAuthJWTAccessTokenHeader = z.infer<
+  typeof OAuthJWTAccessTokenHeaderSchema
 >;
-export type IRacingOAuthTokenAuthorizationCodeGrantParameters = z.infer<
-  typeof IRacingOAuthTokenAuthorizationCodeGrantParametersSchema
+export type OAuthJWTAccessTokenPayload = z.infer<
+  typeof OAuthJWTAccessTokenPayloadSchema
 >;
-export type IRacingOAuthTokenRefreshGrantParameters = z.infer<
-  typeof IRacingOAuthTokenRefreshGrantParametersSchema
+export type OAuthJWTAccessToken = z.infer<typeof OAuthJWTAccessTokenSchema>;
+export type OAuthSession = z.infer<typeof OAuthSessionSchema>;
+export type OAuthSessions = z.infer<typeof OAuthSessionsSchema>;
+export type OAuthProfileResponse = z.infer<typeof OAuthProfileResponseSchema>;
+export type OAuthRevokeCurrentSessionParameters = z.infer<
+  typeof OAuthRevokeCurrentSessionInputSchema
 >;
-export type IRacingOAuthTokenParameters = z.infer<
-  typeof IRacingOAuthTokenParametersSchema
+export type OAuthRevokeSessionsParameters = z.infer<
+  typeof OAuthRevokeSessionsInputSchema
 >;
-export type IRacingOAuthTokenResponse = z.infer<
-  typeof IRacingOAuthTokenResponseSchema
->;
-export type IRacingOAuthJWTAccessTokenAlgorithm = z.infer<
-  typeof IRacingOAuthJWTAccessTokenAlgorithmSchema
->;
-export type IRacingOAuthJWTAccessTokenHeader = z.infer<
-  typeof IRacingOAuthJWTAccessTokenHeaderSchema
->;
-export type IRacingOAuthJWTAccessTokenPayload = z.infer<
-  typeof IRacingOAuthJWTAccessTokenPayloadSchema
->;
-export type IRacingOAuthJWTAccessToken = z.infer<
-  typeof IRacingOAuthJWTAccessTokenSchema
->;
-export type IRacingOAuthSession = z.infer<typeof IRacingOAuthSessionSchema>;
-export type IRacingOAuthSessions = z.infer<typeof IRacingOAuthSessionsSchema>;
-export type IRacingOAuthProfileResponse = z.infer<
-  typeof IRacingOAuthProfileResponseSchema
->;
-export type IRacingOAuthRevokeCurrentSessionParameters = z.infer<
-  typeof IRacingOAuthRevokeCurrentSessionInputSchema
->;
-export type IRacingOAuthRevokeSessionsParameters = z.infer<
-  typeof IRacingOAuthRevokeSessionsInputSchema
->;
+
+// Historical exports stay in their original module for import compatibility.
+/** @deprecated Use OAuthClientIdSchema instead. */
+export const IRacingOAuthClientIdSchema = OAuthClientIdSchema;
+/** @deprecated Use OAuthClientSecretSchema instead. */
+export const IRacingOAuthClientSecretSchema = OAuthClientSecretSchema;
+/** @deprecated Use OAuthScopeAuthSchema instead. */
+export const IRacingOAuthScopeAuthSchema = OAuthScopeAuthSchema;
+/** @deprecated Use OAuthScopeProfileSchema instead. */
+export const IRacingOAuthScopeProfileSchema = OAuthScopeProfileSchema;
+/** @deprecated Use OAuthScopesSchema instead. */
+export const IRacingOAuthScopesSchema = OAuthScopesSchema;
+/** @deprecated Use OAuthScopesStringSchema instead. */
+export const IRacingOAuthScopesStringSchema = OAuthScopesStringSchema;
+/** @deprecated Use OAuthRequestIdHeaderKey instead. */
+export const IRacingOAuthRequestIdHeaderKey = OAuthRequestIdHeaderKey;
+/** @deprecated Use OAuthRequestIdHeaderSchema instead. */
+export const IRacingOAuthRequestIdHeaderSchema = OAuthRequestIdHeaderSchema;
+/** @deprecated Use OAuthHeadersSchema instead. */
+export const IRacingOAuthHeadersSchema = OAuthHeadersSchema;
+/** @deprecated Use OAuthErrorResponseSchema instead. */
+export const IRacingOAuthErrorResponseSchema = OAuthErrorResponseSchema;
+/** @deprecated Use OAuthAuthorizeParametersSchema instead. */
+export const IRacingOAuthAuthorizeParametersSchema =
+  OAuthAuthorizeParametersSchema;
+/** @deprecated Use OAuthCallbackParametersSchema instead. */
+export const IRacingOAuthCllbackParametersSchema =
+  OAuthCallbackParametersSchema;
+/** @deprecated Use OAuthTokenAuthorizationCodeGrantParametersSchema instead. */
+export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema =
+  OAuthTokenAuthorizationCodeGrantParametersSchema;
+/** @deprecated Use OAuthTokenRefreshGrantParametersSchema instead. */
+export const IRacingOAuthTokenRefreshGrantParametersSchema =
+  OAuthTokenRefreshGrantParametersSchema;
+/** @deprecated Use OAuthPasswordLimitedGrantParametersSchema instead. */
+export const IRacingOAuthPasswordLimitedGrantParametersSchema =
+  OAuthPasswordLimitedGrantParametersSchema;
+/** @deprecated Use OAuthTokenParametersSchema instead. */
+export const IRacingOAuthTokenParametersSchema = OAuthTokenParametersSchema;
+/** @deprecated Use OAuthTokenResponseSchema instead. */
+export const IRacingOAuthTokenResponseSchema = OAuthTokenResponseSchema;
+/** @deprecated Use OAuthJWTAccessTokenAlgorithmValues instead. */
+export const IRacingOAuthJWTAccessTokenAlgorithmValues =
+  OAuthJWTAccessTokenAlgorithmValues;
+/** @deprecated Use OAuthJWTAccessTokenAlgorithmSchema instead. */
+export const IRacingOAuthJWTAccessTokenAlgorithmSchema =
+  OAuthJWTAccessTokenAlgorithmSchema;
+/** @deprecated Use OAuthJWTAccessTokenHeaderSchema instead. */
+export const IRacingOAuthJWTAccessTokenHeaderSchema =
+  OAuthJWTAccessTokenHeaderSchema;
+/** @deprecated Use OAuthJWTAccessTokenPayloadSchema instead. */
+export const IRacingOAuthJWTAccessTokenPayloadSchema =
+  OAuthJWTAccessTokenPayloadSchema;
+/** @deprecated Use OAuthJWTAccessTokenSchema instead. */
+export const IRacingOAuthJWTAccessTokenSchema = OAuthJWTAccessTokenSchema;
+/** @deprecated Use OAuthSessionSchema instead. */
+export const IRacingOAuthSessionSchema = OAuthSessionSchema;
+/** @deprecated Use OAuthSessionsSchema instead. */
+export const IRacingOAuthSessionsSchema = OAuthSessionsSchema;
+/** @deprecated Use OAuthProfileResponseSchema instead. */
+export const IRacingOAuthProfileResponseSchema = OAuthProfileResponseSchema;
+/** @deprecated Use OAuthRevokeCurrentSessionInputSchema instead. */
+export const IRacingOAuthRevokeCurrentSessionInputSchema =
+  OAuthRevokeCurrentSessionInputSchema;
+/** @deprecated Use OAuthRevokeSessionsInputSchema instead. */
+export const IRacingOAuthRevokeSessionsInputSchema =
+  OAuthRevokeSessionsInputSchema;
+/** @deprecated Use OAuthClientId instead. */
+export type IRacingOAuthClientId = OAuthClientId;
+/** @deprecated Use OAuthClientSecret instead. */
+export type IRacingOAuthClientSecret = OAuthClientSecret;
+/** @deprecated Use OAuthScopeAuth instead. */
+export type IRacingOAuthScopeAuth = OAuthScopeAuth;
+/** @deprecated Use OAuthScopeProfile instead. */
+export type IRacingOAuthScopeProfile = OAuthScopeProfile;
+/** @deprecated Use OAuthScopes instead. */
+export type IRacingOAuthScopes = OAuthScopes;
+/** @deprecated Use OAuthScopesString instead. */
+export type IRacingOAuthScopesString = OAuthScopesString;
+/** @deprecated Use OAuthRequestIdHeader instead. */
+export type IRacingOAuthRequestIdHeader = OAuthRequestIdHeader;
+/** @deprecated Use OAuthHeaders instead. */
+export type IRacingOAuthHeaders = OAuthHeaders;
+/** @deprecated Use OAuthAuthorizeParameters instead. */
+export type IRacingOAuthAuthorizeParameters = OAuthAuthorizeParameters;
+/** @deprecated Use OAuthTokenAuthorizationCodeGrantParameters instead. */
+export type IRacingOAuthTokenAuthorizationCodeGrantParameters =
+  OAuthTokenAuthorizationCodeGrantParameters;
+/** @deprecated Use OAuthTokenRefreshGrantParameters instead. */
+export type IRacingOAuthTokenRefreshGrantParameters =
+  OAuthTokenRefreshGrantParameters;
+/** @deprecated Use OAuthTokenParameters instead. */
+export type IRacingOAuthTokenParameters = OAuthTokenParameters;
+/** @deprecated Use OAuthTokenResponse instead. */
+export type IRacingOAuthTokenResponse = OAuthTokenResponse;
+/** @deprecated Use OAuthJWTAccessTokenAlgorithm instead. */
+export type IRacingOAuthJWTAccessTokenAlgorithm = OAuthJWTAccessTokenAlgorithm;
+/** @deprecated Use OAuthJWTAccessTokenHeader instead. */
+export type IRacingOAuthJWTAccessTokenHeader = OAuthJWTAccessTokenHeader;
+/** @deprecated Use OAuthJWTAccessTokenPayload instead. */
+export type IRacingOAuthJWTAccessTokenPayload = OAuthJWTAccessTokenPayload;
+/** @deprecated Use OAuthJWTAccessToken instead. */
+export type IRacingOAuthJWTAccessToken = OAuthJWTAccessToken;
+/** @deprecated Use OAuthSession instead. */
+export type IRacingOAuthSession = OAuthSession;
+/** @deprecated Use OAuthSessions instead. */
+export type IRacingOAuthSessions = OAuthSessions;
+/** @deprecated Use OAuthProfileResponse instead. */
+export type IRacingOAuthProfileResponse = OAuthProfileResponse;
+/** @deprecated Use OAuthRevokeCurrentSessionParameters instead. */
+export type IRacingOAuthRevokeCurrentSessionParameters =
+  OAuthRevokeCurrentSessionParameters;
+/** @deprecated Use OAuthRevokeSessionsParameters instead. */
+export type IRacingOAuthRevokeSessionsParameters =
+  OAuthRevokeSessionsParameters;
