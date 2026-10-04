@@ -1,110 +1,106 @@
+import assert from "node:assert/strict";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
-import assert from "node:assert/strict";
 import { checkTopology, repositoryRoot } from "./check-topology.js";
 
 function fixture(t) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), "iracing-topology-"));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-  fs.cpSync(repositoryRoot, root, {
-    recursive: true,
-    filter: (source) => {
-      const relative = path.relative(repositoryRoot, source);
-      return !relative
-        .split(path.sep)
-        .some((part) => [".git", "node_modules", "dist", "bin", "target"].includes(part));
-    },
-  });
+  // Copy configuration only; no dependency trees or generated source required.
+  function copy(directory = ".") {
+    for (const entry of fs.readdirSync(path.join(repositoryRoot, directory), {
+      withFileTypes: true,
+    })) {
+      if (
+        [".git", "node_modules", "dist", "target", "bin"].includes(entry.name)
+      )
+        continue;
+      const file = path.join(directory, entry.name);
+      if (entry.isDirectory()) copy(file);
+      else if (
+        /^(package\.json|Cargo\.toml|tsconfig.*\.json|pnpm-workspace\.yaml|dist-workspace\.toml|workspace-policy\.json)$/.test(
+          entry.name,
+        )
+      ) {
+        fs.mkdirSync(path.dirname(path.join(root, file)), { recursive: true });
+        fs.copyFileSync(path.join(repositoryRoot, file), path.join(root, file));
+      }
+    }
+  }
+  copy();
   return root;
 }
+
+function update(root, file, transform) {
+  const target = path.join(root, file);
+  const value = JSON.parse(fs.readFileSync(target, "utf8"));
+  transform(value);
+  fs.writeFileSync(target, JSON.stringify(value));
+}
+
+test("current topology passes", () => assert.deepEqual(checkTopology(), []));
 
 for (const [name, mutate, expected] of [
   [
     "missing root TypeScript reference",
-    (root) => {
-      const file = path.join(root, "tsconfig.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.references = value.references.filter(
-        (reference) => reference.path !== "./packages/oauth/schema",
-      );
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /root TypeScript references: missing packages\/oauth\/schema/,
+    (root) => update(root, "tsconfig.json", (j) => j.references.pop()),
+    /root TypeScript references: missing/,
   ],
   [
     "nested stale TypeScript reference",
-    (root) => {
-      const file = path.join(root, "packages/oauth/client/tsconfig.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.references = [{ path: "./missing" }];
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /stale TypeScript reference \.\/missing/,
+    (root) =>
+      update(root, "packages/api/router/tsconfig.json", (j) =>
+        j.references.push({ path: "./missing.json" }),
+      ),
+    /stale TypeScript reference/,
   ],
   [
     "public package marked private",
-    (root) => {
-      const file = path.join(root, "packages/oauth/client/package.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.private = true;
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /private flag disagrees with public-release-target/,
+    (root) =>
+      update(
+        root,
+        "packages/oauth/client/package.json",
+        (j) => (j.private = true),
+      ),
+    /private flag disagrees/,
   ],
   [
     "wrong workspace ecosystem",
-    (root) => {
-      const file = path.join(root, "workspace-policy.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.workspaces.find(
-        (entry) => entry.path === "packages/oauth/client",
-      ).ecosystem = "cargo";
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /npm policy coverage: missing packages\/oauth\/client/,
+    (root) =>
+      update(
+        root,
+        "workspace-policy.json",
+        (j) => (j.workspaces[0].ecosystem = "cargo"),
+      ),
+    /policy coverage:/,
   ],
   [
     "unclassified workspace",
     (root) => {
-      const file = path.join(root, "workspace-policy.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.workspaces = value.workspaces.filter(
-        (entry) => entry.path !== "packages/oauth/client",
+      fs.mkdirSync(path.join(root, "packages/oauth/new"));
+      fs.writeFileSync(
+        path.join(root, "packages/oauth/new/package.json"),
+        '{"name":"unclassified","private":true}',
       );
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
     },
-    /workspace policy: missing packages\/oauth\/client/,
+    /workspace policy: missing packages\/oauth\/new/,
   ],
   [
     "internal publication drift",
-    (root) => {
-      const file = path.join(root, "packages/api/router/package.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.private = false;
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /private flag disagrees with internal-tool/,
+    (root) =>
+      update(root, "packages/api/router/package.json", (j) => delete j.private),
+    /private flag disagrees/,
   ],
   [
     "root publication drift",
-    (root) => {
-      const file = path.join(root, "package.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.private = false;
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /private flag disagrees with repository-root/,
+    (root) => update(root, "package.json", (j) => delete j.private),
+    /\.: private flag disagrees/,
   ],
   [
     "root license drift",
-    (root) => {
-      const file = path.join(root, "package.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.license = "UNLICENSED";
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
+    (root) => update(root, "package.json", (j) => (j.license = "ISC")),
     /license must be MIT/,
   ],
   [
@@ -112,28 +108,26 @@ for (const [name, mutate, expected] of [
     (root) =>
       fs.writeFileSync(
         path.join(root, "dist-workspace.toml"),
-        '[workspace]\nmembers = ["npm:packages/oauth/client"]\n',
+        "[workspace]\nmembers = []\n",
       ),
     /managed release set: missing/,
   ],
   [
     "stale TypeScript reference",
-    (root) => {
-      const file = path.join(root, "tsconfig.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.references.push({ path: "./missing" });
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
-    /stale TypeScript reference \.\/missing/,
+    (root) =>
+      update(root, "tsconfig.json", (j) =>
+        j.references.push({ path: "./deleted" }),
+      ),
+    /stale TypeScript reference/,
   ],
   [
     "public dependency on internal tool",
-    (root) => {
-      const file = path.join(root, "packages/oauth/client/package.json");
-      const value = JSON.parse(fs.readFileSync(file, "utf8"));
-      value.dependencies["@iracing-data/api-router"] = "workspace:*";
-      fs.writeFileSync(file, JSON.stringify(value, null, 2));
-    },
+    (root) =>
+      update(
+        root,
+        "packages/oauth/client/package.json",
+        (j) => (j.dependencies["@iracing-data/api-router"] = "workspace:*"),
+      ),
     /public package depends on internal/,
   ],
   [
