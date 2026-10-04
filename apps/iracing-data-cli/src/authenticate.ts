@@ -109,7 +109,7 @@ export async function authenticateWithBrowser(
     const client = options.clientFactory
       ? options.clientFactory(config)
       : new OAuthClient({
-          clientMetadata: config,
+          clientMetadata: { ...config, scopes: [...config.scopes] },
           stateStore: new InMemoryStore<string, InternalState>(),
           sessionStore: new InMemoryStore<string, OAuthTokenResponse>(),
         });
