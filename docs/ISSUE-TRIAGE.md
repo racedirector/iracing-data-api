@@ -29,6 +29,12 @@ Use the organization-defined types as follows:
 
 Public issue forms create `Bug`, `Feature`, or `Task` issues directly through the form's native `type:` metadata. `Epic` and `Spike` are normally maintainer-created during planning/triage.
 
+### Migration from `type:*` labels
+
+The `type:*` labels created during the initial backlog-normalization pass are transitional compatibility markers for existing issues only. Do not apply them to new issues.
+
+Backfill existing issues to the equivalent native GitHub Issue Type, then remove the corresponding `type:*` label. Once the backfill is complete, `type:*` labels should no longer be used anywhere in the repository.
+
 ## Area labels
 
 Use one or more `area:*` labels to identify ownership/domain. Multiple areas are expected for cross-cutting work.
