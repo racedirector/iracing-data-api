@@ -9,8 +9,8 @@ import {
   type FileHandle,
 } from "node:fs/promises";
 import path from "node:path";
-import type { OAuthTokenResponse } from "@iracing-data/oauth-client";
 import { stringify as stringifyYaml } from "yaml";
+import type { OAuthTokenResponse } from "@iracing-data/oauth-client";
 
 export type TokenFormat = "json" | "yaml";
 
@@ -18,7 +18,10 @@ export type TokenOutputFileSystem = {
   chmod(path: string, mode: number): Promise<void>;
   link(existingPath: string, newPath: string): Promise<void>;
   lstat(path: string): ReturnType<typeof lstat>;
-  mkdir(path: string, options: Parameters<typeof mkdir>[1]): ReturnType<typeof mkdir>;
+  mkdir(
+    path: string,
+    options: Parameters<typeof mkdir>[1],
+  ): ReturnType<typeof mkdir>;
   open(path: string, flags: string, mode: number): Promise<FileHandle>;
   rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
@@ -67,10 +70,7 @@ export function serializeToken(
   return value.endsWith("\n") ? value : `${value}\n`;
 }
 
-async function pathExists(
-  fileSystem: TokenOutputFileSystem,
-  target: string,
-) {
+async function pathExists(fileSystem: TokenOutputFileSystem, target: string) {
   try {
     return await fileSystem.lstat(target);
   } catch (error) {
@@ -118,18 +118,24 @@ async function writeCredentialFile(
       handle = await fileSystem.open(temporary, "wx", 0o600);
       created = true;
     } catch (error) {
-      throw new Error(`Unable to create temporary credential file for: ${destination}`, {
-        cause: error,
-      });
+      throw new Error(
+        `Unable to create temporary credential file for: ${destination}`,
+        {
+          cause: error,
+        },
+      );
     }
 
     try {
       await handle.writeFile(contents, { encoding: "utf8" });
       await handle.sync();
     } catch (error) {
-      throw new Error(`Unable to write temporary credential file for: ${destination}`, {
-        cause: error,
-      });
+      throw new Error(
+        `Unable to write temporary credential file for: ${destination}`,
+        {
+          cause: error,
+        },
+      );
     } finally {
       await handle.close();
     }
@@ -147,9 +153,12 @@ async function writeCredentialFile(
       }
       created = false;
     } catch (error) {
-      throw new Error(`Unable to replace credential destination: ${destination}`, {
-        cause: error,
-      });
+      throw new Error(
+        `Unable to replace credential destination: ${destination}`,
+        {
+          cause: error,
+        },
+      );
     }
   } finally {
     if (created) {
@@ -166,11 +175,16 @@ export async function writeTokenOutput(
   const serialized = serializeToken(token, format);
 
   if (!options.output) {
-    (options.writeStdout ?? ((value) => process.stdout.write(value)))(serialized);
+    (options.writeStdout ?? ((value) => process.stdout.write(value)))(
+      serialized,
+    );
     return;
   }
 
-  const destination = path.resolve(options.cwd ?? process.cwd(), options.output);
+  const destination = path.resolve(
+    options.cwd ?? process.cwd(),
+    options.output,
+  );
   await writeCredentialFile(
     destination,
     serialized,
