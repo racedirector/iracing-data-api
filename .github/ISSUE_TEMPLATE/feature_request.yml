@@ -1,15 +1,15 @@
 name: Feature request
 description: Propose a new externally consumable capability or materially new public behavior.
 title: "Feature: "
-labels:
-  - "type:feature"
+type: feature
+labels: []
 body:
   - type: markdown
     attributes:
       value: |
         Use this form for new user/developer-facing capability. For maintenance, refactoring, documentation, release, packaging, migration, or repository work, use the **Task / improvement** form instead.
 
-        See the [issue triage and labeling guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for the repository's type, area, and status taxonomy.
+        GitHub Issue Type is the canonical classification axis. See the [issue triage guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for area, priority, and status conventions.
   - type: textarea
     id: summary
     attributes:
