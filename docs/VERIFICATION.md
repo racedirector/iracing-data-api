@@ -41,3 +41,5 @@ scenarios described in [agent regressions](../agent-regressions/README.md). CI
 checks fixture structure/references only and never runs a live model evaluation.
 
 Upstream evidence capture is opt-in and separate from verification. See [upstream contract tooling](UPSTREAM-CONTRACT.md) for live capture, credential handling, fixture mode, and automation. Verification never requires an iRacing token.
+
+The canonical CI result is enforced on main by the [repository protection rules](REPOSITORY-PROTECTION.md), which also document recovery from a broken required check.
