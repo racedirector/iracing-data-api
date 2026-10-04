@@ -1,24 +1,46 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { test } from "node:test";
+import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
 import generator from "../dist/index.js";
 
-const { generateOpenAPISpec } = generator;
+const { document: exportedDocument } = generator;
+const cli = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 
 async function generate(t) {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "iracing-contract-"));
   t.after(() => fs.rmSync(outputDir, { recursive: true, force: true }));
-  t.mock.method(console, "log", () => {});
-  await generateOpenAPISpec({ outputDir, fileName: "contract.json" });
-  await generateOpenAPISpec({ outputDir, fileName: "contract.yaml" });
+  for (const file of ["contract.json", "contract.yaml", "contract.yml"]) {
+    execFileSync(process.execPath, [cli, "-o", outputDir, "-f", file]);
+  }
   const document = JSON.parse(
     fs.readFileSync(path.join(outputDir, "contract.json"), "utf8"),
   );
   assert.deepEqual(
     parse(fs.readFileSync(path.join(outputDir, "contract.yaml"), "utf8")),
+    document,
+  );
+  assert.deepEqual(document, exportedDocument);
+  assert.deepEqual(generator.default, exportedDocument);
+  assert.deepEqual(
+    parse(fs.readFileSync(path.join(outputDir, "contract.yml"), "utf8")),
+    document,
+  );
+  execFileSync(process.execPath, [
+    cli,
+    "-o",
+    outputDir,
+    "-f",
+    "contract.yaml",
+    "--format",
+    "json",
+  ]);
+  assert.deepEqual(
+    JSON.parse(fs.readFileSync(path.join(outputDir, "contract.yaml"), "utf8")),
     document,
   );
   assert.equal(document.openapi, "3.1.1");

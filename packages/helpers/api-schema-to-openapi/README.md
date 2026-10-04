@@ -26,29 +26,25 @@ iracing-api-openapi -f spec.yaml --format json -o ./dist
 
 ### Programmatically
 
+The helper exports `document` (also available as the default export). Importing it
+creates the OpenAPI document without writing files or logging. File writing and
+format selection belong to the CLI; programmatic consumers choose their own
+serialization and destination.
+
 ```typescript
-import { generateOpenAPISpec } from "@iracing-data/api-schema-to-openapi";
+import fs from "node:fs";
+import { stringify } from "yaml";
+import { document } from "@iracing-data/api-schema-to-openapi";
 
-// JSON (default), inferred from the fileName extension
-await generateOpenAPISpec({
-  fileName: "openapi.json",
-  outputDir: "./dist",
-});
-
-// YAML via the .yaml extension, or explicitly via the format option
-await generateOpenAPISpec({
-  fileName: "openapi.yaml",
-  outputDir: "./dist",
-});
-
-await generateOpenAPISpec({
-  fileName: "openapi.json",
-  outputDir: "./dist",
-  format: "yaml",
-});
+fs.mkdirSync("./dist", { recursive: true });
+fs.writeFileSync("./dist/openapi.json", JSON.stringify(document));
+fs.writeFileSync("./dist/openapi.yaml", stringify(document));
 ```
 
-The generator consumes schemas from `@iracing-data/api-schema` and writes an OpenAPI document for client generation and documentation.
+Consumers of the former `generateOpenAPISpec` export should use `document` and
+write it themselves, or invoke the CLI with the existing output/format options.
+Filesystem errors are reported by the CLI; correct the output path or directory
+permissions and rerun the command.
 
 ## Related @iracing-data packages
 
