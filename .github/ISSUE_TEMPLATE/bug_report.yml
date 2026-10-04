@@ -1,34 +1,39 @@
 name: Bug report
-description: Report broken behavior in an iRacing Data API package, OAuth flow, generated client, router, or example.
+description: Report existing behavior that is broken, unsafe, regressed, or violates its intended contract.
 title: "Bug: "
+type: Bug
 labels: []
 body:
   - type: markdown
     attributes:
       value: |
-        Thanks for taking the time to report this. Clear repro details help a lot, especially for auth, generated clients, and examples.
+        Use this form when existing repository behavior does not satisfy its intended contract.
+
+        GitHub Issue Type is the canonical classification axis. See the [issue triage guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for area, priority, and status conventions.
   - type: textarea
     id: summary
     attributes:
       label: Summary
       description: What failed, and what did you expect instead?
-      placeholder: The OAuth client returns 401 after refreshing a stored session, but I expected it to reuse the refreshed access token.
+      placeholder: The OAuth client attempts two refresh-token grants when concurrent callers restore the same expired session.
     validations:
       required: true
   - type: dropdown
     id: area
     attributes:
       label: Affected area
+      description: This helps maintainers assign the appropriate area:* label during triage.
       options:
-        - OAuth client
-        - OAuth schemas or OpenAPI
+        - OAuth client or schemas
         - Data API schemas or OpenAPI
         - Fetch generated client
         - Axios generated client
         - Rust generated client
         - Better Call router
+        - MCP application
         - Example or documentation
         - Release, packaging, or npm metadata
+        - Repository tooling, CI, or automation
         - Other
     validations:
       required: true
@@ -36,7 +41,7 @@ body:
     id: package
     attributes:
       label: Package or path
-      description: Name the package, example, or path if you know it.
+      description: Name the package, application, example, or path if you know it.
       placeholder: packages/oauth/client
   - type: textarea
     id: reproduce

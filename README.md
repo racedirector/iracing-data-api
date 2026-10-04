@@ -58,6 +58,10 @@ pnpm install
 
 Use `pnpm --filter <package>` to run scripts for a specific workspace package or example. See each linked README for package-specific instructions. Read [repository guidance](AGENTS.md) and its scoped guides for canonical source/generated ownership, dependency-aware codegen commands, and current verification entrypoints.
 
+### Issues and triage
+
+Before creating or triaging backlog work, see [issue triage and prioritization](docs/ISSUE-TRIAGE.md). Use GitHub's native Issue Type for work classification, assign the smallest accurate set of `area:*` labels, and assign exactly one `priority:P0`–`priority:P3` label. Use `status:*` only when an exceptional lifecycle state materially improves filtering.
+
 ### Verification
 
 Run `pnpm verify` before opening a PR. CI uses the same command for authored formatting/lint, topology, TypeScript builds/tests, example compilation, generated-output freshness/client builds, and Rust checks. See [verification](docs/VERIFICATION.md) for focused commands and toolchain prerequisites.
