@@ -1,7 +1,7 @@
 name: Bug report
 description: Report existing behavior that is broken, unsafe, regressed, or violates its intended contract.
 title: "Bug: "
-type: bug
+type: Bug
 labels: []
 body:
   - type: markdown
