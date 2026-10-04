@@ -1,7 +1,7 @@
 import { Command } from "@commander-js/extra-typings";
 import { authenticateWithBrowser } from "../authenticate.js";
-import type { Diagnostics } from "../diagnostics.js";
 import { writeTokenOutput } from "../token-output.js";
+import type { Diagnostics } from "../diagnostics.js";
 
 export function createAuthLoginCommand(diagnostics: Diagnostics) {
   return new Command("login")
