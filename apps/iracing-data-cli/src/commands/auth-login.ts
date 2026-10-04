@@ -1,6 +1,7 @@
 import { Command } from "@commander-js/extra-typings";
 import { authenticateWithBrowser } from "../authenticate.js";
 import type { Diagnostics } from "../diagnostics.js";
+import { writeTokenOutput } from "../token-output.js";
 
 export function createAuthLoginCommand(diagnostics: Diagnostics) {
   return new Command("login")
@@ -15,12 +16,19 @@ export function createAuthLoginCommand(diagnostics: Diagnostics) {
       "300",
     )
     .action(async (options) => {
-      await authenticateWithBrowser({
+      const token = await authenticateWithBrowser({
         clientId: process.env.IRACING_AUTH_CLIENT ?? "",
         clientSecret: process.env.IRACING_AUTH_SECRET || undefined,
         timeoutSeconds: Number(options.timeoutSeconds),
         openBrowser: options.open,
         diagnostics,
       });
+
+      await writeTokenOutput(token, {
+        output: options.output,
+        format: options.format,
+        force: options.force,
+      });
+      diagnostics.info("OAuth authentication complete.");
     });
 }
