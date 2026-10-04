@@ -15,14 +15,12 @@ export function createAuthLoginCommand(diagnostics: Diagnostics) {
       "300",
     )
     .action(async (options) => {
-      const token = await authenticateWithBrowser({
+      await authenticateWithBrowser({
         clientId: process.env.IRACING_AUTH_CLIENT ?? "",
         clientSecret: process.env.IRACING_AUTH_SECRET || undefined,
         timeoutSeconds: Number(options.timeoutSeconds),
         openBrowser: options.open,
         diagnostics,
       });
-
-      return token;
     });
 }
