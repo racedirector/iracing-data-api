@@ -1,0 +1,30 @@
+name: Update CLI lockfile
+
+on:
+  push:
+    branches:
+      - epic-324/326-browser-oauth
+
+permissions:
+  contents: write
+
+jobs:
+  update-lockfile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: epic-324/326-browser-oauth
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - run: pnpm install --lockfile-only
+      - run: |
+          rm .github/workflows/update-cli-lock.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add pnpm-lock.yaml .github/workflows/update-cli-lock.yml
+          git diff --cached --quiet && exit 0
+          git commit -m "chore(cli): update pnpm lockfile"
+          git push origin HEAD:epic-324/326-browser-oauth
