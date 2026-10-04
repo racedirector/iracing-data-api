@@ -126,6 +126,33 @@ test("callback exchanges the code, consumes state, and persists the profile sess
   assert.equal(requests.length, 2);
 });
 
+test("callback with explicit session ID stores directly without a profile request", async () => {
+  const { client, sessionStore, stateStore } = setup({
+    scopes: ["iracing.auth"],
+  });
+  const { state } = await client.authorize();
+  const issued = token({ scope: "iracing.auth" });
+  const requests = [];
+  mockFetch(async (url) => {
+    requests.push(String(url));
+    assert.equal(requests.length, 1);
+    assert.equal(String(url), "https://oauth.iracing.com/oauth2/token");
+    return json(issued);
+  });
+
+  assert.deepEqual(
+    await client.callback(
+      new URLSearchParams({ state, code: "fixture" }),
+      "explicit-session",
+    ),
+    issued,
+  );
+  assert.deepEqual(sessionStore.get("explicit-session"), issued);
+  assert.equal(sessionStore.get("42"), undefined);
+  assert.equal(stateStore.get(state), undefined);
+  assert.deepEqual(requests, ["https://oauth.iracing.com/oauth2/token"]);
+});
+
 for (const params of [{}, { state: "unknown", code: "code" }]) {
   test(`callback rejects missing/unknown state: ${JSON.stringify(params)}`, async () => {
     mockFetch();
@@ -345,32 +372,6 @@ test("refresh preserves a stored refresh token when the response omits rotation"
   });
   assert.deepEqual(sessionStore.get("session"), { ...stored, ...issued });
 });
-
-for (const profile of [
-  { iracing_name: "Fixture", iracing_cust_id: 42 },
-  { iracing_name: "Fixture", iracing_cust_id: "invalid" },
-]) {
-  test(`callback honors explicit session ID and rejects malformed profile: ${profile.iracing_cust_id}`, async () => {
-    const { client, sessionStore, stateStore } = setup();
-    const { state } = await client.authorize();
-    const issued = token();
-    let calls = 0;
-    mockFetch(async () => json(++calls === 1 ? issued : profile));
-    const callback = client.callback(
-      new URLSearchParams({ state, code: "fixture" }),
-      "explicit-session",
-    );
-    if (typeof profile.iracing_cust_id === "number") {
-      assert.deepEqual(await callback, issued);
-      assert.deepEqual(sessionStore.get("explicit-session"), issued);
-      assert.equal(sessionStore.get("42"), undefined);
-    } else {
-      await assert.rejects(callback);
-      assert.equal(sessionStore.get("explicit-session"), undefined);
-    }
-    assert.equal(stateStore.get(state), undefined);
-  });
-}
 
 test("concurrent restorations share refresh through persistence and use rotated tokens later", async () => {
   const backing = new InMemoryStore();

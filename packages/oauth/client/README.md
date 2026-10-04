@@ -25,7 +25,7 @@ const client = new OAuthClient({
   clientMetadata: {
     clientId: process.env.IRACING_AUTH_CLIENT_ID!,
     redirectUri: "http://localhost:3000/oauth/callback/iracing",
-    scopes: ["iracing.profile", "iracing.auth"],
+    scopes: ["iracing.auth"],
   },
   stateStore,
   sessionStore,
@@ -50,7 +50,10 @@ if (storedToken) {
 ```
 
 When you pass a `sessionId` to `callback()`, the client stores the token under
-that key. If you omit it, the client falls back to the iRacing customer ID. If
+that key without fetching the iRacing profile. This allows callers that already
+own the storage key to use only the scopes required by their protected resources.
+If you omit `sessionId`, the client fetches the iRacing profile and stores the
+session under the iRacing customer ID, so that flow requires profile access. If
 you already have a refresh token and want to force a refresh manually, call
 `client.refresh(refreshToken)`.
 
