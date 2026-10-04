@@ -5,7 +5,8 @@ export type Diagnostics = {
 };
 
 export function createDiagnostics(
-  write: (message: string) => void = (message) => process.stderr.write(`${message}\n`),
+  write: (message: string) => void = (message) =>
+    process.stderr.write(`${message}\n`),
 ): Diagnostics {
   return {
     info: write,
