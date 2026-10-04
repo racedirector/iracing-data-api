@@ -539,3 +539,6 @@ export class OAuthClient {
 }
 
 export type { OAuthTokenResponse };
+
+/** @deprecated Use OAuthTokenResponse instead. */
+export type { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";

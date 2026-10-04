@@ -3480,3 +3480,10 @@ export type Client199 = Assert<
     import("../../packages/oauth/schema/dist").OAuthRevokeSessionsParameters
   >
 >;
+
+export type DirectClientTokenResponse = Assert<
+  Equal<
+    import("../../packages/oauth/client/dist/client").IRacingOAuthTokenResponse,
+    import("../../packages/oauth/client/dist/client").OAuthTokenResponse
+  >
+>;
