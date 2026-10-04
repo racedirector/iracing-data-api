@@ -54,6 +54,14 @@ that key. If you omit it, the client falls back to the iRacing customer ID. If
 you already have a refresh token and want to force a refresh manually, call
 `client.refresh(refreshToken)`.
 
+Concurrent `restoreSessionForId()` calls for the same expired session share one
+refresh operation within an `OAuthClient` instance. The operation completes only
+after the merged session, including the rotated refresh token and retained fields,
+has been persisted. Failed operations are cleared so later calls can retry;
+different session IDs refresh independently. Coordination does not extend across
+client instances or processes. `refresh()` returns the token endpoint response
+without storing it or coordinating other calls.
+
 Pass any {@link SimpleStore} implementation as the state and session store to
 control how the client tracks authorization state and OAuth tokens. See
 `packages/oauth/client/src/storage/memory-store.ts` for a default in-memory
