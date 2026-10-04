@@ -122,7 +122,9 @@ test("--no-open reports the authorization URL without invoking a browser", async
   assert.equal(opened, false);
   assert.ok(
     log.messages.some((message) =>
-      message.startsWith("Open this URL in a browser: https://example.test/authorize"),
+      message.startsWith(
+        "Open this URL in a browser: https://example.test/authorize",
+      ),
     ),
   );
 });
@@ -151,7 +153,9 @@ test("browser-launch failure falls back to a manual URL and continues", async ()
   assert.deepEqual(result, TOKEN);
   assert.ok(log.messages.includes("Could not open the browser automatically."));
   assert.ok(
-    log.messages.includes("Open this URL manually: https://example.test/authorize"),
+    log.messages.includes(
+      "Open this URL manually: https://example.test/authorize",
+    ),
   );
   assert.doesNotMatch(log.messages.join("\n"), /synthetic browser failure/);
 });
@@ -169,7 +173,9 @@ test("times out and removes signal listeners when no callback arrives", async ()
       diagnostics: log.value,
       signalSource: signals.source,
       clientFactory: () => ({
-        authorize: async () => ({ url: new URL("https://example.test/authorize") }),
+        authorize: async () => ({
+          url: new URL("https://example.test/authorize"),
+        }),
         callback: async () => TOKEN,
       }),
     }),
@@ -192,7 +198,9 @@ test("SIGINT cancels the pending flow and removes signal listeners", async () =>
     diagnostics: log.value,
     signalSource: signals.source,
     clientFactory: () => ({
-      authorize: async () => ({ url: new URL("https://example.test/authorize") }),
+      authorize: async () => ({
+        url: new URL("https://example.test/authorize"),
+      }),
       callback: async () => TOKEN,
     }),
   });
@@ -217,11 +225,16 @@ test("callback failures are sanitized and never expose token or secret material"
       diagnostics: log.value,
       clientFactory: ({ redirectUri }) => ({
         authorize: async () => {
-          setTimeout(() => void fetch(`${redirectUri}?code=bad&state=state`), 10);
+          setTimeout(
+            () => void fetch(`${redirectUri}?code=bad&state=state`),
+            10,
+          );
           return { url: new URL("https://example.test/authorize") };
         },
         callback: async () => {
-          throw new Error("synthetic-secret synthetic-access synthetic-refresh");
+          throw new Error(
+            "synthetic-secret synthetic-access synthetic-refresh",
+          );
         },
       }),
     }),
