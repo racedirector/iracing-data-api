@@ -6,40 +6,45 @@ Avoid encoding the same concept in both Issue Type and labels.
 
 ## Issue Type
 
-Every open issue should have exactly one GitHub Issue Type.
-
-Use the organization-defined types as follows:
+Every ordinary implementation issue should have exactly one native GitHub Issue Type.
 
 | Issue Type | Use for |
 | --- | --- |
 | `Bug` | Existing behavior that is incorrect, unsafe, regressed, or violates its intended contract. |
 | `Feature` | New externally consumable capability or materially new public behavior. |
 | `Task` | Bounded engineering, maintenance, refactoring, documentation, release, packaging, migration, testing, or operational work. |
-| `Epic` | Outcome/coordination issue that owns multiple independently reviewable child issues. Use when the organization has the custom type configured. |
-| `Spike` | Time-bounded investigation whose deliverable is evidence and a concrete decision/recommendation rather than implementation. Use when the organization has the custom type configured. |
+
+GitHub provides `Bug`, `Feature`, and `Task` as the default organization issue types. Public issue forms set these types directly through the form's top-level `type:` metadata.
+
+### Planning types
+
+The repository also uses two planning concepts:
+
+| Planning type | Use for |
+| --- | --- |
+| `Epic` | Outcome/coordination issue that owns multiple independently reviewable child issues. |
+| `Spike` | Time-bounded investigation whose deliverable is evidence and a concrete decision/recommendation rather than implementation. |
+
+`Epic` and `Spike` should be configured as native organization issue types. Until those custom types are available, retain the existing `Epic:` and `Spike:` title prefixes for planning issues rather than creating `type:*` labels.
 
 ### Type selection rules
 
 - Prefer `Bug` when the repository already claims or intends behavior and the implementation does not satisfy it.
-- Prefer `Feature` only for a new user/developer-facing capability. Do not use it as a generic synonym for “work to do.”
+- Prefer `Feature` only for a new user/developer-facing capability. Do not use it as a generic synonym for work to do.
 - Prefer `Task` for implementation/support work that does not itself define a new externally consumable capability.
 - Use `Spike` only when uncertainty must be resolved before implementation can be specified responsibly.
 - Use `Epic` only when the issue coordinates multiple independently reviewable children.
 - Do not recreate Issue Type with `type:*` labels.
 
-Public issue forms create `Bug`, `Feature`, or `Task` issues directly through the form's native `type:` metadata. `Epic` and `Spike` are normally maintainer-created during planning/triage.
+### Existing-issue backfill
 
-### Migration from `type:*` labels
+The temporary `type:*` labels from the initial backlog-normalization pass have been removed from the active backlog.
 
-The `type:*` labels created during the initial backlog-normalization pass are transitional compatibility markers for existing issues only. Do not apply them to new issues.
-
-Backfill existing issues to the equivalent native GitHub Issue Type, then remove the corresponding `type:*` label. Once the backfill is complete, `type:*` labels should no longer be used anywhere in the repository.
+Existing issues should be backfilled to the equivalent native GitHub Issue Type. The current repository automation surface can manage labels but does not expose Issue Type assignment, so that one-time migration must use an Issue Type-capable GitHub API/UI/CLI path. New issues created from the repository forms are typed correctly automatically.
 
 ## Area labels
 
 Use one or more `area:*` labels to identify ownership/domain. Multiple areas are expected for cross-cutting work.
-
-Current areas:
 
 | Label | Scope |
 | --- | --- |
@@ -52,9 +57,7 @@ Current areas:
 | `area:data-api` | Data API schemas, generated transports, upstream Data API behavior and contracts. |
 | `area:mcp` | Agent-facing MCP application, transport, tools, Docker/local MCP runtime. |
 
-Area labels should describe the code/product ownership affected, not the technology mentioned incidentally in the issue.
-
-When a genuinely new stable ownership area emerges, add a new `area:*` label rather than overloading an unrelated existing area.
+Area labels describe the code/product ownership affected, not technologies mentioned incidentally.
 
 ## Priority labels
 
@@ -62,27 +65,27 @@ Every open issue should have exactly one priority label.
 
 | Label | Meaning |
 | --- | --- |
-| `priority:P0` | Immediate critical work. Active production outage, severe security exposure, data-loss risk, or another condition requiring interruption of normal work. |
-| `priority:P1` | High priority. Blocks an active roadmap/epic, fixes a material correctness/security risk, or is a prerequisite for near-term delivery. |
-| `priority:P2` | Normal planned work. Valuable and actionable but not currently blocking a critical path. This is the default priority for ordinary backlog items. |
-| `priority:P3` | Low priority or deferred. Opportunistic, cleanup-oriented, intentionally postponed, or blocked with no near-term scheduling pressure. |
+| `priority:P0` | Immediate critical work: active production outage, severe security exposure, data-loss risk, release-stop condition, or equivalent interruption-worthy incident. |
+| `priority:P1` | High priority: blocks an active roadmap/epic, fixes material correctness/security risk, or is a near-term prerequisite. |
+| `priority:P2` | Normal planned work: valuable and actionable but not currently blocking a critical path. This is the default priority for ordinary backlog items. |
+| `priority:P3` | Low priority or deferred: opportunistic, cleanup-oriented, intentionally postponed, or closure/reconciliation work. |
 
-Priority is a scheduling signal, not a severity synonym. A bug is not automatically P0/P1, and a feature may be P1 if it is on the active critical path.
+Priority is a scheduling signal, not a severity synonym. A bug is not automatically P0/P1, and a feature may be P1 when it sits on the active critical path.
 
 Use dependencies to express ordering. Use priority to express relative urgency across otherwise actionable work.
+
+GitHub also supports organization-level custom issue fields, including single-select fields suitable for priority. If this repository later adopts a native Priority field, use `P0`–`P3` as the option set and retire the priority labels rather than maintaining both representations.
 
 ## Status labels
 
 `status:*` labels are deliberately sparse. GitHub issue state and explicit dependencies already carry most lifecycle information.
-
-Current statuses:
 
 | Label | Use for |
 | --- | --- |
 | `status:blocked` | The issue cannot proceed until a concrete dependency, decision, or prerequisite is resolved. |
 | `status:ready-to-close` | Work is effectively complete and the remaining action is closure/reconciliation rather than implementation. |
 
-Do not add labels such as `status:ready`, `status:in-progress`, or `status:done` merely to mirror GitHub state. Add a new status only when it provides filtering information GitHub does not already represent well.
+Do not add labels such as `status:ready`, `status:in-progress`, or `status:done` merely to mirror GitHub state.
 
 ## Contribution labels
 
@@ -96,30 +99,29 @@ When an issue is created or reviewed:
 2. Assign exactly one `priority:P0`–`priority:P3` label.
 3. Assign the smallest accurate set of `area:*` labels.
 4. Add `status:*` only when an exceptional lifecycle state materially improves filtering.
-5. Record explicit dependencies in the issue body or GitHub dependency relationship; do not encode dependencies as ad-hoc labels.
-6. Remove generic/default labels that duplicate the structured taxonomy.
-7. Revisit metadata when scope or scheduling changes. In particular, a completed spike should normally produce implementation issues rather than being converted into a task.
+5. Record explicit dependencies using GitHub relationships when available; do not encode dependencies as ad-hoc labels.
+6. Remove generic/default labels that duplicate structured metadata.
+7. Revisit metadata when scope or scheduling changes. A completed spike should normally produce implementation issues rather than being converted into a task.
 
 ## Useful filters
 
 ```text
-is:issue is:open type:bug
-is:issue is:open type:feature
-is:issue is:open type:task
+is:issue is:open type:"Bug"
+is:issue is:open type:"Feature"
+is:issue is:open type:"Task"
 is:issue is:open label:"priority:P0"
 is:issue is:open label:"priority:P1"
 is:issue is:open label:"priority:P2" -label:"status:blocked"
 is:issue is:open label:"priority:P3"
 is:issue is:open label:"area:mcp"
-is:issue is:open label:"area:oauth" type:bug
+is:issue is:open label:"area:oauth" type:"Bug"
 is:issue is:open label:"status:blocked"
-is:issue is:open -label:"status:blocked" -label:"status:ready-to-close"
 ```
 
 ## Examples
 
-- “Refresh token rotation races under concurrent session restore” → `Bug`, `area:oauth`, typically `priority:P1` when it blocks server-style consumers.
-- “Add a first-class Rust client package surface” → `Feature`, `area:rust`, `area:oss`, usually `priority:P2` unless it is on an active release path.
-- “Add contributor/security documentation” → `Task`, `area:docs`, `area:oss`, usually `priority:P2`.
+- “Refresh token rotation races under concurrent session restore” → `Bug`, `area:oauth`, `priority:P1` while it blocks server-style consumers.
+- “Add a first-class Rust client package surface” → `Feature`, `area:rust`, `area:oss`, normally `priority:P2`.
+- “Add contributor/security documentation” → `Task`, `area:docs`, `area:oss`, normally `priority:P2`.
 - “Determine safe MCP handling for chunked Data API responses” → `Spike`, `area:mcp`, `area:data-api`, `priority:P1` while it blocks the MCP architecture.
-- “Define and coordinate the MCP architecture backlog” → `Epic`, `area:mcp`, priority based on the roadmap state.
+- “Define and coordinate the MCP architecture backlog” → `Epic`, `area:mcp`, priority based on roadmap state.
