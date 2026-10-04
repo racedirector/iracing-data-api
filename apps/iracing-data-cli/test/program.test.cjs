@@ -1,9 +1,8 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const { createProgram } = require("../dist/program.js");
-
-test("exposes auth login in the command hierarchy", () => {
+test("exposes auth login in the command hierarchy", async () => {
+  const { createProgram } = await import("../dist/program.js");
   const messages = [];
   const diagnostics = {
     info: (message) => messages.push(message),
