@@ -1,33 +1,33 @@
 import { z } from "zod";
 import {
-  IRacingCategorySchema,
-  IRacingCustomerIdSchema,
-  IRacingCategoryIdParameterSchema,
-  IRacingChartTypeParameterSchema,
+  CategorySchema,
+  CustomerIdSchema,
+  CategoryIdParameterSchema,
+  ChartTypeParameterSchema,
   CommaSeparatedNumberString,
-  IRacingEventTypeSchema,
-  IRacingEventTypeTimeTrialSchema,
-  IRacingEventTypeRaceSchema,
-  IRacingDivisionSchema,
+  EventTypeSchema,
+  EventTypeTimeTrialSchema,
+  EventTypeRaceSchema,
+  DivisionSchema,
 } from "./primitives";
 
-export const IRacingAuthParametersSchema = z.object({
+export const AuthParametersSchema = z.object({
   email: z.email(),
   password: z.string(),
 });
 
-export const IRacingDriverStatsByCategoryPathSchema = z.object({
-  category: IRacingCategorySchema,
+export const DriverStatsByCategoryPathSchema = z.object({
+  category: CategorySchema,
 });
 
-export const IRacingHostedCombinedSessionsParametersSchema = z.object({
+export const HostedCombinedSessionsParametersSchema = z.object({
   package_id: z.coerce.number().optional().meta({
     description:
       "If set, return only sessions using this car or track package ID.",
   }),
 });
 
-export const IRacingLeagueCustomerSessionsParametersSchema = z.object({
+export const LeagueCustomerSessionsParametersSchema = z.object({
   mine: z.coerce.boolean().optional().meta({
     description: "If true, return only sessions created by this user.",
   }),
@@ -37,7 +37,7 @@ export const IRacingLeagueCustomerSessionsParametersSchema = z.object({
   }),
 });
 
-export const IRacingLeagueDirectoryParametersSchema = z.object({
+export const LeagueDirectoryParametersSchema = z.object({
   search: z.string().optional().meta({
     description:
       "Will search against league name, description, owner, and league ID.",
@@ -83,14 +83,14 @@ export const IRacingLeagueDirectoryParametersSchema = z.object({
     .meta({ description: "One of asc or desc.  Defaults to asc." }),
 });
 
-export const IRacingLeagueGetParametersSchema = z.object({
+export const LeagueGetParametersSchema = z.object({
   league_id: z.coerce.number(),
   include_licenses: z.coerce.boolean().optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
 
-export const IRacingLeagueGetPointsSystemsParametersSchema = z.object({
+export const LeagueGetPointsSystemsParametersSchema = z.object({
   league_id: z.coerce.number(),
   season_id: z.coerce.number().optional().meta({
     description:
@@ -98,29 +98,29 @@ export const IRacingLeagueGetPointsSystemsParametersSchema = z.object({
   }),
 });
 
-export const IRacingLeagueMembershipParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const LeagueMembershipParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description:
       "If different from the authenticated member, the following restrictions apply: - Caller cannot be on requested customer's block list or an empty list will result; - Requested customer cannot have their online activity preference set to hidden or an empty list will result; - Only leagues for which the requested customer is an admin and the league roster is not private are returned.",
   }),
   include_league: z.coerce.boolean().optional(),
 });
 
-export const IRacingLeagueRosterParametersSchema = z.object({
+export const LeagueRosterParametersSchema = z.object({
   league_id: z.coerce.number(),
   include_licenses: z.coerce.boolean().optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
 
-export const IRacingLeagueSeasonsParametersSchema = z.object({
+export const LeagueSeasonsParametersSchema = z.object({
   league_id: z.coerce.number(),
   retired: z.coerce.boolean().optional().meta({
     description: "If true include seasons which are no longer active.",
   }),
 });
 
-export const IRacingLeagueSeasonStandingsParametersSchema = z.object({
+export const LeagueSeasonStandingsParametersSchema = z.object({
   league_id: z.coerce.number(),
   season_id: z.coerce.number(),
   car_class_id: z.coerce.number().optional(),
@@ -130,7 +130,7 @@ export const IRacingLeagueSeasonStandingsParametersSchema = z.object({
   }),
 });
 
-export const IRacingLeagueSeasonSessionsParametersSchema = z.object({
+export const LeagueSeasonSessionsParametersSchema = z.object({
   league_id: z.coerce.number(),
   season_id: z.coerce.number(),
   results_only: z.coerce.boolean().optional().meta({
@@ -139,7 +139,7 @@ export const IRacingLeagueSeasonSessionsParametersSchema = z.object({
   }),
 });
 
-export const IRacingLookupDriversParametersSchema = z.object({
+export const LookupDriversParametersSchema = z.object({
   search_term: z
     .string()
     .meta({ description: "A cust_id or partial name for which to search." }),
@@ -148,32 +148,32 @@ export const IRacingLookupDriversParametersSchema = z.object({
   }),
 });
 
-export const IRacingMemberAwardsParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const MemberAwardsParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
-export const IRacingMemberAwardInstancesParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const MemberAwardInstancesParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
   award_id: z.coerce.number(),
 });
 
-export const IRacingMemberChartDataParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const MemberChartDataParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
-  category_id: IRacingCategoryIdParameterSchema.meta({
+  category_id: CategoryIdParameterSchema.meta({
     description: "1 - Oval; 2 - Road; 3 - Dirt oval; 4 - Dirt road",
   }),
-  chart_type: IRacingChartTypeParameterSchema.meta({
+  chart_type: ChartTypeParameterSchema.meta({
     description: "1 - iRating; 2 - TT Rating; 3 - License/SR",
   }),
 });
 
-export const IRacingMemberGetParametersSchema = z.object({
+export const MemberGetParametersSchema = z.object({
   cust_ids: CommaSeparatedNumberString.meta({
     description:
       "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4",
@@ -181,37 +181,37 @@ export const IRacingMemberGetParametersSchema = z.object({
   include_licenses: z.coerce.boolean().optional(),
 });
 
-export const IRacingMemberProfileParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const MemberProfileParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
-export const IRacingResultsGetParametersSchema = z.object({
+export const ResultsGetParametersSchema = z.object({
   subsession_id: z.coerce.number(),
   include_licenses: z.coerce.boolean().optional(),
 });
 
-export const IRacingResultsEventLogParametersSchema = z.object({
+export const ResultsEventLogParametersSchema = z.object({
   subsession_id: z.coerce.number(),
   simsession_number: z.coerce.number().meta({
     description: "The main event is 0; the preceding event is -1, and so on.",
   }),
 });
 
-export const IRacingResultsLapChartDataParametersSchema = z.object({
+export const ResultsLapChartDataParametersSchema = z.object({
   subsession_id: z.coerce.number(),
   simsession_number: z.coerce.number().meta({
     description: "The main event is 0; the preceding event is -1, and so on.",
   }),
 });
 
-export const IRacingResultsLapDataParametersSchema = z.object({
+export const ResultsLapDataParametersSchema = z.object({
   subsession_id: z.coerce.number(),
   simsession_number: z.coerce.number().meta({
     description: "The main event is 0; the preceding event is -1, and so on.",
   }),
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+  cust_id: CustomerIdSchema.optional().meta({
     description:
       "Required if the subsession was a single-driver event. Optional for team events. If omitted for a team event then the laps driven by all the team's drivers will be included.",
   }),
@@ -221,7 +221,7 @@ export const IRacingResultsLapDataParametersSchema = z.object({
     .meta({ description: "Required if the subsession was a team event." }),
 });
 
-export const IRacingResultsSearchHostedParametersSchema = z.object({
+export const ResultsSearchHostedParametersSchema = z.object({
   start_range_begin: z.iso.datetime().optional().meta({
     description:
       'Session start times. ISO-8601 UTC time zero offset: "2022-04-01T15:45Z".',
@@ -238,7 +238,7 @@ export const IRacingResultsSearchHostedParametersSchema = z.object({
     description:
       'ISO-8601 UTC time zero offset: "2022-04-01T15:45Z". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past.',
   }),
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+  cust_id: CustomerIdSchema.optional().meta({
     description:
       "The participant's customer ID. Ignored if team_id is supplied.",
   }),
@@ -246,7 +246,7 @@ export const IRacingResultsSearchHostedParametersSchema = z.object({
     description:
       "The team ID to search for. Takes priority over cust_id if both are supplied.",
   }),
-  host_cust_id: IRacingCustomerIdSchema.optional().meta({
+  host_cust_id: CustomerIdSchema.optional().meta({
     description: "The host's customer ID.",
   }),
   session_name: z
@@ -274,7 +274,7 @@ export const IRacingResultsSearchHostedParametersSchema = z.object({
   }),
 });
 
-export const IRacingResultsSearchSeriesParametersSchema = z.object({
+export const ResultsSearchSeriesParametersSchema = z.object({
   season_year: z.coerce
     .number()
     .optional()
@@ -299,7 +299,7 @@ export const IRacingResultsSearchSeriesParametersSchema = z.object({
     description:
       'ISO-8601 UTC time zero offset: "2022-04-01T15:45Z". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past.',
   }),
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+  cust_id: CustomerIdSchema.optional().meta({
     description:
       "Include only sessions in which this customer participated. Ignored if team_id is supplied.",
   }),
@@ -329,9 +329,9 @@ export const IRacingResultsSearchSeriesParametersSchema = z.object({
   }),
 });
 
-export const IRacingResultsSeasonResultsParametersSchema = z.object({
+export const ResultsSeasonResultsParametersSchema = z.object({
   season_id: z.coerce.number(),
-  event_type: IRacingEventTypeSchema.optional().meta({
+  event_type: EventTypeSchema.optional().meta({
     description:
       "Retrict to one event type: 2 - Practice; 3 - Qualify; 4 - Time Trial; 5 - Race",
   }),
@@ -341,12 +341,12 @@ export const IRacingResultsSeasonResultsParametersSchema = z.object({
     .meta({ description: "The first race week of a season is 0." }),
 });
 
-export const IRacingSeasonListParametersSchema = z.object({
+export const SeasonListParametersSchema = z.object({
   season_year: z.coerce.number(),
   season_quarter: z.coerce.number(),
 });
 
-export const IRacingSeasonRaceGuideParametersSchema = z.object({
+export const SeasonRaceGuideParametersSchema = z.object({
   from: z.iso.datetime({ offset: true }).optional().meta({
     description:
       "ISO-8601 offset format. Defaults to the current time. Include sessions with start times up to 3 hours after this time. Times in the past will be rewritten to the current time.",
@@ -356,30 +356,29 @@ export const IRacingSeasonRaceGuideParametersSchema = z.object({
   }),
 });
 
-export const IRacingSeasonSpectatorSubsessionidsParametersSchema = z.object({
-  event_types: z.array(IRacingEventTypeSchema).optional().meta({
+export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
+  event_types: z.array(EventTypeSchema).optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
 });
 
-export const IRacingSeasonSpectatorSubsessionidsDetailParametersSchema =
-  z.object({
-    event_types: z.array(IRacingEventTypeSchema).optional().meta({
-      description:
-        "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
-    }),
-    season_ids: z.array(z.number()).optional().meta({
-      description:
-        "Seasons to include in the search. Defaults to all. ?season_ids=513,937",
-    }),
-  });
+export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
+  event_types: z.array(EventTypeSchema).optional().meta({
+    description:
+      "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
+  }),
+  season_ids: z.array(z.number()).optional().meta({
+    description:
+      "Seasons to include in the search. Defaults to all. ?season_ids=513,937",
+  }),
+});
 
-export const IRacingSeriesPastSeasonsParametersSchema = z.object({
+export const SeriesPastSeasonsParametersSchema = z.object({
   series_id: z.coerce.number(),
 });
 
-export const IRacingSeriesSeasonsParametersSchema = z.object({
+export const SeriesSeasonsParametersSchema = z.object({
   include_series: z.coerce.boolean().optional(),
   season_year: z.coerce.number().optional().meta({
     description:
@@ -391,18 +390,18 @@ export const IRacingSeriesSeasonsParametersSchema = z.object({
   }),
 });
 
-export const IRacingSeriesSeasonListParametersSchema = z.object({
+export const SeriesSeasonListParametersSchema = z.object({
   include_series: z.coerce.boolean().optional(),
   season_year: z.coerce.number().optional(),
   season_quarter: z.coerce.number().optional(),
 });
 
-export const IRacingSeriesSeasonScheduleParametersSchema = z.object({
+export const SeriesSeasonScheduleParametersSchema = z.object({
   season_id: z.coerce.number(),
 });
 
-export const IRacingStatsMemberBestsParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const StatsMemberBestsParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
   car_id: z.coerce.number().optional().meta({
@@ -411,24 +410,22 @@ export const IRacingStatsMemberBestsParametersSchema = z.object({
   }),
 });
 
-export const IRacingStatsMemberCareerParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const StatsMemberCareerParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
-export const IRacingStatsMemberDivisionParametersSchema = z.object({
+export const StatsMemberDivisionParametersSchema = z.object({
   season_id: z.coerce.number(),
-  event_type: z
-    .union([IRacingEventTypeTimeTrialSchema, IRacingEventTypeRaceSchema])
-    .meta({
-      description:
-        "The event type code for the division type: 4 - Time Trial; 5 - Race",
-    }),
+  event_type: z.union([EventTypeTimeTrialSchema, EventTypeRaceSchema]).meta({
+    description:
+      "The event type code for the division type: 4 - Time Trial; 5 - Race",
+  }),
 });
 
-export const IRacingStatsMemberRecapParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const StatsMemberRecapParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
   year: z
@@ -444,47 +441,45 @@ export const IRacingStatsMemberRecapParametersSchema = z.object({
   }),
 });
 
-export const IRacingStatsMemberRecentRacesParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const StatsMemberRecentRacesParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
-export const IRacingStatsMemberSummaryParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const StatsMemberSummaryParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
-export const IRacingStatsMemberYearlyParametersSchema = z.object({
-  cust_id: IRacingCustomerIdSchema.optional().meta({
+export const StatsMemberYearlyParametersSchema = z.object({
+  cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
-export const IRacingStatsSeasonDriverStandingsParametersSchema = z.object({
+export const StatsSeasonDriverStandingsParametersSchema = z.object({
   season_id: z.coerce.number(),
   car_class_id: z.coerce.number(),
-  division: IRacingDivisionSchema.optional(),
+  division: DivisionSchema.optional(),
   race_week_num: z.coerce
     .number()
     .optional()
     .meta({ description: "The first race week of a season is 0." }),
 });
 
-export const IRacingStatsSeasonSupersessionStandingsParametersSchema = z.object(
-  {
-    season_id: z.coerce.number(),
-    car_class_id: z.coerce.number(),
-    division: IRacingDivisionSchema.optional(),
-    race_week_num: z.coerce
-      .number()
-      .optional()
-      .meta({ description: "The first race week of a season is 0." }),
-  },
-);
+export const StatsSeasonSupersessionStandingsParametersSchema = z.object({
+  season_id: z.coerce.number(),
+  car_class_id: z.coerce.number(),
+  division: DivisionSchema.optional(),
+  race_week_num: z.coerce
+    .number()
+    .optional()
+    .meta({ description: "The first race week of a season is 0." }),
+});
 
-export const IRacingStatsSeasonTeamStandingsParametersSchema = z.object({
+export const StatsSeasonTeamStandingsParametersSchema = z.object({
   season_id: z.coerce.number(),
   car_class_id: z.coerce.number(),
   race_week_num: z.coerce
@@ -493,35 +488,35 @@ export const IRacingStatsSeasonTeamStandingsParametersSchema = z.object({
     .meta({ description: "The first race week of a season is 0." }),
 });
 
-export const IRacingStatsSeasonTTStandingsParametersSchema = z.object({
+export const StatsSeasonTTStandingsParametersSchema = z.object({
   season_id: z.coerce.number(),
   car_class_id: z.coerce.number(),
-  division: IRacingDivisionSchema.optional(),
+  division: DivisionSchema.optional(),
   race_week_num: z.coerce
     .number()
     .optional()
     .meta({ description: "The first race week of a season is 0." }),
 });
 
-export const IRacingStatsSeasonTTResultsParametersSchema = z.object({
+export const StatsSeasonTTResultsParametersSchema = z.object({
   season_id: z.coerce.number(),
   car_class_id: z.coerce.number(),
   race_week_num: z.coerce
     .number()
     .meta({ description: "The first race week of a season is 0." }),
-  division: IRacingDivisionSchema.optional(),
+  division: DivisionSchema.optional(),
 });
 
-export const IRacingStatsSeasonQualifyResultsParametersSchema = z.object({
+export const StatsSeasonQualifyResultsParametersSchema = z.object({
   season_id: z.coerce.number(),
   car_class_id: z.coerce.number(),
   race_week_num: z.coerce
     .number()
     .meta({ description: "The first race week of a season is 0." }),
-  division: IRacingDivisionSchema.optional(),
+  division: DivisionSchema.optional(),
 });
 
-export const IRacingStatsWorldRecordsParametersSchema = z.object({
+export const StatsWorldRecordsParametersSchema = z.object({
   car_id: z.coerce.number(),
   track_id: z.coerce.number(),
   season_year: z.coerce
@@ -534,168 +529,417 @@ export const IRacingStatsWorldRecordsParametersSchema = z.object({
   }),
 });
 
-export const IRacingTeamGetParametersSchema = z.object({
+export const TeamGetParametersSchema = z.object({
   team_id: z.coerce.number(),
   include_licenses: z.coerce.boolean().optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
 
-export const IRacingTimeAttackMemberSeasonResultsParametersSchema = z.object({
+export const TimeAttackMemberSeasonResultsParametersSchema = z.object({
   ta_comp_season_id: z.coerce.number(),
 });
 
 /**
  * Types
  */
-export type IRacingDriverStatsByCategoryPath = z.infer<
-  typeof IRacingDriverStatsByCategoryPathSchema
+export type DriverStatsByCategoryPath = z.infer<
+  typeof DriverStatsByCategoryPathSchema
 >;
-export type IRacingHostedCombinedSessionsParameters = z.infer<
-  typeof IRacingHostedCombinedSessionsParametersSchema
+export type HostedCombinedSessionsParameters = z.infer<
+  typeof HostedCombinedSessionsParametersSchema
 >;
-export type IRacingLeagueCustomerSessionsParameters = z.infer<
-  typeof IRacingLeagueCustomerSessionsParametersSchema
+export type LeagueCustomerSessionsParameters = z.infer<
+  typeof LeagueCustomerSessionsParametersSchema
 >;
-export type IRacingLeagueDirectoryParameters = z.infer<
-  typeof IRacingLeagueDirectoryParametersSchema
+export type LeagueDirectoryParameters = z.infer<
+  typeof LeagueDirectoryParametersSchema
 >;
-export type IRacingLeagueGetParameters = z.infer<
-  typeof IRacingLeagueGetParametersSchema
+export type LeagueGetParameters = z.infer<typeof LeagueGetParametersSchema>;
+export type LeagueGetPointsSystemsParameters = z.infer<
+  typeof LeagueGetPointsSystemsParametersSchema
 >;
-export type IRacingLeagueGetPointsSystemsParameters = z.infer<
-  typeof IRacingLeagueGetPointsSystemsParametersSchema
+export type LeagueMembershipParameters = z.infer<
+  typeof LeagueMembershipParametersSchema
 >;
-export type IRacingLeagueMembershipParameters = z.infer<
-  typeof IRacingLeagueMembershipParametersSchema
+export type LeagueRosterParameters = z.infer<
+  typeof LeagueRosterParametersSchema
 >;
-export type IRacingLeagueRosterParameters = z.infer<
-  typeof IRacingLeagueRosterParametersSchema
+export type LeagueSeasonsParameters = z.infer<
+  typeof LeagueSeasonsParametersSchema
 >;
-export type IRacingLeagueSeasonsParameters = z.infer<
-  typeof IRacingLeagueSeasonsParametersSchema
+export type LeagueSeasonStandingsParameters = z.infer<
+  typeof LeagueSeasonStandingsParametersSchema
 >;
-export type IRacingLeagueSeasonStandingsParameters = z.infer<
-  typeof IRacingLeagueSeasonStandingsParametersSchema
->;
-export type IRacingLeagueSeasonSessionsParameters = z.infer<
-  typeof IRacingLeagueSeasonSessionsParametersSchema
+export type LeagueSeasonSessionsParameters = z.infer<
+  typeof LeagueSeasonSessionsParametersSchema
 >;
 
-export type IRacingLookupDriversParameters = z.infer<
-  typeof IRacingLookupDriversParametersSchema
+export type LookupDriversParameters = z.infer<
+  typeof LookupDriversParametersSchema
 >;
 
-export type IRacingMemberAwardsParameters = z.infer<
-  typeof IRacingMemberAwardsParametersSchema
+export type MemberAwardsParameters = z.infer<
+  typeof MemberAwardsParametersSchema
 >;
-export type IRacingMemberAwardInstancesParameters = z.infer<
-  typeof IRacingMemberAwardInstancesParametersSchema
+export type MemberAwardInstancesParameters = z.infer<
+  typeof MemberAwardInstancesParametersSchema
 >;
-export type IRacingMemberChartDataParameters = z.infer<
-  typeof IRacingMemberChartDataParametersSchema
+export type MemberChartDataParameters = z.infer<
+  typeof MemberChartDataParametersSchema
 >;
-export type IRacingMemberGetParameters = z.infer<
-  typeof IRacingMemberGetParametersSchema
->;
-export type IRacingMemberProfileParameters = z.infer<
-  typeof IRacingMemberProfileParametersSchema
+export type MemberGetParameters = z.infer<typeof MemberGetParametersSchema>;
+export type MemberProfileParameters = z.infer<
+  typeof MemberProfileParametersSchema
 >;
 
-export type IRacingResultsGetParameters = z.infer<
-  typeof IRacingResultsGetParametersSchema
+export type ResultsGetParameters = z.infer<typeof ResultsGetParametersSchema>;
+export type ResultsEventLogParameters = z.infer<
+  typeof ResultsEventLogParametersSchema
 >;
-export type IRacingResultsEventLogParameters = z.infer<
-  typeof IRacingResultsEventLogParametersSchema
+export type ResultsLapChartDataParameters = z.infer<
+  typeof ResultsLapChartDataParametersSchema
 >;
-export type IRacingResultsLapChartDataParameters = z.infer<
-  typeof IRacingResultsLapChartDataParametersSchema
+export type ResultsLapDataParameters = z.infer<
+  typeof ResultsLapDataParametersSchema
 >;
-export type IRacingResultsLapDataParameters = z.infer<
-  typeof IRacingResultsLapDataParametersSchema
+export type ResultsSearchHostedParameters = z.infer<
+  typeof ResultsSearchHostedParametersSchema
 >;
-export type IRacingResultsSearchHostedParameters = z.infer<
-  typeof IRacingResultsSearchHostedParametersSchema
+export type ResultsSearchSeriesParameters = z.infer<
+  typeof ResultsSearchSeriesParametersSchema
 >;
-export type IRacingResultsSearchSeriesParameters = z.infer<
-  typeof IRacingResultsSearchSeriesParametersSchema
->;
-export type IRacingResultsSeasonResultsParameters = z.infer<
-  typeof IRacingResultsSeasonResultsParametersSchema
+export type ResultsSeasonResultsParameters = z.infer<
+  typeof ResultsSeasonResultsParametersSchema
 >;
 
-export type IRacingSeasonListParameters = z.infer<
-  typeof IRacingSeasonListParametersSchema
+export type SeasonListParameters = z.infer<typeof SeasonListParametersSchema>;
+export type SeasonRaceGuideParameters = z.infer<
+  typeof SeasonRaceGuideParametersSchema
 >;
-export type IRacingSeasonRaceGuideParameters = z.infer<
-  typeof IRacingSeasonRaceGuideParametersSchema
+export type SeasonSpectatorSubsessionidsParameters = z.infer<
+  typeof SeasonSpectatorSubsessionidsParametersSchema
 >;
-export type IRacingSeasonSpectatorSubsessionidsParameters = z.infer<
-  typeof IRacingSeasonSpectatorSubsessionidsParametersSchema
->;
-export type IRacingSeasonSpectatorSubsessionidsDetailParameters = z.infer<
-  typeof IRacingSeasonSpectatorSubsessionidsDetailParametersSchema
+export type SeasonSpectatorSubsessionidsDetailParameters = z.infer<
+  typeof SeasonSpectatorSubsessionidsDetailParametersSchema
 >;
 
-export type IRacingSeriesPastSeasonsParameters = z.infer<
-  typeof IRacingSeriesPastSeasonsParametersSchema
+export type SeriesPastSeasonsParameters = z.infer<
+  typeof SeriesPastSeasonsParametersSchema
 >;
-export type IRacingSeriesSeasonsParameters = z.infer<
-  typeof IRacingSeriesSeasonsParametersSchema
+export type SeriesSeasonsParameters = z.infer<
+  typeof SeriesSeasonsParametersSchema
 >;
-export type IRacingSeriesSeasonListParameters = z.infer<
-  typeof IRacingSeriesSeasonListParametersSchema
+export type SeriesSeasonListParameters = z.infer<
+  typeof SeriesSeasonListParametersSchema
 >;
-export type IRacingSeriesSeasonScheduleParameters = z.infer<
-  typeof IRacingSeriesSeasonScheduleParametersSchema
->;
-
-export type IRacingStatsMemberBestsParameters = z.infer<
-  typeof IRacingStatsMemberBestsParametersSchema
->;
-export type IRacingStatsMemberCareerParameters = z.infer<
-  typeof IRacingStatsMemberCareerParametersSchema
->;
-export type IRacingStatsMemberDivisionParameters = z.infer<
-  typeof IRacingStatsMemberDivisionParametersSchema
->;
-export type IRacingStatsMemberRecapParameters = z.infer<
-  typeof IRacingStatsMemberRecapParametersSchema
->;
-export type IRacingStatsMemberRecentRacesParameters = z.infer<
-  typeof IRacingStatsMemberRecentRacesParametersSchema
->;
-export type IRacingStatsMemberSummaryParameters = z.infer<
-  typeof IRacingStatsMemberSummaryParametersSchema
->;
-export type IRacingStatsMemberYearlyParameters = z.infer<
-  typeof IRacingStatsMemberYearlyParametersSchema
->;
-export type IRacingStatsSeasonDriverStandingsParameters = z.infer<
-  typeof IRacingStatsSeasonDriverStandingsParametersSchema
->;
-export type IRacingStatsSeasonSupersessionStandingsParameters = z.infer<
-  typeof IRacingStatsSeasonSupersessionStandingsParametersSchema
->;
-export type IRacingStatsSeasonTeamStandingsParameters = z.infer<
-  typeof IRacingStatsSeasonTeamStandingsParametersSchema
->;
-export type IRacingStatsSeasonTTStandingsParameters = z.infer<
-  typeof IRacingStatsSeasonTTStandingsParametersSchema
->;
-export type IRacingStatsSeasonTTResultsParameters = z.infer<
-  typeof IRacingStatsSeasonTTResultsParametersSchema
->;
-export type IRacingStatsSeasonQualifyResultsParameters = z.infer<
-  typeof IRacingStatsSeasonQualifyResultsParametersSchema
->;
-export type IRacingStatsWorldRecordsParameters = z.infer<
-  typeof IRacingStatsWorldRecordsParametersSchema
+export type SeriesSeasonScheduleParameters = z.infer<
+  typeof SeriesSeasonScheduleParametersSchema
 >;
 
-export type IRacingTeamGetParameters = z.infer<
-  typeof IRacingTeamGetParametersSchema
+export type StatsMemberBestsParameters = z.infer<
+  typeof StatsMemberBestsParametersSchema
 >;
-export type IRacingTimeAttackMemberSeasonResultsParameters = z.infer<
-  typeof IRacingTimeAttackMemberSeasonResultsParametersSchema
+export type StatsMemberCareerParameters = z.infer<
+  typeof StatsMemberCareerParametersSchema
 >;
+export type StatsMemberDivisionParameters = z.infer<
+  typeof StatsMemberDivisionParametersSchema
+>;
+export type StatsMemberRecapParameters = z.infer<
+  typeof StatsMemberRecapParametersSchema
+>;
+export type StatsMemberRecentRacesParameters = z.infer<
+  typeof StatsMemberRecentRacesParametersSchema
+>;
+export type StatsMemberSummaryParameters = z.infer<
+  typeof StatsMemberSummaryParametersSchema
+>;
+export type StatsMemberYearlyParameters = z.infer<
+  typeof StatsMemberYearlyParametersSchema
+>;
+export type StatsSeasonDriverStandingsParameters = z.infer<
+  typeof StatsSeasonDriverStandingsParametersSchema
+>;
+export type StatsSeasonSupersessionStandingsParameters = z.infer<
+  typeof StatsSeasonSupersessionStandingsParametersSchema
+>;
+export type StatsSeasonTeamStandingsParameters = z.infer<
+  typeof StatsSeasonTeamStandingsParametersSchema
+>;
+export type StatsSeasonTTStandingsParameters = z.infer<
+  typeof StatsSeasonTTStandingsParametersSchema
+>;
+export type StatsSeasonTTResultsParameters = z.infer<
+  typeof StatsSeasonTTResultsParametersSchema
+>;
+export type StatsSeasonQualifyResultsParameters = z.infer<
+  typeof StatsSeasonQualifyResultsParametersSchema
+>;
+export type StatsWorldRecordsParameters = z.infer<
+  typeof StatsWorldRecordsParametersSchema
+>;
+
+export type TeamGetParameters = z.infer<typeof TeamGetParametersSchema>;
+export type TimeAttackMemberSeasonResultsParameters = z.infer<
+  typeof TimeAttackMemberSeasonResultsParametersSchema
+>;
+
+// Historical exports stay in their original module for import compatibility.
+/** @deprecated Use AuthParametersSchema instead. */
+export const IRacingAuthParametersSchema = AuthParametersSchema;
+/** @deprecated Use DriverStatsByCategoryPathSchema instead. */
+export const IRacingDriverStatsByCategoryPathSchema =
+  DriverStatsByCategoryPathSchema;
+/** @deprecated Use HostedCombinedSessionsParametersSchema instead. */
+export const IRacingHostedCombinedSessionsParametersSchema =
+  HostedCombinedSessionsParametersSchema;
+/** @deprecated Use LeagueCustomerSessionsParametersSchema instead. */
+export const IRacingLeagueCustomerSessionsParametersSchema =
+  LeagueCustomerSessionsParametersSchema;
+/** @deprecated Use LeagueDirectoryParametersSchema instead. */
+export const IRacingLeagueDirectoryParametersSchema =
+  LeagueDirectoryParametersSchema;
+/** @deprecated Use LeagueGetParametersSchema instead. */
+export const IRacingLeagueGetParametersSchema = LeagueGetParametersSchema;
+/** @deprecated Use LeagueGetPointsSystemsParametersSchema instead. */
+export const IRacingLeagueGetPointsSystemsParametersSchema =
+  LeagueGetPointsSystemsParametersSchema;
+/** @deprecated Use LeagueMembershipParametersSchema instead. */
+export const IRacingLeagueMembershipParametersSchema =
+  LeagueMembershipParametersSchema;
+/** @deprecated Use LeagueRosterParametersSchema instead. */
+export const IRacingLeagueRosterParametersSchema = LeagueRosterParametersSchema;
+/** @deprecated Use LeagueSeasonsParametersSchema instead. */
+export const IRacingLeagueSeasonsParametersSchema =
+  LeagueSeasonsParametersSchema;
+/** @deprecated Use LeagueSeasonStandingsParametersSchema instead. */
+export const IRacingLeagueSeasonStandingsParametersSchema =
+  LeagueSeasonStandingsParametersSchema;
+/** @deprecated Use LeagueSeasonSessionsParametersSchema instead. */
+export const IRacingLeagueSeasonSessionsParametersSchema =
+  LeagueSeasonSessionsParametersSchema;
+/** @deprecated Use LookupDriversParametersSchema instead. */
+export const IRacingLookupDriversParametersSchema =
+  LookupDriversParametersSchema;
+/** @deprecated Use MemberAwardsParametersSchema instead. */
+export const IRacingMemberAwardsParametersSchema = MemberAwardsParametersSchema;
+/** @deprecated Use MemberAwardInstancesParametersSchema instead. */
+export const IRacingMemberAwardInstancesParametersSchema =
+  MemberAwardInstancesParametersSchema;
+/** @deprecated Use MemberChartDataParametersSchema instead. */
+export const IRacingMemberChartDataParametersSchema =
+  MemberChartDataParametersSchema;
+/** @deprecated Use MemberGetParametersSchema instead. */
+export const IRacingMemberGetParametersSchema = MemberGetParametersSchema;
+/** @deprecated Use MemberProfileParametersSchema instead. */
+export const IRacingMemberProfileParametersSchema =
+  MemberProfileParametersSchema;
+/** @deprecated Use ResultsGetParametersSchema instead. */
+export const IRacingResultsGetParametersSchema = ResultsGetParametersSchema;
+/** @deprecated Use ResultsEventLogParametersSchema instead. */
+export const IRacingResultsEventLogParametersSchema =
+  ResultsEventLogParametersSchema;
+/** @deprecated Use ResultsLapChartDataParametersSchema instead. */
+export const IRacingResultsLapChartDataParametersSchema =
+  ResultsLapChartDataParametersSchema;
+/** @deprecated Use ResultsLapDataParametersSchema instead. */
+export const IRacingResultsLapDataParametersSchema =
+  ResultsLapDataParametersSchema;
+/** @deprecated Use ResultsSearchHostedParametersSchema instead. */
+export const IRacingResultsSearchHostedParametersSchema =
+  ResultsSearchHostedParametersSchema;
+/** @deprecated Use ResultsSearchSeriesParametersSchema instead. */
+export const IRacingResultsSearchSeriesParametersSchema =
+  ResultsSearchSeriesParametersSchema;
+/** @deprecated Use ResultsSeasonResultsParametersSchema instead. */
+export const IRacingResultsSeasonResultsParametersSchema =
+  ResultsSeasonResultsParametersSchema;
+/** @deprecated Use SeasonListParametersSchema instead. */
+export const IRacingSeasonListParametersSchema = SeasonListParametersSchema;
+/** @deprecated Use SeasonRaceGuideParametersSchema instead. */
+export const IRacingSeasonRaceGuideParametersSchema =
+  SeasonRaceGuideParametersSchema;
+/** @deprecated Use SeasonSpectatorSubsessionidsParametersSchema instead. */
+export const IRacingSeasonSpectatorSubsessionidsParametersSchema =
+  SeasonSpectatorSubsessionidsParametersSchema;
+/** @deprecated Use SeasonSpectatorSubsessionidsDetailParametersSchema instead. */
+export const IRacingSeasonSpectatorSubsessionidsDetailParametersSchema =
+  SeasonSpectatorSubsessionidsDetailParametersSchema;
+/** @deprecated Use SeriesPastSeasonsParametersSchema instead. */
+export const IRacingSeriesPastSeasonsParametersSchema =
+  SeriesPastSeasonsParametersSchema;
+/** @deprecated Use SeriesSeasonsParametersSchema instead. */
+export const IRacingSeriesSeasonsParametersSchema =
+  SeriesSeasonsParametersSchema;
+/** @deprecated Use SeriesSeasonListParametersSchema instead. */
+export const IRacingSeriesSeasonListParametersSchema =
+  SeriesSeasonListParametersSchema;
+/** @deprecated Use SeriesSeasonScheduleParametersSchema instead. */
+export const IRacingSeriesSeasonScheduleParametersSchema =
+  SeriesSeasonScheduleParametersSchema;
+/** @deprecated Use StatsMemberBestsParametersSchema instead. */
+export const IRacingStatsMemberBestsParametersSchema =
+  StatsMemberBestsParametersSchema;
+/** @deprecated Use StatsMemberCareerParametersSchema instead. */
+export const IRacingStatsMemberCareerParametersSchema =
+  StatsMemberCareerParametersSchema;
+/** @deprecated Use StatsMemberDivisionParametersSchema instead. */
+export const IRacingStatsMemberDivisionParametersSchema =
+  StatsMemberDivisionParametersSchema;
+/** @deprecated Use StatsMemberRecapParametersSchema instead. */
+export const IRacingStatsMemberRecapParametersSchema =
+  StatsMemberRecapParametersSchema;
+/** @deprecated Use StatsMemberRecentRacesParametersSchema instead. */
+export const IRacingStatsMemberRecentRacesParametersSchema =
+  StatsMemberRecentRacesParametersSchema;
+/** @deprecated Use StatsMemberSummaryParametersSchema instead. */
+export const IRacingStatsMemberSummaryParametersSchema =
+  StatsMemberSummaryParametersSchema;
+/** @deprecated Use StatsMemberYearlyParametersSchema instead. */
+export const IRacingStatsMemberYearlyParametersSchema =
+  StatsMemberYearlyParametersSchema;
+/** @deprecated Use StatsSeasonDriverStandingsParametersSchema instead. */
+export const IRacingStatsSeasonDriverStandingsParametersSchema =
+  StatsSeasonDriverStandingsParametersSchema;
+/** @deprecated Use StatsSeasonSupersessionStandingsParametersSchema instead. */
+export const IRacingStatsSeasonSupersessionStandingsParametersSchema =
+  StatsSeasonSupersessionStandingsParametersSchema;
+/** @deprecated Use StatsSeasonTeamStandingsParametersSchema instead. */
+export const IRacingStatsSeasonTeamStandingsParametersSchema =
+  StatsSeasonTeamStandingsParametersSchema;
+/** @deprecated Use StatsSeasonTTStandingsParametersSchema instead. */
+export const IRacingStatsSeasonTTStandingsParametersSchema =
+  StatsSeasonTTStandingsParametersSchema;
+/** @deprecated Use StatsSeasonTTResultsParametersSchema instead. */
+export const IRacingStatsSeasonTTResultsParametersSchema =
+  StatsSeasonTTResultsParametersSchema;
+/** @deprecated Use StatsSeasonQualifyResultsParametersSchema instead. */
+export const IRacingStatsSeasonQualifyResultsParametersSchema =
+  StatsSeasonQualifyResultsParametersSchema;
+/** @deprecated Use StatsWorldRecordsParametersSchema instead. */
+export const IRacingStatsWorldRecordsParametersSchema =
+  StatsWorldRecordsParametersSchema;
+/** @deprecated Use TeamGetParametersSchema instead. */
+export const IRacingTeamGetParametersSchema = TeamGetParametersSchema;
+/** @deprecated Use TimeAttackMemberSeasonResultsParametersSchema instead. */
+export const IRacingTimeAttackMemberSeasonResultsParametersSchema =
+  TimeAttackMemberSeasonResultsParametersSchema;
+/** @deprecated Use DriverStatsByCategoryPath instead. */
+export type IRacingDriverStatsByCategoryPath = DriverStatsByCategoryPath;
+/** @deprecated Use HostedCombinedSessionsParameters instead. */
+export type IRacingHostedCombinedSessionsParameters =
+  HostedCombinedSessionsParameters;
+/** @deprecated Use LeagueCustomerSessionsParameters instead. */
+export type IRacingLeagueCustomerSessionsParameters =
+  LeagueCustomerSessionsParameters;
+/** @deprecated Use LeagueDirectoryParameters instead. */
+export type IRacingLeagueDirectoryParameters = LeagueDirectoryParameters;
+/** @deprecated Use LeagueGetParameters instead. */
+export type IRacingLeagueGetParameters = LeagueGetParameters;
+/** @deprecated Use LeagueGetPointsSystemsParameters instead. */
+export type IRacingLeagueGetPointsSystemsParameters =
+  LeagueGetPointsSystemsParameters;
+/** @deprecated Use LeagueMembershipParameters instead. */
+export type IRacingLeagueMembershipParameters = LeagueMembershipParameters;
+/** @deprecated Use LeagueRosterParameters instead. */
+export type IRacingLeagueRosterParameters = LeagueRosterParameters;
+/** @deprecated Use LeagueSeasonsParameters instead. */
+export type IRacingLeagueSeasonsParameters = LeagueSeasonsParameters;
+/** @deprecated Use LeagueSeasonStandingsParameters instead. */
+export type IRacingLeagueSeasonStandingsParameters =
+  LeagueSeasonStandingsParameters;
+/** @deprecated Use LeagueSeasonSessionsParameters instead. */
+export type IRacingLeagueSeasonSessionsParameters =
+  LeagueSeasonSessionsParameters;
+/** @deprecated Use LookupDriversParameters instead. */
+export type IRacingLookupDriversParameters = LookupDriversParameters;
+/** @deprecated Use MemberAwardsParameters instead. */
+export type IRacingMemberAwardsParameters = MemberAwardsParameters;
+/** @deprecated Use MemberAwardInstancesParameters instead. */
+export type IRacingMemberAwardInstancesParameters =
+  MemberAwardInstancesParameters;
+/** @deprecated Use MemberChartDataParameters instead. */
+export type IRacingMemberChartDataParameters = MemberChartDataParameters;
+/** @deprecated Use MemberGetParameters instead. */
+export type IRacingMemberGetParameters = MemberGetParameters;
+/** @deprecated Use MemberProfileParameters instead. */
+export type IRacingMemberProfileParameters = MemberProfileParameters;
+/** @deprecated Use ResultsGetParameters instead. */
+export type IRacingResultsGetParameters = ResultsGetParameters;
+/** @deprecated Use ResultsEventLogParameters instead. */
+export type IRacingResultsEventLogParameters = ResultsEventLogParameters;
+/** @deprecated Use ResultsLapChartDataParameters instead. */
+export type IRacingResultsLapChartDataParameters =
+  ResultsLapChartDataParameters;
+/** @deprecated Use ResultsLapDataParameters instead. */
+export type IRacingResultsLapDataParameters = ResultsLapDataParameters;
+/** @deprecated Use ResultsSearchHostedParameters instead. */
+export type IRacingResultsSearchHostedParameters =
+  ResultsSearchHostedParameters;
+/** @deprecated Use ResultsSearchSeriesParameters instead. */
+export type IRacingResultsSearchSeriesParameters =
+  ResultsSearchSeriesParameters;
+/** @deprecated Use ResultsSeasonResultsParameters instead. */
+export type IRacingResultsSeasonResultsParameters =
+  ResultsSeasonResultsParameters;
+/** @deprecated Use SeasonListParameters instead. */
+export type IRacingSeasonListParameters = SeasonListParameters;
+/** @deprecated Use SeasonRaceGuideParameters instead. */
+export type IRacingSeasonRaceGuideParameters = SeasonRaceGuideParameters;
+/** @deprecated Use SeasonSpectatorSubsessionidsParameters instead. */
+export type IRacingSeasonSpectatorSubsessionidsParameters =
+  SeasonSpectatorSubsessionidsParameters;
+/** @deprecated Use SeasonSpectatorSubsessionidsDetailParameters instead. */
+export type IRacingSeasonSpectatorSubsessionidsDetailParameters =
+  SeasonSpectatorSubsessionidsDetailParameters;
+/** @deprecated Use SeriesPastSeasonsParameters instead. */
+export type IRacingSeriesPastSeasonsParameters = SeriesPastSeasonsParameters;
+/** @deprecated Use SeriesSeasonsParameters instead. */
+export type IRacingSeriesSeasonsParameters = SeriesSeasonsParameters;
+/** @deprecated Use SeriesSeasonListParameters instead. */
+export type IRacingSeriesSeasonListParameters = SeriesSeasonListParameters;
+/** @deprecated Use SeriesSeasonScheduleParameters instead. */
+export type IRacingSeriesSeasonScheduleParameters =
+  SeriesSeasonScheduleParameters;
+/** @deprecated Use StatsMemberBestsParameters instead. */
+export type IRacingStatsMemberBestsParameters = StatsMemberBestsParameters;
+/** @deprecated Use StatsMemberCareerParameters instead. */
+export type IRacingStatsMemberCareerParameters = StatsMemberCareerParameters;
+/** @deprecated Use StatsMemberDivisionParameters instead. */
+export type IRacingStatsMemberDivisionParameters =
+  StatsMemberDivisionParameters;
+/** @deprecated Use StatsMemberRecapParameters instead. */
+export type IRacingStatsMemberRecapParameters = StatsMemberRecapParameters;
+/** @deprecated Use StatsMemberRecentRacesParameters instead. */
+export type IRacingStatsMemberRecentRacesParameters =
+  StatsMemberRecentRacesParameters;
+/** @deprecated Use StatsMemberSummaryParameters instead. */
+export type IRacingStatsMemberSummaryParameters = StatsMemberSummaryParameters;
+/** @deprecated Use StatsMemberYearlyParameters instead. */
+export type IRacingStatsMemberYearlyParameters = StatsMemberYearlyParameters;
+/** @deprecated Use StatsSeasonDriverStandingsParameters instead. */
+export type IRacingStatsSeasonDriverStandingsParameters =
+  StatsSeasonDriverStandingsParameters;
+/** @deprecated Use StatsSeasonSupersessionStandingsParameters instead. */
+export type IRacingStatsSeasonSupersessionStandingsParameters =
+  StatsSeasonSupersessionStandingsParameters;
+/** @deprecated Use StatsSeasonTeamStandingsParameters instead. */
+export type IRacingStatsSeasonTeamStandingsParameters =
+  StatsSeasonTeamStandingsParameters;
+/** @deprecated Use StatsSeasonTTStandingsParameters instead. */
+export type IRacingStatsSeasonTTStandingsParameters =
+  StatsSeasonTTStandingsParameters;
+/** @deprecated Use StatsSeasonTTResultsParameters instead. */
+export type IRacingStatsSeasonTTResultsParameters =
+  StatsSeasonTTResultsParameters;
+/** @deprecated Use StatsSeasonQualifyResultsParameters instead. */
+export type IRacingStatsSeasonQualifyResultsParameters =
+  StatsSeasonQualifyResultsParameters;
+/** @deprecated Use StatsWorldRecordsParameters instead. */
+export type IRacingStatsWorldRecordsParameters = StatsWorldRecordsParameters;
+/** @deprecated Use TeamGetParameters instead. */
+export type IRacingTeamGetParameters = TeamGetParameters;
+/** @deprecated Use TimeAttackMemberSeasonResultsParameters instead. */
+export type IRacingTimeAttackMemberSeasonResultsParameters =
+  TimeAttackMemberSeasonResultsParameters;

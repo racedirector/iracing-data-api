@@ -28,7 +28,7 @@ import {
   OAuthRefreshError,
 } from "@iracing-data/oauth-client";
 import {
-  IRacingOAuthTokenResponse,
+  OAuthTokenResponse,
   OAuthClient,
 } from "@iracing-data/oauth-client/dist/client";
 import {
@@ -272,7 +272,7 @@ async function fetchData(configuration: Configuration, accessToken?: string) {
 
 async function runPasswordLimitedOAuthExample() {
   const stateStore = new InMemoryStore<string, InternalState>();
-  const sessionStore = new DiskStore<string, IRacingOAuthTokenResponse>(
+  const sessionStore = new DiskStore<string, OAuthTokenResponse>(
     credentialsPath,
   );
 
@@ -290,7 +290,7 @@ async function runPasswordLimitedOAuthExample() {
     sessionStore,
   });
 
-  let session: IRacingOAuthTokenResponse | undefined;
+  let session: OAuthTokenResponse | undefined;
   try {
     session = await client.restoreSessionForId(username!);
     if (!session) {

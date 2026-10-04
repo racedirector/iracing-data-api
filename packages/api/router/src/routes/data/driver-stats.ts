@@ -1,4 +1,4 @@
-import { IRacingDriverStatsByCategoryPathSchema } from "@iracing-data/api-schema";
+import { DriverStatsByCategoryPathSchema } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
 export const category = createEndpoint(
@@ -9,7 +9,7 @@ export const category = createEndpoint(
   },
   async ({ context: { iracing }, params: queryParams }) => {
     return await iracing.driverStats.getDriverStatsByCategory(
-      await IRacingDriverStatsByCategoryPathSchema.parseAsync(queryParams),
+      await DriverStatsByCategoryPathSchema.parseAsync(queryParams),
     );
   },
 );

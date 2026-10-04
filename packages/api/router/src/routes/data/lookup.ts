@@ -1,4 +1,4 @@
-import { IRacingLookupDriversParametersSchema } from "@iracing-data/api-schema";
+import { LookupDriversParametersSchema } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
 export const countries = createEndpoint(
@@ -35,7 +35,7 @@ export const drivers = createEndpoint(
   "/data/lookup/drivers",
   {
     method: "GET",
-    query: IRacingLookupDriversParametersSchema,
+    query: LookupDriversParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.lookup.getLookupDrivers(query);

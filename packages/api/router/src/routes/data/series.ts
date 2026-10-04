@@ -1,8 +1,8 @@
 import {
-  IRacingSeriesPastSeasonsParametersSchema,
-  IRacingSeriesSeasonListParametersSchema,
-  IRacingSeriesSeasonScheduleParametersSchema,
-  IRacingSeriesSeasonsParametersSchema,
+  SeriesPastSeasonsParametersSchema,
+  SeriesSeasonListParametersSchema,
+  SeriesSeasonScheduleParametersSchema,
+  SeriesSeasonsParametersSchema,
 } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
@@ -30,7 +30,7 @@ export const pastSeasons = createEndpoint(
   "/data/series/past_seasons",
   {
     method: "GET",
-    query: IRacingSeriesPastSeasonsParametersSchema,
+    query: SeriesPastSeasonsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesPastSeasons(query);
@@ -41,7 +41,7 @@ export const seasons = createEndpoint(
   "/data/series/seasons",
   {
     method: "GET",
-    query: IRacingSeriesSeasonsParametersSchema,
+    query: SeriesSeasonsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesSeasons(query);
@@ -52,7 +52,7 @@ export const seasonList = createEndpoint(
   "/data/series/season_list",
   {
     method: "GET",
-    query: IRacingSeriesSeasonListParametersSchema,
+    query: SeriesSeasonListParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesSeasonList(query);
@@ -63,7 +63,7 @@ export const seasonSchedule = createEndpoint(
   "/data/series/season_schedule",
   {
     method: "GET",
-    query: IRacingSeriesSeasonScheduleParametersSchema,
+    query: SeriesSeasonScheduleParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.series.getSeriesSeasonSchedule(query);

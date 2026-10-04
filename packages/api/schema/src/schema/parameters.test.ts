@@ -1,10 +1,10 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
-import { IRacingMemberGetParametersSchema } from "./parameters";
+import { MemberGetParametersSchema } from "./parameters";
 
-describe("IRacingMemberGetParameters", () => {
+describe("MemberGetParameters", () => {
   it("coerces single integers", () => {
-    const integerValue = IRacingMemberGetParametersSchema.parse({
+    const integerValue = MemberGetParametersSchema.parse({
       cust_ids: 1,
     });
     assert.deepStrictEqual(integerValue, {
@@ -13,10 +13,10 @@ describe("IRacingMemberGetParameters", () => {
   });
 
   it("preserves cust_ids as a string", () => {
-    const singleValue = IRacingMemberGetParametersSchema.parse({
+    const singleValue = MemberGetParametersSchema.parse({
       cust_ids: "1",
     });
-    const multipleValues = IRacingMemberGetParametersSchema.parse({
+    const multipleValues = MemberGetParametersSchema.parse({
       cust_ids: "1,2,3",
       include_licenses: "true",
     });

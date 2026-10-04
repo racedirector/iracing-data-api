@@ -1,17 +1,17 @@
 import {
-  IRacingResultsGetParametersSchema,
-  IRacingResultsEventLogParametersSchema,
-  IRacingResultsLapChartDataParametersSchema,
-  IRacingResultsLapDataParametersSchema,
-  IRacingResultsSearchHostedParametersSchema,
-  IRacingResultsSearchSeriesParametersSchema,
-  IRacingResultsSeasonResultsParametersSchema,
+  ResultsGetParametersSchema,
+  ResultsEventLogParametersSchema,
+  ResultsLapChartDataParametersSchema,
+  ResultsLapDataParametersSchema,
+  ResultsSearchHostedParametersSchema,
+  ResultsSearchSeriesParametersSchema,
+  ResultsSeasonResultsParametersSchema,
 } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
 export const getResults = createEndpoint(
   "/data/results/get",
-  { method: "GET", query: IRacingResultsGetParametersSchema },
+  { method: "GET", query: ResultsGetParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResults(query);
   },
@@ -19,7 +19,7 @@ export const getResults = createEndpoint(
 
 export const eventLog = createEndpoint(
   "/data/results/event_log",
-  { method: "GET", query: IRacingResultsEventLogParametersSchema },
+  { method: "GET", query: ResultsEventLogParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsEventLog(query);
   },
@@ -27,7 +27,7 @@ export const eventLog = createEndpoint(
 
 export const lapChartData = createEndpoint(
   "/data/results/lap_chart_data",
-  { method: "GET", query: IRacingResultsLapChartDataParametersSchema },
+  { method: "GET", query: ResultsLapChartDataParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsLapChartData(query);
   },
@@ -35,7 +35,7 @@ export const lapChartData = createEndpoint(
 
 export const lapData = createEndpoint(
   "/data/results/lap_data",
-  { method: "GET", query: IRacingResultsLapDataParametersSchema },
+  { method: "GET", query: ResultsLapDataParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsLapData(query);
   },
@@ -43,7 +43,7 @@ export const lapData = createEndpoint(
 
 export const searchHosted = createEndpoint(
   "/data/results/search_hosted",
-  { method: "GET", query: IRacingResultsSearchHostedParametersSchema },
+  { method: "GET", query: ResultsSearchHostedParametersSchema },
   async ({
     context: { iracing },
     query: {
@@ -72,7 +72,7 @@ export const searchHosted = createEndpoint(
 
 export const searchSeries = createEndpoint(
   "/data/results/search_series",
-  { method: "GET", query: IRacingResultsSearchSeriesParametersSchema },
+  { method: "GET", query: ResultsSearchSeriesParametersSchema },
   async ({
     context: { iracing },
     query: {
@@ -101,7 +101,7 @@ export const searchSeries = createEndpoint(
 
 export const seasonResults = createEndpoint(
   "/data/results/season_results",
-  { method: "GET", query: IRacingResultsSeasonResultsParametersSchema },
+  { method: "GET", query: ResultsSeasonResultsParametersSchema },
   async ({ context: { iracing }, query }) => {
     return await iracing.results.getResultsSeasonResults(query);
   },

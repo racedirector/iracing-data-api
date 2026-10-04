@@ -11,9 +11,9 @@ pnpm add @iracing-data/oauth-schema
 ## Usage
 
 ```typescript
-import { IRacingOAuthAuthorizeParametersSchema } from "@iracing-data/oauth-schema";
+import { OAuthAuthorizeParametersSchema } from "@iracing-data/oauth-schema";
 
-const parsed = IRacingOAuthAuthorizeParametersSchema.parse({
+const parsed = OAuthAuthorizeParametersSchema.parse({
   client_id: "example-client",
   redirect_uri: "https://example.com/callback",
   response_type: "code",
@@ -34,3 +34,7 @@ Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iraci
 - [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
 
 See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+
+## Schema naming compatibility
+
+Canonical schema exports omit the leading `IRacing` and retain `OAuth` where present. All historical schema names remain as deprecated aliases with identical values and equivalent types, including OAuth-client re-exports. See the [complete migration map and compatibility policy](../../../docs/SCHEMA-MIGRATION.md).

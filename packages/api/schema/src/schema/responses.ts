@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const IRacingErrorResponseSchema = z
+export const ErrorResponseSchema = z
   .object({
     error: z.string(),
     message: z.string().optional(),
@@ -10,7 +10,7 @@ export const IRacingErrorResponseSchema = z
     id: "errorResponse",
   });
 
-export const IRacingAPIResponseSchema = z
+export const APIResponseSchema = z
   .object({
     link: z.url().meta({ description: "A link to the cached data" }),
     expires: z.iso.datetime(),
@@ -20,7 +20,7 @@ export const IRacingAPIResponseSchema = z
     id: "iracingAPIResponse",
   });
 
-export const IRacingServiceMethodParametersDocsResponseSchema = z
+export const ServiceMethodParametersDocsResponseSchema = z
   .object({
     type: z.string(),
     note: z.string().optional(),
@@ -31,13 +31,10 @@ export const IRacingServiceMethodParametersDocsResponseSchema = z
     id: "iracingServiceMethodParametersDocs",
   });
 
-export const IRacingServiceMethodDocsResponseSchema = z
+export const ServiceMethodDocsResponseSchema = z
   .object({
     link: z.url(),
-    parameters: z.record(
-      z.string(),
-      IRacingServiceMethodParametersDocsResponseSchema,
-    ),
+    parameters: z.record(z.string(), ServiceMethodParametersDocsResponseSchema),
     expirationSeconds: z.coerce.number().optional(),
   })
   .meta({
@@ -45,16 +42,16 @@ export const IRacingServiceMethodDocsResponseSchema = z
     id: "iracingServiceMethodDocs",
   });
 
-export const IRacingServiceDocsResponseSchema = z
-  .record(z.string(), IRacingServiceMethodDocsResponseSchema)
+export const ServiceDocsResponseSchema = z
+  .record(z.string(), ServiceMethodDocsResponseSchema)
   .meta({
     description:
       "An index of service methods available for the requested service.",
     id: "iracingServiceDocs",
   });
 
-export const IRacingServicesDocsResponseSchema = z
-  .record(z.string(), IRacingServiceDocsResponseSchema)
+export const ServicesDocsResponseSchema = z
+  .record(z.string(), ServiceDocsResponseSchema)
   .meta({
     description: "An index of available services on the iRacing API.",
     id: "iracingServicesDocs",
@@ -65,18 +62,15 @@ export const IRacingServicesDocsResponseSchema = z
  * These are provided as a convenience and are non-exhaustive.
  */
 
-export const IRacingGetCarAssetsResponseSchema = z.record(
-  z.number(),
-  z.unknown(),
-);
+export const GetCarAssetsResponseSchema = z.record(z.number(), z.unknown());
 
-export const IRacingGetCarResponseSchema = z.array(
+export const GetCarResponseSchema = z.array(
   z.object({
     car_id: z.number(),
   }),
 );
 
-export const IRacingGetTrackAssetsResponseSchema = z.record(
+export const GetTrackAssetsResponseSchema = z.record(
   z.number(),
   z.object({
     track_id: z.number(),
@@ -85,7 +79,7 @@ export const IRacingGetTrackAssetsResponseSchema = z.record(
   }),
 );
 
-export const IRacingGetTrackResponseSchema = z.array(
+export const GetTrackResponseSchema = z.array(
   z.object({
     track_id: z.number(),
   }),
@@ -95,29 +89,66 @@ export const IRacingGetTrackResponseSchema = z.array(
  * Types
  */
 
-export type IRacingErrorResponse = z.infer<typeof IRacingErrorResponseSchema>;
-export type IRacingAPIResponse = z.infer<typeof IRacingAPIResponseSchema>;
+export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
+export type APIResponse = z.infer<typeof APIResponseSchema>;
 
-export type IRacingServiceMethodParametersDocsResponse = z.infer<
-  typeof IRacingServiceMethodParametersDocsResponseSchema
+export type ServiceMethodParametersDocsResponse = z.infer<
+  typeof ServiceMethodParametersDocsResponseSchema
 >;
-export type IRacingServiceMethodDocsResponse = z.infer<
-  typeof IRacingServiceMethodDocsResponseSchema
+export type ServiceMethodDocsResponse = z.infer<
+  typeof ServiceMethodDocsResponseSchema
 >;
-export type IRacingServiceDocsResponse = z.infer<
-  typeof IRacingServiceDocsResponseSchema
->;
-export type IRacingServicesDocsResponse = z.infer<
-  typeof IRacingServicesDocsResponseSchema
->;
+export type ServiceDocsResponse = z.infer<typeof ServiceDocsResponseSchema>;
+export type ServicesDocsResponse = z.infer<typeof ServicesDocsResponseSchema>;
 
-export type IRacingGetCarAssetsResponse = z.infer<
-  typeof IRacingGetCarAssetsResponseSchema
+export type GetCarAssetsResponse = z.infer<typeof GetCarAssetsResponseSchema>;
+export type GetCarResponse = z.infer<typeof GetCarResponseSchema>;
+export type GetTrackAssetsResponse = z.infer<
+  typeof GetTrackAssetsResponseSchema
 >;
-export type IRacingGetCarResponse = z.infer<typeof IRacingGetCarResponseSchema>;
-export type IRacingGetTrackAssetsResponse = z.infer<
-  typeof IRacingGetTrackAssetsResponseSchema
->;
-export type IRacingGetTrackResponse = z.infer<
-  typeof IRacingGetTrackResponseSchema
->;
+export type GetTrackResponse = z.infer<typeof GetTrackResponseSchema>;
+
+// Historical exports stay in their original module for import compatibility.
+/** @deprecated Use ErrorResponseSchema instead. */
+export const IRacingErrorResponseSchema = ErrorResponseSchema;
+/** @deprecated Use APIResponseSchema instead. */
+export const IRacingAPIResponseSchema = APIResponseSchema;
+/** @deprecated Use ServiceMethodParametersDocsResponseSchema instead. */
+export const IRacingServiceMethodParametersDocsResponseSchema =
+  ServiceMethodParametersDocsResponseSchema;
+/** @deprecated Use ServiceMethodDocsResponseSchema instead. */
+export const IRacingServiceMethodDocsResponseSchema =
+  ServiceMethodDocsResponseSchema;
+/** @deprecated Use ServiceDocsResponseSchema instead. */
+export const IRacingServiceDocsResponseSchema = ServiceDocsResponseSchema;
+/** @deprecated Use ServicesDocsResponseSchema instead. */
+export const IRacingServicesDocsResponseSchema = ServicesDocsResponseSchema;
+/** @deprecated Use GetCarAssetsResponseSchema instead. */
+export const IRacingGetCarAssetsResponseSchema = GetCarAssetsResponseSchema;
+/** @deprecated Use GetCarResponseSchema instead. */
+export const IRacingGetCarResponseSchema = GetCarResponseSchema;
+/** @deprecated Use GetTrackAssetsResponseSchema instead. */
+export const IRacingGetTrackAssetsResponseSchema = GetTrackAssetsResponseSchema;
+/** @deprecated Use GetTrackResponseSchema instead. */
+export const IRacingGetTrackResponseSchema = GetTrackResponseSchema;
+/** @deprecated Use ErrorResponse instead. */
+export type IRacingErrorResponse = ErrorResponse;
+/** @deprecated Use APIResponse instead. */
+export type IRacingAPIResponse = APIResponse;
+/** @deprecated Use ServiceMethodParametersDocsResponse instead. */
+export type IRacingServiceMethodParametersDocsResponse =
+  ServiceMethodParametersDocsResponse;
+/** @deprecated Use ServiceMethodDocsResponse instead. */
+export type IRacingServiceMethodDocsResponse = ServiceMethodDocsResponse;
+/** @deprecated Use ServiceDocsResponse instead. */
+export type IRacingServiceDocsResponse = ServiceDocsResponse;
+/** @deprecated Use ServicesDocsResponse instead. */
+export type IRacingServicesDocsResponse = ServicesDocsResponse;
+/** @deprecated Use GetCarAssetsResponse instead. */
+export type IRacingGetCarAssetsResponse = GetCarAssetsResponse;
+/** @deprecated Use GetCarResponse instead. */
+export type IRacingGetCarResponse = GetCarResponse;
+/** @deprecated Use GetTrackAssetsResponse instead. */
+export type IRacingGetTrackAssetsResponse = GetTrackAssetsResponse;
+/** @deprecated Use GetTrackResponse instead. */
+export type IRacingGetTrackResponse = GetTrackResponse;

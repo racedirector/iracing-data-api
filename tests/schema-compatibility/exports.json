@@ -1,0 +1,1202 @@
+[
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingAuthParametersSchema",
+    "new": "AuthParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingDriverStatsByCategoryPathSchema",
+    "new": "DriverStatsByCategoryPathSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingHostedCombinedSessionsParametersSchema",
+    "new": "HostedCombinedSessionsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueCustomerSessionsParametersSchema",
+    "new": "LeagueCustomerSessionsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueDirectoryParametersSchema",
+    "new": "LeagueDirectoryParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueGetParametersSchema",
+    "new": "LeagueGetParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueGetPointsSystemsParametersSchema",
+    "new": "LeagueGetPointsSystemsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueMembershipParametersSchema",
+    "new": "LeagueMembershipParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueRosterParametersSchema",
+    "new": "LeagueRosterParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueSeasonsParametersSchema",
+    "new": "LeagueSeasonsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueSeasonStandingsParametersSchema",
+    "new": "LeagueSeasonStandingsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLeagueSeasonSessionsParametersSchema",
+    "new": "LeagueSeasonSessionsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingLookupDriversParametersSchema",
+    "new": "LookupDriversParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingMemberAwardsParametersSchema",
+    "new": "MemberAwardsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingMemberAwardInstancesParametersSchema",
+    "new": "MemberAwardInstancesParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingMemberChartDataParametersSchema",
+    "new": "MemberChartDataParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingMemberGetParametersSchema",
+    "new": "MemberGetParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingMemberProfileParametersSchema",
+    "new": "MemberProfileParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsGetParametersSchema",
+    "new": "ResultsGetParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsEventLogParametersSchema",
+    "new": "ResultsEventLogParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsLapChartDataParametersSchema",
+    "new": "ResultsLapChartDataParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsLapDataParametersSchema",
+    "new": "ResultsLapDataParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsSearchHostedParametersSchema",
+    "new": "ResultsSearchHostedParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsSearchSeriesParametersSchema",
+    "new": "ResultsSearchSeriesParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingResultsSeasonResultsParametersSchema",
+    "new": "ResultsSeasonResultsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeasonListParametersSchema",
+    "new": "SeasonListParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeasonRaceGuideParametersSchema",
+    "new": "SeasonRaceGuideParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeasonSpectatorSubsessionidsParametersSchema",
+    "new": "SeasonSpectatorSubsessionidsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeasonSpectatorSubsessionidsDetailParametersSchema",
+    "new": "SeasonSpectatorSubsessionidsDetailParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeriesPastSeasonsParametersSchema",
+    "new": "SeriesPastSeasonsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeriesSeasonsParametersSchema",
+    "new": "SeriesSeasonsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeriesSeasonListParametersSchema",
+    "new": "SeriesSeasonListParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingSeriesSeasonScheduleParametersSchema",
+    "new": "SeriesSeasonScheduleParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberBestsParametersSchema",
+    "new": "StatsMemberBestsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberCareerParametersSchema",
+    "new": "StatsMemberCareerParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberDivisionParametersSchema",
+    "new": "StatsMemberDivisionParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberRecapParametersSchema",
+    "new": "StatsMemberRecapParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberRecentRacesParametersSchema",
+    "new": "StatsMemberRecentRacesParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberSummaryParametersSchema",
+    "new": "StatsMemberSummaryParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsMemberYearlyParametersSchema",
+    "new": "StatsMemberYearlyParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsSeasonDriverStandingsParametersSchema",
+    "new": "StatsSeasonDriverStandingsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsSeasonSupersessionStandingsParametersSchema",
+    "new": "StatsSeasonSupersessionStandingsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsSeasonTeamStandingsParametersSchema",
+    "new": "StatsSeasonTeamStandingsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsSeasonTTStandingsParametersSchema",
+    "new": "StatsSeasonTTStandingsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsSeasonTTResultsParametersSchema",
+    "new": "StatsSeasonTTResultsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsSeasonQualifyResultsParametersSchema",
+    "new": "StatsSeasonQualifyResultsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingStatsWorldRecordsParametersSchema",
+    "new": "StatsWorldRecordsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingTeamGetParametersSchema",
+    "new": "TeamGetParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "const",
+    "old": "IRacingTimeAttackMemberSeasonResultsParametersSchema",
+    "new": "TimeAttackMemberSeasonResultsParametersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingDriverStatsByCategoryPath",
+    "new": "DriverStatsByCategoryPath"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingHostedCombinedSessionsParameters",
+    "new": "HostedCombinedSessionsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueCustomerSessionsParameters",
+    "new": "LeagueCustomerSessionsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueDirectoryParameters",
+    "new": "LeagueDirectoryParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueGetParameters",
+    "new": "LeagueGetParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueGetPointsSystemsParameters",
+    "new": "LeagueGetPointsSystemsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueMembershipParameters",
+    "new": "LeagueMembershipParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueRosterParameters",
+    "new": "LeagueRosterParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueSeasonsParameters",
+    "new": "LeagueSeasonsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueSeasonStandingsParameters",
+    "new": "LeagueSeasonStandingsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLeagueSeasonSessionsParameters",
+    "new": "LeagueSeasonSessionsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingLookupDriversParameters",
+    "new": "LookupDriversParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingMemberAwardsParameters",
+    "new": "MemberAwardsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingMemberAwardInstancesParameters",
+    "new": "MemberAwardInstancesParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingMemberChartDataParameters",
+    "new": "MemberChartDataParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingMemberGetParameters",
+    "new": "MemberGetParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingMemberProfileParameters",
+    "new": "MemberProfileParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsGetParameters",
+    "new": "ResultsGetParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsEventLogParameters",
+    "new": "ResultsEventLogParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsLapChartDataParameters",
+    "new": "ResultsLapChartDataParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsLapDataParameters",
+    "new": "ResultsLapDataParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsSearchHostedParameters",
+    "new": "ResultsSearchHostedParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsSearchSeriesParameters",
+    "new": "ResultsSearchSeriesParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingResultsSeasonResultsParameters",
+    "new": "ResultsSeasonResultsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeasonListParameters",
+    "new": "SeasonListParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeasonRaceGuideParameters",
+    "new": "SeasonRaceGuideParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeasonSpectatorSubsessionidsParameters",
+    "new": "SeasonSpectatorSubsessionidsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeasonSpectatorSubsessionidsDetailParameters",
+    "new": "SeasonSpectatorSubsessionidsDetailParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeriesPastSeasonsParameters",
+    "new": "SeriesPastSeasonsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeriesSeasonsParameters",
+    "new": "SeriesSeasonsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeriesSeasonListParameters",
+    "new": "SeriesSeasonListParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingSeriesSeasonScheduleParameters",
+    "new": "SeriesSeasonScheduleParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberBestsParameters",
+    "new": "StatsMemberBestsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberCareerParameters",
+    "new": "StatsMemberCareerParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberDivisionParameters",
+    "new": "StatsMemberDivisionParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberRecapParameters",
+    "new": "StatsMemberRecapParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberRecentRacesParameters",
+    "new": "StatsMemberRecentRacesParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberSummaryParameters",
+    "new": "StatsMemberSummaryParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsMemberYearlyParameters",
+    "new": "StatsMemberYearlyParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsSeasonDriverStandingsParameters",
+    "new": "StatsSeasonDriverStandingsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsSeasonSupersessionStandingsParameters",
+    "new": "StatsSeasonSupersessionStandingsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsSeasonTeamStandingsParameters",
+    "new": "StatsSeasonTeamStandingsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsSeasonTTStandingsParameters",
+    "new": "StatsSeasonTTStandingsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsSeasonTTResultsParameters",
+    "new": "StatsSeasonTTResultsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsSeasonQualifyResultsParameters",
+    "new": "StatsSeasonQualifyResultsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingStatsWorldRecordsParameters",
+    "new": "StatsWorldRecordsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingTeamGetParameters",
+    "new": "TeamGetParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/parameters.ts",
+    "kind": "type",
+    "old": "IRacingTimeAttackMemberSeasonResultsParameters",
+    "new": "TimeAttackMemberSeasonResultsParameters"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingAccessTokenSchema",
+    "new": "AccessTokenSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitLimitHeaderKey",
+    "new": "RateLimitLimitHeaderKey"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitLimitHeaderSchema",
+    "new": "RateLimitLimitHeaderSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitRemainingHeaderKey",
+    "new": "RateLimitRemainingHeaderKey"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitRemainingHeaderSchema",
+    "new": "RateLimitRemainingHeaderSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitResetHeaderKey",
+    "new": "RateLimitResetHeaderKey"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitResetHeaderSchema",
+    "new": "RateLimitResetHeaderSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingRateLimitHeadersSchema",
+    "new": "RateLimitHeadersSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingCustomerIdSchema",
+    "new": "CustomerIdSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingEventTypePracticeSchema",
+    "new": "EventTypePracticeSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingEventTypeQualifyingSchema",
+    "new": "EventTypeQualifyingSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingEventTypeTimeTrialSchema",
+    "new": "EventTypeTimeTrialSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingEventTypeRaceSchema",
+    "new": "EventTypeRaceSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingEventTypeSchema",
+    "new": "EventTypeSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingChartTypeSchema",
+    "new": "ChartTypeSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingChartTypeParameterSchema",
+    "new": "ChartTypeParameterSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingCategorySchema",
+    "new": "CategorySchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingCategoryIdSchema",
+    "new": "CategoryIdSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingCategoryIdParameterSchema",
+    "new": "CategoryIdParameterSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "const",
+    "old": "IRacingDivisionSchema",
+    "new": "DivisionSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingAccessToken",
+    "new": "AccessToken"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingRateLimitLimitHeader",
+    "new": "RateLimitLimitHeader"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingRateLimitRemainingHeader",
+    "new": "RateLimitRemainingHeader"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingRateLimitResetHeader",
+    "new": "RateLimitResetHeader"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingRateLimitHeaders",
+    "new": "RateLimitHeaders"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingCustomerId",
+    "new": "CustomerId"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingCategory",
+    "new": "Category"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingDivision",
+    "new": "Division"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingEventTypePractice",
+    "new": "EventTypePractice"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingEventTypeQualifying",
+    "new": "EventTypeQualifying"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingEventTypeTimeTrial",
+    "new": "EventTypeTimeTrial"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingEventTypeRace",
+    "new": "EventTypeRace"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingEventType",
+    "new": "EventType"
+  },
+  {
+    "module": "packages/api/schema/src/schema/primitives.ts",
+    "kind": "type",
+    "old": "IRacingChartType",
+    "new": "ChartType"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingErrorResponseSchema",
+    "new": "ErrorResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingAPIResponseSchema",
+    "new": "APIResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingServiceMethodParametersDocsResponseSchema",
+    "new": "ServiceMethodParametersDocsResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingServiceMethodDocsResponseSchema",
+    "new": "ServiceMethodDocsResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingServiceDocsResponseSchema",
+    "new": "ServiceDocsResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingServicesDocsResponseSchema",
+    "new": "ServicesDocsResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingGetCarAssetsResponseSchema",
+    "new": "GetCarAssetsResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingGetCarResponseSchema",
+    "new": "GetCarResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingGetTrackAssetsResponseSchema",
+    "new": "GetTrackAssetsResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "const",
+    "old": "IRacingGetTrackResponseSchema",
+    "new": "GetTrackResponseSchema"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingErrorResponse",
+    "new": "ErrorResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingAPIResponse",
+    "new": "APIResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingServiceMethodParametersDocsResponse",
+    "new": "ServiceMethodParametersDocsResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingServiceMethodDocsResponse",
+    "new": "ServiceMethodDocsResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingServiceDocsResponse",
+    "new": "ServiceDocsResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingServicesDocsResponse",
+    "new": "ServicesDocsResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingGetCarAssetsResponse",
+    "new": "GetCarAssetsResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingGetCarResponse",
+    "new": "GetCarResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingGetTrackAssetsResponse",
+    "new": "GetTrackAssetsResponse"
+  },
+  {
+    "module": "packages/api/schema/src/schema/responses.ts",
+    "kind": "type",
+    "old": "IRacingGetTrackResponse",
+    "new": "GetTrackResponse"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthClientIdSchema",
+    "new": "OAuthClientIdSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthClientSecretSchema",
+    "new": "OAuthClientSecretSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthScopeAuthSchema",
+    "new": "OAuthScopeAuthSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthScopeProfileSchema",
+    "new": "OAuthScopeProfileSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthScopesSchema",
+    "new": "OAuthScopesSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthScopesStringSchema",
+    "new": "OAuthScopesStringSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthRequestIdHeaderKey",
+    "new": "OAuthRequestIdHeaderKey"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthRequestIdHeaderSchema",
+    "new": "OAuthRequestIdHeaderSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthHeadersSchema",
+    "new": "OAuthHeadersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthErrorResponseSchema",
+    "new": "OAuthErrorResponseSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthAuthorizeParametersSchema",
+    "new": "OAuthAuthorizeParametersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthCllbackParametersSchema",
+    "new": "OAuthCallbackParametersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthTokenAuthorizationCodeGrantParametersSchema",
+    "new": "OAuthTokenAuthorizationCodeGrantParametersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthTokenRefreshGrantParametersSchema",
+    "new": "OAuthTokenRefreshGrantParametersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthPasswordLimitedGrantParametersSchema",
+    "new": "OAuthPasswordLimitedGrantParametersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthTokenParametersSchema",
+    "new": "OAuthTokenParametersSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthTokenResponseSchema",
+    "new": "OAuthTokenResponseSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthJWTAccessTokenAlgorithmValues",
+    "new": "OAuthJWTAccessTokenAlgorithmValues"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthJWTAccessTokenAlgorithmSchema",
+    "new": "OAuthJWTAccessTokenAlgorithmSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthJWTAccessTokenHeaderSchema",
+    "new": "OAuthJWTAccessTokenHeaderSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthJWTAccessTokenPayloadSchema",
+    "new": "OAuthJWTAccessTokenPayloadSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthJWTAccessTokenSchema",
+    "new": "OAuthJWTAccessTokenSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthSessionSchema",
+    "new": "OAuthSessionSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthSessionsSchema",
+    "new": "OAuthSessionsSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthProfileResponseSchema",
+    "new": "OAuthProfileResponseSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthRevokeCurrentSessionInputSchema",
+    "new": "OAuthRevokeCurrentSessionInputSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "const",
+    "old": "IRacingOAuthRevokeSessionsInputSchema",
+    "new": "OAuthRevokeSessionsInputSchema"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthClientId",
+    "new": "OAuthClientId"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthClientSecret",
+    "new": "OAuthClientSecret"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthScopeAuth",
+    "new": "OAuthScopeAuth"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthScopeProfile",
+    "new": "OAuthScopeProfile"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthScopes",
+    "new": "OAuthScopes"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthScopesString",
+    "new": "OAuthScopesString"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthRequestIdHeader",
+    "new": "OAuthRequestIdHeader"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthHeaders",
+    "new": "OAuthHeaders"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthAuthorizeParameters",
+    "new": "OAuthAuthorizeParameters"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthTokenAuthorizationCodeGrantParameters",
+    "new": "OAuthTokenAuthorizationCodeGrantParameters"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthTokenRefreshGrantParameters",
+    "new": "OAuthTokenRefreshGrantParameters"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthTokenParameters",
+    "new": "OAuthTokenParameters"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthTokenResponse",
+    "new": "OAuthTokenResponse"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthJWTAccessTokenAlgorithm",
+    "new": "OAuthJWTAccessTokenAlgorithm"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthJWTAccessTokenHeader",
+    "new": "OAuthJWTAccessTokenHeader"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthJWTAccessTokenPayload",
+    "new": "OAuthJWTAccessTokenPayload"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthJWTAccessToken",
+    "new": "OAuthJWTAccessToken"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthSession",
+    "new": "OAuthSession"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthSessions",
+    "new": "OAuthSessions"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthProfileResponse",
+    "new": "OAuthProfileResponse"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthRevokeCurrentSessionParameters",
+    "new": "OAuthRevokeCurrentSessionParameters"
+  },
+  {
+    "module": "packages/oauth/schema/src/schema.ts",
+    "kind": "type",
+    "old": "IRacingOAuthRevokeSessionsParameters",
+    "new": "OAuthRevokeSessionsParameters"
+  }
+]
