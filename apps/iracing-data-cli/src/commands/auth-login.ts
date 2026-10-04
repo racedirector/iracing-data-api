@@ -1,4 +1,5 @@
 import { Command } from "@commander-js/extra-typings";
+import { authenticateWithBrowser } from "../authenticate.js";
 import type { Diagnostics } from "../diagnostics.js";
 
 export function createAuthLoginCommand(diagnostics: Diagnostics) {
@@ -13,8 +14,15 @@ export function createAuthLoginCommand(diagnostics: Diagnostics) {
       "OAuth callback timeout in seconds",
       "300",
     )
-    .action(async () => {
-      diagnostics.error("Browser OAuth login is not implemented yet.");
-      process.exitCode = 1;
+    .action(async (options) => {
+      const timeoutSeconds = Number(options.timeoutSeconds);
+      await authenticateWithBrowser({
+        clientId: process.env.IRACING_AUTH_CLIENT ?? "",
+        clientSecret: process.env.IRACING_AUTH_SECRET || undefined,
+        timeoutSeconds,
+        openBrowser: options.open,
+        diagnostics,
+      });
+      diagnostics.info("OAuth authentication complete.");
     });
 }
