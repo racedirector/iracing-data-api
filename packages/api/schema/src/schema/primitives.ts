@@ -1,30 +1,30 @@
 import { z } from "zod";
 
-export const IRacingAccessTokenSchema = z.jwt().meta({
+export const AccessTokenSchema = z.jwt().meta({
   description: "JWT ID Token from iRacing OAuth Service",
   id: "iracingAccessToken",
 });
 
-export const IRacingRateLimitLimitHeaderKey = "x-ratelimit-limit";
-export const IRacingRateLimitLimitHeaderSchema = z.number().meta({
+export const RateLimitLimitHeaderKey = "x-ratelimit-limit";
+export const RateLimitLimitHeaderSchema = z.number().meta({
   title: "Rate limit limit",
   description: "The current total rate limit.",
   header: {
-    id: IRacingRateLimitLimitHeaderKey,
+    id: RateLimitLimitHeaderKey,
   },
 });
 
-export const IRacingRateLimitRemainingHeaderKey = "x-ratelimit-remaining";
-export const IRacingRateLimitRemainingHeaderSchema = z.number().meta({
+export const RateLimitRemainingHeaderKey = "x-ratelimit-remaining";
+export const RateLimitRemainingHeaderSchema = z.number().meta({
   title: "Rate limit remaining",
   description: "How much of the rate limit you have remaining.",
   header: {
-    id: IRacingRateLimitRemainingHeaderKey,
+    id: RateLimitRemainingHeaderKey,
   },
 });
 
-export const IRacingRateLimitResetHeaderKey = "x-ratelimit-reset";
-export const IRacingRateLimitResetHeaderSchema = z
+export const RateLimitResetHeaderKey = "x-ratelimit-reset";
+export const RateLimitResetHeaderSchema = z
   .codec(z.int().min(0), z.date(), {
     decode: (millis) => new Date(millis),
     encode: (date) => date.getTime(),
@@ -33,15 +33,15 @@ export const IRacingRateLimitResetHeaderSchema = z
     title: "Rate limit reset",
     description: "When the rate limit will reset in epoch timestamp.",
     header: {
-      id: IRacingRateLimitResetHeaderKey,
+      id: RateLimitResetHeaderKey,
     },
   });
 
-export const IRacingRateLimitHeadersSchema = z
+export const RateLimitHeadersSchema = z
   .object({
-    [IRacingRateLimitLimitHeaderKey]: IRacingRateLimitLimitHeaderSchema,
-    [IRacingRateLimitRemainingHeaderKey]: IRacingRateLimitRemainingHeaderSchema,
-    [IRacingRateLimitResetHeaderKey]: IRacingRateLimitResetHeaderSchema,
+    [RateLimitLimitHeaderKey]: RateLimitLimitHeaderSchema,
+    [RateLimitRemainingHeaderKey]: RateLimitRemainingHeaderSchema,
+    [RateLimitResetHeaderKey]: RateLimitResetHeaderSchema,
   })
   .meta({
     title: "Rate limit headers",
@@ -49,7 +49,7 @@ export const IRacingRateLimitHeadersSchema = z
       "Headers included with every request, indicating current rate limit status for the requesting session.",
   });
 
-export const IRacingCustomerIdSchema = z.coerce.number().meta({
+export const CustomerIdSchema = z.coerce.number().meta({
   description: "Numeric ID of a customer on iRacing.",
   id: "customerId",
 });
@@ -61,35 +61,33 @@ export const CommaSeparatedNumberString = z.coerce
       "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
   });
 
-export const IRacingEventTypePracticeSchema = z
+export const EventTypePracticeSchema = z
   .literal(2)
   .meta({ description: "Practice" });
 
-export const IRacingEventTypeQualifyingSchema = z
+export const EventTypeQualifyingSchema = z
   .literal(3)
   .meta({ description: "Qualifying" });
 
-export const IRacingEventTypeTimeTrialSchema = z
+export const EventTypeTimeTrialSchema = z
   .literal(4)
   .meta({ description: "Time trial" });
 
-export const IRacingEventTypeRaceSchema = z
-  .literal(5)
-  .meta({ description: "Race" });
+export const EventTypeRaceSchema = z.literal(5).meta({ description: "Race" });
 
-export const IRacingEventTypeSchema = z
+export const EventTypeSchema = z
   .union([
-    IRacingEventTypePracticeSchema,
-    IRacingEventTypeQualifyingSchema,
-    IRacingEventTypeTimeTrialSchema,
-    IRacingEventTypeRaceSchema,
+    EventTypePracticeSchema,
+    EventTypeQualifyingSchema,
+    EventTypeTimeTrialSchema,
+    EventTypeRaceSchema,
   ])
   .meta({
     id: "iracingEventType",
     description: "iRacing Event Type",
   });
 
-export const IRacingChartTypeSchema = z
+export const ChartTypeSchema = z
   .union([
     z.literal(1).meta({ description: "iRating" }),
     z.literal(2).meta({ description: "Time trial rating" }),
@@ -100,11 +98,9 @@ export const IRacingChartTypeSchema = z
     description: "iRacing Chart Type",
   });
 
-export const IRacingChartTypeParameterSchema = z.coerce
-  .number()
-  .pipe(IRacingChartTypeSchema);
+export const ChartTypeParameterSchema = z.coerce.number().pipe(ChartTypeSchema);
 
-export const IRacingCategorySchema = z
+export const CategorySchema = z
   .union([
     z.literal("oval").meta({ description: "Oval discipline" }),
     z.literal("road").meta({
@@ -121,7 +117,7 @@ export const IRacingCategorySchema = z
     id: "iracingCategory",
   });
 
-export const IRacingCategoryIdSchema = z
+export const CategoryIdSchema = z
   .union([
     z.literal(1).meta({ description: "Oval" }),
     z.literal(2).meta({ description: "Road" }),
@@ -135,11 +131,11 @@ export const IRacingCategoryIdSchema = z
     id: "iracingCategoryId",
   });
 
-export const IRacingCategoryIdParameterSchema = z.coerce
+export const CategoryIdParameterSchema = z.coerce
   .number()
-  .pipe(IRacingCategoryIdSchema);
+  .pipe(CategoryIdSchema);
 
-export const IRacingDivisionSchema = z
+export const DivisionSchema = z
   .union([
     z.literal(0).meta({
       description: "Division 1",
@@ -185,32 +181,91 @@ export const IRacingDivisionSchema = z
  * Types
  */
 
-export type IRacingAccessToken = z.infer<typeof IRacingAccessTokenSchema>;
-export type IRacingRateLimitLimitHeader = z.infer<
-  typeof IRacingRateLimitLimitHeaderSchema
+export type AccessToken = z.infer<typeof AccessTokenSchema>;
+export type RateLimitLimitHeader = z.infer<typeof RateLimitLimitHeaderSchema>;
+export type RateLimitRemainingHeader = z.infer<
+  typeof RateLimitRemainingHeaderSchema
 >;
-export type IRacingRateLimitRemainingHeader = z.infer<
-  typeof IRacingRateLimitRemainingHeaderSchema
->;
-export type IRacingRateLimitResetHeader = z.infer<
-  typeof IRacingRateLimitResetHeaderSchema
->;
-export type IRacingRateLimitHeaders = z.infer<
-  typeof IRacingRateLimitHeadersSchema
->;
-export type IRacingCustomerId = z.infer<typeof IRacingCustomerIdSchema>;
-export type IRacingCategory = z.infer<typeof IRacingCategorySchema>;
-export type IRacingDivision = z.infer<typeof IRacingDivisionSchema>;
-export type IRacingEventTypePractice = z.infer<
-  typeof IRacingEventTypePracticeSchema
->;
-export type IRacingEventTypeQualifying = z.infer<
-  typeof IRacingEventTypeQualifyingSchema
->;
-export type IRacingEventTypeTimeTrial = z.infer<
-  typeof IRacingEventTypeTimeTrialSchema
->;
-export type IRacingEventTypeRace = z.infer<typeof IRacingEventTypeRaceSchema>;
-export type IRacingEventType = z.infer<typeof IRacingEventTypeSchema>;
+export type RateLimitResetHeader = z.infer<typeof RateLimitResetHeaderSchema>;
+export type RateLimitHeaders = z.infer<typeof RateLimitHeadersSchema>;
+export type CustomerId = z.infer<typeof CustomerIdSchema>;
+export type Category = z.infer<typeof CategorySchema>;
+export type Division = z.infer<typeof DivisionSchema>;
+export type EventTypePractice = z.infer<typeof EventTypePracticeSchema>;
+export type EventTypeQualifying = z.infer<typeof EventTypeQualifyingSchema>;
+export type EventTypeTimeTrial = z.infer<typeof EventTypeTimeTrialSchema>;
+export type EventTypeRace = z.infer<typeof EventTypeRaceSchema>;
+export type EventType = z.infer<typeof EventTypeSchema>;
 
-export type IRacingChartType = z.infer<typeof IRacingChartTypeSchema>;
+export type ChartType = z.infer<typeof ChartTypeSchema>;
+
+// Historical exports stay in their original module for import compatibility.
+/** @deprecated Use AccessTokenSchema instead. */
+export const IRacingAccessTokenSchema = AccessTokenSchema;
+/** @deprecated Use RateLimitLimitHeaderKey instead. */
+export const IRacingRateLimitLimitHeaderKey = RateLimitLimitHeaderKey;
+/** @deprecated Use RateLimitLimitHeaderSchema instead. */
+export const IRacingRateLimitLimitHeaderSchema = RateLimitLimitHeaderSchema;
+/** @deprecated Use RateLimitRemainingHeaderKey instead. */
+export const IRacingRateLimitRemainingHeaderKey = RateLimitRemainingHeaderKey;
+/** @deprecated Use RateLimitRemainingHeaderSchema instead. */
+export const IRacingRateLimitRemainingHeaderSchema =
+  RateLimitRemainingHeaderSchema;
+/** @deprecated Use RateLimitResetHeaderKey instead. */
+export const IRacingRateLimitResetHeaderKey = RateLimitResetHeaderKey;
+/** @deprecated Use RateLimitResetHeaderSchema instead. */
+export const IRacingRateLimitResetHeaderSchema = RateLimitResetHeaderSchema;
+/** @deprecated Use RateLimitHeadersSchema instead. */
+export const IRacingRateLimitHeadersSchema = RateLimitHeadersSchema;
+/** @deprecated Use CustomerIdSchema instead. */
+export const IRacingCustomerIdSchema = CustomerIdSchema;
+/** @deprecated Use EventTypePracticeSchema instead. */
+export const IRacingEventTypePracticeSchema = EventTypePracticeSchema;
+/** @deprecated Use EventTypeQualifyingSchema instead. */
+export const IRacingEventTypeQualifyingSchema = EventTypeQualifyingSchema;
+/** @deprecated Use EventTypeTimeTrialSchema instead. */
+export const IRacingEventTypeTimeTrialSchema = EventTypeTimeTrialSchema;
+/** @deprecated Use EventTypeRaceSchema instead. */
+export const IRacingEventTypeRaceSchema = EventTypeRaceSchema;
+/** @deprecated Use EventTypeSchema instead. */
+export const IRacingEventTypeSchema = EventTypeSchema;
+/** @deprecated Use ChartTypeSchema instead. */
+export const IRacingChartTypeSchema = ChartTypeSchema;
+/** @deprecated Use ChartTypeParameterSchema instead. */
+export const IRacingChartTypeParameterSchema = ChartTypeParameterSchema;
+/** @deprecated Use CategorySchema instead. */
+export const IRacingCategorySchema = CategorySchema;
+/** @deprecated Use CategoryIdSchema instead. */
+export const IRacingCategoryIdSchema = CategoryIdSchema;
+/** @deprecated Use CategoryIdParameterSchema instead. */
+export const IRacingCategoryIdParameterSchema = CategoryIdParameterSchema;
+/** @deprecated Use DivisionSchema instead. */
+export const IRacingDivisionSchema = DivisionSchema;
+/** @deprecated Use AccessToken instead. */
+export type IRacingAccessToken = AccessToken;
+/** @deprecated Use RateLimitLimitHeader instead. */
+export type IRacingRateLimitLimitHeader = RateLimitLimitHeader;
+/** @deprecated Use RateLimitRemainingHeader instead. */
+export type IRacingRateLimitRemainingHeader = RateLimitRemainingHeader;
+/** @deprecated Use RateLimitResetHeader instead. */
+export type IRacingRateLimitResetHeader = RateLimitResetHeader;
+/** @deprecated Use RateLimitHeaders instead. */
+export type IRacingRateLimitHeaders = RateLimitHeaders;
+/** @deprecated Use CustomerId instead. */
+export type IRacingCustomerId = CustomerId;
+/** @deprecated Use Category instead. */
+export type IRacingCategory = Category;
+/** @deprecated Use Division instead. */
+export type IRacingDivision = Division;
+/** @deprecated Use EventTypePractice instead. */
+export type IRacingEventTypePractice = EventTypePractice;
+/** @deprecated Use EventTypeQualifying instead. */
+export type IRacingEventTypeQualifying = EventTypeQualifying;
+/** @deprecated Use EventTypeTimeTrial instead. */
+export type IRacingEventTypeTimeTrial = EventTypeTimeTrial;
+/** @deprecated Use EventTypeRace instead. */
+export type IRacingEventTypeRace = EventTypeRace;
+/** @deprecated Use EventType instead. */
+export type IRacingEventType = EventType;
+/** @deprecated Use ChartType instead. */
+export type IRacingChartType = ChartType;
