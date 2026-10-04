@@ -60,4 +60,19 @@ The `start` script uses Node’s built-in `--env-file-if-exists=.env` support to
 
 ## Need a token?
 
-Follow the current official [Data API workflow](https://oauth.iracing.com/oauth2/book/data_api_workflow.html) and [client registration requirements](https://oauth.iracing.com/oauth2/book/client_registration.html). For token acquisition and refresh integration, see the separate [OAuth client](../../packages/oauth/client/README.md) and [OAuth examples](../README.md). This first-call path does not provision clients or refresh tokens.
+The repository-native path is [`apps/iracing-data-cli`](../../apps/iracing-data-cli/README.md). Configure an iRacing OAuth client, then run:
+
+```bash
+pnpm --filter 'iracing-data-cli...' build
+pnpm --filter iracing-data-cli start -- auth login --output ./credentials.json
+```
+
+Copy the generated document's raw `access_token` value into `examples/data-api-first-call/.env` as:
+
+```dotenv
+IRACING_ACCESS_TOKEN=<access_token>
+```
+
+Do not include a `Bearer ` prefix. The CLI deliberately does not edit this `.env` file for you.
+
+For the upstream contract, see iRacing's current [Data API workflow](https://oauth.iracing.com/oauth2/book/data_api_workflow.html) and [client registration requirements](https://oauth.iracing.com/oauth2/book/client_registration.html). For reusable OAuth integration beyond this repository workflow, see the [OAuth client](../../packages/oauth/client/README.md).
