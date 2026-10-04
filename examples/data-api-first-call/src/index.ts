@@ -1,21 +1,15 @@
-import { CarApi, Configuration } from "@iracing-data/api-client-fetch";
+import { DocApi, Configuration } from "@iracing-data/api-client-fetch";
 
 async function main() {
   const accessToken = process.env.IRACING_ACCESS_TOKEN;
   if (!accessToken)
-    throw new Error("Set IRACING_ACCESS_TOKEN to an existing bearer token.");
+    throw new Error(
+      "Set IRACING_ACCESS_TOKEN in .env or your environment to an existing bearer token.",
+    );
 
-  const api = new CarApi(new Configuration({ accessToken }));
-  const response = await api.getCar();
-  if (!response.link)
-    throw new Error("The Data API did not return a cached-data link.");
-
-  // Fetch cached data separately; do not forward the bearer token.
-  const dataResponse = await fetch(response.link);
-  if (!dataResponse.ok)
-    throw new Error(`Cached data request failed: HTTP ${dataResponse.status}`);
-  const cars: unknown = await dataResponse.json();
-  console.log(JSON.stringify(cars, null, 2));
+  const api = new DocApi(new Configuration({ accessToken }));
+  const docs = await api.getDocs();
+  console.log(JSON.stringify(docs, null, 2));
 }
 
 main().catch((error: unknown) => {

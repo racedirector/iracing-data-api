@@ -11,7 +11,7 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 
 ## First Data API call
 
-With an existing bearer token, follow the [Fetch-first quickstart](examples/data-api-first-call/README.md): install `@iracing-data/api-client-fetch`, set `IRACING_ACCESS_TOKEN`, call `CarApi.getCar()`, and fetch the returned cached-data link without forwarding authorization. The runnable example prints the cars JSON and reports HTTP failures. [Token acquisition and refresh](packages/oauth/client/README.md) are a separate step.
+With an existing bearer token, follow the [Fetch-first quickstart](examples/data-api-first-call/README.md): install `@iracing-data/api-client-fetch`, set `IRACING_ACCESS_TOKEN`, call `DocApi.getDocs()`. The runnable example prints the whole Data API documentation JSON and reports HTTP failures. [Token acquisition and refresh](packages/oauth/client/README.md) are a separate step.
 
 ## OpenAPI contracts
 
