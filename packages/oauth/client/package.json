@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/oauth-client",
-  "version": "0.0.1-alpha.8",
+  "version": "0.0.1-alpha.9",
   "description": "OAuth 2.0 client for iRacing with authorization-code flow, token refresh, and pluggable session storage.",
   "license": "MIT",
   "main": "dist/index.js",
