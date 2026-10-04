@@ -1,15 +1,15 @@
 name: Task / improvement
 description: Propose bounded maintenance, refactoring, documentation, release, packaging, migration, testing, or repository work.
 title: "Task: "
-labels:
-  - "type:task"
+type: task
+labels: []
 body:
   - type: markdown
     attributes:
       value: |
         Use this form for bounded implementation/support work that is not itself a new externally consumable capability.
 
-        See the [issue triage and labeling guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for the repository's type, area, and status taxonomy.
+        GitHub Issue Type is the canonical classification axis. See the [issue triage guide](https://github.com/racedirector/iracing-data-api/blob/main/docs/ISSUE-TRIAGE.md) for area, priority, and status conventions.
 
         Maintainers should generally create epics and spikes directly during planning rather than through public request forms.
   - type: dropdown
