@@ -160,11 +160,11 @@ test("stale workspace glob fails", (t) => {
     file,
     fs
       .readFileSync(file, "utf8")
-      .replace("packages:", 'packages:\n  - "apps/*"'),
+      .replace("packages:", 'packages:\n  - "stale-workspaces/*"'),
   );
   assert.match(
     checkTopology(root).join("\n"),
-    /stale workspace pattern: apps\/\*/,
+    /stale workspace pattern: stale-workspaces\/\*/,
   );
 });
 

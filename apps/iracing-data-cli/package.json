@@ -1,0 +1,24 @@
+{
+  "name": "iracing-data-cli",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "iracing-data": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "start": "node --env-file-if-exists=.env dist/index.js",
+    "dev": "node --env-file-if-exists=.env --import tsx src/index.ts",
+    "test": "pnpm build && node --test test/*.test.cjs"
+  },
+  "dependencies": {
+    "commander": "^15.0.0"
+  },
+  "devDependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15"
+  }
+}
