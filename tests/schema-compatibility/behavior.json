@@ -1,0 +1,446 @@
+{
+  "IRacingAuthParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingDriverStatsByCategoryPathSchema": {
+    "metadata": {}
+  },
+  "IRacingHostedCombinedSessionsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueCustomerSessionsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueDirectoryParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueGetParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueGetPointsSystemsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueMembershipParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueRosterParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueSeasonsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueSeasonStandingsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLeagueSeasonSessionsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingLookupDriversParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingMemberAwardsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingMemberAwardInstancesParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingMemberChartDataParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingMemberGetParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingMemberProfileParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsGetParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsEventLogParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsLapChartDataParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsLapDataParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsSearchHostedParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsSearchSeriesParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingResultsSeasonResultsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeasonListParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeasonRaceGuideParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeasonSpectatorSubsessionidsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeasonSpectatorSubsessionidsDetailParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeriesPastSeasonsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeriesSeasonsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeriesSeasonListParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingSeriesSeasonScheduleParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberBestsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberCareerParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberDivisionParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberRecapParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberRecentRacesParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberSummaryParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsMemberYearlyParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsSeasonDriverStandingsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsSeasonSupersessionStandingsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsSeasonTeamStandingsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsSeasonTTStandingsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsSeasonTTResultsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsSeasonQualifyResultsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingStatsWorldRecordsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingTeamGetParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingTimeAttackMemberSeasonResultsParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingAccessTokenSchema": {
+    "metadata": {
+      "description": "JWT ID Token from iRacing OAuth Service",
+      "id": "iracingAccessToken"
+    }
+  },
+  "IRacingRateLimitLimitHeaderKey": {
+    "literal": "x-ratelimit-limit"
+  },
+  "IRacingRateLimitLimitHeaderSchema": {
+    "metadata": {
+      "title": "Rate limit limit",
+      "description": "The current total rate limit.",
+      "header": {
+        "id": "x-ratelimit-limit"
+      }
+    }
+  },
+  "IRacingRateLimitRemainingHeaderKey": {
+    "literal": "x-ratelimit-remaining"
+  },
+  "IRacingRateLimitRemainingHeaderSchema": {
+    "metadata": {
+      "title": "Rate limit remaining",
+      "description": "How much of the rate limit you have remaining.",
+      "header": {
+        "id": "x-ratelimit-remaining"
+      }
+    }
+  },
+  "IRacingRateLimitResetHeaderKey": {
+    "literal": "x-ratelimit-reset"
+  },
+  "IRacingRateLimitResetHeaderSchema": {
+    "metadata": {
+      "title": "Rate limit reset",
+      "description": "When the rate limit will reset in epoch timestamp.",
+      "header": {
+        "id": "x-ratelimit-reset"
+      }
+    }
+  },
+  "IRacingRateLimitHeadersSchema": {
+    "metadata": {
+      "title": "Rate limit headers",
+      "description": "Headers included with every request, indicating current rate limit status for the requesting session."
+    }
+  },
+  "IRacingCustomerIdSchema": {
+    "metadata": {
+      "description": "Numeric ID of a customer on iRacing.",
+      "id": "customerId"
+    }
+  },
+  "IRacingEventTypePracticeSchema": {
+    "metadata": {
+      "description": "Practice"
+    }
+  },
+  "IRacingEventTypeQualifyingSchema": {
+    "metadata": {
+      "description": "Qualifying"
+    }
+  },
+  "IRacingEventTypeTimeTrialSchema": {
+    "metadata": {
+      "description": "Time trial"
+    }
+  },
+  "IRacingEventTypeRaceSchema": {
+    "metadata": {
+      "description": "Race"
+    }
+  },
+  "IRacingEventTypeSchema": {
+    "metadata": {
+      "id": "iracingEventType",
+      "description": "iRacing Event Type"
+    }
+  },
+  "IRacingChartTypeSchema": {
+    "metadata": {
+      "id": "iracingChartType",
+      "description": "iRacing Chart Type"
+    }
+  },
+  "IRacingChartTypeParameterSchema": {
+    "metadata": {}
+  },
+  "IRacingCategorySchema": {
+    "metadata": {
+      "description": "Racing category.",
+      "id": "iracingCategory"
+    }
+  },
+  "IRacingCategoryIdSchema": {
+    "metadata": {
+      "description": "Racing category ID.",
+      "id": "iracingCategoryId"
+    }
+  },
+  "IRacingCategoryIdParameterSchema": {
+    "metadata": {}
+  },
+  "IRacingDivisionSchema": {
+    "metadata": {
+      "description": "iRacing Divisions. Divisions are 0-based: 0 is Division 1, 10 is Rookie. See /data/constants/divisons for more information.",
+      "id": "iracingDivision"
+    }
+  },
+  "IRacingErrorResponseSchema": {
+    "metadata": {
+      "id": "errorResponse"
+    }
+  },
+  "IRacingAPIResponseSchema": {
+    "metadata": {
+      "description": "Response from iRacing `/data` API.",
+      "id": "iracingAPIResponse"
+    }
+  },
+  "IRacingServiceMethodParametersDocsResponseSchema": {
+    "metadata": {
+      "description": "An iRacing API Service Method Parameters object.",
+      "id": "iracingServiceMethodParametersDocs"
+    }
+  },
+  "IRacingServiceMethodDocsResponseSchema": {
+    "metadata": {
+      "description": "An iRacing API Service Method object.",
+      "id": "iracingServiceMethodDocs"
+    }
+  },
+  "IRacingServiceDocsResponseSchema": {
+    "metadata": {
+      "description": "An index of service methods available for the requested service.",
+      "id": "iracingServiceDocs"
+    }
+  },
+  "IRacingServicesDocsResponseSchema": {
+    "metadata": {
+      "description": "An index of available services on the iRacing API.",
+      "id": "iracingServicesDocs"
+    }
+  },
+  "IRacingGetCarAssetsResponseSchema": {
+    "metadata": {}
+  },
+  "IRacingGetCarResponseSchema": {
+    "metadata": {}
+  },
+  "IRacingGetTrackAssetsResponseSchema": {
+    "metadata": {}
+  },
+  "IRacingGetTrackResponseSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthClientIdSchema": {
+    "metadata": {
+      "description": "The client identifier issued during client registration."
+    }
+  },
+  "IRacingOAuthClientSecretSchema": {
+    "metadata": {
+      "description": "The client secret issued during registration."
+    }
+  },
+  "IRacingOAuthScopeAuthSchema": {
+    "metadata": {
+      "description": "OAuth scope that grants authorization for iRacing services."
+    }
+  },
+  "IRacingOAuthScopeProfileSchema": {
+    "metadata": {
+      "description": "OAuth scope that grants access to the iRacing profile."
+    }
+  },
+  "IRacingOAuthScopesSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthScopesStringSchema": {
+    "metadata": {
+      "description": "One or more scopes to request, if any, separated by whitespace."
+    }
+  },
+  "IRacingOAuthRequestIdHeaderKey": {
+    "literal": "x-request-id"
+  },
+  "IRacingOAuthRequestIdHeaderSchema": {
+    "metadata": {
+      "title": "Request ID",
+      "description": "Each incoming request is assigned a request identifier. The request identifier is used to associate log messages with the request. Please include the value of the received x-request-id header when reporting issues.",
+      "header": {
+        "id": "x-request-id"
+      }
+    }
+  },
+  "IRacingOAuthHeadersSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthErrorResponseSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthAuthorizeParametersSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthCllbackParametersSchema": {
+    "metadata": {
+      "description": "Parameters are added to the query string of the `redirect_uri`."
+    }
+  },
+  "IRacingOAuthTokenAuthorizationCodeGrantParametersSchema": {
+    "metadata": {
+      "id": "authorizationCodeGrant"
+    }
+  },
+  "IRacingOAuthTokenRefreshGrantParametersSchema": {
+    "metadata": {
+      "id": "refreshTokenGrant"
+    }
+  },
+  "IRacingOAuthPasswordLimitedGrantParametersSchema": {
+    "metadata": {
+      "id": "passwordLimitedGrant"
+    }
+  },
+  "IRacingOAuthTokenParametersSchema": {
+    "metadata": {
+      "id": "tokenGrantParameters"
+    }
+  },
+  "IRacingOAuthTokenResponseSchema": {
+    "metadata": {
+      "id": "tokenGrantResponse"
+    }
+  },
+  "IRacingOAuthJWTAccessTokenAlgorithmValues": {
+    "literal": [
+      "HS256",
+      "HS384",
+      "HS512",
+      "RS256",
+      "RS384",
+      "RS512",
+      "ES256",
+      "ES384",
+      "ES512",
+      "PS256",
+      "PS384",
+      "PS512",
+      "ES256K",
+      "EdDSA"
+    ]
+  },
+  "IRacingOAuthJWTAccessTokenAlgorithmSchema": {
+    "metadata": {
+      "id": "jwtAccessTokenAlgorithm",
+      "title": "JWT Access Token Algorithm",
+      "description": "The signed JWT algorithm used by the iRacing access token header. `none` is explicitly disallowed."
+    }
+  },
+  "IRacingOAuthJWTAccessTokenHeaderSchema": {
+    "metadata": {
+      "id": "jwtAccessTokenHeader",
+      "title": "JWT Access Token Header",
+      "description": "The decoded JWS header for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html"
+    }
+  },
+  "IRacingOAuthJWTAccessTokenPayloadSchema": {
+    "metadata": {
+      "id": "jwtAccessTokenPayload",
+      "title": "JWT Access Token Payload",
+      "description": "The decoded payload for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html"
+    }
+  },
+  "IRacingOAuthJWTAccessTokenSchema": {
+    "metadata": {
+      "id": "jwtAccessToken",
+      "title": "JWT Access Token",
+      "description": "The decoded and parsed JWT access token structure for iRacing."
+    }
+  },
+  "IRacingOAuthSessionSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthSessionsSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthProfileResponseSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthRevokeCurrentSessionInputSchema": {
+    "metadata": {}
+  },
+  "IRacingOAuthRevokeSessionsInputSchema": {
+    "metadata": {}
+  }
+}
