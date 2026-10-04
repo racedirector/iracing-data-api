@@ -1,13 +1,13 @@
 import { createServer, type Server } from "node:http";
-import type { AddressInfo } from "node:net";
 import {
   InMemoryStore,
   OAuthClient,
   type InternalState,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
-import type { Diagnostics } from "./diagnostics.js";
 import { openUrlInBrowser } from "./browser.js";
+import type { AddressInfo } from "node:net";
+import type { Diagnostics } from "./diagnostics.js";
 
 const CALLBACK_HOST = "127.0.0.1";
 const CALLBACK_PATH = "/oauth/iracing/callback";
@@ -67,7 +67,9 @@ export async function authenticateWithBrowser(
   } = options;
 
   if (!clientId) {
-    throw new Error("Missing required environment variable: IRACING_AUTH_CLIENT");
+    throw new Error(
+      "Missing required environment variable: IRACING_AUTH_CLIENT",
+    );
   }
   if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
     throw new Error("--timeout-seconds must be a positive number");
@@ -113,53 +115,60 @@ export async function authenticateWithBrowser(
         });
 
     const { url } = await client.authorize();
-    const callbackPromise = new Promise<OAuthTokenResponse>((resolve, reject) => {
-      rejectFlow = reject;
-      timeout = setTimeout(
-        () => reject(new Error("Timed out waiting for the OAuth callback.")),
-        Math.round(timeoutSeconds * 1000),
-      );
-      signalSource.once("SIGINT", onSignal);
-      signalSource.once("SIGTERM", onSignal);
+    const callbackPromise = new Promise<OAuthTokenResponse>(
+      (resolve, reject) => {
+        rejectFlow = reject;
+        timeout = setTimeout(
+          () => reject(new Error("Timed out waiting for the OAuth callback.")),
+          Math.round(timeoutSeconds * 1000),
+        );
+        signalSource.once("SIGINT", onSignal);
+        signalSource.once("SIGTERM", onSignal);
 
-      server.on("request", async (request, response) => {
-        const requestUrl = new URL(request.url ?? "/", redirectUri);
-        if (requestUrl.pathname !== CALLBACK_PATH) {
-          response.statusCode = 404;
-          response.end("Not found.");
-          return;
-        }
-        if (callbackClaimed) {
-          response.statusCode = 409;
-          response.end("OAuth callback already received.");
-          return;
-        }
-        callbackClaimed = true;
+        server.on("request", async (request, response) => {
+          const requestUrl = new URL(request.url ?? "/", redirectUri);
+          if (requestUrl.pathname !== CALLBACK_PATH) {
+            response.statusCode = 404;
+            response.end("Not found.");
+            return;
+          }
+          if (callbackClaimed) {
+            response.statusCode = 409;
+            response.end("OAuth callback already received.");
+            return;
+          }
+          callbackClaimed = true;
 
-        try {
-          const token = await client.callback(requestUrl.searchParams, SESSION_ID);
-          response.statusCode = 200;
-          response.setHeader("Content-Type", "text/html; charset=utf-8");
-          response.end(
-            "<h1>Authenticated</h1><p>You can return to the terminal.</p>",
-          );
-          resolve(token);
-        } catch {
-          response.statusCode = 500;
-          response.setHeader("Content-Type", "text/html; charset=utf-8");
-          response.end(
-            "<h1>Authentication failed</h1><p>Return to the terminal for details.</p>",
-          );
-          reject(new Error("iRacing OAuth authentication failed."));
-        }
-      });
-    });
+          try {
+            const token = await client.callback(
+              requestUrl.searchParams,
+              SESSION_ID,
+            );
+            response.statusCode = 200;
+            response.setHeader("Content-Type", "text/html; charset=utf-8");
+            response.end(
+              "<h1>Authenticated</h1><p>You can return to the terminal.</p>",
+            );
+            resolve(token);
+          } catch {
+            response.statusCode = 500;
+            response.setHeader("Content-Type", "text/html; charset=utf-8");
+            response.end(
+              "<h1>Authentication failed</h1><p>Return to the terminal for details.</p>",
+            );
+            reject(new Error("iRacing OAuth authentication failed."));
+          }
+        });
+      },
+    );
 
     const authorizationUrl = url.toString();
     if (openBrowser) {
       try {
         await browserOpener(authorizationUrl);
-        diagnostics.info("Opened the iRacing authorization page in your browser.");
+        diagnostics.info(
+          "Opened the iRacing authorization page in your browser.",
+        );
       } catch {
         diagnostics.warn("Could not open the browser automatically.");
         diagnostics.warn(`Open this URL manually: ${authorizationUrl}`);
