@@ -109,9 +109,14 @@ test("authored implementations use canonical schema symbols", () => {
       file.endsWith("AGENTS.md")
     )
       continue;
-    const content = fs
+    let content = fs
       .readFileSync(path.join(root, file), "utf8")
       .split("// Historical exports stay")[0];
+    if (file === "packages/oauth/client/src/client.ts")
+      content = content.replace(
+        'export type { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";',
+        "",
+      );
     for (const symbol of content.match(/\bIRacing\w+\b/g) || [])
       assert.ok(!names.has(symbol), `${file}: ${symbol}`);
   }

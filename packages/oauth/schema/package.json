@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
-    "test": "pnpm -w test:schema-compatibility"
+    "test": "pnpm --filter @iracing-data/api-schema --filter '@iracing-data/oauth-client...' build && pnpm -w test:schema-compatibility"
   },
   "dependencies": {
     "zod": "^4.3.6"
