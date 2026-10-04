@@ -2,6 +2,9 @@
   "include": [],
   "references": [
     {
+      "path": "./examples/data-api-first-call"
+    },
+    {
       "path": "./examples/oauth-example"
     },
     {

@@ -9,6 +9,10 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 - Validate data or use types only: choose [@iracing-data/api-schema](packages/api/schema/README.md).
 - Prefer Axios: use [@iracing-data/api-client-axios](packages/api/client/axios/README.md).
 
+## First Data API call
+
+With an existing bearer token, follow the [Fetch-first quickstart](examples/data-api-first-call/README.md): install `@iracing-data/api-client-fetch`, set `IRACING_ACCESS_TOKEN`, call `CarApi.getCar()`, and fetch the returned cached-data link without forwarding authorization. The runnable example prints the cars JSON and reports HTTP failures. [Token acquisition and refresh](packages/oauth/client/README.md) are a separate step.
+
 ## OpenAPI contracts
 
 | Contract | JSON                                 | YAML                                 | Package/runtime surface                                                                                                                                |

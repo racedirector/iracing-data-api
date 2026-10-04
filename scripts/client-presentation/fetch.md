@@ -10,20 +10,11 @@ Access cars, tracks, members, results, seasons, leagues, stats, and other iRacin
 pnpm add @iracing-data/api-client-fetch
 ```
 
-## Authentication and usage
+## First Data API call
 
-Obtain an iRacing OAuth 2.0 access token with [@iracing-data/oauth-client](https://www.npmjs.com/package/@iracing-data/oauth-client), then pass it as a bearer token. The API client does not perform login or refresh tokens; provide a current token for each session. Keep client secrets on your server.
+Start with an existing bearer token and follow the [canonical Fetch-first quickstart and runnable example](https://github.com/racedirector/iracing-data-api/tree/main/examples/data-api-first-call#readme). It configures `CarApi` with `Configuration({ accessToken })`, calls `getCar()`, and fetches the returned cached-data link without forwarding the token. The example prints JSON and handles HTTP failures.
 
-```typescript
-import { CarApi, Configuration } from "@iracing-data/api-client-fetch";
-
-const api = new CarApi(
-  new Configuration({ accessToken: process.env.IRACING_ACCESS_TOKEN! }),
-);
-const response = await api.getCar();
-```
-
-This Node.js example uses an access token from the environment. Some Data API endpoints return a link to the resource data; follow that link separately without forwarding your bearer token.
+The client requires a runtime providing Fetch, such as Node.js 24. It does not acquire or refresh tokens. For that separate step, see [the OAuth client](https://github.com/racedirector/iracing-data-api/tree/main/packages/oauth/client#readme) and the official [Data API workflow](https://oauth.iracing.com/oauth2/book/data_api_workflow.html) and [client registration requirements](https://oauth.iracing.com/oauth2/book/client_registration.html).
 
 ## Related @iracing-data packages
 
