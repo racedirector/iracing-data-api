@@ -1,64 +1,64 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-  IRacingAPIResponseSchema,
-  IRacingAuthParametersSchema,
-  IRacingDriverStatsByCategoryPathSchema,
-  IRacingErrorResponseSchema,
-  IRacingHostedCombinedSessionsParametersSchema,
-  IRacingLeagueCustomerSessionsParametersSchema,
-  IRacingLeagueDirectoryParametersSchema,
-  IRacingLeagueGetParametersSchema,
-  IRacingLeagueGetPointsSystemsParametersSchema,
-  IRacingLeagueMembershipParametersSchema,
-  IRacingLeagueRosterParametersSchema,
-  IRacingLeagueSeasonSessionsParametersSchema,
-  IRacingLeagueSeasonsParametersSchema,
-  IRacingLeagueSeasonStandingsParametersSchema,
-  IRacingLookupDriversParametersSchema,
-  IRacingMemberAwardInstancesParametersSchema,
-  IRacingMemberAwardsParametersSchema,
-  IRacingMemberChartDataParametersSchema,
-  IRacingMemberGetParametersSchema,
-  IRacingMemberProfileParametersSchema,
-  IRacingRateLimitHeadersSchema,
-  IRacingRateLimitLimitHeaderSchema,
-  IRacingRateLimitRemainingHeaderSchema,
-  IRacingRateLimitResetHeaderSchema,
-  IRacingResultsEventLogParametersSchema,
-  IRacingResultsGetParametersSchema,
-  IRacingResultsLapChartDataParametersSchema,
-  IRacingResultsLapDataParametersSchema,
-  IRacingResultsSearchHostedParametersSchema,
-  IRacingResultsSearchSeriesParametersSchema,
-  IRacingResultsSeasonResultsParametersSchema,
-  IRacingSeasonListParametersSchema,
-  IRacingSeasonRaceGuideParametersSchema,
-  IRacingSeasonSpectatorSubsessionidsDetailParametersSchema,
-  IRacingSeasonSpectatorSubsessionidsParametersSchema,
-  IRacingSeriesPastSeasonsParametersSchema,
-  IRacingSeriesSeasonListParametersSchema,
-  IRacingSeriesSeasonScheduleParametersSchema,
-  IRacingSeriesSeasonsParametersSchema,
-  IRacingServiceDocsResponseSchema,
-  IRacingServiceMethodDocsResponseSchema,
-  IRacingServicesDocsResponseSchema,
-  IRacingStatsMemberBestsParametersSchema,
-  IRacingStatsMemberCareerParametersSchema,
-  IRacingStatsMemberDivisionParametersSchema,
-  IRacingStatsMemberRecapParametersSchema,
-  IRacingStatsMemberRecentRacesParametersSchema,
-  IRacingStatsMemberSummaryParametersSchema,
-  IRacingStatsMemberYearlyParametersSchema,
-  IRacingStatsSeasonDriverStandingsParametersSchema,
-  IRacingStatsSeasonQualifyResultsParametersSchema,
-  IRacingStatsSeasonSupersessionStandingsParametersSchema,
-  IRacingStatsSeasonTeamStandingsParametersSchema,
-  IRacingStatsSeasonTTResultsParametersSchema,
-  IRacingStatsSeasonTTStandingsParametersSchema,
-  IRacingStatsWorldRecordsParametersSchema,
-  IRacingTeamGetParametersSchema,
-  IRacingTimeAttackMemberSeasonResultsParametersSchema,
+  APIResponseSchema,
+  AuthParametersSchema,
+  DriverStatsByCategoryPathSchema,
+  ErrorResponseSchema,
+  HostedCombinedSessionsParametersSchema,
+  LeagueCustomerSessionsParametersSchema,
+  LeagueDirectoryParametersSchema,
+  LeagueGetParametersSchema,
+  LeagueGetPointsSystemsParametersSchema,
+  LeagueMembershipParametersSchema,
+  LeagueRosterParametersSchema,
+  LeagueSeasonSessionsParametersSchema,
+  LeagueSeasonsParametersSchema,
+  LeagueSeasonStandingsParametersSchema,
+  LookupDriversParametersSchema,
+  MemberAwardInstancesParametersSchema,
+  MemberAwardsParametersSchema,
+  MemberChartDataParametersSchema,
+  MemberGetParametersSchema,
+  MemberProfileParametersSchema,
+  RateLimitHeadersSchema,
+  RateLimitLimitHeaderSchema,
+  RateLimitRemainingHeaderSchema,
+  RateLimitResetHeaderSchema,
+  ResultsEventLogParametersSchema,
+  ResultsGetParametersSchema,
+  ResultsLapChartDataParametersSchema,
+  ResultsLapDataParametersSchema,
+  ResultsSearchHostedParametersSchema,
+  ResultsSearchSeriesParametersSchema,
+  ResultsSeasonResultsParametersSchema,
+  SeasonListParametersSchema,
+  SeasonRaceGuideParametersSchema,
+  SeasonSpectatorSubsessionidsDetailParametersSchema,
+  SeasonSpectatorSubsessionidsParametersSchema,
+  SeriesPastSeasonsParametersSchema,
+  SeriesSeasonListParametersSchema,
+  SeriesSeasonScheduleParametersSchema,
+  SeriesSeasonsParametersSchema,
+  ServiceDocsResponseSchema,
+  ServiceMethodDocsResponseSchema,
+  ServicesDocsResponseSchema,
+  StatsMemberBestsParametersSchema,
+  StatsMemberCareerParametersSchema,
+  StatsMemberDivisionParametersSchema,
+  StatsMemberRecapParametersSchema,
+  StatsMemberRecentRacesParametersSchema,
+  StatsMemberSummaryParametersSchema,
+  StatsMemberYearlyParametersSchema,
+  StatsSeasonDriverStandingsParametersSchema,
+  StatsSeasonQualifyResultsParametersSchema,
+  StatsSeasonSupersessionStandingsParametersSchema,
+  StatsSeasonTeamStandingsParametersSchema,
+  StatsSeasonTTResultsParametersSchema,
+  StatsSeasonTTStandingsParametersSchema,
+  StatsWorldRecordsParametersSchema,
+  TeamGetParametersSchema,
+  TimeAttackMemberSeasonResultsParametersSchema,
 } from "@iracing-data/api-schema";
 import { stringify as stringifyYAML } from "yaml";
 import { createDocument } from "zod-openapi";
@@ -103,46 +103,46 @@ export async function generateOpenAPISpec({
     },
     components: {
       headers: {
-        rateLimitLimit: IRacingRateLimitLimitHeaderSchema,
-        rateLimitRemaining: IRacingRateLimitRemainingHeaderSchema,
-        rateLimitReset: IRacingRateLimitResetHeaderSchema,
+        rateLimitLimit: RateLimitLimitHeaderSchema,
+        rateLimitRemaining: RateLimitRemainingHeaderSchema,
+        rateLimitReset: RateLimitResetHeaderSchema,
       },
       responses: {
         Success: {
           description: "Success",
-          headers: IRacingRateLimitHeadersSchema,
+          headers: RateLimitHeadersSchema,
           content: {
             "application/json": {
-              schema: IRacingAPIResponseSchema,
+              schema: APIResponseSchema,
             },
           },
         },
         Docs: {
           description: "Success",
           content: {
-            "application/json": { schema: IRacingServicesDocsResponseSchema },
+            "application/json": { schema: ServicesDocsResponseSchema },
           },
         },
         ServiceDocs: {
           description: "Success",
           content: {
-            "application/json": { schema: IRacingServiceDocsResponseSchema },
+            "application/json": { schema: ServiceDocsResponseSchema },
           },
         },
         ServiceMethodDocs: {
           description: "Success",
           content: {
             "application/json": {
-              schema: IRacingServiceMethodDocsResponseSchema,
+              schema: ServiceMethodDocsResponseSchema,
             },
           },
         },
         RateLimited: {
           description: "Rate limited",
-          headers: IRacingRateLimitHeadersSchema,
+          headers: RateLimitHeadersSchema,
           content: {
             "application/json": {
-              schema: IRacingErrorResponseSchema,
+              schema: ErrorResponseSchema,
             },
           },
         },
@@ -150,7 +150,7 @@ export async function generateOpenAPISpec({
           description: "Maintenance",
           content: {
             "application/json": {
-              schema: IRacingErrorResponseSchema,
+              schema: ErrorResponseSchema,
             },
           },
         },
@@ -158,7 +158,7 @@ export async function generateOpenAPISpec({
           description: "Access token is missing or invalid.",
           content: {
             "application/json": {
-              schema: IRacingErrorResponseSchema,
+              schema: ErrorResponseSchema,
             },
           },
         },
@@ -262,7 +262,7 @@ export async function generateOpenAPISpec({
             required: true,
             content: {
               "application/json": {
-                schema: IRacingAuthParametersSchema,
+                schema: AuthParametersSchema,
               },
             },
           },
@@ -384,7 +384,7 @@ export async function generateOpenAPISpec({
           operationId: "getDriverStatsByCategoryCategoryDocs",
           tags: ["doc"],
           requestParams: {
-            path: IRacingDriverStatsByCategoryPathSchema,
+            path: DriverStatsByCategoryPathSchema,
           },
           responses: {
             200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -1202,7 +1202,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getDriverStatsByCategory",
           requestParams: {
-            path: IRacingDriverStatsByCategoryPathSchema,
+            path: DriverStatsByCategoryPathSchema,
           },
           tags: ["driver_stats"],
           externalDocs: {
@@ -1222,7 +1222,7 @@ export async function generateOpenAPISpec({
           description:
             "Sessions that can be joined as a driver or spectator, and also includes non-league pending sessions for the user.",
           requestParams: {
-            query: IRacingHostedCombinedSessionsParametersSchema,
+            query: HostedCombinedSessionsParametersSchema,
           },
           tags: ["hosted"],
           externalDocs: {
@@ -1258,7 +1258,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueCustomerLeagueSessions",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueCustomerSessionsParametersSchema,
+            query: LeagueCustomerSessionsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/cust_league_sessions",
@@ -1276,7 +1276,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueDirectory",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueDirectoryParametersSchema,
+            query: LeagueDirectoryParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/directory",
@@ -1294,7 +1294,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeague",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueGetParametersSchema,
+            query: LeagueGetParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/get",
@@ -1312,7 +1312,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeaguePointsSystems",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueGetPointsSystemsParametersSchema,
+            query: LeagueGetPointsSystemsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/get_points_systems",
@@ -1330,7 +1330,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueMembership",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueMembershipParametersSchema,
+            query: LeagueMembershipParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/membership",
@@ -1348,7 +1348,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueRoster",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueRosterParametersSchema,
+            query: LeagueRosterParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/roster",
@@ -1366,7 +1366,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueSeasons",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueSeasonsParametersSchema,
+            query: LeagueSeasonsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/seasons",
@@ -1384,7 +1384,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueSeasonStandings",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueSeasonStandingsParametersSchema,
+            query: LeagueSeasonStandingsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/season_standings",
@@ -1402,7 +1402,7 @@ export async function generateOpenAPISpec({
           operationId: "getLeagueSeasonSessions",
           tags: ["league"],
           requestParams: {
-            query: IRacingLeagueSeasonSessionsParametersSchema,
+            query: LeagueSeasonSessionsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/league/season_sessions",
@@ -1464,7 +1464,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getLookupDrivers",
           requestParams: {
-            query: IRacingLookupDriversParametersSchema,
+            query: LookupDriversParametersSchema,
           },
           tags: ["lookup"],
           externalDocs: {
@@ -1500,7 +1500,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getMemberAwards",
           requestParams: {
-            query: IRacingMemberAwardsParametersSchema,
+            query: MemberAwardsParametersSchema,
           },
           tags: ["member"],
           externalDocs: {
@@ -1518,7 +1518,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getMemberAwardInstances",
           requestParams: {
-            query: IRacingMemberAwardInstancesParametersSchema,
+            query: MemberAwardInstancesParametersSchema,
           },
           tags: ["member"],
           externalDocs: {
@@ -1537,7 +1537,7 @@ export async function generateOpenAPISpec({
           operationId: "getMemberChartData",
           tags: ["member"],
           requestParams: {
-            query: IRacingMemberChartDataParametersSchema,
+            query: MemberChartDataParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/member/chart_data",
@@ -1558,7 +1558,7 @@ export async function generateOpenAPISpec({
             url: "/data/doc/member/get",
           },
           requestParams: {
-            query: IRacingMemberGetParametersSchema,
+            query: MemberGetParametersSchema,
           },
           responses: {
             200: { $ref: "#/components/responses/Success" },
@@ -1603,7 +1603,7 @@ export async function generateOpenAPISpec({
           operationId: "getMemberProfile",
           summary: "Gets a requested user's profile.",
           requestParams: {
-            query: IRacingMemberProfileParametersSchema,
+            query: MemberProfileParametersSchema,
           },
           tags: ["member"],
           externalDocs: {
@@ -1622,7 +1622,7 @@ export async function generateOpenAPISpec({
           operationId: "getResults",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsGetParametersSchema,
+            query: ResultsGetParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/get",
@@ -1640,7 +1640,7 @@ export async function generateOpenAPISpec({
           operationId: "getResultsEventLog",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsEventLogParametersSchema,
+            query: ResultsEventLogParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/event_log",
@@ -1658,7 +1658,7 @@ export async function generateOpenAPISpec({
           operationId: "getResultsLapChartData",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsLapChartDataParametersSchema,
+            query: ResultsLapChartDataParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/lap_chart_data",
@@ -1676,7 +1676,7 @@ export async function generateOpenAPISpec({
           operationId: "getResultsLapData",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsLapDataParametersSchema,
+            query: ResultsLapDataParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/lap_data",
@@ -1694,7 +1694,7 @@ export async function generateOpenAPISpec({
           operationId: "getResultsSearchHosted",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsSearchHostedParametersSchema,
+            query: ResultsSearchHostedParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/search_hosted",
@@ -1712,7 +1712,7 @@ export async function generateOpenAPISpec({
           operationId: "getResultsSearchSeries",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsSearchSeriesParametersSchema,
+            query: ResultsSearchSeriesParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/search_series",
@@ -1730,7 +1730,7 @@ export async function generateOpenAPISpec({
           operationId: "getResultsSeasonResults",
           tags: ["results"],
           requestParams: {
-            query: IRacingResultsSeasonResultsParametersSchema,
+            query: ResultsSeasonResultsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/results/season_results",
@@ -1747,7 +1747,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeasonList",
           requestParams: {
-            query: IRacingSeasonListParametersSchema,
+            query: SeasonListParametersSchema,
           },
           tags: ["season"],
           externalDocs: {
@@ -1765,7 +1765,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeasonRaceGuide",
           requestParams: {
-            query: IRacingSeasonRaceGuideParametersSchema,
+            query: SeasonRaceGuideParametersSchema,
           },
           tags: ["season"],
           externalDocs: {
@@ -1784,7 +1784,7 @@ export async function generateOpenAPISpec({
           operationId: "getSeasonSpectatorSubsessionIds",
           tags: ["season"],
           requestParams: {
-            query: IRacingSeasonSpectatorSubsessionidsParametersSchema,
+            query: SeasonSpectatorSubsessionidsParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/season/spectator_subsessionids",
@@ -1802,7 +1802,7 @@ export async function generateOpenAPISpec({
           operationId: "getSeasonSpectatorSubsessionIdsDetail",
           tags: ["season"],
           requestParams: {
-            query: IRacingSeasonSpectatorSubsessionidsDetailParametersSchema,
+            query: SeasonSpectatorSubsessionidsDetailParametersSchema,
           },
           externalDocs: {
             url: "/data/doc/season/spectator_subsessionids_detail",
@@ -1849,7 +1849,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeriesPastSeasons",
           requestParams: {
-            query: IRacingSeriesPastSeasonsParametersSchema,
+            query: SeriesPastSeasonsParametersSchema,
           },
           tags: ["series"],
           externalDocs: {
@@ -1867,7 +1867,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeriesSeasons",
           requestParams: {
-            query: IRacingSeriesSeasonsParametersSchema,
+            query: SeriesSeasonsParametersSchema,
           },
           tags: ["series"],
           externalDocs: {
@@ -1885,7 +1885,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeriesSeasonList",
           requestParams: {
-            query: IRacingSeriesSeasonListParametersSchema,
+            query: SeriesSeasonListParametersSchema,
           },
           tags: ["series"],
           externalDocs: {
@@ -1903,7 +1903,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getSeriesSeasonSchedule",
           requestParams: {
-            query: IRacingSeriesSeasonScheduleParametersSchema,
+            query: SeriesSeasonScheduleParametersSchema,
           },
           tags: ["series"],
           externalDocs: {
@@ -1936,7 +1936,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberBests",
           requestParams: {
-            query: IRacingStatsMemberBestsParametersSchema,
+            query: StatsMemberBestsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -1954,7 +1954,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberCareer",
           requestParams: {
-            query: IRacingStatsMemberCareerParametersSchema,
+            query: StatsMemberCareerParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -1972,7 +1972,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberDivision",
           requestParams: {
-            query: IRacingStatsMemberDivisionParametersSchema,
+            query: StatsMemberDivisionParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -1990,7 +1990,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberRecap",
           requestParams: {
-            query: IRacingStatsMemberRecapParametersSchema,
+            query: StatsMemberRecapParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2008,7 +2008,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberRecentRaces",
           requestParams: {
-            query: IRacingStatsMemberRecentRacesParametersSchema,
+            query: StatsMemberRecentRacesParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2026,7 +2026,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberSummary",
           requestParams: {
-            query: IRacingStatsMemberSummaryParametersSchema,
+            query: StatsMemberSummaryParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2044,7 +2044,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsMemberYearly",
           requestParams: {
-            query: IRacingStatsMemberYearlyParametersSchema,
+            query: StatsMemberYearlyParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2062,7 +2062,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsSeasonDriverStandings",
           requestParams: {
-            query: IRacingStatsSeasonDriverStandingsParametersSchema,
+            query: StatsSeasonDriverStandingsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2080,7 +2080,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsSeasonSupersessionStandings",
           requestParams: {
-            query: IRacingStatsSeasonSupersessionStandingsParametersSchema,
+            query: StatsSeasonSupersessionStandingsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2098,7 +2098,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsSeasonTeamStandings",
           requestParams: {
-            query: IRacingStatsSeasonTeamStandingsParametersSchema,
+            query: StatsSeasonTeamStandingsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2116,7 +2116,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsSeasonTimeTrialStandings",
           requestParams: {
-            query: IRacingStatsSeasonTTStandingsParametersSchema,
+            query: StatsSeasonTTStandingsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2134,7 +2134,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsSeasonTimeTrialResults",
           requestParams: {
-            query: IRacingStatsSeasonTTResultsParametersSchema,
+            query: StatsSeasonTTResultsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2152,7 +2152,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsSeasonQualifyResults",
           requestParams: {
-            query: IRacingStatsSeasonQualifyResultsParametersSchema,
+            query: StatsSeasonQualifyResultsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2170,7 +2170,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getStatsWorldRecords",
           requestParams: {
-            query: IRacingStatsWorldRecordsParametersSchema,
+            query: StatsWorldRecordsParametersSchema,
           },
           tags: ["stats"],
           externalDocs: {
@@ -2188,7 +2188,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getTeam",
           requestParams: {
-            query: IRacingTeamGetParametersSchema,
+            query: TeamGetParametersSchema,
           },
           tags: ["team"],
           externalDocs: {
@@ -2221,7 +2221,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "getTimeAttackMemberSeasonResults",
           requestParams: {
-            query: IRacingTimeAttackMemberSeasonResultsParametersSchema,
+            query: TimeAttackMemberSeasonResultsParametersSchema,
           },
           tags: ["time_attack"],
           externalDocs: {

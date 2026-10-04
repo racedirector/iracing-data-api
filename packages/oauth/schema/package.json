@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/oauth-schema",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Zod schemas and TypeScript types for the iRacing OAuth 2.0 API.",
   "license": "MIT",
   "main": "dist/index.js",
@@ -18,7 +18,8 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsc --build tsconfig.build.json",
+    "test": "pnpm -w test:schema-compatibility"
   },
   "dependencies": {
     "zod": "^4.3.6"

@@ -1,4 +1,4 @@
-import { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";
+import { OAuthTokenResponse } from "@iracing-data/oauth-schema";
 import { SimpleStore } from "../storage";
 
 export interface InternalState {
@@ -8,4 +8,4 @@ export interface InternalState {
 }
 
 export type StateStore = SimpleStore<string, InternalState>;
-export type SessionStore = SimpleStore<string, IRacingOAuthTokenResponse>;
+export type SessionStore = SimpleStore<string, OAuthTokenResponse>;

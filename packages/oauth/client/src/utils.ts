@@ -1,10 +1,10 @@
 import crypto from "node:crypto";
 import {
-  IRacingOAuthJWTAccessToken,
-  IRacingOAuthJWTAccessTokenAlgorithmValues,
-  IRacingOAuthJWTAccessTokenHeaderSchema,
-  IRacingOAuthJWTAccessTokenPayloadSchema,
-  IRacingOAuthJWTAccessTokenSchema,
+  OAuthJWTAccessToken,
+  OAuthJWTAccessTokenAlgorithmValues,
+  OAuthJWTAccessTokenHeaderSchema,
+  OAuthJWTAccessTokenPayloadSchema,
+  OAuthJWTAccessTokenSchema,
 } from "@iracing-data/oauth-schema";
 import {
   createRemoteJWKSet,
@@ -62,17 +62,15 @@ function getRemoteJWKSet(jku: string): RemoteJWKSet {
  *
  * @throws {Error} If the token is not a valid JWT or does not match the expected access-token schema.
  */
-export function decodeAccessToken(
-  accessToken: string,
-): IRacingOAuthJWTAccessToken {
-  const header = IRacingOAuthJWTAccessTokenHeaderSchema.parse(
+export function decodeAccessToken(accessToken: string): OAuthJWTAccessToken {
+  const header = OAuthJWTAccessTokenHeaderSchema.parse(
     decodeProtectedHeader(accessToken),
   );
-  const payload = IRacingOAuthJWTAccessTokenPayloadSchema.parse(
+  const payload = OAuthJWTAccessTokenPayloadSchema.parse(
     decodeJwt(accessToken),
   );
 
-  return IRacingOAuthJWTAccessTokenSchema.parse({ header, payload });
+  return OAuthJWTAccessTokenSchema.parse({ header, payload });
 }
 
 /**
@@ -84,18 +82,18 @@ export function decodeAccessToken(
  */
 export async function verifyAccessToken(
   accessToken: string,
-): Promise<IRacingOAuthJWTAccessToken> {
+): Promise<OAuthJWTAccessToken> {
   const decoded = decodeAccessToken(accessToken);
   const jwks = getRemoteJWKSet(decoded.header.jku);
   const { protectedHeader, payload } = await jwtVerify(accessToken, jwks, {
-    algorithms: [...IRacingOAuthJWTAccessTokenAlgorithmValues],
+    algorithms: [...OAuthJWTAccessTokenAlgorithmValues],
     clockTolerance: 5,
   });
 
-  const header = IRacingOAuthJWTAccessTokenHeaderSchema.parse(protectedHeader);
-  const parsedPayload = IRacingOAuthJWTAccessTokenPayloadSchema.parse(payload);
+  const header = OAuthJWTAccessTokenHeaderSchema.parse(protectedHeader);
+  const parsedPayload = OAuthJWTAccessTokenPayloadSchema.parse(payload);
 
-  return IRacingOAuthJWTAccessTokenSchema.parse({
+  return OAuthJWTAccessTokenSchema.parse({
     header,
     payload: parsedPayload,
   });
@@ -114,7 +112,7 @@ export async function verifyAccessToken(
 export async function validateAccessToken(
   accessToken: string,
   options: AccessTokenValidationOptions = {},
-): Promise<IRacingOAuthJWTAccessToken> {
+): Promise<OAuthJWTAccessToken> {
   const token = await verifyAccessToken(accessToken);
   const now = Math.floor(Date.now() / 1000);
   const tolerance = options.clockSkewSeconds ?? 5;

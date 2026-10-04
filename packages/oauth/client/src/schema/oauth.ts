@@ -1,4 +1,4 @@
-import { IRacingOAuthScopesSchema } from "@iracing-data/oauth-schema";
+import { OAuthScopesSchema } from "@iracing-data/oauth-schema";
 import { z } from "zod";
 
 const BASE_URL = "https://oauth.iracing.com";
@@ -38,14 +38,12 @@ export const IRacingOAuthUserInfoURL = z
       "The endpoint for fetching the user info on behalf of the authorized user.",
   });
 
-export const IRacingOAuthScopesArraySchema = z
-  .array(IRacingOAuthScopesSchema)
-  .meta({
-    id: "scopes",
-    title: "Scopes",
-    description:
-      "The OAuth scopes that may be requested. See: https://oauth.iracing.com/oauth2/book/scopes.html",
-  });
+export const IRacingOAuthScopesArraySchema = z.array(OAuthScopesSchema).meta({
+  id: "scopes",
+  title: "Scopes",
+  description:
+    "The OAuth scopes that may be requested. See: https://oauth.iracing.com/oauth2/book/scopes.html",
+});
 
 export const IRacingOAuthClientMetadataSchema = z
   .object({

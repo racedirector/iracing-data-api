@@ -1,16 +1,16 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
-  IRacingOAuthErrorResponseSchema,
-  IRacingOAuthAuthorizeParametersSchema,
-  IRacingOAuthHeadersSchema,
-  IRacingOAuthProfileResponseSchema,
-  IRacingOAuthRequestIdHeaderSchema,
-  IRacingOAuthRevokeCurrentSessionInputSchema,
-  IRacingOAuthRevokeSessionsInputSchema,
-  IRacingOAuthSessionsSchema,
-  IRacingOAuthTokenParametersSchema,
-  IRacingOAuthTokenResponseSchema,
+  OAuthErrorResponseSchema,
+  OAuthAuthorizeParametersSchema,
+  OAuthHeadersSchema,
+  OAuthProfileResponseSchema,
+  OAuthRequestIdHeaderSchema,
+  OAuthRevokeCurrentSessionInputSchema,
+  OAuthRevokeSessionsInputSchema,
+  OAuthSessionsSchema,
+  OAuthTokenParametersSchema,
+  OAuthTokenResponseSchema,
 } from "@iracing-data/oauth-schema";
 import { stringify as stringifyYAML } from "yaml";
 import { createDocument } from "zod-openapi";
@@ -58,18 +58,18 @@ export async function generateOpenAPISpec({
     },
     components: {
       headers: {
-        oAuthRequestId: IRacingOAuthRequestIdHeaderSchema,
+        oAuthRequestId: OAuthRequestIdHeaderSchema,
       },
       responses: {
         SessionsRevoked: {
-          headers: IRacingOAuthHeadersSchema,
+          headers: OAuthHeadersSchema,
           description: "Session(s) were successfully revoked.",
         },
         Unauthorized: {
           description: "Access token is missing or invalid.",
           content: {
             "application/json": {
-              schema: IRacingOAuthErrorResponseSchema,
+              schema: OAuthErrorResponseSchema,
             },
           },
         },
@@ -91,10 +91,10 @@ export async function generateOpenAPISpec({
           responses: {
             200: {
               description: "Success",
-              headers: IRacingOAuthHeadersSchema,
+              headers: OAuthHeadersSchema,
               content: {
                 "application/json": {
-                  schema: IRacingOAuthProfileResponseSchema,
+                  schema: OAuthProfileResponseSchema,
                 },
               },
             },
@@ -109,10 +109,10 @@ export async function generateOpenAPISpec({
           responses: {
             200: {
               description: "Success",
-              headers: IRacingOAuthHeadersSchema,
+              headers: OAuthHeadersSchema,
               content: {
                 "application/json": {
-                  schema: IRacingOAuthSessionsSchema,
+                  schema: OAuthSessionsSchema,
                 },
               },
             },
@@ -127,7 +127,7 @@ export async function generateOpenAPISpec({
           requestBody: {
             content: {
               "application/x-www-form-urlencoded": {
-                schema: IRacingOAuthRevokeCurrentSessionInputSchema,
+                schema: OAuthRevokeCurrentSessionInputSchema,
               },
             },
           },
@@ -144,7 +144,7 @@ export async function generateOpenAPISpec({
           requestBody: {
             content: {
               "application/x-www-form-urlencoded": {
-                schema: IRacingOAuthRevokeSessionsInputSchema,
+                schema: OAuthRevokeSessionsInputSchema,
                 encoding: {
                   session_ids: {
                     style: "form",
@@ -174,7 +174,7 @@ export async function generateOpenAPISpec({
         get: {
           operationId: "authorize",
           requestParams: {
-            query: IRacingOAuthAuthorizeParametersSchema,
+            query: OAuthAuthorizeParametersSchema,
           },
           responses: {
             302: {
@@ -189,23 +189,23 @@ export async function generateOpenAPISpec({
           requestBody: {
             content: {
               "application/x-www-form-urlencoded": {
-                schema: IRacingOAuthTokenParametersSchema,
+                schema: OAuthTokenParametersSchema,
               },
             },
           },
           responses: {
             200: {
               description: "Success",
-              headers: IRacingOAuthHeadersSchema,
+              headers: OAuthHeadersSchema,
               content: {
-                "application/json": { schema: IRacingOAuthTokenResponseSchema },
+                "application/json": { schema: OAuthTokenResponseSchema },
               },
             },
             400: {
               description: "Failure",
-              headers: IRacingOAuthHeadersSchema,
+              headers: OAuthHeadersSchema,
               content: {
-                "application/json": { schema: IRacingOAuthErrorResponseSchema },
+                "application/json": { schema: OAuthErrorResponseSchema },
               },
             },
           },

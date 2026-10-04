@@ -11,7 +11,7 @@ import { Command } from "@commander-js/extra-typings";
 import {
   InMemoryStore,
   InternalState,
-  IRacingOAuthTokenResponse,
+  OAuthTokenResponse,
   OAuthClient,
 } from "@iracing-data/oauth-client";
 import * as dotenv from "dotenv";
@@ -67,7 +67,7 @@ async function waitForOAuthCallback(
   callbackPort: number,
   credentialsPath: string,
   timeoutMs: number,
-): Promise<IRacingOAuthTokenResponse> {
+): Promise<OAuthTokenResponse> {
   return await new Promise((resolve, reject) => {
     let isSettled = false;
 
@@ -200,7 +200,7 @@ const program = new Command("oauth-example-cli")
         scopes: SCOPES,
       },
       stateStore: new InMemoryStore<string, InternalState>(),
-      sessionStore: new InMemoryStore<string, IRacingOAuthTokenResponse>(),
+      sessionStore: new InMemoryStore<string, OAuthTokenResponse>(),
     });
 
     const { url } = await client.authorize();

@@ -1,8 +1,8 @@
 import {
-  IRacingOAuthTokenResponseSchema,
-  IRacingOAuthTokenResponse,
-  IRacingOAuthPasswordLimitedGrantParametersSchema,
-  IRacingOAuthProfileResponseSchema,
+  OAuthTokenResponseSchema,
+  OAuthTokenResponse,
+  OAuthPasswordLimitedGrantParametersSchema,
+  OAuthProfileResponseSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
@@ -26,7 +26,7 @@ import {
 // oauth4webapi validates token_type and normalizes it to lowercase. Restore
 // the public schema representation only after dependency processing.
 function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
-  return IRacingOAuthTokenResponseSchema.parseAsync({
+  return OAuthTokenResponseSchema.parseAsync({
     ...result,
     token_type: result.token_type === "bearer" ? "Bearer" : result.token_type,
   });
@@ -54,7 +54,7 @@ export class OAuthClient {
   private readonly sessionStore: SessionStore;
   private readonly sessionRefreshes = new Map<
     string,
-    Promise<IRacingOAuthTokenResponse>
+    Promise<OAuthTokenResponse>
   >();
 
   protected authorizationServer: oauth.AuthorizationServer;
@@ -167,7 +167,7 @@ export class OAuthClient {
     }
 
     const requestParameters =
-      await IRacingOAuthPasswordLimitedGrantParametersSchema.parseAsync({
+      await OAuthPasswordLimitedGrantParametersSchema.parseAsync({
         grant_type: "password_limited",
         client_id: clientId,
         client_secret: maskSecret(clientSecret, clientId),
@@ -292,8 +292,7 @@ export class OAuthClient {
     );
 
     const profileJson = await profileResponse.json();
-    const profile =
-      await IRacingOAuthProfileResponseSchema.parseAsync(profileJson);
+    const profile = await OAuthProfileResponseSchema.parseAsync(profileJson);
 
     await this.storeSession(profile.iracing_cust_id.toString(), token);
 
@@ -389,7 +388,7 @@ export class OAuthClient {
    * @throws {Error} If the protected resource request fails.
    */
   private async _makeProtectedRequest(
-    session: IRacingOAuthTokenResponse,
+    session: OAuthTokenResponse,
     method: string,
     path: string,
     headers?: Headers,
@@ -422,10 +421,7 @@ export class OAuthClient {
    * @param sessionId - The session identifier to persist.
    * @param session - The session payload to store.
    */
-  private async storeSession(
-    sessionId: string,
-    session: IRacingOAuthTokenResponse,
-  ) {
+  private async storeSession(sessionId: string, session: OAuthTokenResponse) {
     await this.sessionStore.set(sessionId, session);
   }
 
@@ -490,7 +486,7 @@ export class OAuthClient {
    */
   async restoreSessionForId(
     sessionId: string,
-  ): Promise<IRacingOAuthTokenResponse | undefined> {
+  ): Promise<OAuthTokenResponse | undefined> {
     // Get the session
     const session = await this.getSession(sessionId);
     if (session) {
@@ -542,4 +538,4 @@ export class OAuthClient {
   }
 }
 
-export type { IRacingOAuthTokenResponse };
+export type { OAuthTokenResponse };

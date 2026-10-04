@@ -1,11 +1,11 @@
-import { IRacingTeamGetParametersSchema } from "@iracing-data/api-schema";
+import { TeamGetParametersSchema } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
 export const getTeam = createEndpoint(
   "/data/team/get",
   {
     method: "GET",
-    query: IRacingTeamGetParametersSchema,
+    query: TeamGetParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.team.getTeam(query);

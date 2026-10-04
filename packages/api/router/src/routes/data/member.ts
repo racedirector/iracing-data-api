@@ -1,9 +1,9 @@
 import {
-  IRacingMemberAwardInstancesParametersSchema,
-  IRacingMemberAwardsParametersSchema,
-  IRacingMemberChartDataParametersSchema,
-  IRacingMemberGetParametersSchema,
-  IRacingMemberProfileParametersSchema,
+  MemberAwardInstancesParametersSchema,
+  MemberAwardsParametersSchema,
+  MemberChartDataParametersSchema,
+  MemberGetParametersSchema,
+  MemberProfileParametersSchema,
 } from "@iracing-data/api-schema";
 import { createEndpoint } from "../utils";
 
@@ -12,7 +12,7 @@ export const awards = createEndpoint(
   {
     method: "GET",
     requireHeaders: true,
-    query: IRacingMemberAwardsParametersSchema,
+    query: MemberAwardsParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberAwards(query);
@@ -24,7 +24,7 @@ export const awardInstances = createEndpoint(
   {
     method: "GET",
     requireHeaders: true,
-    query: IRacingMemberAwardInstancesParametersSchema,
+    query: MemberAwardInstancesParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberAwardInstances(query);
@@ -35,7 +35,7 @@ export const chartData = createEndpoint(
   "/data/member/chart_data",
   {
     method: "GET",
-    query: IRacingMemberChartDataParametersSchema,
+    query: MemberChartDataParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberChartData(query);
@@ -46,7 +46,7 @@ export const getMember = createEndpoint(
   "/data/member/get",
   {
     method: "GET",
-    query: IRacingMemberGetParametersSchema,
+    query: MemberGetParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMember(query);
@@ -75,7 +75,7 @@ export const profile = createEndpoint(
   "/data/member/profile",
   {
     method: "GET",
-    query: IRacingMemberProfileParametersSchema,
+    query: MemberProfileParametersSchema,
   },
   async ({ context: { iracing }, query }) => {
     return await iracing.member.getMemberProfile(query);
