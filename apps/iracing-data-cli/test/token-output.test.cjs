@@ -130,10 +130,7 @@ test("rejects directory destinations", async () => {
 });
 
 test("parent creation failures are actionable and never expose tokens", async () => {
-  const {
-    tokenOutputFileSystem,
-    writeTokenOutput,
-  } = await moduleUnderTest();
+  const { tokenOutputFileSystem, writeTokenOutput } = await moduleUnderTest();
   const cwd = await mkdtemp(path.join(os.tmpdir(), "iracing-data-cli-parent-"));
   const fileSystem = {
     ...tokenOutputFileSystem,
@@ -153,10 +150,7 @@ test("parent creation failures are actionable and never expose tokens", async ()
 });
 
 test("temporary-file creation failures do not alter an existing target", async () => {
-  const {
-    tokenOutputFileSystem,
-    writeTokenOutput,
-  } = await moduleUnderTest();
+  const { tokenOutputFileSystem, writeTokenOutput } = await moduleUnderTest();
   const cwd = await mkdtemp(path.join(os.tmpdir(), "iracing-data-cli-open-"));
   const destination = path.join(cwd, "credentials.json");
   await writeFile(destination, "original", { mode: 0o600 });
@@ -181,10 +175,7 @@ test("temporary-file creation failures do not alter an existing target", async (
 });
 
 test("replacement failures preserve the prior file and clean sibling temps", async () => {
-  const {
-    tokenOutputFileSystem,
-    writeTokenOutput,
-  } = await moduleUnderTest();
+  const { tokenOutputFileSystem, writeTokenOutput } = await moduleUnderTest();
   const cwd = await mkdtemp(path.join(os.tmpdir(), "iracing-data-cli-rename-"));
   const destination = path.join(cwd, "credentials.json");
   await writeFile(destination, "original", { mode: 0o600 });
