@@ -2,7 +2,7 @@
   "workspaces": [
     {
       "path": "apps/iracing-data-cli",
-      "name": "iracing-data-cli",
+      "name": "@iracing-data/cli",
       "ecosystem": "npm",
       "kind": "internal-tool",
       "owner": "oauth"

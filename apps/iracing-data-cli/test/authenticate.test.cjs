@@ -91,7 +91,7 @@ test("binds an ephemeral callback before opening the browser and exchanges once"
   assert.equal(sessionId, "iracing-data-cli");
   assert.equal(config.clientId, "client-id");
   assert.equal(config.clientSecret, "client-secret");
-  assert.deepEqual(config.scopes, ["iracing.auth"]);
+  assert.deepEqual(config.scopes, ["iracing.auth", "iracing.profile"]);
 });
 
 test("--no-open reports the authorization URL without invoking a browser", async () => {

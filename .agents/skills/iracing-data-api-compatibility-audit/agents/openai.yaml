@@ -1,4 +1,4 @@
 interface:
   display_name: "iRacing Data API Compatibility Audit"
-  short_description: "Audit Data API compatibility using upstream evidence"
-  default_prompt: "Use $iracing-data-api-compatibility-audit to audit the current working copy against official upstream evidence and report ownership, tests, downstream impact, and release order without modifying contracts."
+  short_description: "Verify and synchronize Data API contracts from live docs"
+  default_prompt: "Use $iracing-data-api-compatibility-audit to check authentication with the repository CLI, capture docs once, audit authored schemas, repair confirmed mismatches, regenerate affected clients, and verify the results without publishing."

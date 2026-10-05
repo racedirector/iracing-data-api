@@ -41,6 +41,7 @@ export type TokenOutputOptions = {
   output?: string;
   format?: string;
   force?: boolean;
+  outputLabel?: "Credential" | "Documentation";
   cwd?: string;
   writeStdout?: (value: string) => void;
   fileSystem?: TokenOutputFileSystem;
@@ -61,23 +62,27 @@ export function resolveTokenFormat(
   return "json";
 }
 
-export function serializeToken(
-  token: OAuthTokenResponse,
-  format: TokenFormat,
-): string {
+export function serializeDocument(token: unknown, format: TokenFormat): string {
   if (format === "json") return `${JSON.stringify(token, null, 2)}\n`;
   const value = stringifyYaml(token);
   return value.endsWith("\n") ? value : `${value}\n`;
 }
 
-async function pathExists(fileSystem: TokenOutputFileSystem, target: string) {
+async function pathExists(
+  fileSystem: TokenOutputFileSystem,
+  target: string,
+  label: string,
+) {
   try {
     return await fileSystem.lstat(target);
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
-    throw new Error(`Unable to inspect credential destination: ${target}`, {
-      cause: error,
-    });
+    throw new Error(
+      `Unable to inspect ${label.toLowerCase()} destination: ${target}`,
+      {
+        cause: error,
+      },
+    );
   }
 }
 
@@ -86,14 +91,15 @@ async function writeCredentialFile(
   contents: string,
   force: boolean,
   fileSystem: TokenOutputFileSystem,
+  label: string,
 ) {
-  const existing = await pathExists(fileSystem, destination);
+  const existing = await pathExists(fileSystem, destination, label);
   if (existing?.isDirectory()) {
-    throw new Error(`Credential destination is a directory: ${destination}`);
+    throw new Error(`${label} destination is a directory: ${destination}`);
   }
   if (existing && !force) {
     throw new Error(
-      `Credential file already exists: ${destination}. Pass --force to replace it.`,
+      `${label} file already exists: ${destination}. Pass --force to replace it.`,
     );
   }
 
@@ -101,9 +107,12 @@ async function writeCredentialFile(
   try {
     await fileSystem.mkdir(parent, { recursive: true, mode: 0o700 });
   } catch (error) {
-    throw new Error(`Unable to create credential parent directory: ${parent}`, {
-      cause: error,
-    });
+    throw new Error(
+      `Unable to create ${label.toLowerCase()} parent directory: ${parent}`,
+      {
+        cause: error,
+      },
+    );
   }
 
   const temporary = path.join(
@@ -119,7 +128,7 @@ async function writeCredentialFile(
       created = true;
     } catch (error) {
       throw new Error(
-        `Unable to create temporary credential file for: ${destination}`,
+        `Unable to create temporary ${label.toLowerCase()} file for: ${destination}`,
         {
           cause: error,
         },
@@ -131,7 +140,7 @@ async function writeCredentialFile(
       await handle.sync();
     } catch (error) {
       throw new Error(
-        `Unable to write temporary credential file for: ${destination}`,
+        `Unable to write temporary ${label.toLowerCase()} file for: ${destination}`,
         {
           cause: error,
         },
@@ -154,7 +163,7 @@ async function writeCredentialFile(
       created = false;
     } catch (error) {
       throw new Error(
-        `Unable to replace credential destination: ${destination}`,
+        `Unable to replace ${label.toLowerCase()} destination: ${destination}`,
         {
           cause: error,
         },
@@ -167,12 +176,12 @@ async function writeCredentialFile(
   }
 }
 
-export async function writeTokenOutput(
-  token: OAuthTokenResponse,
+export async function writeDocumentOutput(
+  token: unknown,
   options: TokenOutputOptions = {},
 ): Promise<void> {
   const format = resolveTokenFormat(options.output, options.format);
-  const serialized = serializeToken(token, format);
+  const serialized = serializeDocument(token, format);
 
   if (!options.output) {
     (options.writeStdout ?? ((value) => process.stdout.write(value)))(
@@ -190,5 +199,20 @@ export async function writeTokenOutput(
     serialized,
     options.force ?? false,
     options.fileSystem ?? tokenOutputFileSystem,
+    options.outputLabel ?? "Credential",
   );
+}
+
+// Preserve the authentication output API while sharing serialization and atomic writes.
+export function serializeToken(
+  token: OAuthTokenResponse,
+  format: TokenFormat,
+): string {
+  return serializeDocument(token, format);
+}
+export function writeTokenOutput(
+  token: OAuthTokenResponse,
+  options: TokenOutputOptions = {},
+): Promise<void> {
+  return writeDocumentOutput(token, options);
 }

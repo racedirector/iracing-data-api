@@ -16,3 +16,6 @@ crates/iracing-data-api-client/**
 
 # Private upstream evidence; never a maintained public contract.
 .upstream-contract/
+
+# Shared repository CLI credentials are private runtime output.
+.iracing-data/
