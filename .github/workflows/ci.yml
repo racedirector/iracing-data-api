@@ -40,19 +40,11 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Report dependency change impact
-        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
-        env:
-          IMPACT_BASE: ${{ github.event.pull_request.base.sha }}
-        run: node scripts/workspace-impact.mjs --base "$IMPACT_BASE" --json > "$RUNNER_TEMP/dependency-impact.json"
+      - name: Impact against exact #354 parent
+        run: pnpm impact --base 458fdf25c61a87cdcc3453e647b583f8e76ac43a
 
-      - name: Upload dependency impact
-        if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
-        uses: actions/upload-artifact@v7
-        with:
-          name: dependency-impact
-          path: ${{ runner.temp }}/dependency-impact.json
-          retention-days: 14
+      - name: Stop after impact diagnostic
+        run: exit 1
 
       - name: Verify repository
         run: pnpm verify
