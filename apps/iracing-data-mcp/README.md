@@ -12,7 +12,7 @@ This workspace establishes the application, service and diagnostic seams:
 - `McpApplicationConfigSchema` owns app-local server identity configuration.
 - App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354. Docker packaging (#358) and later tools remain deferred.
+Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354; series-season and schedule projections are implemented by #355. Docker packaging (#358) and later tools remain deferred.
 
 ## Development
 
@@ -27,7 +27,7 @@ See [scoped guidance](AGENTS.md) and the repository [verification contract](../.
 
 ## Error and diagnostic contract (#351)
 
-The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway and #354 tools use this contract.
+The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway and #354/#355 tools use this contract.
 
 Create one `createRequestContext()` at the application request boundary; reuse it for output and logs. Client, JSON-RPC and upstream IDs are never used as diagnostic IDs. `ApplicationFailure` accepts a code and bounded optional metadata, never a message/cause. `toolError()` returns `isError: true`, `structuredContent: { error: { code, message, retryable, request_id, reason?, retry_after_seconds? } }` and one JSON text equivalent. `ErrorEnvelopeSchema` strictly validates the envelope and code-specific policy. Unknown exceptions become `INTERNAL_ERROR`; messages come only from fixed app recovery text.
 
@@ -91,12 +91,12 @@ Supported endpoint: `http://127.0.0.1:3000/mcp`. The deployment contract publish
 
 All routes accept only exact Host authorities `127.0.0.1:3000` and `localhost:3000`. Duplicate Host headers and every other authority are rejected with HTTP 403 before MCP handling. Forwarded and X-Forwarded-Host headers are ignored. Missing Origin is valid for native clients. A present Origin must be exactly `http://127.0.0.1:3000` or `http://localhost:3000`; null, malformed, HTTPS, wrong ports, userinfo, paths and deceptive hosts receive 403. No CORS headers or wildcard matching are added.
 
-| Route                                    | Behavior                                                                                                                                         |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. The current inventory is empty.                   |
-| `GET /mcp`, `DELETE /mcp`, other methods | 405 with `Allow: POST`; no SSE push or session deletion.                                                                                         |
-| `GET /healthz`                           | 200 with fixed private app identity/version, `live:true` and allowlisted `auth_state`. Cached local authorization state only; no upstream calls. |
-| Other paths                              | 404; no browser OAuth routes or generic RPC routes.                                                                                              |
+| Route                                    | Behavior                                                                                                                                                    |
+| ---------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. Six bounded read-only domain tools are currently registered. |
+| `GET /mcp`, `DELETE /mcp`, other methods | 405 with `Allow: POST`; no SSE push or session deletion.                                                                                                    |
+| `GET /healthz`                           | 200 with fixed private app identity/version, `live:true` and allowlisted `auth_state`. Cached local authorization state only; no upstream calls.            |
+| Other paths                              | 404; no browser OAuth routes or generic RPC routes.                                                                                                         |
 
 The pinned official server 2.3.0 and Node adapter 2.1.1 serve Streamable HTTP revisions `2025-11-25`, `2025-06-18` and `2025-03-26`. Initialize negotiates through the SDK: an unknown proposed revision receives the supported `2025-11-25` alternative, which the official client must accept or reject. Unsupported `MCP-Protocol-Version` headers receive 400. The newer SDK's 2026 envelope/subscription mode is outside this v1 endpoint. No MCP session identifiers, event store, legacy HTTP+SSE transport or stdio are installed. Clients must accept both JSON and event-stream media types per the Streamable HTTP contract, although responses here use JSON exclusively. JSON-RPC batches are rejected with 400 to preserve one request-scoped call per exchange.
 
@@ -111,7 +111,7 @@ HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes
 
 ### Local threat model and rollout
 
-The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, telemetry and Docker packaging remain deferred. Gateway reads and the four tools below use the existing OAuth owner.
+The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, telemetry and Docker packaging remain deferred. Gateway reads and the six tools below use the existing OAuth owner.
 
 Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency depends on iRacing and is bounded by the gateway deadlines below.
 
@@ -291,6 +291,63 @@ This private `0.0.0` slice needs no public package version bump or generated
 contract change. Rollout adds these registrations to the existing shared services;
 local protocol/cursor replay targets less than one second, while upstream calls
 retain the gateway deadlines. Rollback stops/drains and reverts this slice, losing
-all cursors; never restore consumed refresh credentials. Series/schedule, detailed
-results, history search, Docker/Compose, telemetry, hosted auth, browser callbacks,
-resources/prompts and arbitrary proxying remain separate slices.
+all cursors; never restore consumed refresh credentials. Detailed results, history
+search, Docker/Compose, telemetry, hosted auth, browser callbacks, resources/prompts
+and arbitrary proxying remain separate slices.
+
+## Series seasons and schedules (#355)
+
+`list_series_seasons` and `get_series_schedule` are read-only projections over the
+bounded #353 gateway. They use the same `iracing.auth` owner, `withCall` cancellation
+and budgets, complete-result cap, and `CollectionCursors` owner as #354. Their
+continuations therefore use `{cursor}` alone and share the same process/account-local
+32-token / 32-MiB cursor budget and earliest-safe-expiry rules.
+
+| Tool                  | Initial arguments                                                                                       | Result / ordering                                                                                                                                                                                                                                                                                    |
+| --------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `list_series_seasons` | Optional positive `series_id`; optional paired `season_year` + `season_quarter` (1–4); optional `limit` | Calls upstream `season_list` with `include_series:false`. Omitting year/quarter preserves the upstream active-season default. `series_id` filtering is local. Rows expose only `season_id`, `series_id`, `season_name`, `season_year`, `season_quarter`, `active`, ordered by ascending `season_id`. |
+| `get_series_schedule` | Positive `season_id`; optional `race_week_num` (0–52); optional `limit`                                 | Fetches that season once, validates the returned season ID, filters weeks locally, and orders deterministically by week/date/series/track/config. `race_week_num` is explicitly **zero-based**: week `0` is the first race week. Rows expose only dates, series identity and track ID/name/config.   |
+
+Historical season filtering is all-or-nothing: supplying only `season_year` or only
+`season_quarter` is `INVALID_INPUT`; numeric strings, nonpositive IDs, unknown keys,
+and attempts to mix a cursor with initial filters are also rejected before network
+work. The active default intentionally sends neither year nor quarter. The app uses
+`season_list` rather than aggregating the much larger series/seasons payload.
+
+```ts
+const active = await client.callTool({
+  name: "list_series_seasons",
+  arguments: { series_id: 20, limit: 25 },
+});
+const historical = await client.callTool({
+  name: "list_series_seasons",
+  arguments: { series_id: 20, season_year: 2025, season_quarter: 3 },
+});
+const firstWeek = await client.callTool({
+  name: "get_series_schedule",
+  arguments: { season_id: 1234, race_week_num: 0 },
+});
+if (active.structuredContent!.next_cursor) {
+  const next = await client.callTool({
+    name: "list_series_seasons",
+    arguments: { cursor: active.structuredContent!.next_cursor },
+  });
+}
+```
+
+Schedule projections preserve upstream `start_date` and `week_end_time` values but
+do not expose weather, assets, race/session durations, or interpret recurrence /
+session-time rules. Season projections likewise strip unrelated upstream bulk.
+Malformed essential fields or a schedule whose returned `season_id` does not match
+the request fail with `DATA_RESOLUTION_FAILED`; an empty local series/week filter is
+a valid complete empty collection. No raw link, response body or generated object is
+forwarded to the model.
+
+This remains private app surface at version `0.0.0`: no public package bump,
+OpenAPI/generated-client change, or publication is required. Rollout adds two
+registrations to the existing shared services. Recovery follows the same strict
+input, cursor-expiry, response-limit, authorization and rotation rules above.
+Rollback stops/drains and reverts this slice, invalidating its cursors; never restore
+a consumed refresh credential. Detailed race results/team attribution (#356),
+history search (#357), Docker/Compose, telemetry, hosted auth, browser callbacks,
+resources/prompts and arbitrary proxying remain deferred.

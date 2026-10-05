@@ -5,6 +5,9 @@ const query = z.string().trim().min(2).max(100);
 
 const limit = z.number().int().min(1).max(100).default(25);
 
+const seasonYear = z.number().int().min(2000).max(2100);
+const seasonQuarter = z.number().int().min(1).max(4);
+
 export const ContinuationInput = z.strictObject({
   cursor: z.string().min(1).max(512),
 });
@@ -31,6 +34,30 @@ export const ContentInput = z.union([
       limit,
     })
     .refine((value) => !(value.ids && value.query)),
+  ContinuationInput,
+]);
+
+export const SeriesSeasonsInput = z.union([
+  z
+    .strictObject({
+      series_id: Id.optional(),
+      season_year: seasonYear.optional(),
+      season_quarter: seasonQuarter.optional(),
+      limit,
+    })
+    .refine(
+      (value) =>
+        (value.season_year === undefined) ===
+        (value.season_quarter === undefined),
+    ),
+  ContinuationInput,
+]);
+export const SeriesScheduleInput = z.union([
+  z.strictObject({
+    season_id: Id,
+    race_week_num: z.number().int().min(0).max(52).optional(),
+    limit,
+  }),
   ContinuationInput,
 ]);
 
@@ -109,3 +136,23 @@ export const RecentProjection = z
     track_id: track?.track_id ?? null,
     track_name: track?.track_name ?? null,
   }));
+export const SeriesSeasonProjection = z.object({
+  season_id: Id,
+  series_id: Id,
+  season_name: text.min(1),
+  season_year: seasonYear,
+  season_quarter: seasonQuarter,
+  active: z.boolean(),
+});
+export const SeriesScheduleProjection = z.object({
+  race_week_num: z.number().int().min(0).max(52),
+  start_date: z.iso.date(),
+  week_end_time: z.iso.datetime({ offset: true }),
+  series_id: Id,
+  series_name: text.min(1),
+  track: z.object({
+    track_id: Id,
+    track_name: text.min(1),
+    config_name: optionalText,
+  }),
+});
