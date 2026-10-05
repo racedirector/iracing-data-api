@@ -1,6 +1,6 @@
 import { McpServer } from "@modelcontextprotocol/server";
-import type { McpApplicationConfig } from "./config";
-import type { McpServices } from "./services";
+import type { McpApplicationConfig } from "./config.js";
+import type { McpServices } from "./services.js";
 
 export type McpToolRegistrar = (
   server: McpServer,
