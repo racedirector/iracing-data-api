@@ -2,6 +2,12 @@ import { McpServer } from "@modelcontextprotocol/server";
 import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
+/**
+ * Registers MCP tools on a request-scoped server using the application's shared services.
+ *
+ * Registrars should only bind protocol handlers; long-lived OAuth and Data API state belongs
+ * to {@link McpServices} so it can be reused across request-scoped server instances.
+ */
 export type McpToolRegistrar = (
   server: McpServer,
   services: McpServices,
@@ -24,8 +30,11 @@ export function registerMcpTools(
   }
 }
 
+/** Inputs required to construct one request-scoped MCP server instance. */
 export interface CreateMcpServerOptions {
+  /** Stable application identity advertised during MCP initialization. */
   readonly config: McpApplicationConfig;
+  /** Long-lived dependencies shared by request-scoped MCP server instances. */
   readonly services: McpServices;
 }
 
