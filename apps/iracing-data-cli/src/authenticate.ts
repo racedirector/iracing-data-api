@@ -3,6 +3,7 @@ import {
   InMemoryStore,
   OAuthClient,
   type InternalState,
+  type OAuthScopeList,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
 import { openUrlInBrowser } from "./browser.js";
@@ -14,10 +15,10 @@ const CALLBACK_PATH = "/oauth/iracing/callback";
 const DEFAULT_REDIRECT_URI = `http://${CALLBACK_HOST}:0${CALLBACK_PATH}`;
 const SESSION_ID = "iracing-data-cli";
 
-export type OAuthScope = "iracing.auth" | "iracing.profile";
-export type OAuthScopes =
-  readonly ["iracing.auth"] | readonly ["iracing.auth", "iracing.profile"];
-export const DEFAULT_SCOPES: OAuthScopes = ["iracing.auth", "iracing.profile"];
+export const DEFAULT_SCOPES = [
+  "iracing.auth",
+  "iracing.profile",
+] satisfies OAuthScopeList;
 
 export type OAuthClientLike = {
   authorize(): Promise<{ url: URL }>;
@@ -31,7 +32,7 @@ export type OAuthClientConfig = {
   clientId: string;
   clientSecret?: string;
   redirectUri: string;
-  scopes: OAuthScopes;
+  scopes: Readonly<OAuthScopeList>;
 };
 
 export type SignalSource = {
@@ -43,7 +44,7 @@ export type BrowserLoginOptions = {
   clientId: string;
   clientSecret?: string;
   redirectUri?: string;
-  scopes?: OAuthScopes;
+  scopes?: Readonly<OAuthScopeList>;
   timeoutSeconds: number;
   openBrowser: boolean;
   diagnostics: Diagnostics;
