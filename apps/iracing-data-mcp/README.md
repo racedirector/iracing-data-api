@@ -335,9 +335,15 @@ if (active.structuredContent!.next_cursor) {
 }
 ```
 
-Schedule projections preserve upstream `start_date` and `week_end_time` values but
+Schedule projections preserve upstream `start_date` calendar dates and normalize
+`week_end_time` to UTC ISO timestamps. Unavailable track configuration names are
+`null`. They
 do not expose weather, assets, race/session durations, or interpret recurrence /
 session-time rules. Season projections likewise strip unrelated upstream bulk.
+Canonical `SeriesSeasonListParametersSchema` and
+`SeriesSeasonScheduleParametersSchema` validate wire requests in the gateway;
+this repository has no canonical response schemas for these linked payloads,
+so gateway envelope checks and strict app projections validate essential fields.
 Malformed essential fields or a schedule whose returned `season_id` does not match
 the request fail with `DATA_RESOLUTION_FAILED`; an empty local series/week filter is
 a valid complete empty collection. No raw link, response body or generated object is

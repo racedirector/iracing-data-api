@@ -57,23 +57,25 @@ async function fixture(t, data = {}, options = {}) {
     authorizationState: () => "ready",
     now: () => now,
     logger: api.createDiagnosticLogger(() => {}),
-    transport: async (url, init) => {
-      requests.push({ url, init });
-      if (url.hostname === "members-ng.iracing.com") {
-        const key = url.pathname.endsWith("/series/season_list")
-          ? "seasons"
-          : url.pathname.endsWith("/series/season_schedule")
-            ? "schedule"
-            : null;
-        assert.ok(key, `unexpected API path ${url.pathname}`);
-        return Response.json({
-          link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
-          expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
-        });
-      }
-      assert.equal(new Headers(init.headers).has("authorization"), false);
-      return Response.json(sources[url.pathname.split("/").pop()]);
-    },
+    transport:
+      options.transport ??
+      (async (url, init) => {
+        requests.push({ url, init });
+        if (url.hostname === "members-ng.iracing.com") {
+          const key = url.pathname.endsWith("/series/season_list")
+            ? "seasons"
+            : url.pathname.endsWith("/series/season_schedule")
+              ? "schedule"
+              : null;
+          assert.ok(key, `unexpected API path ${url.pathname}`);
+          return Response.json({
+            link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
+            expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
+          });
+        }
+        assert.equal(new Headers(init.headers).has("authorization"), false);
+        return Response.json(sources[url.pathname.split("/").pop()]);
+      }),
   });
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
@@ -130,6 +132,8 @@ async function fixture(t, data = {}, options = {}) {
   t.after(() => client.close());
   return {
     api,
+    app,
+    gateway,
     client,
     requests,
     sources,
@@ -224,7 +228,7 @@ test("official client schedule scenario preserves dates, locally filters zero-ba
   assert.equal(result.returned_count, 1);
   assert.equal(result.items[0].race_week_num, 0);
   assert.equal(result.items[0].start_date, "2026-10-01");
-  assert.equal(result.items[0].week_end_time, "2026-10-07T23:59:59Z");
+  assert.equal(result.items[0].week_end_time, "2026-10-07T23:59:59.000Z");
   assert.deepEqual(result.items[0].track, {
     track_id: 30,
     track_name: "Synthetic Raceway 30",
@@ -330,4 +334,196 @@ test("series collection projections preserve the shared 100-item/64-KiB result c
     { ...season(1), season_name: "x".repeat(40000) },
   ];
   failure(await f.call("list_series_seasons"), "RESPONSE_LIMIT_EXCEEDED");
+});
+
+test("schedule normalizes timestamps to UTC, preserves calendar dates and handles unavailable configuration", async (t) => {
+  const entry = {
+    ...week(0),
+    start_date: "2024-02-29",
+    week_end_time: "2024-03-01T01:00:00+02:00",
+  };
+  delete entry.track.config_name;
+  const f = await fixture(t, {
+    schedule: { success: true, season_id: 10, schedules: [entry] },
+  });
+  const item = success(await f.call("get_series_schedule", { season_id: 10 }))
+    .items[0];
+  assert.equal(item.start_date, "2024-02-29");
+  assert.equal(item.week_end_time, "2024-02-29T23:00:00.000Z");
+  assert.equal(item.track.config_name, null);
+  for (const change of [
+    { start_date: "2025-02-29" },
+    { week_end_time: "2026-10-07T23:59:59" },
+    { series_id: 0 },
+    { race_week_num: -1 },
+    { track: { ...week(0).track, track_id: 0 } },
+  ]) {
+    f.sources.schedule.schedules = [{ ...week(0), ...change }];
+    failure(
+      await f.call("get_series_schedule", { season_id: 10 }),
+      "DATA_RESOLUTION_FAILED",
+    );
+  }
+});
+
+test("schedule ties have deterministic ordering independent of upstream order", async (t) => {
+  const rows = ["B", null, "A"].map((config_name) => ({
+    ...week(0),
+    track: { ...week(0).track, config_name },
+  }));
+  const f = await fixture(t, {
+    schedule: { success: true, season_id: 10, schedules: rows },
+  });
+  const first = success(await f.call("get_series_schedule", { season_id: 10 }));
+  f.sources.schedule.schedules.reverse();
+  const second = success(
+    await f.call("get_series_schedule", { season_id: 10 }),
+  );
+  assert.deepEqual(first, second);
+  assert.deepEqual(
+    first.items.map((item) => item.track.config_name),
+    [null, "A", "B"],
+  );
+});
+
+test("series cursors replay concurrently without upstream reads, bind tools and retire on owner invalidation", async (t) => {
+  const f = await fixture(t);
+  for (const [name, args, other] of [
+    ["list_series_seasons", { limit: 1 }, "get_series_schedule"],
+    ["get_series_schedule", { season_id: 10, limit: 1 }, "list_series_seasons"],
+  ]) {
+    const first = success(await f.call(name, args));
+    const requests = f.requests.length;
+    const [one, two] = await Promise.all([
+      f.call(name, { cursor: first.next_cursor }),
+      f.call(name, { cursor: first.next_cursor }),
+    ]);
+    assert.deepEqual(success(one), success(two));
+    assert.equal(f.requests.length, requests);
+    failure(
+      await f.call(other, { cursor: first.next_cursor }),
+      "CURSOR_EXPIRED",
+    );
+    f.gateway.invalidate();
+    failure(
+      await f.call(name, { cursor: first.next_cursor }),
+      "CURSOR_EXPIRED",
+    );
+  }
+});
+
+test("series cursors expire at the earliest safe source expiry and enforce shared token capacity", async (t) => {
+  const expired = await fixture(t, {}, { expiryMs: 30000 });
+  failure(
+    await expired.call("list_series_seasons", { limit: 1 }),
+    "CURSOR_EXPIRED",
+  );
+  const f = await fixture(t);
+  for (let index = 0; index < 32; index++) {
+    success(await f.call("list_series_seasons", { limit: 1 }));
+  }
+  failure(
+    await f.call("get_series_schedule", { season_id: 10, limit: 1 }),
+    "RESPONSE_LIMIT_EXCEEDED",
+  );
+  f.gateway.invalidate();
+  success(await f.call("get_series_schedule", { season_id: 10, limit: 1 }));
+});
+
+test("series tools enforce source byte caps even when a local filter would match nothing", async (t) => {
+  const f = await fixture(t, {
+    seasons: { seasons: [season(1)], bulk: "x".repeat(8 * 1024 * 1024) },
+    schedule: {
+      success: true,
+      season_id: 10,
+      schedules: [week(0)],
+      bulk: "x".repeat(8 * 1024 * 1024),
+    },
+  });
+  failure(
+    await f.call("list_series_seasons", { series_id: 999 }),
+    "RESPONSE_LIMIT_EXCEEDED",
+  );
+  failure(
+    await f.call("get_series_schedule", { season_id: 10, race_week_num: 52 }),
+    "RESPONSE_LIMIT_EXCEEDED",
+  );
+});
+
+test("series essential identifiers and duplicate season IDs fail without source leakage", async (t) => {
+  const f = await fixture(t);
+  for (const change of [
+    { season_id: 0 },
+    { series_id: 0 },
+    { season_name: "" },
+    { season_year: 1999 },
+    { season_quarter: 5 },
+  ]) {
+    f.sources.seasons.seasons = [{ ...season(1), ...change }];
+    failure(await f.call("list_series_seasons"), "DATA_RESOLUTION_FAILED");
+  }
+  f.sources.seasons.seasons = [season(1), season(1)];
+  failure(await f.call("list_series_seasons"), "DATA_RESOLUTION_FAILED");
+  f.sources.schedule.success = false;
+  failure(
+    await f.call("get_series_schedule", { season_id: 10 }),
+    "DATA_RESOLUTION_FAILED",
+  );
+});
+
+test("both series tools propagate HTTP disconnect cancellation into the gateway", async (t) => {
+  for (const [name, args] of [
+    ["list_series_seasons", {}],
+    ["get_series_schedule", { season_id: 10 }],
+  ]) {
+    let started = false,
+      aborted = false;
+    const f = await fixture(
+      t,
+      {},
+      {
+        transport: async (url, init) => {
+          if (url.hostname === "members-ng.iracing.com")
+            return Response.json({
+              link: "https://scorpio-assets.s3.amazonaws.com/pending",
+              expires: new Date(Date.now() + 900000).toISOString(),
+            });
+          started = true;
+          init.signal.addEventListener("abort", () => {
+            aborted = true;
+          });
+          return new Promise(() => {});
+        },
+      },
+    );
+    const req = http.request({
+      host: "127.0.0.1",
+      port: f.app.server.address().port,
+      path: "/mcp",
+      method: "POST",
+      headers: {
+        Host: "127.0.0.1:3000",
+        Accept: "application/json, text/event-stream",
+        "Content-Type": "application/json",
+        "MCP-Protocol-Version": "2025-11-25",
+      },
+    });
+    req.on("error", () => {});
+    req.end(
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: 99,
+        method: "tools/call",
+        params: { name, arguments: args },
+      }),
+    );
+    for (let index = 0; index < 100 && !started; index++)
+      await new Promise(setImmediate);
+    assert.equal(started, true);
+    req.destroy();
+    for (let index = 0; index < 100 && !aborted; index++)
+      await new Promise(setImmediate);
+    assert.equal(aborted, true);
+    assert.equal(await f.gateway.withCall(async () => "released"), "released");
+  }
 });

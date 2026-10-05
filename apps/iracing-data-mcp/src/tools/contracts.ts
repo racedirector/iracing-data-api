@@ -148,7 +148,9 @@ export const SeriesSeasonProjection = z.object({
 export const SeriesScheduleProjection = z.object({
   race_week_num: z.number().int().min(0).max(52),
   start_date: z.iso.date(),
-  week_end_time: z.iso.datetime({ offset: true }),
+  week_end_time: z.iso
+    .datetime({ offset: true })
+    .transform((value) => new Date(value).toISOString()),
   series_id: Id,
   series_name: text.min(1),
   track: z.object({

@@ -358,10 +358,14 @@ export function registerIdentityContentTools(
           (a, b) =>
             a.race_week_num - b.race_week_num ||
             a.start_date.localeCompare(b.start_date) ||
+            a.week_end_time.localeCompare(b.week_end_time) ||
             a.series_id - b.series_id ||
+            a.series_name.localeCompare(b.series_name) ||
             a.track.track_id - b.track.track_id ||
-            a.track.config_name?.localeCompare(b.track.config_name ?? "") ||
-            0,
+            a.track.track_name.localeCompare(b.track.track_name) ||
+            (a.track.config_name ?? "").localeCompare(
+              b.track.config_name ?? "",
+            ),
         );
 
       return owner.start({
