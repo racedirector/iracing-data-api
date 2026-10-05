@@ -125,7 +125,7 @@ import { SeasonApi, Configuration } from "@iracing-data/api-client-axios";
 const configuration = new Configuration();
 const apiInstance = new SeasonApi(configuration);
 
-let event_types: Array<IracingEventType>; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
+let event_types: string; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
 
 const { status, data } =
   await apiInstance.getSeasonSpectatorSubsessionIds(event_types);
@@ -133,9 +133,9 @@ const { status, data } =
 
 ### Parameters
 
-| Name            | Type                              | Description                                                                          | Notes                            |
-| --------------- | --------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------- |
-| **event_types** | **Array&lt;IracingEventType&gt;** | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined |
+| Name            | Type         | Description                                                                          | Notes                            |
+| --------------- | ------------ | ------------------------------------------------------------------------------------ | -------------------------------- |
+| **event_types** | [**string**] | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined |
 
 ### Return type
 
@@ -173,8 +173,8 @@ import { SeasonApi, Configuration } from "@iracing-data/api-client-axios";
 const configuration = new Configuration();
 const apiInstance = new SeasonApi(configuration);
 
-let event_types: Array<IracingEventType>; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
-let season_ids: Array<number>; //Seasons to include in the search. Defaults to all. ?season_ids=513,937 (optional) (default to undefined)
+let event_types: string; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
+let season_ids: string; //Seasons to include in the search. Defaults to all. ?season_ids=513,937 (optional) (default to undefined)
 
 const { status, data } =
   await apiInstance.getSeasonSpectatorSubsessionIdsDetail(
@@ -185,10 +185,10 @@ const { status, data } =
 
 ### Parameters
 
-| Name            | Type                              | Description                                                                          | Notes                            |
-| --------------- | --------------------------------- | ------------------------------------------------------------------------------------ | -------------------------------- |
-| **event_types** | **Array&lt;IracingEventType&gt;** | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined |
-| **season_ids**  | **Array&lt;number&gt;**           | Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937          | (optional) defaults to undefined |
+| Name            | Type         | Description                                                                          | Notes                            |
+| --------------- | ------------ | ------------------------------------------------------------------------------------ | -------------------------------- |
+| **event_types** | [**string**] | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | (optional) defaults to undefined |
+| **season_ids**  | [**string**] | Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937          | (optional) defaults to undefined |
 
 ### Return type
 

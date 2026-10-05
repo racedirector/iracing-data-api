@@ -8,6 +8,7 @@ An iRacing API Service Method object.
 | ------------------- | ----------------------------------------------------------------------------------------------- |
 | `link`              | string                                                                                          |
 | `parameters`        | [{ [key: string]: IracingServiceMethodParametersDocs; }](IracingServiceMethodParametersDocs.md) |
+| `note`              | [IracingServiceMethodDocsNote](IracingServiceMethodDocsNote.md)                                 |
 | `expirationSeconds` | number                                                                                          |
 
 ## Example
@@ -19,6 +20,7 @@ import type { IracingServiceMethodDocs } from "@iracing-data/api-client-fetch";
 const example = {
   link: null,
   parameters: null,
+  note: null,
   expirationSeconds: null,
 } satisfies IracingServiceMethodDocs;
 

@@ -6,5 +6,6 @@ export * from "./IracingCategory";
 export * from "./IracingDivision";
 export * from "./IracingEventType";
 export * from "./IracingServiceMethodDocs";
+export * from "./IracingServiceMethodDocsNote";
 export * from "./IracingServiceMethodParametersDocs";
 export * from "./PostAuthRequest";

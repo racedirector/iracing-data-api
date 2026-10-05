@@ -15,8 +15,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**getStatsSeasonQualifyResults**](#getstatsseasonqualifyresults)               | **GET** /data/stats/season_qualify_results        |             |
 | [**getStatsSeasonSupersessionStandings**](#getstatsseasonsupersessionstandings) | **GET** /data/stats/season_supersession_standings |             |
 | [**getStatsSeasonTeamStandings**](#getstatsseasonteamstandings)                 | **GET** /data/stats/season_team_standings         |             |
-| [**getStatsSeasonTimeTrialResults**](#getstatsseasontimetrialresults)           | **GET** /data/stats/season_time_trial_results     |             |
-| [**getStatsSeasonTimeTrialStandings**](#getstatsseasontimetrialstandings)       | **GET** /data/stats/season_time_trial_standings   |             |
+| [**getStatsSeasonTimeTrialResults**](#getstatsseasontimetrialresults)           | **GET** /data/stats/season_tt_results             |             |
+| [**getStatsSeasonTimeTrialStandings**](#getstatsseasontimetrialstandings)       | **GET** /data/stats/season_tt_standings           |             |
 | [**getStatsWorldRecords**](#getstatsworldrecords)                               | **GET** /data/stats/world_records                 |             |
 
 # **getStatsMemberBests**
@@ -180,7 +180,7 @@ const configuration = new Configuration();
 const apiInstance = new StatsApi(configuration);
 
 let cust_id: number; //Defaults to the authenticated member. (optional) (default to undefined)
-let year: 1 | 2 | 3 | 4; //Season year; if not supplied the current calendar year (UTC) is used. (optional) (default to undefined)
+let year: number; //Season year; if not supplied the current calendar year (UTC) is used. (optional) (default to undefined)
 let season: number; //Season (quarter) within the year; if not supplied the recap will be for the entire year. (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getStatsMemberRecap(
@@ -195,7 +195,7 @@ const { status, data } = await apiInstance.getStatsMemberRecap(
 | Name        | Type         | Description                                                                              | Notes                            |
 | ----------- | ------------ | ---------------------------------------------------------------------------------------- | -------------------------------- |
 | **cust_id** | [**number**] | Defaults to the authenticated member.                                                    | (optional) defaults to undefined |
-| **year**    | [**1         | 2                                                                                        | 3                                | 4**]**Array<1 &#124; 2 &#124; 3 &#124; 4>** | Season year; if not supplied the current calendar year (UTC) is used. | (optional) defaults to undefined |
+| **year**    | [**number**] | Season year; if not supplied the current calendar year (UTC) is used.                    | (optional) defaults to undefined |
 | **season**  | [**number**] | Season (quarter) within the year; if not supplied the recap will be for the entire year. | (optional) defaults to undefined |
 
 ### Return type

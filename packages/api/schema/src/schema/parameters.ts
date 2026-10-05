@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   CategorySchema,
+  BooleanParameterSchema,
   CustomerIdSchema,
   CategoryIdParameterSchema,
   ChartTypeParameterSchema,
@@ -28,7 +29,7 @@ export const HostedCombinedSessionsParametersSchema = z.object({
 });
 
 export const LeagueCustomerSessionsParametersSchema = z.object({
-  mine: z.coerce.boolean().optional().meta({
+  mine: BooleanParameterSchema.optional().meta({
     description: "If true, return only sessions created by this user.",
   }),
   package_id: z.coerce.number().optional().meta({
@@ -46,17 +47,16 @@ export const LeagueDirectoryParametersSchema = z.object({
     .string()
     .optional()
     .meta({ description: "One or more tags, comma-separated." }),
-  restrict_to_member: z.coerce.boolean().optional().meta({
+  restrict_to_member: BooleanParameterSchema.optional().meta({
     description: "If true include only leagues for which customer is a member.",
   }),
-  restrict_to_recruiting: z.coerce.boolean().optional().meta({
+  restrict_to_recruiting: BooleanParameterSchema.optional().meta({
     description: "If true include only leagues which are recruiting.",
   }),
-  restrict_to_friends: z.coerce
-    .boolean()
-    .optional()
-    .meta({ description: "If true include only leagues owned by a friend." }),
-  restrict_to_watched: z.coerce.boolean().optional().meta({
+  restrict_to_friends: BooleanParameterSchema.optional().meta({
+    description: "If true include only leagues owned by a friend.",
+  }),
+  restrict_to_watched: BooleanParameterSchema.optional().meta({
     description: "If true include only leagues owned by a watched member.",
   }),
   minimum_roster_count: z.coerce.number().optional().meta({
@@ -85,7 +85,7 @@ export const LeagueDirectoryParametersSchema = z.object({
 
 export const LeagueGetParametersSchema = z.object({
   league_id: z.coerce.number(),
-  include_licenses: z.coerce.boolean().optional().meta({
+  include_licenses: BooleanParameterSchema.optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
@@ -103,19 +103,19 @@ export const LeagueMembershipParametersSchema = z.object({
     description:
       "If different from the authenticated member, the following restrictions apply: - Caller cannot be on requested customer's block list or an empty list will result; - Requested customer cannot have their online activity preference set to hidden or an empty list will result; - Only leagues for which the requested customer is an admin and the league roster is not private are returned.",
   }),
-  include_league: z.coerce.boolean().optional(),
+  include_league: BooleanParameterSchema.optional(),
 });
 
 export const LeagueRosterParametersSchema = z.object({
   league_id: z.coerce.number(),
-  include_licenses: z.coerce.boolean().optional().meta({
+  include_licenses: BooleanParameterSchema.optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
 
 export const LeagueSeasonsParametersSchema = z.object({
   league_id: z.coerce.number(),
-  retired: z.coerce.boolean().optional().meta({
+  retired: BooleanParameterSchema.optional().meta({
     description: "If true include seasons which are no longer active.",
   }),
 });
@@ -133,7 +133,7 @@ export const LeagueSeasonStandingsParametersSchema = z.object({
 export const LeagueSeasonSessionsParametersSchema = z.object({
   league_id: z.coerce.number(),
   season_id: z.coerce.number(),
-  results_only: z.coerce.boolean().optional().meta({
+  results_only: BooleanParameterSchema.optional().meta({
     description:
       "If true include only sessions for which results are available.",
   }),
@@ -178,7 +178,7 @@ export const MemberGetParametersSchema = z.object({
     description:
       "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4",
   }),
-  include_licenses: z.coerce.boolean().optional(),
+  include_licenses: BooleanParameterSchema.optional(),
 });
 
 export const MemberProfileParametersSchema = z.object({
@@ -189,7 +189,7 @@ export const MemberProfileParametersSchema = z.object({
 
 export const ResultsGetParametersSchema = z.object({
   subsession_id: z.coerce.number(),
-  include_licenses: z.coerce.boolean().optional(),
+  include_licenses: BooleanParameterSchema.optional(),
 });
 
 export const ResultsEventLogParametersSchema = z.object({
@@ -315,7 +315,7 @@ export const ResultsSearchSeriesParametersSchema = z.object({
     .number()
     .optional()
     .meta({ description: "Include only sessions with this race week number." }),
-  official_only: z.coerce.boolean().optional().meta({
+  official_only: BooleanParameterSchema.optional().meta({
     description:
       "If true, include only sessions earning championship points. Defaults to all.",
   }),
@@ -351,24 +351,24 @@ export const SeasonRaceGuideParametersSchema = z.object({
     description:
       "ISO-8601 offset format. Defaults to the current time. Include sessions with start times up to 3 hours after this time. Times in the past will be rewritten to the current time.",
   }),
-  include_end_after_from: z.coerce.boolean().optional().meta({
+  include_end_after_from: BooleanParameterSchema.optional().meta({
     description: "Include sessions which start before 'from' but end after.",
   }),
 });
 
 export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
-  event_types: z.array(EventTypeSchema).optional().meta({
+  event_types: CommaSeparatedNumberString.optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
 });
 
 export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
-  event_types: z.array(EventTypeSchema).optional().meta({
+  event_types: CommaSeparatedNumberString.optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
-  season_ids: z.array(z.number()).optional().meta({
+  season_ids: CommaSeparatedNumberString.optional().meta({
     description:
       "Seasons to include in the search. Defaults to all. ?season_ids=513,937",
   }),
@@ -379,7 +379,7 @@ export const SeriesPastSeasonsParametersSchema = z.object({
 });
 
 export const SeriesSeasonsParametersSchema = z.object({
-  include_series: z.coerce.boolean().optional(),
+  include_series: BooleanParameterSchema.optional(),
   season_year: z.coerce.number().optional().meta({
     description:
       "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned.",
@@ -391,7 +391,7 @@ export const SeriesSeasonsParametersSchema = z.object({
 });
 
 export const SeriesSeasonListParametersSchema = z.object({
-  include_series: z.coerce.boolean().optional(),
+  include_series: BooleanParameterSchema.optional(),
   season_year: z.coerce.number().optional(),
   season_quarter: z.coerce.number().optional(),
 });
@@ -428,13 +428,10 @@ export const StatsMemberRecapParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
-  year: z
-    .union([z.literal(1), z.literal(2), z.literal(3), z.literal(4)])
-    .optional()
-    .meta({
-      description:
-        "Season year; if not supplied the current calendar year (UTC) is used.",
-    }),
+  year: z.coerce.number().optional().meta({
+    description:
+      "Season year; if not supplied the current calendar year (UTC) is used.",
+  }),
   season: z.coerce.number().optional().meta({
     description:
       "Season (quarter) within the year; if not supplied the recap will be for the entire year.",
@@ -531,7 +528,7 @@ export const StatsWorldRecordsParametersSchema = z.object({
 
 export const TeamGetParametersSchema = z.object({
   team_id: z.coerce.number(),
-  include_licenses: z.coerce.boolean().optional().meta({
+  include_licenses: BooleanParameterSchema.optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });

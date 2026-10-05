@@ -826,10 +826,7 @@ pub async fn get_stats_season_time_trial_results(
     configuration: &configuration::Configuration,
     params: GetStatsSeasonTimeTrialResultsParams,
 ) -> Result<models::IracingApiResponse, Error<GetStatsSeasonTimeTrialResultsError>> {
-    let uri_str = format!(
-        "{}/data/stats/season_time_trial_results",
-        configuration.base_path
-    );
+    let uri_str = format!("{}/data/stats/season_tt_results", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     req_builder = req_builder.query(&[("season_id", &params.season_id.to_string())]);
@@ -879,10 +876,7 @@ pub async fn get_stats_season_time_trial_standings(
     configuration: &configuration::Configuration,
     params: GetStatsSeasonTimeTrialStandingsParams,
 ) -> Result<models::IracingApiResponse, Error<GetStatsSeasonTimeTrialStandingsError>> {
-    let uri_str = format!(
-        "{}/data/stats/season_time_trial_standings",
-        configuration.base_path
-    );
+    let uri_str = format!("{}/data/stats/season_tt_standings", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     req_builder = req_builder.query(&[("season_id", &params.season_id.to_string())]);

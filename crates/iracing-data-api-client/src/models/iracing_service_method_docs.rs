@@ -16,21 +16,22 @@ use serde::{Deserialize, Serialize};
 pub struct IracingServiceMethodDocs {
     #[serde(rename = "link")]
     pub link: String,
-    #[serde(rename = "parameters")]
-    pub parameters: std::collections::HashMap<String, models::IracingServiceMethodParametersDocs>,
+    #[serde(rename = "parameters", skip_serializing_if = "Option::is_none")]
+    pub parameters:
+        Option<std::collections::HashMap<String, models::IracingServiceMethodParametersDocs>>,
+    #[serde(rename = "note", skip_serializing_if = "Option::is_none")]
+    pub note: Option<Box<models::IracingServiceMethodDocsNote>>,
     #[serde(rename = "expirationSeconds", skip_serializing_if = "Option::is_none")]
     pub expiration_seconds: Option<f64>,
 }
 
 impl IracingServiceMethodDocs {
     /// An iRacing API Service Method object.
-    pub fn new(
-        link: String,
-        parameters: std::collections::HashMap<String, models::IracingServiceMethodParametersDocs>,
-    ) -> IracingServiceMethodDocs {
+    pub fn new(link: String) -> IracingServiceMethodDocs {
         IracingServiceMethodDocs {
             link,
-            parameters,
+            parameters: None,
+            note: None,
             expiration_seconds: None,
         }
     }

@@ -44,7 +44,8 @@
     "test:agent-regressions": "node --test scripts/agent-regressions.test.mjs",
     "upstream:contract": "node scripts/upstream-contract.mjs",
     "test:upstream": "node --test scripts/upstream-contract.test.mjs scripts/audit-data-docs.test.cjs",
-    "test:schema-compatibility": "node --test -r ts-node/register tests/schema-compatibility/*.test.cjs"
+    "test:schema-compatibility": "node --test -r ts-node/register tests/schema-compatibility/*.test.cjs",
+    "test:data-contract": "node --test tests/schema-compatibility/data-docs-wire.test.cjs"
   },
   "keywords": [],
   "author": "",

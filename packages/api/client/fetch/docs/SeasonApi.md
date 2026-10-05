@@ -155,11 +155,8 @@ example().catch(console.error);
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SeasonApi,
-} from '@iracing-data/api-client-fetch';
-import type { GetSeasonSpectatorSubsessionIdsRequest } from '@iracing-data/api-client-fetch';
+import { Configuration, SeasonApi } from "@iracing-data/api-client-fetch";
+import type { GetSeasonSpectatorSubsessionIdsRequest } from "@iracing-data/api-client-fetch";
 
 async function example() {
   console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
@@ -170,8 +167,8 @@ async function example() {
   const api = new SeasonApi(config);
 
   const body = {
-    // Array<IracingEventType> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional)
-    event_types: ...,
+    // string | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional)
+    event_types: event_types_example,
   } satisfies GetSeasonSpectatorSubsessionIdsRequest;
 
   try {
@@ -188,9 +185,9 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name            | Type                      | Description                                                                          | Notes      |
-| --------------- | ------------------------- | ------------------------------------------------------------------------------------ | ---------- |
-| **event_types** | `Array<IracingEventType>` | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | [Optional] |
+| Name            | Type     | Description                                                                          | Notes                                |
+| --------------- | -------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
+| **event_types** | `string` | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 
@@ -223,11 +220,8 @@ example().catch(console.error);
 ### Example
 
 ```ts
-import {
-  Configuration,
-  SeasonApi,
-} from '@iracing-data/api-client-fetch';
-import type { GetSeasonSpectatorSubsessionIdsDetailRequest } from '@iracing-data/api-client-fetch';
+import { Configuration, SeasonApi } from "@iracing-data/api-client-fetch";
+import type { GetSeasonSpectatorSubsessionIdsDetailRequest } from "@iracing-data/api-client-fetch";
 
 async function example() {
   console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
@@ -238,10 +232,10 @@ async function example() {
   const api = new SeasonApi(config);
 
   const body = {
-    // Array<IracingEventType> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional)
-    event_types: ...,
-    // Array<number> | Seasons to include in the search. Defaults to all. ?season_ids=513,937 (optional)
-    season_ids: ...,
+    // string | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional)
+    event_types: event_types_example,
+    // string | Seasons to include in the search. Defaults to all. ?season_ids=513,937 (optional)
+    season_ids: season_ids_example,
   } satisfies GetSeasonSpectatorSubsessionIdsDetailRequest;
 
   try {
@@ -258,10 +252,10 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name            | Type                      | Description                                                                          | Notes      |
-| --------------- | ------------------------- | ------------------------------------------------------------------------------------ | ---------- |
-| **event_types** | `Array<IracingEventType>` | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | [Optional] |
-| **season_ids**  | `Array<number>`           | Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937          | [Optional] |
+| Name            | Type     | Description                                                                          | Notes                                |
+| --------------- | -------- | ------------------------------------------------------------------------------------ | ------------------------------------ |
+| **event_types** | `string` | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5 | [Optional] [Defaults to `undefined`] |
+| **season_ids**  | `string` | Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937          | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 

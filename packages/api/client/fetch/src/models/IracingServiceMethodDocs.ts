@@ -20,6 +20,13 @@ import {
   IracingServiceMethodParametersDocsToJSON,
   IracingServiceMethodParametersDocsToJSONTyped,
 } from "./IracingServiceMethodParametersDocs";
+import type { IracingServiceMethodDocsNote } from "./IracingServiceMethodDocsNote";
+import {
+  IracingServiceMethodDocsNoteFromJSON,
+  IracingServiceMethodDocsNoteFromJSONTyped,
+  IracingServiceMethodDocsNoteToJSON,
+  IracingServiceMethodDocsNoteToJSONTyped,
+} from "./IracingServiceMethodDocsNote";
 
 /**
  * An iRacing API Service Method object.
@@ -38,7 +45,13 @@ export interface IracingServiceMethodDocs {
    * @type {{ [key: string]: IracingServiceMethodParametersDocs; }}
    * @memberof IracingServiceMethodDocs
    */
-  parameters: { [key: string]: IracingServiceMethodParametersDocs };
+  parameters?: { [key: string]: IracingServiceMethodParametersDocs };
+  /**
+   *
+   * @type {IracingServiceMethodDocsNote}
+   * @memberof IracingServiceMethodDocs
+   */
+  note?: IracingServiceMethodDocsNote;
   /**
    *
    * @type {number}
@@ -54,8 +67,6 @@ export function instanceOfIracingServiceMethodDocs(
   value: object,
 ): value is IracingServiceMethodDocs {
   if (!("link" in value) || value["link"] === undefined) return false;
-  if (!("parameters" in value) || value["parameters"] === undefined)
-    return false;
   return true;
 }
 
@@ -74,10 +85,17 @@ export function IracingServiceMethodDocsFromJSONTyped(
   }
   return {
     link: json["link"],
-    parameters: mapValues(
-      json["parameters"],
-      IracingServiceMethodParametersDocsFromJSON,
-    ),
+    parameters:
+      json["parameters"] == null
+        ? undefined
+        : mapValues(
+            json["parameters"],
+            IracingServiceMethodParametersDocsFromJSON,
+          ),
+    note:
+      json["note"] == null
+        ? undefined
+        : IracingServiceMethodDocsNoteFromJSON(json["note"]),
     expirationSeconds:
       json["expirationSeconds"] == null ? undefined : json["expirationSeconds"],
   };
@@ -99,10 +117,14 @@ export function IracingServiceMethodDocsToJSONTyped(
 
   return {
     link: value["link"],
-    parameters: mapValues(
-      value["parameters"],
-      IracingServiceMethodParametersDocsToJSON,
-    ),
+    parameters:
+      value["parameters"] == null
+        ? undefined
+        : mapValues(
+            value["parameters"],
+            IracingServiceMethodParametersDocsToJSON,
+          ),
+    note: IracingServiceMethodDocsNoteToJSON(value["note"]),
     expirationSeconds: value["expirationSeconds"],
   };
 }

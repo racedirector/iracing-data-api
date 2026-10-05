@@ -1,5 +1,6 @@
 import {
   APIResponseSchema,
+  ConstantsResponseSchema,
   AuthParametersSchema,
   DriverStatsByCategoryPathSchema,
   ErrorResponseSchema,
@@ -87,6 +88,11 @@ export const document = createDocument({
             schema: APIResponseSchema,
           },
         },
+      },
+      Constants: {
+        description: "Constants returned directly as an array of objects",
+        headers: RateLimitHeadersSchema,
+        content: { "application/json": { schema: ConstantsResponseSchema } },
       },
       Docs: {
         description: "Success",
@@ -1129,7 +1135,7 @@ export const document = createDocument({
           url: "/data/doc/constants/categories",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: { $ref: "#/components/responses/Constants" },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -1145,7 +1151,7 @@ export const document = createDocument({
           url: "/data/doc/constants/divisions",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: { $ref: "#/components/responses/Constants" },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -1161,7 +1167,7 @@ export const document = createDocument({
           url: "/data/doc/constants/event_types",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: { $ref: "#/components/responses/Constants" },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -2082,7 +2088,7 @@ export const document = createDocument({
         },
       },
     },
-    "/data/stats/season_time_trial_standings": {
+    "/data/stats/season_tt_standings": {
       get: {
         operationId: "getStatsSeasonTimeTrialStandings",
         requestParams: {
@@ -2100,7 +2106,7 @@ export const document = createDocument({
         },
       },
     },
-    "/data/stats/season_time_trial_results": {
+    "/data/stats/season_tt_results": {
       get: {
         operationId: "getStatsSeasonTimeTrialResults",
         requestParams: {

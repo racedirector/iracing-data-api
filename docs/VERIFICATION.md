@@ -8,13 +8,13 @@ pnpm verify
 
 CI runs this same command on one Ubuntu job. Each step prints its subsystem and stops on failure, preserving the command's exit code. Missing tools fail explicitly. No iRacing login, credentials, or running service is needed.
 
-| Command                 | Coverage                                                                                                                                                                   |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm verify:repo`      | Workspace policy, policy mutation tests, verification-runner and offline upstream-contract tests, authored ESLint and Prettier checks                                      |
-| `pnpm verify:js`        | Authored npm packages/tools and dependency builds, followed by all declared workspace tests                                                                                |
-| `pnpm verify:examples`  | Every policy-classified example and its dependency builds                                                                                                                  |
-| `pnpm verify:generated` | Presentation/diff regression tests; isolated regeneration of all OpenAPI JSON/YAML and Fetch/Axios/Rust clients; stale-output comparison; generated npm client compilation |
-| `pnpm verify:rust`      | Rustfmt, locked Cargo check/clippy/test, all workspace targets and features                                                                                                |
+| Command                 | Coverage                                                                                                                                                                                                            |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm verify:repo`      | Workspace policy, policy mutation tests, verification-runner and offline upstream-contract tests, authored ESLint and Prettier checks                                                                               |
+| `pnpm verify:js`        | Authored npm packages/tools and dependency builds, followed by all declared workspace tests                                                                                                                         |
+| `pnpm verify:examples`  | Every policy-classified example and its dependency builds                                                                                                                                                           |
+| `pnpm verify:generated` | Presentation/diff regression tests; isolated regeneration of all OpenAPI JSON/YAML and Fetch/Axios/Rust clients; stale-output comparison; generated npm client compilation and offline Data API wire-contract tests |
+| `pnpm verify:rust`      | Rustfmt, locked Cargo check/clippy/test, all workspace targets and features                                                                                                                                         |
 
 Build selection comes from `workspace-policy.json`; no second package inventory is maintained. Each selected npm package must have a build script. Tests run only where declared. OAuth client tests cover PKCE/state consumption, token form encoding, success/error processing, refresh rotation, session persistence, and memory/disk storage. Both authored OpenAPI tools generate temporary JSON/YAML contracts and check representative mapping invariants, unique operation IDs, and local reference resolution. These tests exercise built authored code; they do not unit-test generated SDK implementation details or establish live upstream compatibility. The password-limited example compiles but does not execute its live upload/authentication flow.
 
@@ -43,3 +43,5 @@ checks fixture structure/references only and never runs a live model evaluation.
 Upstream evidence capture is opt-in and separate from verification. See [upstream contract tooling](UPSTREAM-CONTRACT.md) for live capture, credential handling, fixture mode, and automation. Verification never requires an iRacing token.
 
 The canonical CI result is enforced on main by the [repository protection rules](REPOSITORY-PROTECTION.md), which also document recovery from a broken required check.
+
+`pnpm test:data-contract` exercises the built Fetch and Axios clients with synthetic offline responses. It verifies documentation-note preservation, direct constants arrays, time-trial paths, calendar-year requests and CSV spectator filters. It runs after generated client builds in `verify:generated`; it never reads credentials or calls iRacing. The router's declared tests also cover these query/path boundaries, and the Rust crate registers an authored documentation deserialization test outside generated source.

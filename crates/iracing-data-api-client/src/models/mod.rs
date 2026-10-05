@@ -10,6 +10,8 @@ pub mod iracing_event_type;
 pub use self::iracing_event_type::IracingEventType;
 pub mod iracing_service_method_docs;
 pub use self::iracing_service_method_docs::IracingServiceMethodDocs;
+pub mod iracing_service_method_docs_note;
+pub use self::iracing_service_method_docs_note::IracingServiceMethodDocsNote;
 pub mod iracing_service_method_parameters_docs;
 pub use self::iracing_service_method_parameters_docs::IracingServiceMethodParametersDocs;
 pub mod post_auth_request;

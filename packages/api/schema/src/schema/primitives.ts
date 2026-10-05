@@ -49,6 +49,14 @@ export const RateLimitHeadersSchema = z
       "Headers included with every request, indicating current rate limit status for the requesting session.",
   });
 
+// HTTP query strings need explicit boolean parsing; Boolean("false") is true.
+export const BooleanParameterSchema = z
+  .preprocess(
+    (value) => (value === "true" ? true : value === "false" ? false : value),
+    z.boolean(),
+  )
+  .meta({ override: { type: "boolean" } });
+
 export const CustomerIdSchema = z.coerce.number().meta({
   description: "Numeric ID of a customer on iRacing.",
   id: "customerId",

@@ -1,6 +1,6 @@
 [package]
 name = "iracing-data-api-client"
-version = "0.0.1"
+version = "0.1.0"
 authors = [ "iRacing Data API contributors" ]
 description = "Typed Rust client for the iRacing Data API, generated from maintained OpenAPI schemas."
 license = "MIT"
@@ -43,3 +43,7 @@ rustls-tls = [ "reqwest/rustls-tls" ]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "data-docs-contract"
+path = "../../tests/rust-contract/data-docs.rs"

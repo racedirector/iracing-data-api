@@ -15,8 +15,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**get_stats_season_qualify_results**](StatsApi.md#get_stats_season_qualify_results)               | **GET** /data/stats/season_qualify_results        |
 | [**get_stats_season_supersession_standings**](StatsApi.md#get_stats_season_supersession_standings) | **GET** /data/stats/season_supersession_standings |
 | [**get_stats_season_team_standings**](StatsApi.md#get_stats_season_team_standings)                 | **GET** /data/stats/season_team_standings         |
-| [**get_stats_season_time_trial_results**](StatsApi.md#get_stats_season_time_trial_results)         | **GET** /data/stats/season_time_trial_results     |
-| [**get_stats_season_time_trial_standings**](StatsApi.md#get_stats_season_time_trial_standings)     | **GET** /data/stats/season_time_trial_standings   |
+| [**get_stats_season_time_trial_results**](StatsApi.md#get_stats_season_time_trial_results)         | **GET** /data/stats/season_tt_results             |
+| [**get_stats_season_time_trial_standings**](StatsApi.md#get_stats_season_time_trial_standings)     | **GET** /data/stats/season_tt_standings           |
 | [**get_stats_world_records**](StatsApi.md#get_stats_world_records)                                 | **GET** /data/stats/world_records                 |
 
 ## get_stats_member_bests

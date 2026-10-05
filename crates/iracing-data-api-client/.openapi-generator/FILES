@@ -12,6 +12,7 @@ docs/IracingCategory.md
 docs/IracingDivision.md
 docs/IracingEventType.md
 docs/IracingServiceMethodDocs.md
+docs/IracingServiceMethodDocsNote.md
 docs/IracingServiceMethodParametersDocs.md
 docs/LeagueApi.md
 docs/LookupApi.md
@@ -51,6 +52,7 @@ src/models/iracing_category.rs
 src/models/iracing_division.rs
 src/models/iracing_event_type.rs
 src/models/iracing_service_method_docs.rs
+src/models/iracing_service_method_docs_note.rs
 src/models/iracing_service_method_parameters_docs.rs
 src/models/mod.rs
 src/models/post_auth_request.rs

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { BooleanParameterSchema } from "./primitives";
 
 export const ErrorResponseSchema = z
   .object({
@@ -20,11 +21,16 @@ export const APIResponseSchema = z
     id: "iracingAPIResponse",
   });
 
+// The official constants docs establish an array of objects, but not their fields.
+export const ConstantsResponseSchema = z
+  .array(z.record(z.string(), z.unknown()))
+  .meta({ id: "iracingConstantsResponse" });
+
 export const ServiceMethodParametersDocsResponseSchema = z
   .object({
     type: z.string(),
     note: z.string().optional(),
-    required: z.coerce.boolean().optional(),
+    required: BooleanParameterSchema.optional(),
   })
   .meta({
     description: "An iRacing API Service Method Parameters object.",
@@ -34,7 +40,13 @@ export const ServiceMethodParametersDocsResponseSchema = z
 export const ServiceMethodDocsResponseSchema = z
   .object({
     link: z.url(),
-    parameters: z.record(z.string(), ServiceMethodParametersDocsResponseSchema),
+    parameters: z
+      .record(z.string(), ServiceMethodParametersDocsResponseSchema)
+      .optional(),
+    note: z
+      .union([z.string(), z.array(z.string())])
+      .meta({ unionOneOf: true })
+      .optional(),
     expirationSeconds: z.coerce.number().optional(),
   })
   .meta({
@@ -91,6 +103,7 @@ export const GetTrackResponseSchema = z.array(
 
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type APIResponse = z.infer<typeof APIResponseSchema>;
+export type ConstantsResponse = z.infer<typeof ConstantsResponseSchema>;
 
 export type ServiceMethodParametersDocsResponse = z.infer<
   typeof ServiceMethodParametersDocsResponseSchema

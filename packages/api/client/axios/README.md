@@ -187,8 +187,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | _StatsApi_       | [**getStatsSeasonQualifyResults**](docs/StatsApi.md#getstatsseasonqualifyresults)                         | **GET** /data/stats/season_qualify_results              |
 | _StatsApi_       | [**getStatsSeasonSupersessionStandings**](docs/StatsApi.md#getstatsseasonsupersessionstandings)           | **GET** /data/stats/season_supersession_standings       |
 | _StatsApi_       | [**getStatsSeasonTeamStandings**](docs/StatsApi.md#getstatsseasonteamstandings)                           | **GET** /data/stats/season_team_standings               |
-| _StatsApi_       | [**getStatsSeasonTimeTrialResults**](docs/StatsApi.md#getstatsseasontimetrialresults)                     | **GET** /data/stats/season_time_trial_results           |
-| _StatsApi_       | [**getStatsSeasonTimeTrialStandings**](docs/StatsApi.md#getstatsseasontimetrialstandings)                 | **GET** /data/stats/season_time_trial_standings         |
+| _StatsApi_       | [**getStatsSeasonTimeTrialResults**](docs/StatsApi.md#getstatsseasontimetrialresults)                     | **GET** /data/stats/season_tt_results                   |
+| _StatsApi_       | [**getStatsSeasonTimeTrialStandings**](docs/StatsApi.md#getstatsseasontimetrialstandings)                 | **GET** /data/stats/season_tt_standings                 |
 | _StatsApi_       | [**getStatsWorldRecords**](docs/StatsApi.md#getstatsworldrecords)                                         | **GET** /data/stats/world_records                       |
 | _TeamApi_        | [**getTeam**](docs/TeamApi.md#getteam)                                                                    | **GET** /data/team/get                                  |
 | _TeamApi_        | [**getTeamMembership**](docs/TeamApi.md#getteammembership)                                                | **GET** /data/team/membership                           |
@@ -204,6 +204,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [IracingDivision](docs/IracingDivision.md)
 - [IracingEventType](docs/IracingEventType.md)
 - [IracingServiceMethodDocs](docs/IracingServiceMethodDocs.md)
+- [IracingServiceMethodDocsNote](docs/IracingServiceMethodDocsNote.md)
 - [IracingServiceMethodParametersDocs](docs/IracingServiceMethodParametersDocs.md)
 - [PostAuthRequest](docs/PostAuthRequest.md)
 

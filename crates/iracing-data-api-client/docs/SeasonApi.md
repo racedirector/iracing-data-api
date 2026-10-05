@@ -67,9 +67,9 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Parameters
 
-| Name            | Type                                                                     | Description                                                                     | Required | Notes |
-| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | -------- | ----- |
-| **event_types** | Option<[**Vec<models::IracingEventType>**](models::IracingEventType.md)> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 |          |
+| Name            | Type               | Description                                                                     | Required | Notes |
+| --------------- | ------------------ | ------------------------------------------------------------------------------- | -------- | ----- |
+| **event_types** | Option<**String**> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 |          |
 
 ### Return type
 
@@ -92,10 +92,10 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Parameters
 
-| Name            | Type                                                                     | Description                                                                     | Required | Notes |
-| --------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------- | -------- | ----- |
-| **event_types** | Option<[**Vec<models::IracingEventType>**](models::IracingEventType.md)> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 |          |
-| **season_ids**  | Option<[**Vec<f64>**](f64.md)>                                           | Seasons to include in the search. Defaults to all. ?season_ids=513,937          |          |
+| Name            | Type               | Description                                                                     | Required | Notes |
+| --------------- | ------------------ | ------------------------------------------------------------------------------- | -------- | ----- |
+| **event_types** | Option<**String**> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 |          |
+| **season_ids**  | Option<**String**> | Seasons to include in the search. Defaults to all. ?season_ids=513,937          |          |
 
 ### Return type
 

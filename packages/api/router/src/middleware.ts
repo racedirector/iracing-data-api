@@ -19,6 +19,27 @@ import {
 } from "@iracing-data/api-client-fetch";
 import { createMiddleware } from "better-call";
 
+const createIRacingClient = ({ config }: { config: Configuration }) => {
+  return {
+    car: new CarApi(config),
+    carClass: new CarclassApi(config),
+    constants: new ConstantsApi(config),
+    doc: new DocApi(config),
+    driverStats: new DriverStatsApi(config),
+    hosted: new HostedApi(config),
+    league: new LeagueApi(config),
+    lookup: new LookupApi(config),
+    member: new MemberApi(config),
+    results: new ResultsApi(config),
+    season: new SeasonApi(config),
+    series: new SeriesApi(config),
+    stats: new StatsApi(config),
+    team: new TeamApi(config),
+    timeAttack: new TimeAttackApi(config),
+    track: new TrackApi(config),
+  };
+};
+
 export const iracingClientMiddleware = createMiddleware(
   {
     // Better Call accepts middleware with optional input headers; runtime
@@ -45,24 +66,7 @@ export const iracingClientMiddleware = createMiddleware(
     const config = new Configuration({ accessToken: accessToken || undefined });
 
     return {
-      iracing: {
-        car: new CarApi(config),
-        carClass: new CarclassApi(config),
-        constants: new ConstantsApi(config),
-        doc: new DocApi(config),
-        driverStats: new DriverStatsApi(config),
-        hosted: new HostedApi(config),
-        league: new LeagueApi(config),
-        lookup: new LookupApi(config),
-        member: new MemberApi(config),
-        results: new ResultsApi(config),
-        season: new SeasonApi(config),
-        series: new SeriesApi(config),
-        stats: new StatsApi(config),
-        team: new TeamApi(config),
-        timeAttack: new TimeAttackApi(config),
-        track: new TrackApi(config),
-      },
+      iracing: createIRacingClient({ config }),
     };
   },
 );

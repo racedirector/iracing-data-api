@@ -13,13 +13,8 @@
  */
 
 import * as runtime from "../runtime";
-import type { ErrorResponse, IracingAPIResponse } from "../models/index";
-import {
-  ErrorResponseFromJSON,
-  ErrorResponseToJSON,
-  IracingAPIResponseFromJSON,
-  IracingAPIResponseToJSON,
-} from "../models/index";
+import type { ErrorResponse } from "../models/index";
+import { ErrorResponseFromJSON, ErrorResponseToJSON } from "../models/index";
 
 /**
  *
@@ -30,7 +25,7 @@ export class ConstantsApi extends runtime.BaseAPI {
    */
   async getConstantsCategoriesRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<Array<object>>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -56,9 +51,7 @@ export class ConstantsApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -66,7 +59,7 @@ export class ConstantsApi extends runtime.BaseAPI {
    */
   async getConstantsCategories(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<Array<object>> {
     const response = await this.getConstantsCategoriesRaw(initOverrides);
     return await response.value();
   }
@@ -76,7 +69,7 @@ export class ConstantsApi extends runtime.BaseAPI {
    */
   async getConstantsDivisionsRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<Array<object>>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -102,9 +95,7 @@ export class ConstantsApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -112,7 +103,7 @@ export class ConstantsApi extends runtime.BaseAPI {
    */
   async getConstantsDivisions(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<Array<object>> {
     const response = await this.getConstantsDivisionsRaw(initOverrides);
     return await response.value();
   }
@@ -122,7 +113,7 @@ export class ConstantsApi extends runtime.BaseAPI {
    */
   async getConstantsEventTypesRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<Array<object>>> {
     const queryParameters: any = {};
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -148,9 +139,7 @@ export class ConstantsApi extends runtime.BaseAPI {
       initOverrides,
     );
 
-    return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
-    );
+    return new runtime.JSONApiResponse<any>(response);
   }
 
   /**
@@ -158,7 +147,7 @@ export class ConstantsApi extends runtime.BaseAPI {
    */
   async getConstantsEventTypes(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<Array<object>> {
     const response = await this.getConstantsEventTypesRaw(initOverrides);
     return await response.value();
   }

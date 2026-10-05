@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/api-client-fetch",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Typed Fetch client for the iRacing Data API, generated from maintained OpenAPI schemas.",
   "repository": {
     "type": "git",

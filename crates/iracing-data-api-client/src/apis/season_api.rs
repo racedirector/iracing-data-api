@@ -33,16 +33,16 @@ pub struct GetSeasonRaceGuideParams {
 #[derive(Clone, Debug)]
 pub struct GetSeasonSpectatorSubsessionIdsParams {
     /// Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5
-    pub event_types: Option<Vec<models::IracingEventType>>,
+    pub event_types: Option<String>,
 }
 
 /// struct for passing parameters to the method [`get_season_spectator_subsession_ids_detail`]
 #[derive(Clone, Debug)]
 pub struct GetSeasonSpectatorSubsessionIdsDetailParams {
     /// Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5
-    pub event_types: Option<Vec<models::IracingEventType>>,
+    pub event_types: Option<String>,
     /// Seasons to include in the search. Defaults to all. ?season_ids=513,937
-    pub season_ids: Option<Vec<f64>>,
+    pub season_ids: Option<String>,
 }
 
 /// struct for typed errors of method [`get_season_list`]
@@ -190,23 +190,7 @@ pub async fn get_season_spectator_subsession_ids(
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref param_value) = params.event_types {
-        req_builder = match "multi" {
-            "multi" => req_builder.query(
-                &param_value
-                    .into_iter()
-                    .map(|p| ("event_types".to_owned(), p.to_string()))
-                    .collect::<Vec<(std::string::String, std::string::String)>>(),
-            ),
-            _ => req_builder.query(&[(
-                "event_types",
-                &param_value
-                    .into_iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<String>>()
-                    .join(",")
-                    .to_string(),
-            )]),
-        };
+        req_builder = req_builder.query(&[("event_types", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
@@ -256,42 +240,10 @@ pub async fn get_season_spectator_subsession_ids_detail(
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref param_value) = params.event_types {
-        req_builder = match "multi" {
-            "multi" => req_builder.query(
-                &param_value
-                    .into_iter()
-                    .map(|p| ("event_types".to_owned(), p.to_string()))
-                    .collect::<Vec<(std::string::String, std::string::String)>>(),
-            ),
-            _ => req_builder.query(&[(
-                "event_types",
-                &param_value
-                    .into_iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<String>>()
-                    .join(",")
-                    .to_string(),
-            )]),
-        };
+        req_builder = req_builder.query(&[("event_types", &param_value.to_string())]);
     }
     if let Some(ref param_value) = params.season_ids {
-        req_builder = match "multi" {
-            "multi" => req_builder.query(
-                &param_value
-                    .into_iter()
-                    .map(|p| ("season_ids".to_owned(), p.to_string()))
-                    .collect::<Vec<(std::string::String, std::string::String)>>(),
-            ),
-            _ => req_builder.query(&[(
-                "season_ids",
-                &param_value
-                    .into_iter()
-                    .map(|p| p.to_string())
-                    .collect::<Vec<String>>()
-                    .join(",")
-                    .to_string(),
-            )]),
-        };
+        req_builder = req_builder.query(&[("season_ids", &param_value.to_string())]);
     }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());

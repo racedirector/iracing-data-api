@@ -43,7 +43,7 @@ export interface GetStatsMemberDivisionRequest {
 
 export interface GetStatsMemberRecapRequest {
   cust_id?: number;
-  year?: GetStatsMemberRecapYearEnum;
+  year?: number;
   season?: number;
 }
 
@@ -887,7 +887,7 @@ export class StatsApi extends runtime.BaseAPI {
       }
     }
 
-    let urlPath = `/data/stats/season_time_trial_results`;
+    let urlPath = `/data/stats/season_tt_results`;
 
     const response = await this.request(
       {
@@ -966,7 +966,7 @@ export class StatsApi extends runtime.BaseAPI {
       }
     }
 
-    let urlPath = `/data/stats/season_time_trial_standings`;
+    let urlPath = `/data/stats/season_tt_standings`;
 
     const response = await this.request(
       {
@@ -1085,14 +1085,3 @@ export const GetStatsMemberDivisionEventTypeEnum = {
 } as const;
 export type GetStatsMemberDivisionEventTypeEnum =
   (typeof GetStatsMemberDivisionEventTypeEnum)[keyof typeof GetStatsMemberDivisionEventTypeEnum];
-/**
- * @export
- */
-export const GetStatsMemberRecapYearEnum = {
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-  NUMBER_3: 3,
-  NUMBER_4: 4,
-} as const;
-export type GetStatsMemberRecapYearEnum =
-  (typeof GetStatsMemberRecapYearEnum)[keyof typeof GetStatsMemberRecapYearEnum];

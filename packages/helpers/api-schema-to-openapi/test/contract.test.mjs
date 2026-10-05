@@ -139,3 +139,52 @@ test("Data API JSON/YAML preserve query mapping, authentication, and response en
   );
   assert.ok(document.components.responses.Success.headers["x-ratelimit-reset"]);
 });
+
+test("current docs optionality and corrected wire paths are represented", () => {
+  const document = exportedDocument;
+  const docs = document.components.schemas.iracingServiceMethodDocs;
+  assert.equal(docs.required.includes("parameters"), false);
+  assert.ok(docs.properties.note);
+  for (const [path, operationId] of [
+    ["/data/stats/season_tt_results", "getStatsSeasonTimeTrialResults"],
+    ["/data/stats/season_tt_standings", "getStatsSeasonTimeTrialStandings"],
+  ]) {
+    assert.equal(document.paths[path].get.operationId, operationId);
+  }
+  assert.equal(
+    document.paths["/data/stats/season_time_trial_results"],
+    undefined,
+  );
+  assert.deepEqual(
+    document.components.schemas.iracingServiceMethodDocs.properties.note.oneOf,
+    [{ type: "string" }, { type: "array", items: { type: "string" } }],
+  );
+  const recapYear = document.paths[
+    "/data/stats/member_recap"
+  ].get.parameters.find((p) => p.name === "year");
+  assert.equal(recapYear.schema.type, "number");
+  assert.equal(recapYear.schema.anyOf, undefined);
+  for (const endpoint of [
+    "spectator_subsessionids",
+    "spectator_subsessionids_detail",
+  ]) {
+    const operation = document.paths[`/data/season/${endpoint}`].get;
+    for (const parameter of operation.parameters)
+      assert.equal(parameter.schema.type, "string");
+  }
+  const boolean = document.paths["/data/league/directory"].get.parameters.find(
+    (p) => p.name === "restrict_to_member",
+  );
+  assert.equal(boolean.schema.type, "boolean");
+  for (const endpoint of ["categories", "divisions", "event_types"])
+    assert.equal(
+      document.paths[`/data/constants/${endpoint}`].get.responses[200].$ref,
+      "#/components/responses/Constants",
+    );
+  const constants = dereference(
+    document,
+    document.components.responses.Constants.content["application/json"].schema,
+  );
+  assert.equal(constants.type, "array");
+  assert.equal(constants.items.type, "object");
+});

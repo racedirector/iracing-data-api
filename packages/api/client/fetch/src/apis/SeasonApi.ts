@@ -13,18 +13,12 @@
  */
 
 import * as runtime from "../runtime";
-import type {
-  ErrorResponse,
-  IracingAPIResponse,
-  IracingEventType,
-} from "../models/index";
+import type { ErrorResponse, IracingAPIResponse } from "../models/index";
 import {
   ErrorResponseFromJSON,
   ErrorResponseToJSON,
   IracingAPIResponseFromJSON,
   IracingAPIResponseToJSON,
-  IracingEventTypeFromJSON,
-  IracingEventTypeToJSON,
 } from "../models/index";
 
 export interface GetSeasonListRequest {
@@ -38,12 +32,12 @@ export interface GetSeasonRaceGuideRequest {
 }
 
 export interface GetSeasonSpectatorSubsessionIdsRequest {
-  event_types?: Array<IracingEventType>;
+  event_types?: string;
 }
 
 export interface GetSeasonSpectatorSubsessionIdsDetailRequest {
-  event_types?: Array<IracingEventType>;
-  season_ids?: Array<number>;
+  event_types?: string;
+  season_ids?: string;
 }
 
 /**

@@ -52,6 +52,7 @@ export function verificationPlan(subsystem, policy) {
         pnpm("generated: normalization and drift tests", "test:codegen"),
         pnpm("generated: regenerate and compare", "check:generated"),
         build(["generated-public-client"]),
+        pnpm("generated: Data API wire contract tests", "test:data-contract"),
       ];
     case "rust":
       return [
