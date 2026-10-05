@@ -39,7 +39,7 @@ function body(url) {
   if (url.pathname.includes("/constants/")) return constants;
   return envelope;
 }
-const filters = { event_types: "2,3", season_ids: "513,937" };
+const filters = { event_types: [2, 3], season_ids: [513, 937] };
 const tt = { season_id: 1, car_class_id: 2, race_week_num: 0 };
 
 test("Fetch consumer preserves docs notes, parses constants arrays and uses corrected query/path contracts", async () => {
@@ -118,4 +118,26 @@ test("Axios consumer returns constants arrays and serializes CSV filters without
     instance,
   ).getStatsMemberRecap({ year: 2026 });
   assert.equal(urls.length, 5);
+});
+
+test("schema array inputs are assignable to both generated clients", () => {
+  const ts = require("typescript");
+  const program = ts.createProgram(
+    [require("node:path").join(__dirname, "spectator-inputs.ts")],
+    {
+      strict: true,
+      noEmit: true,
+      skipLibCheck: true,
+      esModuleInterop: true,
+      target: ts.ScriptTarget.ES2022,
+      module: ts.ModuleKind.CommonJS,
+      moduleResolution: ts.ModuleResolutionKind.Node10,
+    },
+  );
+  assert.deepEqual(
+    ts
+      .getPreEmitDiagnostics(program)
+      .map((d) => ts.flattenDiagnosticMessageText(d.messageText, "\n")),
+    [],
+  );
 });

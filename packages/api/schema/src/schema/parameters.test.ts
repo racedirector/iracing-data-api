@@ -49,26 +49,32 @@ describe("documented query wire inputs", () => {
       false,
     );
   });
-  it("uses comma-separated spectator filters and preserves array callers through coercion", () => {
+  it("keeps spectator filters as validated numeric arrays", () => {
+    const filters: import("./parameters").SeasonSpectatorSubsessionidsDetailParameters =
+      {
+        event_types: [2, 5],
+        season_ids: [513, 937],
+      };
     assert.deepEqual(
-      SeasonSpectatorSubsessionidsParametersSchema.parse({
-        event_types: "2,3,4,5",
-      }),
-      { event_types: "2,3,4,5" },
+      SeasonSpectatorSubsessionidsDetailParametersSchema.parse(filters),
+      filters,
     );
     assert.deepEqual(
-      SeasonSpectatorSubsessionidsDetailParametersSchema.parse({
-        event_types: [2, 3],
-        season_ids: "513,937",
-      }),
-      { event_types: "2,3", season_ids: "513,937" },
+      SeasonSpectatorSubsessionidsParametersSchema.parse({}),
+      {},
     );
-    for (const event_types of ["2,,3", "invalid", ""])
+    for (const event_types of [[], [1], ["Practice"], "2,5", [2, "5"]])
       assert.equal(
         SeasonSpectatorSubsessionidsParametersSchema.safeParse({ event_types })
           .success,
         false,
       );
+    assert.equal(
+      SeasonSpectatorSubsessionidsDetailParametersSchema.safeParse({
+        season_ids: [],
+      }).success,
+      false,
+    );
   });
   it("interprets true/false query strings deliberately instead of truthiness", () => {
     assert.equal(

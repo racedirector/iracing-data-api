@@ -13788,12 +13788,12 @@ export const SeasonApiAxiosParamCreator = function (
     },
     /**
      *
-     * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getSeasonSpectatorSubsessionIds: async (
-      event_types?: string,
+      event_types?: Array<IracingEventType>,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/data/season/spectator_subsessionids`;
@@ -13816,8 +13816,10 @@ export const SeasonApiAxiosParamCreator = function (
       // http bearer authentication required
       await setBearerAuthToObject(localVarHeaderParameter, configuration);
 
-      if (event_types !== undefined) {
-        localVarQueryParameter["event_types"] = event_types;
+      if (event_types) {
+        localVarQueryParameter["event_types"] = event_types.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -13836,14 +13838,14 @@ export const SeasonApiAxiosParamCreator = function (
     },
     /**
      *
-     * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
-     * @param {string} [season_ids] Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
+     * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     * @param {Array<number>} [season_ids] Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getSeasonSpectatorSubsessionIdsDetail: async (
-      event_types?: string,
-      season_ids?: string,
+      event_types?: Array<IracingEventType>,
+      season_ids?: Array<number>,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/data/season/spectator_subsessionids_detail`;
@@ -13866,12 +13868,16 @@ export const SeasonApiAxiosParamCreator = function (
       // http bearer authentication required
       await setBearerAuthToObject(localVarHeaderParameter, configuration);
 
-      if (event_types !== undefined) {
-        localVarQueryParameter["event_types"] = event_types;
+      if (event_types) {
+        localVarQueryParameter["event_types"] = event_types.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
-      if (season_ids !== undefined) {
-        localVarQueryParameter["season_ids"] = season_ids;
+      if (season_ids) {
+        localVarQueryParameter["season_ids"] = season_ids.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -13970,12 +13976,12 @@ export const SeasonApiFp = function (configuration?: Configuration) {
     },
     /**
      *
-     * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getSeasonSpectatorSubsessionIds(
-      event_types?: string,
+      event_types?: Array<IracingEventType>,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (
@@ -14003,14 +14009,14 @@ export const SeasonApiFp = function (configuration?: Configuration) {
     },
     /**
      *
-     * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
-     * @param {string} [season_ids] Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
+     * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     * @param {Array<number>} [season_ids] Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getSeasonSpectatorSubsessionIdsDetail(
-      event_types?: string,
-      season_ids?: string,
+      event_types?: Array<IracingEventType>,
+      season_ids?: Array<number>,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (
@@ -14152,7 +14158,7 @@ export interface SeasonApiGetSeasonSpectatorSubsessionIdsRequest {
   /**
    * Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
    */
-  readonly event_types?: string;
+  readonly event_types?: Array<IracingEventType>;
 }
 
 /**
@@ -14162,12 +14168,12 @@ export interface SeasonApiGetSeasonSpectatorSubsessionIdsDetailRequest {
   /**
    * Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
    */
-  readonly event_types?: string;
+  readonly event_types?: Array<IracingEventType>;
 
   /**
    * Seasons to include in the search. Defaults to all. ?season_ids&#x3D;513,937
    */
-  readonly season_ids?: string;
+  readonly season_ids?: Array<number>;
 }
 
 /**

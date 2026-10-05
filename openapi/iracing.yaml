@@ -2169,8 +2169,12 @@ paths:
           schema:
             description: Types of events to include in the search. Defaults to all.
               ?event_types=2,3,4,5
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              $ref: "#/components/schemas/iracingEventType"
+          style: form
+          explode: false
           description: Types of events to include in the search. Defaults to all.
             ?event_types=2,3,4,5
       responses:
@@ -2195,8 +2199,12 @@ paths:
           schema:
             description: Types of events to include in the search. Defaults to all.
               ?event_types=2,3,4,5
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              $ref: "#/components/schemas/iracingEventType"
+          style: form
+          explode: false
           description: Types of events to include in the search. Defaults to all.
             ?event_types=2,3,4,5
         - in: query
@@ -2204,8 +2212,12 @@ paths:
           schema:
             description: Seasons to include in the search. Defaults to all.
               ?season_ids=513,937
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              type: number
+          style: form
+          explode: false
           description: Seasons to include in the search. Defaults to all.
             ?season_ids=513,937
       responses:

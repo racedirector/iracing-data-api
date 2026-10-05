@@ -169,8 +169,12 @@ test("current docs optionality and corrected wire paths are represented", () => 
     "spectator_subsessionids_detail",
   ]) {
     const operation = document.paths[`/data/season/${endpoint}`].get;
-    for (const parameter of operation.parameters)
-      assert.equal(parameter.schema.type, "string");
+    for (const parameter of operation.parameters) {
+      assert.equal(parameter.schema.type, "array");
+      assert.equal(parameter.style, "form");
+      assert.equal(parameter.explode, false);
+      assert.ok(parameter.schema.items);
+    }
   }
   const boolean = document.paths["/data/league/directory"].get.parameters.find(
     (p) => p.name === "restrict_to_member",

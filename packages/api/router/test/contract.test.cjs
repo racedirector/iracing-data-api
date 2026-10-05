@@ -36,6 +36,20 @@ test("router validates wire queries and calls corrected upstream paths offline",
   assert.equal(urls[1].searchParams.get("year"), "2026");
   assert.deepEqual(urls[2].searchParams.getAll("event_types"), ["2,3"]);
   assert.equal(urls[3].searchParams.get("restrict_to_member"), "false");
+  for (const query of [
+    "event_types=1",
+    "event_types=2,,5",
+    "event_types=",
+    "season_ids=invalid",
+  ]) {
+    const response = await router.handler(
+      new Request(
+        `http://localhost/data/season/spectator_subsessionids_detail?${query}`,
+        { headers },
+      ),
+    );
+    assert.equal(response.status, 400);
+  }
   const invalid = await router.handler(
     new Request(
       "http://localhost/data/league/directory?restrict_to_member=invalid",

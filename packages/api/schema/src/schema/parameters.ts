@@ -357,18 +357,18 @@ export const SeasonRaceGuideParametersSchema = z.object({
 });
 
 export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
-  event_types: CommaSeparatedNumberString.optional().meta({
+  event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
 });
 
 export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
-  event_types: CommaSeparatedNumberString.optional().meta({
+  event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
-  season_ids: CommaSeparatedNumberString.optional().meta({
+  season_ids: z.array(z.number()).min(1).optional().meta({
     description:
       "Seasons to include in the search. Defaults to all. ?season_ids=513,937",
   }),

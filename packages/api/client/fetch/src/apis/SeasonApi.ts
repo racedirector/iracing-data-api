@@ -13,12 +13,18 @@
  */
 
 import * as runtime from "../runtime";
-import type { ErrorResponse, IracingAPIResponse } from "../models/index";
+import type {
+  ErrorResponse,
+  IracingAPIResponse,
+  IracingEventType,
+} from "../models/index";
 import {
   ErrorResponseFromJSON,
   ErrorResponseToJSON,
   IracingAPIResponseFromJSON,
   IracingAPIResponseToJSON,
+  IracingEventTypeFromJSON,
+  IracingEventTypeToJSON,
 } from "../models/index";
 
 export interface GetSeasonListRequest {
@@ -32,12 +38,12 @@ export interface GetSeasonRaceGuideRequest {
 }
 
 export interface GetSeasonSpectatorSubsessionIdsRequest {
-  event_types?: string;
+  event_types?: Array<IracingEventType>;
 }
 
 export interface GetSeasonSpectatorSubsessionIdsDetailRequest {
-  event_types?: string;
-  season_ids?: string;
+  event_types?: Array<IracingEventType>;
+  season_ids?: Array<number>;
 }
 
 /**
@@ -182,7 +188,9 @@ export class SeasonApi extends runtime.BaseAPI {
     const queryParameters: any = {};
 
     if (requestParameters["event_types"] != null) {
-      queryParameters["event_types"] = requestParameters["event_types"];
+      queryParameters["event_types"] = requestParameters["event_types"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -235,11 +243,15 @@ export class SeasonApi extends runtime.BaseAPI {
     const queryParameters: any = {};
 
     if (requestParameters["event_types"] != null) {
-      queryParameters["event_types"] = requestParameters["event_types"];
+      queryParameters["event_types"] = requestParameters["event_types"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     if (requestParameters["season_ids"] != null) {
-      queryParameters["season_ids"] = requestParameters["season_ids"];
+      queryParameters["season_ids"] = requestParameters["season_ids"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
