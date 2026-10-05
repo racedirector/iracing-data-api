@@ -19,10 +19,16 @@ interface CreateLoginCommandOptions {
   };
 }
 
+const INVALID_SCOPE_MESSAGE =
+  "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.";
+
 function resolveScopes(values: string[] | undefined): OAuthScopeList {
   if (!values) return DEFAULT_SCOPES;
 
-  const scopes = OAuthScopeListCodec.parse(values.join(" "));
+  const parsed = OAuthScopeListCodec.safeParse(values.join(" "));
+  if (!parsed.success) throw new Error(INVALID_SCOPE_MESSAGE);
+
+  const scopes = parsed.data;
   const authOnly = scopes.length === 1 && scopes[0] === "iracing.auth";
   const authAndProfile =
     scopes.length === 2 &&
@@ -30,9 +36,7 @@ function resolveScopes(values: string[] | undefined): OAuthScopeList {
     scopes[1] === "iracing.profile";
 
   if (!authOnly && !authAndProfile) {
-    throw new Error(
-      "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.",
-    );
+    throw new Error(INVALID_SCOPE_MESSAGE);
   }
 
   return scopes;
