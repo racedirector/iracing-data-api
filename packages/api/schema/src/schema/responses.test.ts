@@ -56,9 +56,43 @@ it("validates direct constant object arrays without inventing their field contra
     assert.equal(ConstantsResponseSchema.safeParse(invalid).success, false);
 });
 
-it("validates the direct search-series chunk manifest", () => {
+it("validates zero, one, and multi-chunk search-series manifests", () => {
+  for (const fixture of [
+    { rows: 0, chunkFileNames: [], success: true },
+    { rows: 1, chunkFileNames: ["chunk-0.json"], success: true },
+    {
+      rows: 750,
+      chunkFileNames: ["chunk-0.json", "chunk-1.json"],
+      success: true,
+    },
+    { rows: 0, chunkFileNames: [], success: false },
+  ]) {
+    const value = {
+      type: "search_series_results" as const,
+      data: {
+        success: fixture.success,
+        chunk_info: {
+          chunk_size: 500,
+          num_chunks: fixture.chunkFileNames.length,
+          rows: fixture.rows,
+          base_download_url: "https://scorpio-assets.s3.amazonaws.com/results/",
+          chunk_file_names: fixture.chunkFileNames,
+        },
+        params: {
+          start_range_begin: "2026-10-01T00:00:00Z",
+          start_range_end: "2026-10-02T00:00:00Z",
+          category_ids: [1, 2],
+        },
+      },
+    };
+
+    assert.deepEqual(ResultsSearchSeriesResponseSchema.parse(value), value);
+  }
+});
+
+it("rejects link envelopes and malformed search-series manifests", () => {
   const value = {
-    type: "search_series_results",
+    type: "search_series_results" as const,
     data: {
       success: true,
       chunk_info: {
@@ -68,15 +102,10 @@ it("validates the direct search-series chunk manifest", () => {
         base_download_url: "https://scorpio-assets.s3.amazonaws.com/results/",
         chunk_file_names: ["chunk-0.json", "chunk-1.json"],
       },
-      params: {
-        start_range_begin: "2026-10-01T00:00:00Z",
-        start_range_end: "2026-10-02T00:00:00Z",
-        category_ids: [1, 2],
-      },
+      params: {},
     },
   };
 
-  assert.deepEqual(ResultsSearchSeriesResponseSchema.parse(value), value);
   for (const invalid of [
     { link: "https://example.com", expires: "2026-10-01T00:00:00Z" },
     { ...value, type: "search_hosted_results" },
