@@ -8,6 +8,13 @@
       "owner": "oauth"
     },
     {
+      "path": "apps/iracing-data-mcp",
+      "name": "@iracing-data/iracing-data-mcp",
+      "ecosystem": "npm",
+      "kind": "internal-tool",
+      "owner": "api"
+    },
+    {
       "path": "examples/data-api-first-call",
       "name": "iracing-data-api-first-call",
       "ecosystem": "npm",

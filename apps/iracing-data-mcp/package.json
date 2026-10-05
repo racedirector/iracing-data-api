@@ -1,0 +1,21 @@
+{
+  "name": "@iracing-data/iracing-data-mcp",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc --build tsconfig.build.json",
+    "test": "pnpm build && node --test test/*.test.cjs"
+  },
+  "dependencies": {
+    "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
+    "@iracing-data/oauth-client": "workspace:*",
+    "@modelcontextprotocol/server": "2.3.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2"
+  }
+}

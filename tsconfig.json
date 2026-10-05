@@ -5,6 +5,9 @@
       "path": "./apps/iracing-data-cli"
     },
     {
+      "path": "./apps/iracing-data-mcp"
+    },
+    {
       "path": "./examples/data-api-first-call"
     },
     {
