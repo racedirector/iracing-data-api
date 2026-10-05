@@ -27,7 +27,7 @@ export async function whoami(
   }
   if (!response.ok)
     throw new Error(
-      `Identity request failed: HTTP ${response.status}. Check token expiry and iracing.profile scope; run iracing-data auth login to obtain current credentials.`,
+      `Identity request failed: HTTP ${response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
     );
   if (!response.headers.get("content-type")?.includes("application/json"))
     throw new Error("Identity response was not JSON. No response body logged.");

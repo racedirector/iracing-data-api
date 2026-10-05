@@ -6,6 +6,12 @@ import { parse as parseYaml } from "yaml";
 export const defaultCredentialsPath = fileURLToPath(
   new URL("../../../.iracing-data/credentials.json", import.meta.url),
 );
+export const defaultMcpCredentialsPath = fileURLToPath(
+  new URL(
+    "../../../.iracing-data/iracing-data-mcp/credentials.json",
+    import.meta.url,
+  ),
+);
 
 export type CredentialOptions = {
   credentials?: string;
