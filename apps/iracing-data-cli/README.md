@@ -19,8 +19,10 @@ Configure the client used by this CLI for the Data API with:
 ```text
 Audience: data-server
 Registered redirect URI: http://127.0.0.1:0/oauth/iracing/callback
-Requested scopes: iracing.auth iracing.profile
+Default requested scopes: iracing.auth iracing.profile
 ```
+
+The default login requests both `iracing.auth` and `iracing.profile`. `iracing-data auth login --scope iracing.auth` is the least-privilege bootstrap for `iracing-data-mcp`; it requests only Data API authorization and intentionally does not grant profile access.
 
 By default, the CLI binds `127.0.0.1` on an ephemeral runtime port before opening the authorization page. This works only if the client has the `:0` URI above registered. Set `IRACING_AUTH_REDIRECT_URI` to the HTTP loopback URI actually registered for your client to use a different path or a fixed port. For example, if `http://127.0.0.1:3000/callback` is registered:
 
@@ -63,6 +65,7 @@ Run from the repository root; the root script loads the root `.env` and forwards
 
 ```bash
 pnpm run iracing-data auth login
+pnpm run iracing-data auth login --scope iracing.auth
 pnpm run iracing-data auth login --credentials .upstream-contract/credentials.json
 pnpm run iracing-data auth login --output ./credentials.json
 pnpm run iracing-data auth login --output ./credentials.yaml
@@ -75,6 +78,7 @@ Alternatively, create `apps/iracing-data-cli/.env` from the app's `.env.example`
 ```bash
 cd apps/iracing-data-cli
 pnpm start -- auth login
+pnpm start -- auth login --scope iracing.auth
 pnpm start -- auth login --output ./credentials.json
 pnpm start -- auth login --output ./credentials.yaml
 ```
@@ -84,21 +88,26 @@ Useful flags:
 ```text
 -o, --output <path>       Write tokens to an alternate file
 --credentials <path>      Override the shared credential file to update
+--scope <scopes...>       Use iracing.auth, or iracing.auth iracing.profile
 --format <json|yaml>      Override serialization format
 --force                   Replace an existing output file
 --no-open                 Print the authorization URL instead of opening a browser
 --timeout-seconds <n>     Callback timeout in seconds; default: 300
 ```
 
-Explicit `--format` wins. Otherwise `.yaml` and `.yml` paths select YAML; all other paths default to JSON. Keep the default `.json` credential file in JSON so consumers can read it.
+Only two scope selections are supported: `iracing.auth` and `iracing.auth iracing.profile`. The latter is the default. Other scope names, profile-only login, or another ordering are rejected rather than passed through to the OAuth provider.
+
+Explicit `--format` wins. Otherwise `.yaml` and `.yml` paths select YAML; all other paths default to JSON. Keep the default `.json` credential files in JSON so consumers can read them.
 
 ## Output and credential security
 
-By default, `auth login` atomically updates `.iracing-data/credentials.json` at the repository root. The directory is ignored by Git. Successful stdout is empty; diagnostics go to stderr. Subsequent logins replace that shared file so authenticated consumers can read the current token. `--credentials <path>` chooses another credential file to update. `--output <path>` retains the previous alternate-file behavior: it refuses replacement unless `--force` is supplied. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
+By default, `auth login` atomically updates `.iracing-data/credentials.json` at the repository root. The directory is ignored by Git. An auth-only login with `--scope iracing.auth` instead targets `.iracing-data/iracing-data-mcp/credentials.json` so the MCP can own and refresh a distinct least-privilege credential lifecycle. Do not copy one refresh credential into both files or otherwise make independently refreshing consumers share the same rotating refresh token.
+
+Successful stdout is empty; diagnostics go to stderr. Subsequent logins replace the selected shared file so authenticated consumers can read the current token. `--credentials <path>` chooses another credential file to update. `--output <path>` retains the previous alternate-file behavior: it refuses replacement unless `--force` is supplied. Explicit destinations override the scope-specific default. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
 
 Credential files use sibling temporary files and mode `0600` on POSIX-like systems, with new parent directories using mode `0700` where supported. Node modes do not provide equivalent Windows ACL protection; use the host's normal access controls. Consumers should read the file at command startup rather than cache a token indefinitely. Login does not automatically refresh an expired token.
 
-The complete response can contain both `access_token` and `refresh_token`. Treat every output document as a secret. Delete test credential files when they are no longer needed.
+The complete response can contain both `access_token` and `refresh_token`. Treat every output document as a secret. Delete test credential files when they are no longer needed. Token values are never accepted as CLI flags and are not included in successful diagnostics.
 
 ## Check the active user
 
@@ -107,18 +116,21 @@ pnpm run iracing-data whoami
 pnpm run iracing-data whoami --credentials .upstream-contract/credentials.json
 ```
 
-`whoami` calls the official [profile endpoint](https://oauth.iracing.com/oauth2/book/iracing_profile_endpoint.html) and prints only `iracing_cust_id` and `iracing_name`. It checks authentication without fetching Data API docs. The endpoint requires `iracing.profile`, which new CLI logins request alongside `iracing.auth`; an older token may still work for docs but need a new login for `whoami`. The same credential precedence and `--credentials` override apply to all authenticated commands. A successful profile check does not establish Data API account access; `docs` still handles 401/403 separately. Network failure does not imply expired credentials.
+`whoami` calls the official [profile endpoint](https://oauth.iracing.com/oauth2/book/iracing_profile_endpoint.html) and prints only `iracing_cust_id` and `iracing_name`. It checks authentication without fetching Data API docs. The endpoint requires `iracing.profile`; credentials created with `--scope iracing.auth` are valid for Data API access but intentionally cannot satisfy `whoami`. If a profile check is required, create a separate profile-capable credential with `iracing-data auth login --scope iracing.auth iracing.profile` (or the default login) rather than adding profile scope to the MCP credential lifecycle.
+
+The same credential precedence and `--credentials` override apply to all authenticated commands. A successful profile check does not establish Data API account access; `docs` still handles 401/403 separately. Network failure does not imply expired credentials.
 
 ## Fetch Data API documentation
 
 ```bash
 pnpm run iracing-data docs
+pnpm run iracing-data docs --credentials .iracing-data/iracing-data-mcp/credentials.json
 pnpm run iracing-data docs --output .upstream-contract/docs.json
 pnpm run iracing-data docs --credentials .upstream-contract/credentials.json --output .upstream-contract/docs.yaml
 pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.json
 ```
 
-Authenticated commands accept `--credentials <path>` for a JSON or YAML token file containing `access_token`. Credential precedence is explicit `--credentials`, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the shared `.iracing-data/credentials.json`. A selected invalid credential file fails rather than silently using another token. Environment tokens must omit the `Bearer ` prefix.
+Authenticated commands accept `--credentials <path>` for a JSON or YAML token file containing `access_token`. Credential precedence is explicit `--credentials`, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the shared `.iracing-data/credentials.json`. A selected invalid credential file fails rather than silently using another token. Environment tokens must omit the `Bearer ` prefix. `docs` requires `iracing.auth`, so the dedicated auth-only MCP credential is sufficient when selected explicitly.
 
 `docs` makes exactly one request to `https://members-ng.iracing.com/data/doc`; endpoint links are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. It preserves unknown documentation fields while sorting keys and redacting credentials through the existing upstream normalizer. It does not validate evidence using the maintained response schema, which may itself be out of date.
 
@@ -151,31 +163,34 @@ Use a real registered OAuth client and do the following without copying token va
    cd apps/iracing-data-cli
    ```
 
-2. Run `pnpm start -- auth login` and verify the default repository credential file contains a nonempty `access_token`, without printing its value. Run login again and verify that it updates the same file. Successful stdout must be empty. For alternate output checks, create a private temporary directory:
+2. Run `pnpm start -- auth login` and verify the default repository credential file contains a nonempty `access_token`, without printing its value. Run login again and verify that it updates the same file. Successful stdout must be empty.
+3. Run `pnpm start -- auth login --scope iracing.auth` and verify it writes `.iracing-data/iracing-data-mcp/credentials.json`, requests no profile scope, and leaves the normal `.iracing-data/credentials.json` lifecycle independent.
+4. Confirm the auth-only file works with `docs --credentials <path>` and that `whoami --credentials <path>` reports the profile-scope recovery action rather than exposing a response body.
+5. For alternate output checks, create a private temporary directory:
 
    ```bash
    tmp_dir="$(mktemp -d)"
    chmod 700 "$tmp_dir"
    ```
 
-3. Validate explicit file output:
+6. Validate explicit file output:
 
    ```bash
    pnpm start -- auth login --output "$tmp_dir/credentials.json"
    ```
 
-4. Run the same command again without `--force`; it must fail rather than replace the existing credential file.
-5. Run it again with `--force`; it must replace the file successfully.
-6. Where practical, run with `--no-open`, manually open the printed authorization URL, and complete the callback flow.
-7. Manually copy the `access_token` value from the credential document into `examples/data-api-first-call/.env` as `IRACING_ACCESS_TOKEN`, without adding `Bearer `.
-8. From the repository root, run:
+7. Run the same command again without `--force`; it must fail rather than replace the existing credential file.
+8. Run it again with `--force`; it must replace the file successfully.
+9. Where practical, run with `--no-open`, manually open the printed authorization URL, and complete the callback flow.
+10. Manually copy the `access_token` value from the appropriate credential document into `examples/data-api-first-call/.env` as `IRACING_ACCESS_TOKEN`, without adding `Bearer `.
+11. From the repository root, run:
 
    ```bash
    pnpm --filter 'iracing-data-api-first-call...' build
    pnpm --filter iracing-data-api-first-call start
    ```
 
-9. Run `pnpm run iracing-data docs --snapshot --output .upstream-contract/data-live-validation.json` from the root. Treat a valid live snapshot as CLI end-to-end acceptance; do not repeat this during a capture-once audit.
-10. Remove the temporary credential directory and any test `.env` files when finished.
+12. Run `pnpm run iracing-data docs --snapshot --output .upstream-contract/data-live-validation.json` from the root. Treat a valid live snapshot as CLI end-to-end acceptance; do not repeat this during a capture-once audit.
+13. Remove the temporary credential directory and any test `.env` files when finished.
 
-Offline unit tests cover OAuth lifecycle and output mechanics with synthetic tokens. The live procedure above validates only the external iRacing integration and should never be converted into credential-bearing CI.
+Offline unit tests cover OAuth lifecycle, scope selection, callback behavior, and output mechanics with synthetic tokens. The live procedure above validates only the external iRacing integration and should never be converted into credential-bearing CI.
