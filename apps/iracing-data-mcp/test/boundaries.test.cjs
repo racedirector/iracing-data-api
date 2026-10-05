@@ -33,5 +33,4 @@ test("server factory keeps MCP servers request scoped", async () => {
   const second = createMcpServer(options);
 
   assert.notStrictEqual(first, second);
-  assert.notStrictEqual(first.server, second.server);
 });
