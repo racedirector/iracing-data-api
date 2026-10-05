@@ -1,16 +1,24 @@
 import { Command } from "@commander-js/extra-typings";
-import { authenticateWithBrowser } from "../authenticate.js";
-import { defaultCredentialsPath } from "../credentials.js";
-import { resolveTokenFormat, writeTokenOutput } from "../token-output.js";
-import type { Diagnostics } from "../diagnostics.js";
+import { authenticateWithBrowser } from "../../authenticate.js";
+import { defaultCredentialsPath } from "../../credentials.js";
+import { Diagnostics } from "../../diagnostics.js";
+import { resolveTokenFormat, writeTokenOutput } from "../../token-output.js";
 
-export function createAuthLoginCommand(
-  diagnostics: Diagnostics,
+interface CreateLoginCommandOptions {
+  diagnostics: Diagnostics;
+  dependencies?: {
+    authenticate: typeof authenticateWithBrowser;
+    writeOutput: typeof writeTokenOutput;
+  };
+}
+
+export function createLoginCommand({
+  diagnostics,
   dependencies = {
     authenticate: authenticateWithBrowser,
     writeOutput: writeTokenOutput,
   },
-) {
+}: CreateLoginCommandOptions) {
   return new Command("login")
     .description("Authenticate with iRacing using browser OAuth")
     .option(
