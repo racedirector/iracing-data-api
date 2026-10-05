@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { ApplicationFailure } from "./diagnostics/errors.js";
 
 export const McpApplicationConfigSchema = z.object({
   name: z.string().trim().min(1).default("iracing-data-mcp"),
@@ -12,5 +13,7 @@ export type McpApplicationConfig = Readonly<
 export function parseMcpApplicationConfig(
   input: unknown = {},
 ): McpApplicationConfig {
-  return Object.freeze(McpApplicationConfigSchema.parse(input));
+  const parsed = McpApplicationConfigSchema.safeParse(input);
+  if (!parsed.success) throw new ApplicationFailure("CONFIGURATION_ERROR");
+  return Object.freeze(parsed.data);
 }
