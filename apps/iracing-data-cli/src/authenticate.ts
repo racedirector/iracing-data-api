@@ -16,8 +16,7 @@ const SESSION_ID = "iracing-data-cli";
 
 export type OAuthScope = "iracing.auth" | "iracing.profile";
 export type OAuthScopes =
-  | readonly ["iracing.auth"]
-  | readonly ["iracing.auth", "iracing.profile"];
+  readonly ["iracing.auth"] | readonly ["iracing.auth", "iracing.profile"];
 export const DEFAULT_SCOPES: OAuthScopes = ["iracing.auth", "iracing.profile"];
 
 export type OAuthClientLike = {
