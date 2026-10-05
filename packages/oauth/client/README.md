@@ -123,6 +123,11 @@ older refresh token is generally unusable after token rotation.
 
 The generic `DiskStore` remains a key/value utility with its historical behavior;
 it is not upgraded or implicitly substituted by the token-document store.
+Its failure warnings omit file paths, stored values, and raw errors to protect
+credentials. A load failure starts with an empty store; check the configured
+file's permissions and JSON format. A persistence failure throws the original
+error to the caller; check that the directory exists and the file is writable,
+and avoid logging the raw error because it can contain sensitive data.
 
 See [`examples/oauth-example`](../../../examples/oauth-example) for a more complete walkthrough.
 

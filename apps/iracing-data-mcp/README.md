@@ -12,7 +12,7 @@ This workspace establishes the application, service and diagnostic seams:
 - `McpApplicationConfigSchema` owns app-local server identity configuration.
 - App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. OAuth/session integration (#352), Data API gateway behavior (#353), Docker packaging (#358), and concrete tools remain deferred.
+Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. Data API gateway behavior (#353), Docker packaging (#358), and concrete tools remain deferred.
 
 ## Development
 
@@ -27,7 +27,7 @@ See [scoped guidance](AGENTS.md) and the repository [verification contract](../.
 
 ## Error and diagnostic contract (#351)
 
-The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. Durable sessions (#352), gateway (#353), cache resolution and domain tools remain deferred.
+The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. Gateway (#353), cache resolution and domain tools remain deferred.
 
 Create one `createRequestContext()` at the application request boundary; reuse it for output and logs. Client, JSON-RPC and upstream IDs are never used as diagnostic IDs. `ApplicationFailure` accepts a code and bounded optional metadata, never a message/cause. `toolError()` returns `isError: true`, `structuredContent: { error: { code, message, retryable, request_id, reason?, retry_after_seconds? } }` and one JSON text equivalent. `ErrorEnvelopeSchema` strictly validates the envelope and code-specific policy. Unknown exceptions become `INTERNAL_ERROR`; messages come only from fixed app recovery text.
 
@@ -63,7 +63,7 @@ Retry hints are finite, nonnegative integers capped at 3,600 seconds; non-retrya
 
 Redaction uses **projection**, not a best-effort token regex: arbitrary strings, exception objects, messages, nested causes, raw OAuth/upstream bodies and unknown fields are discarded entirely. `redactDiagnostics()` reads only allowlisted own data properties and never invokes nested serializers/getters. Fixed enums admit operations, planned tool names, lifecycle stages and safe auth transitions; bounded numbers admit timing, status, bytes, items and retry attempts. New diagnostic fields require a schema change and leakage tests. Credentials, JWT claims, customer/member IDs/names, authorization codes, PKCE/state, headers/cookies, credential documents, signed URLs/query strings, secret-bearing paths and stacks have no permitted output field. No identity exception is permitted in diagnostics.
 
-`createDiagnosticLogger()` emits newline-delimited JSON to stderr by default; its optional writer is for tests. `info`, `error` and `debug` all use the same projection; debug cannot dump an exception. `failure()` derives the stable error code through the safe envelope. Use these boundaries for every future app diagnostic channel; do not send raw errors to console, SDK logging, health or tool text. This contract sanitizes app outputs; it does not intercept process-global/dependency console calls. In particular, the legacy OAuth `DiskStore` logs raw warnings and must not be wired into this app; #352 owns selecting the durable token-document store.
+`createDiagnosticLogger()` emits newline-delimited JSON to stderr by default; its optional writer is for tests. `info`, `error` and `debug` all use the same projection; debug cannot dump an exception. `failure()` derives the stable error code through the safe envelope. Use these boundaries for every future app diagnostic channel; do not send raw errors to console, SDK logging, health or tool text. This contract sanitizes app outputs; it does not intercept process-global/dependency console calls. In particular, the legacy OAuth `DiskStore` logs raw warnings and must not be wired into this app; the session composition uses the durable token-document store.
 
 `healthDiagnostics()` projects only `ready|authorization_required|configuration_error`, defaulting conservatively to configuration error. It makes no upstream request and exposes no exception, file content, account or paths. The HTTP boundary owns the endpoint, liveness and app-version fields; #352 owns the auth-state source.
 
@@ -73,7 +73,7 @@ Rollout is app-local contract adoption by later slices; no live service or token
 
 ## Local HTTP transport (#350)
 
-`createHttpApplication({config, services})` is the Node HTTP application entry point. Inject one application-scoped `McpServices` object; every POST creates a fresh official SDK server/transport. `await app.listen()` defaults to `127.0.0.1:3000`. Explicit host overrides are supported; container entrypoints must pass `0.0.0.0` explicitly (`await app.listen(3000, "0.0.0.0")`). The transport does not instantiate OAuth services or read credentials. Later #352 supplies real durable service composition; this slice exposes the injectable entry point without inventing a token store or standalone login command.
+`createHttpApplication({config, services})` is the Node HTTP application entry point. Inject one application-scoped `McpServices` object; every POST creates a fresh official SDK server/transport. `await app.listen()` defaults to `127.0.0.1:3000`. Explicit host overrides are supported; container entrypoints must pass `0.0.0.0` explicitly (`await app.listen(3000, "0.0.0.0")`). The transport does not instantiate OAuth services or read credentials. `createMcpServices()` supplies durable service composition before listening.
 
 ```ts
 const app = createHttpApplication({
@@ -91,12 +91,12 @@ Supported endpoint: `http://127.0.0.1:3000/mcp`. The deployment contract publish
 
 All routes accept only exact Host authorities `127.0.0.1:3000` and `localhost:3000`. Duplicate Host headers and every other authority are rejected with HTTP 403 before MCP handling. Forwarded and X-Forwarded-Host headers are ignored. Missing Origin is valid for native clients. A present Origin must be exactly `http://127.0.0.1:3000` or `http://localhost:3000`; null, malformed, HTTPS, wrong ports, userinfo, paths and deceptive hosts receive 403. No CORS headers or wildcard matching are added.
 
-| Route                                    | Behavior                                                                                                                       |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
-| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. The current inventory is empty. |
-| `GET /mcp`, `DELETE /mcp`, other methods | 405 with `Allow: POST`; no SSE push or session deletion.                                                                       |
-| `GET /healthz`                           | 200 with fixed private app identity/version, `live:true` and allowlisted `auth_state`. No service access or upstream calls.    |
-| Other paths                              | 404; no browser OAuth routes or generic RPC routes.                                                                            |
+| Route                                    | Behavior                                                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. The current inventory is empty.                   |
+| `GET /mcp`, `DELETE /mcp`, other methods | 405 with `Allow: POST`; no SSE push or session deletion.                                                                                         |
+| `GET /healthz`                           | 200 with fixed private app identity/version, `live:true` and allowlisted `auth_state`. Cached local authorization state only; no upstream calls. |
+| Other paths                              | 404; no browser OAuth routes or generic RPC routes.                                                                                              |
 
 The pinned official server 2.3.0 and Node adapter 2.1.1 serve Streamable HTTP revisions `2025-11-25`, `2025-06-18` and `2025-03-26`. Initialize negotiates through the SDK: an unknown proposed revision receives the supported `2025-11-25` alternative, which the official client must accept or reject. Unsupported `MCP-Protocol-Version` headers receive 400. The newer SDK's 2026 envelope/subscription mode is outside this v1 endpoint. No MCP session identifiers, event store, legacy HTTP+SSE transport or stdio are installed. Clients must accept both JSON and event-stream media types per the Streamable HTTP contract, although responses here use JSON exclusively. JSON-RPC batches are rejected with 400 to preserve one request-scoped call per exchange.
 
@@ -107,10 +107,51 @@ Limits are fixed application policy, never tool arguments or environment overrid
 - Tool lifetime: 30 seconds. Deadline expiry returns the safe #351 `INTERNAL_ERROR` envelope with an app request ID, releases admission and closes the request-scoped SDK server to abort its tool context signal. Client disconnect also closes the server and releases capacity. Future tool handlers must honor `ctx.mcpReq.signal` and pass it to cancellable service calls; JavaScript cannot forcibly stop a handler that ignores cancellation. Late results cannot produce a second response. Success and error completion also release capacity.
 - Shutdown: SIGTERM/SIGINT stop new requests/admission and drain admitted work for at most ten seconds; remaining SDK work is cancelled and HTTP connections close. `app.shutdown()` is idempotent and directly testable. The timer seam permits deterministic offline tests; importing the library installs no signal handlers.
 
-HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes are preserved while free-form messages/data are projected to fixed safe text. SDK tool-error text is replaced by the #351 envelope; canonical application failures retain their code/recovery metadata and receive the current application request ID. New transport logs use the #351 allowlist exclusively. `/healthz` defaults to `configuration_error` because #352's durable auth-state source is unavailable; liveness remains 200 and no authorization readiness is claimed.
+HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes are preserved while free-form messages/data are projected to fixed safe text. SDK tool-error text is replaced by the #351 envelope; canonical application failures retain their code/recovery metadata and receive the current application request ID. New transport logs use the #351 allowlist exclusively. `/healthz` reads the cached authorization state from the shared services; legacy injected services without that source retain the conservative `configuration_error` fallback. Liveness remains 200 regardless of authorization.
 
 ### Local threat model and rollout
 
-The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, durable session wiring, gateway fetching/retries, domain tools, telemetry and Docker packaging are absent.
+The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, gateway fetching/retries, domain tools, telemetry and Docker packaging remain deferred.
 
 Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency is not implemented or claimed here.
+
+## Durable OAuth ownership (#352)
+
+Compose once before listening and share the returned services with all request-scoped servers:
+
+```ts
+const services = await createMcpServices({
+  clientMetadata: {
+    clientId: configuredClientId,
+    clientSecret: configuredOptionalSecret,
+    redirectUri: registeredRedirectUri,
+    scopes: ["iracing.auth"],
+  },
+  // Host development uses the CLI's dedicated auth-only file:
+  credentialFile: ".iracing-data/iracing-data-mcp/credentials.json",
+});
+const app = createHttpApplication({
+  config: parseMcpApplicationConfig(),
+  services,
+});
+const removeSignalHandlers = installTerminationHandlers(app);
+await app.listen();
+```
+
+The default credential file is `/var/lib/iracing-data-mcp/credentials.json`; the canonical local session key is `iracing-data-mcp-local`. Select the same dedicated file in the host CLI and service composition. Client metadata uses the existing OAuth package schema; invalid configuration produces the fixed `CONFIGURATION_ERROR` recovery. It requires the registered redirect URI for schema compatibility; the MCP app does not receive callbacks. Browser state storage rejects authorization creation. Neither tokens nor secrets belong in command arguments or diagnostics.
+
+The existing `OAuthTokenDocumentSessionStore` owns secure bare JSON reading, modes/ownership/symlink/size checks, serialized atomic durable writes and deletion. Required directory durability is used; unsupported platforms/filesystems fail closed. A refresh token and explicit `iracing.auth` scope are required. Additional scope does not grant any additional MCP capability. Expired access tokens are accepted for lazy restoration. Startup reads the document once without network; it does not verify account entitlement. Health reads cached local readiness, including expired but refreshable sessions, rather than claiming upstream availability. Initialize and listing remain available without credentials.
+
+The generated Fetch configuration obtains its access token asynchronously through the one long-lived OAuth client's `restoreSessionForId()`. Per-session single-flight covers refresh and durable publication. Replacement-token omission retains the OAuth client's existing merge semantics; the app does not invent rotation behavior. A replacement scope that removes `iracing.auth` fails closed. There is no automatic refresh retry. An explicit structured OAuth `temporarily_unavailable` or `server_error` rejection exposed by the pinned OAuth dependency permits a subsequent caller to retry (`transient_refresh`). Network loss, malformed success, unstructured rejection, and 5xx responses that the dependency does not establish as structured nonconsumption are `rotation_uncertain`. `invalid_grant` is `revoked_authorization`; a failed durable replacement write is `persistence_failed`.
+
+Uncertain consumption, revocation, or failed persistence quarantines the process before another caller can refresh. The app attempts secure durable deletion through the existing store API so restart cannot normally reuse the old credential. If filesystem failure also prevents deletion, the process remains quarantined: **repair the filesystem and replace the file using stopped login before restarting**. A crash before deletion likewise requires stopped reauthentication; successful deletion cannot be guaranteed on a failed filesystem. No old credential backup is a recovery mechanism.
+
+Supported recovery and ownership:
+
+1. Stop/drain the MCP application (`await app.shutdown()` or SIGTERM/SIGINT) and wait for the owner process to exit. A tool cancellation does not cancel the shared refresh grant; let it persist/drain, or reauthenticate after a forced termination with uncertain consumption.
+2. Run host login against exactly the selected file. From the repository root, the development default is `pnpm run iracing-data auth login --scope iracing.auth`; an explicit destination is `pnpm run iracing-data auth login --scope iracing.auth --credentials <same-file>`.
+3. Restart the MCP application to load the replacement. A running owner never hot reloads externally changed/deleted credentials.
+
+For local logout, stop/drain and exit first, delete the selected credential file locally, then restart if desired. This is local deletion, not upstream revocation. Do not run CLI refresh/authenticated commands concurrently against the server-owned credential, copy a rotating credential, restore an older backup, or run multiple replicas against one file. This local singleton model has no credential watcher, distributed lock, hosted authentication or MCP browser login.
+
+Offline tests use private temporary files and synthetic grants to cover bootstrap, required scope/refresh, expiry, concurrency, rotation/restart, missing/corrupt/unsafe/unreadable/unsupported state, transient/revoked/ambiguous grants, persistence failure, quarantine, stopped login/logout, health/protocol availability and redaction. Existing HTTP/security and diagnostic leakage tests remain active. No public package version, generated artifact, release or publication changes are required. Rollout composes this private service with #350; rollback stops the process and reverts the app delta, using fresh login if token consumption is uncertain.

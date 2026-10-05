@@ -312,13 +312,16 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
       res.writeHead(200, { "Content-Type": "application/json" });
 
-      // No durable auth source exists until #352. Fixed app identity avoids raw config.
+      // Read cached local state only; never restore or refresh from health.
+
       return res.end(
         JSON.stringify({
           name: "iracing-data-mcp",
           version: "0.0.0",
           live: true,
-          ...healthDiagnostics(undefined),
+          ...healthDiagnostics({
+            auth_state: options.services.authorizationState?.(),
+          }),
         }),
       );
     }
