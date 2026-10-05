@@ -275,12 +275,15 @@ export function registerIdentityContentTools(
     SeriesSeasonsInput,
     async (input, call, gateway) => {
       const owner = cursors(gateway);
-      if ("cursor" in input)
+
+      if ("cursor" in input) {
         return owner.resume(
           "list_series_seasons",
           input.cursor,
           gateway.generation,
         );
+      }
+
       const source = await call.seasons({
         include_series: false,
         ...(input.season_year === undefined
@@ -290,16 +293,22 @@ export function registerIdentityContentTools(
               season_quarter: input.season_quarter,
             }),
       });
+
       const rows = parse(z.array(SeriesSeasonProjection), source.seasons);
+
       const seasonIds = rows.map((row) => row.season_id);
-      if (new Set(seasonIds).size !== seasonIds.length)
+
+      if (new Set(seasonIds).size !== seasonIds.length) {
         throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
       const selected = rows
         .filter(
           (row) =>
             input.series_id === undefined || row.series_id === input.series_id,
         )
         .sort((a, b) => a.season_id - b.season_id);
+
       return owner.start({
         tool: "list_series_seasons",
         filters: {
@@ -320,17 +329,25 @@ export function registerIdentityContentTools(
     SeriesScheduleInput,
     async (input, call, gateway) => {
       const owner = cursors(gateway);
-      if ("cursor" in input)
+
+      if ("cursor" in input) {
         return owner.resume(
           "get_series_schedule",
           input.cursor,
           gateway.generation,
         );
+      }
+
       const source = await call.schedule({ season_id: input.season_id });
+
       const season_id = parse(Id, source.season_id);
-      if (season_id !== input.season_id)
+
+      if (season_id !== input.season_id) {
         throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
       const rows = parse(z.array(SeriesScheduleProjection), source.schedules);
+
       const selected = rows
         .filter(
           (row) =>
@@ -346,6 +363,7 @@ export function registerIdentityContentTools(
             a.track.config_name?.localeCompare(b.track.config_name ?? "") ||
             0,
         );
+
       return owner.start({
         tool: "get_series_schedule",
         filters: {

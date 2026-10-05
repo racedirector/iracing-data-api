@@ -6,6 +6,7 @@ const query = z.string().trim().min(2).max(100);
 const limit = z.number().int().min(1).max(100).default(25);
 
 const seasonYear = z.number().int().min(2000).max(2100);
+
 const seasonQuarter = z.number().int().min(1).max(4);
 
 export const ContinuationInput = z.strictObject({
