@@ -1,41 +1,17 @@
-import {
-  chmod,
-  link,
-  lstat,
-  mkdir,
-  open,
-  rename,
-  unlink,
-  type FileHandle,
-} from "node:fs/promises";
+import type { FileHandle } from "node:fs/promises";
 import path from "node:path";
 import { stringify as stringifyYaml } from "yaml";
-import type { OAuthTokenResponse } from "@iracing-data/oauth-client";
+import {
+  oauthTokenDocumentFileSystem,
+  serializeOAuthTokenDocument,
+  writeOAuthTokenDocument,
+  type OAuthTokenDocumentFileSystem,
+  type OAuthTokenResponse,
+} from "@iracing-data/oauth-client";
 
 export type TokenFormat = "json" | "yaml";
-
-export type TokenOutputFileSystem = {
-  chmod(path: string, mode: number): Promise<void>;
-  link(existingPath: string, newPath: string): Promise<void>;
-  lstat(path: string): ReturnType<typeof lstat>;
-  mkdir(
-    path: string,
-    options: Parameters<typeof mkdir>[1],
-  ): ReturnType<typeof mkdir>;
-  open(path: string, flags: string, mode: number): Promise<FileHandle>;
-  rename(oldPath: string, newPath: string): Promise<void>;
-  unlink(path: string): Promise<void>;
-};
-
-export const tokenOutputFileSystem: TokenOutputFileSystem = {
-  chmod,
-  link,
-  lstat,
-  mkdir,
-  open,
-  rename,
-  unlink,
-};
+export type TokenOutputFileSystem = OAuthTokenDocumentFileSystem;
+export const tokenOutputFileSystem = oauthTokenDocumentFileSystem;
 
 export type TokenOutputOptions = {
   output?: string;
@@ -86,7 +62,7 @@ async function pathExists(
   }
 }
 
-async function writeCredentialFile(
+async function writeFileOutput(
   destination: string,
   contents: string,
   force: boolean,
@@ -194,7 +170,7 @@ export async function writeDocumentOutput(
     options.cwd ?? process.cwd(),
     options.output,
   );
-  await writeCredentialFile(
+  await writeFileOutput(
     destination,
     serialized,
     options.force ?? false,
@@ -203,16 +179,38 @@ export async function writeDocumentOutput(
   );
 }
 
-// Preserve the authentication output API while sharing serialization and atomic writes.
 export function serializeToken(
   token: OAuthTokenResponse,
   format: TokenFormat,
 ): string {
+  if (format === "json") return serializeOAuthTokenDocument(token);
   return serializeDocument(token, format);
 }
-export function writeTokenOutput(
+
+export async function writeTokenOutput(
   token: OAuthTokenResponse,
   options: TokenOutputOptions = {},
 ): Promise<void> {
-  return writeDocumentOutput(token, options);
+  const format = resolveTokenFormat(options.output, options.format);
+  if (!options.output) {
+    (options.writeStdout ?? ((value) => process.stdout.write(value)))(
+      serializeToken(token, format),
+    );
+    return;
+  }
+
+  if (format === "json") {
+    const destination = path.resolve(
+      options.cwd ?? process.cwd(),
+      options.output,
+    );
+    await writeOAuthTokenDocument(destination, token, {
+      overwrite: options.force ?? false,
+      durability: process.platform === "win32" ? "best-effort" : "required",
+      fileSystem: options.fileSystem,
+    });
+    return;
+  }
+
+  await writeDocumentOutput(token, options);
 }
