@@ -159,3 +159,63 @@ export const SeriesScheduleProjection = z.object({
     config_name: optionalText,
   }),
 });
+
+export const RaceResultInput = z.union([
+  z.strictObject({
+    subsession_id: Id,
+    cust_ids: z
+      .array(Id)
+      .min(1)
+      .max(10)
+      .refine((ids) => new Set(ids).size === ids.length)
+      .optional(),
+    simsession_number: z.number().int().min(-20).max(20).default(0),
+    limit,
+  }),
+  ContinuationInput,
+]);
+const position = z
+  .number()
+  .int()
+  .safe()
+  .max(Number.MAX_SAFE_INTEGER - 1)
+  .nullish()
+  .transform((value) => (value == null || value < 0 ? null : value + 1));
+
+export const RaceContextProjection = z.object({
+  subsession_id: Id,
+  start_time: z.iso
+    .datetime({ offset: true })
+    .nullish()
+    .transform((v) => v ?? null),
+  series_id: optionalId,
+  series_name: optionalText,
+  season_id: optionalId,
+  track: z.object({
+    track_id: Id,
+    track_name: optionalText,
+    config_name: optionalText,
+  }),
+});
+export const RaceSessionProjection = z.object({
+  simsession_number: z.number().int().safe(),
+  results: z.array(z.record(z.string(), z.unknown())),
+});
+export const RaceParticipantProjection = z
+  .object({
+    cust_id: optionalId,
+    team_id: optionalId,
+    display_name: text.min(1),
+    car_id: optionalId,
+    car_class_id: optionalId,
+    starting_position: position,
+    finish_position: position,
+    finish_position_in_class: position,
+    laps_complete: optionalInteger,
+    incidents: optionalInteger,
+    champ_points: optionalNumber,
+    oldi_rating: optionalInteger,
+    newi_rating: optionalInteger,
+    reason_out: optionalText,
+  })
+  .refine((row) => row.cust_id !== null || row.team_id !== null);

@@ -246,6 +246,7 @@ test("official MCP client initializes, lists and calls stateless JSON tools", as
       "lookup_content",
       "list_series_seasons",
       "get_series_schedule",
+      "get_race_result",
       "probe",
     ],
   );

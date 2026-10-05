@@ -24,6 +24,10 @@ import {
   SeriesSeasonProjection,
   SeriesScheduleProjection,
   Id,
+  RaceResultInput,
+  RaceContextProjection,
+  RaceSessionProjection,
+  RaceParticipantProjection,
 } from "./contracts.js";
 import type { DataApiGateway, GatewayCall } from "../gateway/gateway.js";
 import type { McpServices } from "../services.js";
@@ -58,6 +62,50 @@ function safeBoundary(schema: z.ZodType): StandardSchemaWithJSON {
       jsonSchema: { input: () => json, output: () => json },
     },
   };
+}
+
+function projectRaceParticipants(
+  source: readonly Record<string, unknown>[],
+  custIds?: readonly number[],
+): Record<string, unknown>[] {
+  return source.flatMap((raw) => {
+    const participant = parse(RaceParticipantProjection, raw);
+
+    const team = participant.team_id !== null;
+
+    if (team && custIds) {
+      // Nested rows carry driver-specific data only. Never inherit team totals.
+      const drivers =
+        parse(
+          z.array(z.record(z.string(), z.unknown())).nullish(),
+          raw.driver_results,
+        ) ?? [];
+
+      return drivers
+        .map((driver) => {
+          const projected = parse(RaceParticipantProjection, {
+            ...driver,
+            team_id: participant.team_id,
+          });
+
+          if (projected.cust_id === null) {
+            throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+          }
+
+          return { ...projected, attribution: "team" };
+        })
+        .filter((driver) => custIds.includes(driver.cust_id!));
+    }
+
+    if (
+      custIds &&
+      (participant.cust_id === null || !custIds.includes(participant.cust_id))
+    ) {
+      return [];
+    }
+
+    return [{ ...participant, attribution: team ? "team" : "driver" }];
+  });
 }
 
 export function registerIdentityContentTools(
@@ -379,6 +427,69 @@ export function registerIdentityContentTools(
         limit: input.limit,
         expiresAt: call.expiresAt,
         context: { season_id },
+      });
+    },
+  );
+  register(
+    "get_race_result",
+    "Get bounded participants from one subsession and simsession (default 0). Positions are one-based; negative sentinels are null. Customer filters select nested team drivers with explicit team attribution, never individual standings from team totals. Empty matches do not establish participation. Preserves source order; continue with cursor alone. Requires iracing.auth.",
+    RaceResultInput,
+    async (input, call, gateway) => {
+      const owner = cursors(gateway);
+
+      if ("cursor" in input) {
+        return owner.resume(
+          "get_race_result",
+          input.cursor,
+          gateway.generation,
+        );
+      }
+
+      const source = await call.result({
+        subsession_id: input.subsession_id,
+        include_licenses: false,
+      });
+
+      const context = parse(RaceContextProjection, source);
+
+      if (context.subsession_id !== input.subsession_id) {
+        throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
+      const sessions = parse(
+        z.array(RaceSessionProjection),
+        source.session_results,
+      );
+
+      if (
+        new Set(sessions.map((row) => row.simsession_number)).size !==
+        sessions.length
+      ) {
+        throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
+      const session = sessions.find(
+        (row) => row.simsession_number === input.simsession_number,
+      );
+
+      if (!session) {
+        throw new ApplicationFailure("NOT_FOUND");
+      }
+
+      const rows = projectRaceParticipants(session.results, input.cust_ids);
+
+      return owner.start({
+        tool: "get_race_result",
+        filters: input,
+        generation: gateway.generation,
+        items: rows,
+        limit: input.limit,
+        expiresAt: call.expiresAt,
+        context: {
+          ...context,
+          simsession_number: input.simsession_number,
+          position_basis: "one_based",
+        },
       });
     },
   );
