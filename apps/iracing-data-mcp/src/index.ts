@@ -1,3 +1,3 @@
-export * from "./config";
-export * from "./mcp";
-export * from "./services";
+export * from "./config.js";
+export * from "./mcp.js";
+export * from "./services.js";
