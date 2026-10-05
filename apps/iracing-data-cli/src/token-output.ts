@@ -1,6 +1,3 @@
-import type { FileHandle } from "node:fs/promises";
-import path from "node:path";
-import { stringify as stringifyYaml } from "yaml";
 import {
   oauthTokenDocumentFileSystem,
   serializeOAuthTokenDocument,
@@ -8,6 +5,9 @@ import {
   type OAuthTokenDocumentFileSystem,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
+import type { FileHandle } from "node:fs/promises";
+import path from "node:path";
+import { stringify as stringifyYaml } from "yaml";
 
 export type TokenFormat = "json" | "yaml";
 export type TokenOutputFileSystem = OAuthTokenDocumentFileSystem;
@@ -211,7 +211,9 @@ async function writeJsonTokenOutput(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
-    if (message.startsWith("Unable to create OAuth token document directory:")) {
+    if (
+      message.startsWith("Unable to create OAuth token document directory:")
+    ) {
       throw new Error(
         `Unable to create credential parent directory: ${path.dirname(destination)}`,
         { cause: error },
@@ -229,7 +231,9 @@ async function writeJsonTokenOutput(
         { cause: error },
       );
     }
-    if (message.startsWith("Unable to atomically publish OAuth token document")) {
+    if (
+      message.startsWith("Unable to atomically publish OAuth token document")
+    ) {
       throw new Error(
         `Unable to replace credential destination: ${destination}`,
         { cause: error },
