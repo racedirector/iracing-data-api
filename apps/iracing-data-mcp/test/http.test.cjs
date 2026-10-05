@@ -26,7 +26,8 @@ async function fixture(t, registerTools, clock = timers()) {
   const services = new Proxy(
     {},
     {
-      get() {
+      get(_target, key) {
+        if (key === "authorizationState") return undefined;
         throw new Error("Unexpected upstream service access");
       },
     },

@@ -5,3 +5,4 @@ export * from "./diagnostics/errors.js";
 export * from "./diagnostics/mapping.js";
 export * from "./diagnostics/logging.js";
 export * from "./http.js";
+export * from "./session.js";
