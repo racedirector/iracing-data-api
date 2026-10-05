@@ -2,7 +2,9 @@ import { z } from "zod";
 
 export const Id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);
 const query = z.string().trim().min(2).max(100);
+
 const limit = z.number().int().min(1).max(100).default(25);
+
 export const ContinuationInput = z.strictObject({
   cursor: z.string().min(1).max(512),
 });
@@ -31,26 +33,33 @@ export const ContentInput = z.union([
     .refine((value) => !(value.ids && value.query)),
   ContinuationInput,
 ]);
+
 // These are app projections, not replacements for authored wire contracts.
 // object() strips every unlisted upstream field; absent optional data is null.
 const text = z.string();
+
 const optionalText = text.nullish().transform((value) => value ?? null);
+
 const optionalId = Id.nullish().transform((value) => value ?? null);
+
 const optionalInteger = z
   .number()
   .int()
   .safe()
   .nullish()
   .transform((value) => value ?? null);
+
 const optionalNumber = z
   .number()
   .finite()
   .nullish()
   .transform((value) => value ?? null);
+
 const optionalBoolean = z
   .boolean()
   .nullish()
   .transform((value) => value ?? null);
+
 export const DriverProjection = z.object({
   cust_id: Id,
   display_name: text.min(1),

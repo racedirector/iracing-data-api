@@ -117,6 +117,7 @@ export class DataApiGateway {
   readonly #inflight = new Map<string, SharedFetch>();
   readonly #searches = new Map<GatewaySearch, SearchState>();
   #generation = 0;
+
   /** Account-owner invalidation epoch for app-local projected cursors. */
   get generation(): number {
     return this.#generation;

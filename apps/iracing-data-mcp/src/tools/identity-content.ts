@@ -29,18 +29,23 @@ import type {
 } from "@modelcontextprotocol/server";
 
 const owners = new WeakMap<DataApiGateway, CollectionCursors>();
+
 function cursors(gateway: DataApiGateway) {
   let owner = owners.get(gateway);
+
   if (!owner) {
     owner = new CollectionCursors();
     owners.set(gateway, owner);
   }
+
   return owner;
 }
+
 // Keep the precise advertised schema, but run validation inside our safe error
 // boundary. SDK default validation includes rejected values in unstructured text.
 function safeBoundary(schema: z.ZodType): StandardSchemaWithJSON {
   const json = { ...z.toJSONSchema(schema, { io: "input" }), type: "object" };
+
   return {
     "~standard": {
       version: 1,
@@ -50,6 +55,7 @@ function safeBoundary(schema: z.ZodType): StandardSchemaWithJSON {
     },
   };
 }
+
 export function registerIdentityContentTools(
   server: McpServer,
   services: McpServices,
@@ -78,11 +84,20 @@ export function registerIdentityContentTools(
       },
       async (input, ctx) => {
         const context = createRequestContext();
+
         try {
           const checked = schema.safeParse(input);
-          if (!checked.success) throw new ApplicationFailure("INVALID_INPUT");
+
+          if (!checked.success) {
+            throw new ApplicationFailure("INVALID_INPUT");
+          }
+
           const gateway = services.dataApiGateway;
-          if (!gateway) throw new ApplicationFailure("CONFIGURATION_ERROR");
+
+          if (!gateway) {
+            throw new ApplicationFailure("CONFIGURATION_ERROR");
+          }
+
           try {
             return await gateway.withCall(
               (call) => work(checked.data, call, gateway),
@@ -91,8 +106,10 @@ export function registerIdentityContentTools(
           } catch (error) {
             // Auth loss and gateway invalidation retire projected state too. A
             // quarantined single-owner service cannot hot-replace an account.
-            if (services.authorizationState?.() !== "ready")
+            if (services.authorizationState?.() !== "ready") {
               owners.get(gateway)?.invalidate();
+            }
+
             throw error;
           }
         } catch (error) {
@@ -101,6 +118,7 @@ export function registerIdentityContentTools(
       },
     );
   }
+
   register(
     "get_my_driver",
     "Identify the authenticated driver. Returns only customer ID and display name; requires iracing.auth.",
@@ -114,8 +132,11 @@ export function registerIdentityContentTools(
     DriversInput,
     async (input, call, gateway) => {
       const owner = cursors(gateway);
-      if ("cursor" in input)
+
+      if ("cursor" in input) {
         return owner.resume("find_drivers", input.cursor, gateway.generation);
+      }
+
       const rows = parse(
         z.array(DriverProjection),
         await call.drivers({
@@ -125,6 +146,7 @@ export function registerIdentityContentTools(
             : { league_id: input.league_id }),
         }),
       );
+
       return owner.start({
         tool: "find_drivers",
         filters: { query: input.query, league_id: input.league_id },
@@ -144,13 +166,18 @@ export function registerIdentityContentTools(
       const source = await call.recent(
         input.cust_id === undefined ? {} : { cust_id: input.cust_id },
       );
+
       const cust_id = parse(Id, source.cust_id);
-      if (input.cust_id !== undefined && cust_id !== input.cust_id)
+
+      if (input.cust_id !== undefined && cust_id !== input.cust_id) {
         throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
       const races = parse(z.array(RecentProjection), source.races).slice(
         0,
         input.limit,
       );
+
       return completeResult({
         cust_id,
         races,
@@ -166,22 +193,35 @@ export function registerIdentityContentTools(
     ContentInput,
     async (input, call, gateway) => {
       const owner = cursors(gateway);
-      if ("cursor" in input)
+
+      if ("cursor" in input) {
         return owner.resume("lookup_content", input.cursor, gateway.generation);
+      }
+
       const source =
         input.kind === "cars" ? await call.cars() : await call.tracks();
+
       // Current canonical collection schemas validate wire IDs; app schemas own
       // the deliberately smaller agent-facing fields (without raw passthrough).
-      if (input.kind === "cars") parse(GetCarResponseSchema, source);
-      else parse(GetTrackResponseSchema, source);
+      if (input.kind === "cars") {
+        parse(GetCarResponseSchema, source);
+      } else {
+        parse(GetTrackResponseSchema, source);
+      }
+
       const rows: Record<string, unknown>[] =
         input.kind === "cars"
           ? parse(z.array(CarProjection), source)
           : parse(z.array(TrackProjection), source);
+
       const key = input.kind === "cars" ? "car_id" : "track_id";
+
       const ids = rows.map((row) => row[key] as number);
-      if (new Set(ids).size !== ids.length)
+
+      if (new Set(ids).size !== ids.length) {
         throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
       const selected = rows
         .filter((row) =>
           input.ids
@@ -200,6 +240,7 @@ export function registerIdentityContentTools(
               : true,
         )
         .sort((a, b) => (a[key] as number) - (b[key] as number));
+
       return owner.start({
         tool: "lookup_content",
         filters: {
