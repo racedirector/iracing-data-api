@@ -140,7 +140,8 @@ test("mapping seams preserve OAuth, entitlement, cache and internal distinctions
     oauth.OAuthRefreshError.tokenExpired("synthetic"),
     oauth.OAuthRefreshError.from({
       message: "synthetic",
-      code: "invalid_grant",
+      code: "OAUTH_RESPONSE_BODY_ERROR",
+      cause: { error: "invalid_grant", access_token: "MARK_IGNORED" },
     }),
   ]) {
     assert.equal(
@@ -409,9 +410,9 @@ test("typed OAuth/API/cache/storage failures redact every exercised channel", as
     [
       oauth.OAuthRefreshError.from({
         message: "MARK_OAUTH",
-        code: "invalid_grant",
+        code: "OAUTH_RESPONSE_BODY_ERROR",
         error_description: "MARK_DESCRIPTION",
-        cause: nested,
+        cause: { ...nested, error: "invalid_grant" },
       }),
       { domain: "oauth_session" },
     ],

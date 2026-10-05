@@ -25,7 +25,7 @@ export interface MappingContext {
     "safe_to_retry" | "rotation_uncertain" | "persistence_failed";
 }
 
-/** Minimal seams only: no body reads, message matching, cause traversal, or refresh. */
+/** Minimal seams only: no body reads, message matching, recursive causes, or refresh. */
 export function mapFailure(
   error: unknown,
   context: MappingContext,
@@ -58,17 +58,29 @@ export function mapFailure(
       return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
         reason: "invalid_session",
       });
-    if (
-      error instanceof OAuthRefreshError &&
-      [
-        "invalid_grant",
-        "MISSING_REFRESH_TOKEN",
-        "REFRESH_TOKEN_EXPIRED",
-      ].includes(error.code ?? "")
-    )
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "revoked_authorization",
-      });
+    if (error instanceof OAuthRefreshError) {
+      // OAuthRefreshError.from retains oauth4webapi's library code, not its
+      // OAuth error identifier. Inspect only the exact retained discriminator.
+      const cause = Object.getOwnPropertyDescriptor(error, "cause")?.value;
+      const oauthCode =
+        error.code === "OAUTH_RESPONSE_BODY_ERROR" &&
+        cause !== null &&
+        typeof cause === "object"
+          ? Object.getOwnPropertyDescriptor(cause, "error")?.value
+          : undefined;
+      if (
+        [
+          "invalid_grant",
+          "MISSING_REFRESH_TOKEN",
+          "REFRESH_TOKEN_EXPIRED",
+        ].includes(error.code ?? "") ||
+        oauthCode === "invalid_grant"
+      ) {
+        return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+          reason: "revoked_authorization",
+        });
+      }
+    }
     return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
       reason:
         context.refreshOutcome === "safe_to_retry"
