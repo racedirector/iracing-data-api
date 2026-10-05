@@ -12,7 +12,7 @@ This workspace establishes the application, service and diagnostic seams:
 - `McpApplicationConfigSchema` owns app-local server identity configuration.
 - App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354; series-season and schedule projections are implemented by #355; race-result projections by #356. Docker packaging (#358) and later tools remain deferred.
+Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354; series-season and schedule projections are implemented by #355; race-result projections by #356; continuation-aware driver race search by #357. Docker packaging (#358) remains deferred.
 
 ## Development
 
@@ -27,7 +27,7 @@ See [scoped guidance](AGENTS.md) and the repository [verification contract](../.
 
 ## Error and diagnostic contract (#351)
 
-The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway and #354/#355/#356 tools use this contract.
+The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway and #354/#355/#356/#357 tools use this contract.
 
 Create one `createRequestContext()` at the application request boundary; reuse it for output and logs. Client, JSON-RPC and upstream IDs are never used as diagnostic IDs. `ApplicationFailure` accepts a code and bounded optional metadata, never a message/cause. `toolError()` returns `isError: true`, `structuredContent: { error: { code, message, retryable, request_id, reason?, retry_after_seconds? } }` and one JSON text equivalent. `ErrorEnvelopeSchema` strictly validates the envelope and code-specific policy. Unknown exceptions become `INTERNAL_ERROR`; messages come only from fixed app recovery text.
 
@@ -93,7 +93,7 @@ All routes accept only exact Host authorities `127.0.0.1:3000` and `localhost:30
 
 | Route                                    | Behavior                                                                                                                                                      |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. Seven bounded read-only domain tools are currently registered. |
+| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. Eight bounded read-only domain tools are currently registered. |
 | `GET /mcp`, `DELETE /mcp`, other methods | 405 with `Allow: POST`; no SSE push or session deletion.                                                                                                      |
 | `GET /healthz`                           | 200 with fixed private app identity/version, `live:true` and allowlisted `auth_state`. Cached local authorization state only; no upstream calls.              |
 | Other paths                              | 404; no browser OAuth routes or generic RPC routes.                                                                                                           |
@@ -111,7 +111,7 @@ HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes
 
 ### Local threat model and rollout
 
-The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, telemetry and Docker packaging remain deferred. Gateway reads and the seven tools below use the existing OAuth owner.
+The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, telemetry and Docker packaging remain deferred. Gateway reads and the eight tools below use the existing OAuth owner.
 
 Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency depends on iRacing and is bounded by the gateway deadlines below.
 
@@ -291,8 +291,7 @@ This private `0.0.0` slice needs no public package version bump or generated
 contract change. Rollout adds these registrations to the existing shared services;
 local protocol/cursor replay targets less than one second, while upstream calls
 retain the gateway deadlines. Rollback stops/drains and reverts this slice, losing
-all cursors; never restore consumed refresh credentials. History
-search, Docker/Compose, telemetry, hosted auth, browser callbacks, resources/prompts
+all cursors; never restore consumed refresh credentials. Docker/Compose, telemetry, hosted auth, browser callbacks, resources/prompts
 and arbitrary proxying remain separate slices.
 
 ## Series seasons and schedules (#355)
@@ -354,7 +353,7 @@ OpenAPI/generated-client change, or publication is required. Rollout adds two
 registrations to the existing shared services. Recovery follows the same strict
 input, cursor-expiry, response-limit, authorization and rotation rules above.
 Rollback stops/drains and reverts this slice, invalidating its cursors; never restore
-a consumed refresh credential. History search (#357), Docker/Compose, telemetry, hosted auth, browser callbacks,
+a consumed refresh credential. Docker/Compose, telemetry, hosted auth, browser callbacks,
 resources/prompts and arbitrary proxying remain deferred.
 
 ## Race results (#356)
@@ -400,4 +399,93 @@ fixtures cover comparisons, individual/team attribution, empty matches,
 sentinels, strict inputs, malformed payloads, source order, replay, expiry,
 byte/item limits, redaction and disconnect cancellation. This private slice adds
 no public contract, generated artifact or package version change. Rollback stops
-and reverts the slice; history search (#357) remains deferred.
+and reverts the slice, invalidating its cursors.
+
+## Driver race search (#357)
+
+`search_driver_races` searches one customer's race session summaries. Omit
+`cust_id` to resolve the authenticated member. Provide exactly one `range`:
+`{start,start_end}` with UTC ISO timestamps (start inclusive, end exclusive,
+ordered, at most 90 days), or `{season_year,season_quarter}` (2000–2100, 1–4).
+Optional `series_id` and `official_only` go to the canonical search operation;
+`event_types` is always `"5"`. Optional unique `track_ids` (1–50) filter locally,
+since upstream search accepts no track parameter. No team or unbounded all-driver
+search is exposed. Numeric strings, unknown keys and mixed range variants fail
+with `INVALID_INPUT` before network work.
+
+Rows expose only subsession ID, start/end timestamps, season/series identity,
+track ID/name/configuration, event type, driver count and official status. Context
+includes resolved `cust_id`, filters and `order:"subsession_id"`. Rows preserve
+manifest/file/row order; subsession ID is a time proxy. These are session summaries
+and do not guarantee individual outcomes, finishes, incidents or participation.
+Unavailable optional fields are `null`. `source_total` counts the upstream
+manifest rows, before local filtering; `complete` reports whether this snapshot
+has been fully scanned. Zero matches with a continuation is valid.
+
+Pages default to 25 items, accept up to 100, and scan at most four distinct chunks
+per call. Results fit 64 KiB including the structured JSON and equivalent text;
+smaller pages cannot repair a source chunk that exceeds gateway limits. Search
+never eagerly aggregates the whole source. Continue with `{cursor}` alone. Opaque
+server-side cursors retain the exact gateway handle, filters, owner generation,
+page size, file/row offset and immutable replay response. Concurrent successful
+replays return the same page and next token. Failed/canceled pages leave the offset
+unchanged. Restart, authorization loss, expiry (five minutes or earlier known
+safe expiry), and chunk 403/404 retire a cursor; `CURSOR_EXPIRED` requires a fresh
+initial query and never silently restarts or combines snapshots. Contradictory
+manifest parameters, counts or malformed rows fail with `DATA_RESOLUTION_FAILED`.
+Missing optional parameter echoes are allowed.
+
+Collections and search now share one process-owner cap of 32 model cursor tokens
+and 32 MiB of retained serialized manifests, chunks, snapshots and replay results.
+Expiry and account invalidation reclaim capacity across tools before reservation.
+Capacity fails with `RESPONSE_LIMIT_EXCEEDED`; narrow the range/series/track query,
+wait for cursor expiry, or restart the app. Gateway per-call byte/fetch/deadline
+limits still apply. No cursor contains a URL or credential or survives restart.
+
+For a Watkins Glen performance question, first use `lookup_content` with
+`{kind:"tracks",query:"Watkins Glen"}` and inspect configuration IDs. Use
+`list_series_seasons` to select an explicit year/quarter, then:
+
+```js
+const page = await client.callTool({
+  name: "search_driver_races",
+  arguments: {
+    range: { season_year: 2026, season_quarter: 4 },
+    track_ids: [30], // Synthetic example; use resolved track/configuration IDs.
+    limit: 25,
+  },
+});
+const dated = await client.callTool({
+  name: "search_driver_races",
+  arguments: {
+    cust_id: 42,
+    range: {
+      start: "2026-10-01T00:00:00Z",
+      start_end: "2026-10-05T00:00:00Z",
+    },
+    official_only: true,
+  },
+});
+// Continue even when an incomplete page has no matching rows.
+if (page.structuredContent.next_cursor) {
+  await client.callTool({
+    name: "search_driver_races",
+    arguments: { cursor: page.structuredContent.next_cursor },
+  });
+}
+// For selected subsessions, call get_race_result with cust_ids:[resolvedCustId].
+```
+
+Report which pages/subsessions and track configurations were examined, whether
+search completed, and which detail calls succeeded or lacked a matching participant.
+Do not claim complete season performance from a partial search, recent window or
+selected detail calls. Team detail attribution remains explicit; session summaries
+alone cannot establish an individual outcome. Offline official-client fixtures
+cover synthetic search ordering, local filtering, empty/four-chunk boundaries,
+byte/item caps, replay/concurrency, expiry, auth/invalidation, cancellation,
+manifest contradictions, shared retention and redaction. Live completeness is not
+claimed. Replay targets under one second locally; network work retains gateway
+limits. Rollout adds the eighth read-only registration; rollback stops/drains and
+reverts this private slice, dropping cursors without restoring consumed credentials.
+No public/generated contract or version changes; Docker and later integration
+slices remain separate.

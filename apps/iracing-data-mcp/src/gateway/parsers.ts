@@ -110,3 +110,72 @@ export const directSchemas = {
   document: ServicesDocsResponseSchema,
   constants: ConstantsResponseSchema,
 };
+
+/** Optional manifest echoes may be absent, but must never contradict the request. */
+export function validateSearchEcho(
+  value: unknown,
+  expected: Record<string, unknown>,
+): void {
+  const params = parse(
+    objectPayload,
+    parse(objectPayload, parse(objectPayload, value).data).params,
+  );
+
+  const normalize = (key: string, input: unknown): unknown => {
+    if (key.endsWith("_begin") || key.endsWith("_end")) {
+      return typeof input === "string" && Number.isFinite(Date.parse(input))
+        ? Date.parse(input)
+        : input;
+    }
+
+    if (key === "event_types" || key === "category_ids") {
+      const values = Array.isArray(input)
+        ? input
+        : typeof input === "string"
+          ? input.split(",")
+          : [input];
+
+      return values.map(String).sort().join(",");
+    }
+
+    if (key === "official_only") {
+      if (input === true || input === "true" || input === 1 || input === "1") {
+        return true;
+      }
+
+      if (
+        input === false ||
+        input === "false" ||
+        input === 0 ||
+        input === "0"
+      ) {
+        return false;
+      }
+
+      return input;
+    }
+
+    return typeof input === "string" && /^\d+$/.test(input)
+      ? Number(input)
+      : input;
+  };
+
+  for (const [key, wanted] of Object.entries(expected)) {
+    if (
+      wanted !== undefined &&
+      Object.hasOwn(params, key) &&
+      normalize(key, params[key]) !== normalize(key, wanted)
+    ) {
+      invalidData();
+    }
+  }
+
+  if (
+    expected.cust_id !== undefined &&
+    expected.team_id === undefined &&
+    params.team_id != null &&
+    normalize("team_id", params.team_id) !== 0
+  ) {
+    invalidData();
+  }
+}

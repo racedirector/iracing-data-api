@@ -1,5 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { ApplicationFailure } from "../diagnostics/errors.js";
+import { RetentionBudget } from "../retention.js";
 
 export const COLLECTION_LIMITS = Object.freeze({
   cursors: 32,
@@ -55,10 +56,20 @@ export class CollectionCursors {
   readonly #entries = new Map<string, Cursor>();
   readonly #now: () => number;
   #generation: number | undefined;
-  constructor(now: () => number = Date.now) {
+  constructor(
+    now: () => number = Date.now,
+    readonly budget = new RetentionBudget(),
+    generation?: () => number,
+  ) {
     this.#now = now;
+    budget.registerPruner(() => {
+      if (this.#generation !== undefined) {
+        this.#prune(generation?.() ?? this.#generation);
+      }
+    });
   }
   invalidate(): void {
+    this.budget.release(this.#bytes(), this.#entries.size);
     this.#entries.clear();
   }
   #prune(generation: number) {
@@ -67,11 +78,16 @@ export class CollectionCursors {
     }
 
     this.#generation = generation;
+    const before = this.#bytes(),
+      tokens = this.#entries.size;
+
     for (const [token, entry] of this.#entries) {
       if (entry.snapshot.expiresAt <= this.#now()) {
         this.#entries.delete(token);
       }
     }
+
+    this.budget.release(before - this.#bytes(), tokens - this.#entries.size);
   }
   #bytes() {
     const snapshots = new Set<Snapshot>();
@@ -213,6 +229,15 @@ export class CollectionCursors {
       this.#bytes() + additional > COLLECTION_LIMITS.bytes
     ) {
       capacity();
+    }
+
+    this.budget.reserve(additional, more ? 1 : 0);
+    if (
+      snapshot.generation !== this.#generation ||
+      snapshot.expiresAt <= this.#now()
+    ) {
+      this.budget.release(additional, more ? 1 : 0);
+      collectionExpired();
     }
 
     // All checks precede publication: replay is synchronous and idempotent.

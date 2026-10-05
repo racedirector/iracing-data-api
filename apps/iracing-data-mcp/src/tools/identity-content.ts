@@ -11,6 +11,7 @@ import {
 import { parse } from "../gateway/parsers.js";
 import { CollectionCursors, completeResult } from "./collections.js";
 import {
+  SearchInput,
   SelfInput,
   DriversInput,
   RecentInput,
@@ -29,6 +30,7 @@ import {
   RaceSessionProjection,
   RaceParticipantProjection,
 } from "./contracts.js";
+import { SearchCursors } from "./search.js";
 import type { DataApiGateway, GatewayCall } from "../gateway/gateway.js";
 import type { McpServices } from "../services.js";
 import type {
@@ -36,13 +38,19 @@ import type {
   StandardSchemaWithJSON,
 } from "@modelcontextprotocol/server";
 
+const searches = new WeakMap<DataApiGateway, SearchCursors>();
+
 const owners = new WeakMap<DataApiGateway, CollectionCursors>();
 
 function cursors(gateway: DataApiGateway) {
   let owner = owners.get(gateway);
 
   if (!owner) {
-    owner = new CollectionCursors();
+    owner = new CollectionCursors(
+      Date.now,
+      gateway.retention,
+      () => gateway.generation,
+    );
     owners.set(gateway, owner);
   }
 
@@ -120,6 +128,7 @@ export function registerIdentityContentTools(
       input: T,
       call: GatewayCall,
       gateway: DataApiGateway,
+      signal: AbortSignal,
     ) => Promise<ReturnType<typeof completeResult>>,
   ) {
     server.registerTool(
@@ -152,7 +161,7 @@ export function registerIdentityContentTools(
 
           try {
             return await gateway.withCall(
-              (call) => work(checked.data, call, gateway),
+              (call) => work(checked.data, call, gateway, ctx.mcpReq.signal),
               ctx.mcpReq.signal,
             );
           } catch (error) {
@@ -491,6 +500,23 @@ export function registerIdentityContentTools(
           position_basis: "one_based",
         },
       });
+    },
+  );
+  register(
+    "search_driver_races",
+    "Search one driver's race session summaries within an explicit start-inclusive/end-exclusive UTC range of at most 90 days, or a season year/quarter. Requires iracing.auth. Source order is subsession_id (a time proxy). track_ids filters locally, scanning at most four chunks per page; an empty incomplete page is valid. Continue with cursor alone. Summaries do not establish individual outcomes; use get_race_result for selected details and report incomplete coverage.",
+    SearchInput,
+    async (input, call, gateway, signal) => {
+      let owner = searches.get(gateway);
+
+      if (!owner) {
+        owner = new SearchCursors(gateway);
+        searches.set(gateway, owner);
+      }
+
+      return "cursor" in input
+        ? owner.resume(input.cursor, call, signal)
+        : owner.start(input, call, signal);
     },
   );
 }
