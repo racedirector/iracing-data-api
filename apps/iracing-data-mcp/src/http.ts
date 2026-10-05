@@ -24,6 +24,8 @@ export const transportLimits = Object.freeze({
   admittedTools: 8,
   drainMs: 10_000,
 });
+
+/** Schedules a lifecycle callback and returns a cancellation function. */
 export type Schedule = (
   callback: () => void,
   milliseconds: number,
@@ -33,16 +35,29 @@ const schedule: Schedule = (callback, milliseconds) => {
   return () => clearTimeout(timer);
 };
 
+/**
+ * Dependencies and test seams used to construct the MCP HTTP application.
+ */
 export interface HttpApplicationOptions {
+  /** Stable application identity advertised by request-scoped MCP servers. */
   readonly config: McpApplicationConfig;
+  /** Long-lived OAuth and Data API dependencies shared across requests. */
   readonly services: McpServices;
+  /** Optional registrar used by tests or later slices to add tools. */
   readonly registerTools?: McpToolRegistrar;
+  /** Sanitizing logger used for transport and tool diagnostics. */
   readonly logger?: ReturnType<typeof createDiagnosticLogger>;
   /** Deterministic lifecycle clock seam; production uses real timers. */
   readonly schedule?: Schedule;
 }
 
-/** Shared application state; every POST gets its own SDK server and transport. */
+/**
+ * Creates the process-scoped HTTP application serving health and MCP endpoints.
+ *
+ * The returned application owns shared admission/shutdown state while every MCP POST creates
+ * a fresh SDK server and transport. Host/origin validation, body limits, cancellation, tool
+ * admission, and bounded shutdown are enforced before request work can escape this boundary.
+ */
 export function createHttpApplication(options: HttpApplicationOptions) {
   const logger = options.logger ?? createDiagnosticLogger();
   const clock = options.schedule ?? schedule;
@@ -369,7 +384,12 @@ export function createHttpApplication(options: HttpApplicationOptions) {
   };
 }
 
-/** Install only for a running application; importing the library has no process effects. */
+/**
+ * Installs SIGTERM/SIGINT handlers that initiate application shutdown.
+ *
+ * Importing this module has no process-level side effects; callers explicitly opt into signal
+ * handling and receive an unsubscribe function for tests or embedding scenarios.
+ */
 export function installTerminationHandlers(
   app: ReturnType<typeof createHttpApplication>,
 ) {
