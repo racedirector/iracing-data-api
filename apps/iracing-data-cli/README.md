@@ -185,10 +185,10 @@ Use a real registered OAuth client and do the following without copying token va
 10. Manually copy the `access_token` value from the appropriate credential document into `examples/data-api-first-call/.env` as `IRACING_ACCESS_TOKEN`, without adding `Bearer `.
 11. From the repository root, run:
 
-   ```bash
-   pnpm --filter 'iracing-data-api-first-call...' build
-   pnpm --filter iracing-data-api-first-call start
-   ```
+    ```bash
+    pnpm --filter 'iracing-data-api-first-call...' build
+    pnpm --filter iracing-data-api-first-call start
+    ```
 
 12. Run `pnpm run iracing-data docs --snapshot --output .upstream-contract/data-live-validation.json` from the root. Treat a valid live snapshot as CLI end-to-end acceptance; do not repeat this during a capture-once audit.
 13. Remove the temporary credential directory and any test `.env` files when finished.
