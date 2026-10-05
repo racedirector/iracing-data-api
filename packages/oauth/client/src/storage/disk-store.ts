@@ -33,10 +33,9 @@ export class DiskStore<
         // cast key because JSON keys are always strings
         this.state.set(k as K, v);
       }
-    } catch (err) {
+    } catch {
       console.warn(
-        `[SimpleDiskStorage] Failed to load store from "${this.filePath}":`,
-        err,
+        "[SimpleDiskStorage] Failed to load store. Check the configured file's permissions and JSON format; starting with an empty store.",
       );
     }
   }
@@ -51,8 +50,7 @@ export class DiskStore<
       writeFileSync(this.filePath, JSON.stringify(obj, null, 2), "utf8");
     } catch (err) {
       console.warn(
-        `[SimpleDiskStorage] Failed to persist store to "${this.filePath}":`,
-        err,
+        "[SimpleDiskStorage] Failed to persist store. Check that the configured directory exists and the file is writable.",
       );
 
       throw err;
