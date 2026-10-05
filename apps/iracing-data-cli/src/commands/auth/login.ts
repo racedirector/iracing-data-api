@@ -1,6 +1,13 @@
 import { Command } from "@commander-js/extra-typings";
-import { authenticateWithBrowser } from "../../authenticate.js";
-import { defaultCredentialsPath } from "../../credentials.js";
+import {
+  authenticateWithBrowser,
+  DEFAULT_SCOPES,
+  type OAuthScopes,
+} from "../../authenticate.js";
+import {
+  defaultCredentialsPath,
+  defaultMcpCredentialsPath,
+} from "../../credentials.js";
 import { Diagnostics } from "../../diagnostics.js";
 import { resolveTokenFormat, writeTokenOutput } from "../../token-output.js";
 
@@ -10,6 +17,23 @@ interface CreateLoginCommandOptions {
     authenticate: typeof authenticateWithBrowser;
     writeOutput: typeof writeTokenOutput;
   };
+}
+
+function resolveScopes(values: string[] | undefined): OAuthScopes {
+  if (!values) return DEFAULT_SCOPES;
+  if (values.length === 1 && values[0] === "iracing.auth") {
+    return ["iracing.auth"];
+  }
+  if (
+    values.length === 2 &&
+    values[0] === "iracing.auth" &&
+    values[1] === "iracing.profile"
+  ) {
+    return ["iracing.auth", "iracing.profile"];
+  }
+  throw new Error(
+    "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.",
+  );
 }
 
 export function createLoginCommand({
@@ -29,6 +53,10 @@ export function createLoginCommand({
       "--credentials <path>",
       "Credential file to update instead of the repository default",
     )
+    .option(
+      "--scope <scopes...>",
+      "OAuth scopes: iracing.auth, or iracing.auth iracing.profile",
+    )
     .option("--format <json|yaml>", "Token serialization format")
     .option("--force", "Replace an existing output file")
     .option("--no-open", "Do not open the browser automatically")
@@ -40,8 +68,14 @@ export function createLoginCommand({
     .action(async (options) => {
       if (options.output && options.credentials)
         throw new Error("Use either --output or --credentials, not both.");
+
+      const scopes = resolveScopes(options.scope);
+      const authOnly = scopes.length === 1;
       const destination =
-        options.output ?? options.credentials ?? defaultCredentialsPath;
+        options.output ??
+        options.credentials ??
+        (authOnly ? defaultMcpCredentialsPath : defaultCredentialsPath);
+
       resolveTokenFormat(destination, options.format);
       if (!options.output && !options.credentials && options.format === "yaml")
         throw new Error(
@@ -51,6 +85,7 @@ export function createLoginCommand({
         clientId: process.env.IRACING_AUTH_CLIENT ?? "",
         clientSecret: process.env.IRACING_AUTH_SECRET || undefined,
         redirectUri: process.env.IRACING_AUTH_REDIRECT_URI || undefined,
+        scopes,
         timeoutSeconds: Number(options.timeoutSeconds),
         openBrowser: options.open,
         diagnostics,
