@@ -1,4 +1,4 @@
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage } from "node:http";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   WebStandardStreamableHTTPServerTransport,
@@ -56,6 +56,192 @@ export interface HttpApplicationOptions {
   readonly schedule?: Schedule;
 }
 
+// Bound uploads before parsing or SDK construction; pause oversize input so
+// the fixed 413 response can be flushed before closing the connection.
+function readBoundedBody(req: IncomingMessage, signal: AbortSignal) {
+  return new Promise<string>((resolve, reject) => {
+    const chunks: Buffer[] = [];
+
+    let bytes = 0;
+
+    const cleanup = () => {
+      req.off("data", data);
+      req.off("end", end);
+      req.off("error", fail);
+      signal.removeEventListener("abort", abort);
+    };
+
+    const fail = () => {
+      cleanup();
+      reject(new Error("Request failed."));
+    };
+
+    const abort = () => {
+      req.pause();
+      fail();
+    };
+
+    const end = () => {
+      cleanup();
+      resolve(Buffer.concat(chunks).toString("utf8"));
+    };
+
+    const data = (chunk: Buffer) => {
+      bytes += chunk.length;
+      if (bytes > transportLimits.bodyBytes) {
+        cleanup();
+        req.pause();
+        const error = new Error("Request body too large.");
+
+        error.name = "RequestBodyTooLargeError";
+        reject(error);
+      } else {
+        chunks.push(chunk);
+      }
+    };
+
+    req.on("data", data);
+    req.once("end", end);
+    req.once("error", fail);
+    signal.addEventListener("abort", abort, { once: true });
+    if (signal.aborted) {
+      abort();
+    }
+  });
+}
+
+interface Admission {
+  admitted: number;
+  stopping: boolean;
+}
+
+interface ToolAdmission {
+  toolId: string | number | undefined;
+  settled: boolean;
+  release: () => void;
+}
+
+type ToolFailure = (
+  code: "INTERNAL_ERROR" | "RATE_LIMITED",
+) => ReturnType<typeof toolError>;
+type RequestContext = ReturnType<typeof createRequestContext>;
+type DiagnosticLogger = ReturnType<typeof createDiagnosticLogger>;
+
+function rewriteTransportResponses(
+  transport: WebStandardStreamableHTTPServerTransport,
+  state: ToolAdmission,
+  failure: ToolFailure,
+  context: RequestContext,
+) {
+  const send = transport.send.bind(transport);
+
+  transport.send = async (message, extra) => {
+    let safe: JSONRPCMessage = message;
+
+    if ("error" in message) {
+      state.release();
+      safe = {
+        ...message,
+        error: {
+          code: message.error.code,
+          message: "Protocol request rejected.",
+        },
+      };
+    }
+
+    if ("result" in message && message.id === state.toolId) {
+      if (state.settled) {
+        return;
+      }
+
+      state.settled = true;
+      const result = message.result;
+
+      if (result.isError) {
+        const parsed = ErrorEnvelopeSchema.safeParse(result.structuredContent);
+
+        safe = {
+          ...message,
+          result: parsed.success
+            ? toolError(
+                new ApplicationFailure(
+                  parsed.data.error.code,
+                  parsed.data.error,
+                ),
+                context,
+              )
+            : failure("INTERNAL_ERROR"),
+        };
+      }
+
+      state.release();
+    }
+
+    await send(safe, extra);
+  };
+}
+
+function installToolAdmission(
+  transport: WebStandardStreamableHTTPServerTransport,
+  admission: Admission,
+  state: ToolAdmission,
+  failure: ToolFailure,
+  clock: Schedule,
+  cancel: () => void,
+  logger: DiagnosticLogger,
+  context: RequestContext,
+) {
+  const receive = transport.onmessage!;
+
+  transport.onmessage = (message, extra) => {
+    if (
+      "method" in message &&
+      "id" in message &&
+      message.method === "tools/call"
+    ) {
+      state.toolId = message.id;
+      if (
+        admission.stopping ||
+        admission.admitted >= transportLimits.admittedTools
+      ) {
+        void transport
+          .send({
+            jsonrpc: "2.0",
+            id: message.id,
+            result: failure("RATE_LIMITED"),
+          })
+          .catch((error) => logger.failure(context, error));
+
+        return;
+      }
+
+      admission.admitted++;
+      let released = false;
+
+      const clear = clock(() => {
+        void transport
+          .send({
+            jsonrpc: "2.0",
+            id: message.id,
+            result: failure("INTERNAL_ERROR"),
+          })
+          .finally(cancel)
+          .catch((error) => logger.failure(context, error));
+      }, transportLimits.toolMs);
+
+      state.release = () => {
+        if (!released) {
+          released = true;
+          admission.admitted--;
+          clear();
+        }
+      };
+    }
+
+    receive(message, extra);
+  };
+}
+
 /**
  * Creates the process-scoped HTTP application serving health and MCP endpoints.
  *
@@ -70,9 +256,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
   const active = new Set<() => void>();
 
-  let admitted = 0;
-
-  let stopping = false;
+  const admission: Admission = { admitted: 0, stopping: false };
 
   let shutdownPromise: Promise<void> | undefined;
 
@@ -80,7 +264,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
     const context = createRequestContext();
 
     res.once("finish", () => {
-      if (stopping) {
+      if (admission.stopping) {
         server.closeIdleConnections();
       }
     });
@@ -117,7 +301,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       return reply(403, "Origin rejected.");
     }
 
-    if (stopping) {
+    if (admission.stopping) {
       return reply(503, "Server is shutting down.");
     }
 
@@ -165,62 +349,16 @@ export function createHttpApplication(options: HttpApplicationOptions) {
     void (async () => {
       let mcp: ReturnType<typeof createMcpServer> | undefined;
 
-      let release = () => {};
+      const state: ToolAdmission = {
+        toolId: undefined,
+        settled: false,
+        release: () => {},
+      };
 
       try {
-        // Bound uploads before parsing or SDK construction; pause oversize input so
-        // the fixed 413 response can be flushed before closing the connection.
-        const text = await new Promise<string>((resolve, reject) => {
-          const chunks: Buffer[] = [];
+        const text = await readBoundedBody(req, controller.signal);
 
-          let bytes = 0;
-
-          const cleanup = () => {
-            req.off("data", data);
-            req.off("end", end);
-            req.off("error", fail);
-            controller.signal.removeEventListener("abort", abort);
-          };
-
-          const fail = () => {
-            cleanup();
-            reject(new Error("Request failed."));
-          };
-
-          const abort = () => {
-            req.pause();
-            fail();
-          };
-
-          const end = () => {
-            cleanup();
-            resolve(Buffer.concat(chunks).toString("utf8"));
-          };
-
-          const data = (chunk: Buffer) => {
-            bytes += chunk.length;
-            if (bytes > transportLimits.bodyBytes) {
-              cleanup();
-              req.pause();
-              const error = new Error("Request body too large.");
-
-              error.name = "RequestBodyTooLargeError";
-              reject(error);
-            } else {
-              chunks.push(chunk);
-            }
-          };
-
-          req.on("data", data);
-          req.once("end", end);
-          req.once("error", fail);
-          controller.signal.addEventListener("abort", abort, { once: true });
-          if (controller.signal.aborted) {
-            abort();
-          }
-        });
-
-        if (controller.signal.aborted || stopping) {
+        if (controller.signal.aborted || admission.stopping) {
           if (!res.destroyed) {
             reply(503, "Server is shutting down.");
           }
@@ -256,12 +394,6 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
         mcp.server.onerror = (error) => logger.failure(context, error);
         await mcp.connect(transport);
-        const send = transport.send.bind(transport);
-
-        let toolId: string | number | undefined;
-
-        let settled = false;
-
         const failure = (code: "INTERNAL_ERROR" | "RATE_LIMITED") => {
           const error = new ApplicationFailure(code);
 
@@ -273,104 +405,22 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           return toolError(error, context);
         };
 
-        transport.send = async (message, extra) => {
-          let safe: JSONRPCMessage = message;
-
-          if ("error" in message) {
-            release();
-            safe = {
-              ...message,
-              error: {
-                code: message.error.code,
-                message: "Protocol request rejected.",
-              },
-            };
-          }
-
-          if ("result" in message && message.id === toolId) {
-            if (settled) {
-              return;
-            }
-
-            settled = true;
-            const result = message.result;
-
-            if (result.isError) {
-              const parsed = ErrorEnvelopeSchema.safeParse(
-                result.structuredContent,
-              );
-
-              safe = {
-                ...message,
-                result: parsed.success
-                  ? toolError(
-                      new ApplicationFailure(
-                        parsed.data.error.code,
-                        parsed.data.error,
-                      ),
-                      context,
-                    )
-                  : failure("INTERNAL_ERROR"),
-              };
-            }
-
-            release();
-          }
-
-          await send(safe, extra);
-        };
-
-        const receive = transport.onmessage!;
-
-        transport.onmessage = (message, extra) => {
-          if (
-            "method" in message &&
-            "id" in message &&
-            message.method === "tools/call"
-          ) {
-            toolId = message.id;
-            if (stopping || admitted >= transportLimits.admittedTools) {
-              void transport
-                .send({
-                  jsonrpc: "2.0",
-                  id: message.id,
-                  result: failure("RATE_LIMITED"),
-                })
-                .catch((error) => logger.failure(context, error));
-
-              return;
-            }
-
-            admitted++;
-            let released = false;
-
-            const clear = clock(() => {
-              void transport
-                .send({
-                  jsonrpc: "2.0",
-                  id: message.id,
-                  result: failure("INTERNAL_ERROR"),
-                })
-                .finally(cancel)
-                .catch((error) => logger.failure(context, error));
-            }, transportLimits.toolMs);
-
-            release = () => {
-              if (!released) {
-                released = true;
-                admitted--;
-                clear();
-              }
-            };
-          }
-
-          receive(message, extra);
-        };
+        rewriteTransportResponses(transport, state, failure, context);
+        installToolAdmission(
+          transport,
+          admission,
+          state,
+          failure,
+          clock,
+          cancel,
+          logger,
+          context,
+        );
 
         controller.signal.addEventListener(
           "abort",
           () => {
-            release();
+            state.release();
             logger.failure(context, new ApplicationFailure("INTERNAL_ERROR"), {
               operation: "tool_call",
               stage: "failed",
@@ -431,7 +481,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           );
         }
       } finally {
-        release();
+        state.release();
         await mcp?.close();
         active.delete(cancel);
         res.off("close", disconnected);
@@ -450,12 +500,12 @@ export function createHttpApplication(options: HttpApplicationOptions) {
   return {
     server,
     get admittedTools() {
-      return admitted;
+      return admission.admitted;
     },
     get stopping() {
-      return stopping;
+      return admission.stopping;
     },
-    listen(port = 3000, host = "0.0.0.0") {
+    listen(port = 3000, host = "127.0.0.1") {
       return new Promise<void>((resolve, reject) => {
         server.once("error", reject);
         server.listen(port, host, () => {
@@ -469,7 +519,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         return shutdownPromise;
       }
 
-      stopping = true;
+      admission.stopping = true;
       shutdownPromise = new Promise<void>((resolve) => {
         const clear = clock(() => {
           for (const abort of active) {

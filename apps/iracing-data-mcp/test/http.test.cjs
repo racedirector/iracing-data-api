@@ -94,6 +94,20 @@ async function until(predicate) {
   assert.ok(predicate());
 }
 
+test("listen defaults to loopback and preserves explicit host overrides", async (t) => {
+  const { app } = await fixture(t);
+  await new Promise((resolve, reject) =>
+    app.server.close((error) => (error ? reject(error) : resolve())),
+  );
+  await app.listen(0);
+  assert.equal(app.server.address().address, "127.0.0.1");
+  await new Promise((resolve, reject) =>
+    app.server.close((error) => (error ? reject(error) : resolve())),
+  );
+  await app.listen(0, "0.0.0.0");
+  assert.equal(app.server.address().address, "0.0.0.0");
+});
+
 test("exact HTTP Host and Origin protections on all routes", async (t) => {
   const { request } = await fixture(t);
   for (const host of ["localhost:3000", "127.0.0.1:3000"])

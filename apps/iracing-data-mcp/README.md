@@ -73,7 +73,7 @@ Rollout is app-local contract adoption by later slices; no live service or token
 
 ## Local HTTP transport (#350)
 
-`createHttpApplication({config, services})` is the Node HTTP application entry point. Inject one application-scoped `McpServices` object; every POST creates a fresh official SDK server/transport. `await app.listen()` listens on `0.0.0.0:3000`. The transport does not instantiate OAuth services or read credentials. Later #352 supplies real durable service composition; this slice exposes the injectable entry point without inventing a token store or standalone login command.
+`createHttpApplication({config, services})` is the Node HTTP application entry point. Inject one application-scoped `McpServices` object; every POST creates a fresh official SDK server/transport. `await app.listen()` defaults to `127.0.0.1:3000`. Explicit host overrides are supported; container entrypoints must pass `0.0.0.0` explicitly (`await app.listen(3000, "0.0.0.0")`). The transport does not instantiate OAuth services or read credentials. Later #352 supplies real durable service composition; this slice exposes the injectable entry point without inventing a token store or standalone login command.
 
 ```ts
 const app = createHttpApplication({
