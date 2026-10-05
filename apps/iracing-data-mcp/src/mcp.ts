@@ -1,0 +1,45 @@
+import { McpServer } from "@modelcontextprotocol/server";
+
+import type { McpApplicationConfig } from "./config";
+import type { McpServices } from "./services";
+
+export type McpToolRegistrar = (
+  server: McpServer,
+  services: McpServices,
+) => void;
+
+const toolRegistrars: readonly McpToolRegistrar[] = [];
+
+/**
+ * Registers the app-owned tool surface on one request-scoped MCP server.
+ *
+ * Tool slices add registrars here; transports and shared services remain outside
+ * this function so server instances can stay request scoped.
+ */
+export function registerMcpTools(
+  server: McpServer,
+  services: McpServices,
+): void {
+  for (const register of toolRegistrars) {
+    register(server, services);
+  }
+}
+
+export interface CreateMcpServerOptions {
+  readonly config: McpApplicationConfig;
+  readonly services: McpServices;
+}
+
+/** Creates a fresh MCP server around long-lived application services. */
+export function createMcpServer({
+  config,
+  services,
+}: CreateMcpServerOptions): McpServer {
+  const server = new McpServer({
+    name: config.name,
+    version: config.version,
+  });
+
+  registerMcpTools(server, services);
+  return server;
+}

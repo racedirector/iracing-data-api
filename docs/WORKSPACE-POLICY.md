@@ -5,6 +5,8 @@
 | Path                                       | Classification          | Ownership area |
 | ------------------------------------------ | ----------------------- | -------------- |
 | `.`                                        | repository-root         | repository     |
+| `apps/iracing-data-cli`                    | internal-tool           | oauth          |
+| `apps/iracing-data-mcp`                    | internal-tool           | api            |
 | `packages/api/schema`                      | public-release-target   | api            |
 | `packages/oauth/schema`                    | public-release-target   | oauth          |
 | `packages/oauth/client`                    | public-release-target   | oauth          |
@@ -17,7 +19,7 @@
 | `examples/oauth-example-cli`               | example                 | examples       |
 | `examples/oauth-password-limited`          | example                 | examples       |
 
-The public set preserves the existing managed releases in `dist-workspace.toml`. The two OpenAPI generators are repository build tools, invoked through root codegen scripts, and are private. Publishing these tools in the future requires an explicit policy and release-model change.
+The public set preserves the existing managed releases in `dist-workspace.toml`. The CLI, MCP app, and two OpenAPI generators are private repository tools. Publishing any of these tools in the future requires an explicit policy and release-model change.
 
 ## Validation
 
@@ -32,7 +34,7 @@ pnpm check:topology --release @iracing-data/oauth-client
 
 The check discovers manifests independently of workspace globs (ignoring dependency and build directories). It verifies classification coverage, package names, private/publish flags, root and public npm MIT metadata, pnpm and Cargo membership, local workspace dependency ownership, all TypeScript reference paths, root TypeScript reference coverage, and exact managed release membership. It fails on unreadable or malformed configuration. CI runs the check and its mutation tests; releases additionally validate the requested public npm package.
 
-`pnpm-workspace.yaml` is the sole npm membership configuration. Positive repository-relative globs are supported, and every glob must match at least one manifest. Do not add a second `workspaces` list to the root manifest. The root `tsconfig.json` references all current npm members, including all three OAuth examples and both generated clients. These references describe the current tree; this policy does not change the packages' compiler options or promise that every package builds successfully.
+`pnpm-workspace.yaml` is the sole npm membership configuration. Positive repository-relative globs are supported, and every glob must match at least one manifest. Do not add a second `workspaces` list to the root manifest. The root `tsconfig.json` references every current npm member. These references describe the current tree; this policy does not change the packages' compiler options or promise that every package builds successfully.
 
 ## Changing topology
 
