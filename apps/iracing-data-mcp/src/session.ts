@@ -48,7 +48,14 @@ function validateSession(token: OAuthTokenResponse | undefined) {
   return token;
 }
 
-/** One process owns one file until stopped. Loading and health never refresh. */
+/**
+ * Compose the OAuth client, Data API configuration, and gateway around one session file.
+ * One process owns one file until stopped. Loading and health never refresh;
+ * token requests restore the session and may refresh and persist rotated credentials.
+ * Missing or invalid stored credentials leave services in authorization_required
+ * and make later token requests fail. OAuth client construction errors instead
+ * reject composition with CONFIGURATION_ERROR.
+ */
 export async function createMcpServices(
   options: SessionCompositionOptions,
 ): Promise<McpServices> {

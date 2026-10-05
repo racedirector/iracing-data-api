@@ -14,8 +14,16 @@ export type GatewayLookup = (
   hostname: string,
 ) => Promise<readonly { address: string; family: number }[]>;
 
-/** Lookup occurs for each request, and only the validated address is used by TLS.
- * No proxy/environment agent, cookies, redirect following or connection reuse. */
+/**
+ * Create a GET transport that checks every DNS answer and pins TLS to the first.
+ * Lookup occurs for each request. No proxy/environment agent, cookie storage,
+ * redirect following or connection reuse is used; supplied headers are forwarded.
+ * Returns a streaming body decoded from gzip, Brotli, or deflate, with encoding
+ * and length headers removed. Callers must enforce URL, status, size, and time limits.
+ * Transport requests reject unsafe DNS answers or unsupported encodings with
+ * DATA_RESOLUTION_FAILED;
+ * lookup, connection, and abort errors propagate, as do errors while reading the body.
+ */
 export function createGatewayTransport(
   resolve: GatewayLookup = (hostname) => lookup(hostname, { all: true }),
   connect: typeof request = request,

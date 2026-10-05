@@ -32,6 +32,8 @@ export const payloadSchemas = {
     .passthrough(),
   result: z.object({ session_results: arrayPayload }).passthrough(),
 };
+
+/** Return schema-parsed data or throw DATA_RESOLUTION_FAILED with reason invalid_data. */
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   const parsed = schema.safeParse(value);
 
@@ -42,6 +44,10 @@ export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   return parsed.data;
 }
 
+/**
+ * Validate a cache link and return its URL and expiry in Unix milliseconds.
+ * Does not check freshness. Malformed data or unsafe URLs throw DATA_RESOLUTION_FAILED.
+ */
 export function parseEnvelope(value: unknown) {
   // Zod URL validation trims whitespace/strips tabs: reject the original wire URL first.
   const wire = parse(objectPayload, value);
@@ -58,6 +64,11 @@ export function parseEnvelope(value: unknown) {
   return { url: envelope.link, expiry: Date.parse(envelope.expires) };
 }
 
+/**
+ * Return chunk metadata for a successful search with consistent counts and safe URLs.
+ * Allows at most 1,000 chunks and 500,000 rows; an empty result must have no chunks.
+ * Malformed metadata or unsafe download paths throw DATA_RESOLUTION_FAILED.
+ */
 export function parseManifest(value: unknown) {
   const wire = parse(
     objectPayload,

@@ -90,16 +90,20 @@ interface SearchState {
     { rows: readonly Record<string, unknown>[]; bytes: number }
   >;
 }
+
+/** Create a RATE_LIMITED failure with a one-second retry hint. */
 function capacity() {
   return new ApplicationFailure("RATE_LIMITED", { retry_after_seconds: 1 });
 }
 
+/** Create a CURSOR_EXPIRED failure for an expired or missing search. */
 function expired() {
   return new ApplicationFailure("CURSOR_EXPIRED", {
     reason: "expired_or_evicted",
   });
 }
 
+/** Create an UPSTREAM_UNAVAILABLE failure without upstream details. */
 function unavailable() {
   return new ApplicationFailure("UPSTREAM_UNAVAILABLE");
 }
@@ -116,6 +120,8 @@ export class DataApiGateway {
   #network = 0;
   #cooldown = 0;
   #retained = 0;
+
+  /** Create a session-local gateway; a noncanonical API base URL throws CONFIGURATION_ERROR. */
   constructor(options: GatewayOptions) {
     if (options.configuration.basePath !== API_ORIGIN) {
       throw new ApplicationFailure("CONFIGURATION_ERROR");
@@ -126,10 +132,14 @@ export class DataApiGateway {
     this.#now = options.now ?? Date.now;
     this.#logger = options.logger ?? createDiagnosticLogger();
   }
+
+  /** Discard retained searches and chunks so their handles can no longer be used. */
   invalidate(): void {
     this.#searches.clear();
     this.#retained = 0;
   }
+
+  /** Remove a search and release its retained byte budget; unknown handles are ignored. */
   #drop(handle: GatewaySearch) {
     const search = this.#searches.get(handle);
 
@@ -144,6 +154,8 @@ export class DataApiGateway {
 
     this.#searches.delete(handle);
   }
+
+  /** Release searches whose expiry is at or before the current gateway time. */
   #prune() {
     for (const [handle, search] of this.#searches) {
       if (search.expiry <= this.#now()) {
@@ -151,6 +163,8 @@ export class DataApiGateway {
       }
     }
   }
+
+  /** Invalidate searches and throw AUTHORIZATION_REQUIRED when configured state is not ready. */
   #checkAuth() {
     if (
       this.#options.authorizationState &&
@@ -161,7 +175,15 @@ export class DataApiGateway {
     }
   }
 
-  /** Tool slices compose all their work inside this one budget/deadline. */
+  /**
+   * Run authorized work within eight fetches, 16 MiB of decoded data, and 30 seconds.
+   * Tool slices compose all their work here; the supplied call expires when withCall settles.
+   * Returns the work result. A signal abort or deadline during work rejects with
+   * UPSTREAM_UNAVAILABLE; excess admission rejects promptly with RATE_LIMITED.
+   * Propagates ApplicationFailure errors, including token refresh failures, and maps
+   * other work errors through the upstream failure policy. Failed token acquisition
+   * invalidates retained searches. Cancellation does not stop an ongoing token refresh.
+   */
   async withCall<T>(
     work: (call: GatewayCall) => Promise<T>,
     signal?: AbortSignal,
@@ -241,6 +263,14 @@ export class DataApiGateway {
       this.#activeCalls--;
     }
   }
+
+  /**
+   * Fetch an allowed API/cache URL, sharing in-flight downloads by URL and authorization.
+   * Each consumer pays its own fetch/decoded-byte budget and receives a response clone.
+   * Reject with RATE_LIMITED during cooldown or at network capacity, or
+   * RESPONSE_LIMIT_EXCEEDED when the call budget is exhausted. The last departing
+   * consumer aborts the download; download failures propagate to remaining consumers.
+   */
   async #fetch(
     state: CallState,
     input: string,
@@ -366,6 +396,15 @@ export class DataApiGateway {
       }
     }
   }
+
+  /**
+   * Buffer one decoded response within 8 MiB and a ten-second timeout.
+   * Cache requests carry no authorization; API requests require a Bearer token.
+   * Report decoded byte increments to onBytes. Reject redirects and invalid bodies,
+   * map cache 403/404 to CURSOR_EXPIRED, and establish shared cooldown on 429.
+   * Preserve ApplicationFailure errors; convert other transport/body errors to
+   * UPSTREAM_UNAVAILABLE. Release the reserved network slot on completion or failure.
+   */
   async #download(
     state: CallState,
     url: URL,
@@ -533,6 +572,8 @@ export class DataApiGateway {
       this.#network--;
     }
   }
+
+  /** Create operations sharing this call's budgets, cancellation, and earliest safe expiry. */
   #call(state: CallState): GatewayCall {
     const configuration = new Configuration({
       basePath: API_ORIGIN,
@@ -559,6 +600,7 @@ export class DataApiGateway {
 
     const handleIds = new Map<GatewaySearch, number>();
 
+    /** Share only pending work for a key within this call; settled results are not retained. */
     const once = <T>(key: string, work: () => Promise<T>): Promise<T> => {
       if (state.signal.aborted) {
         return Promise.reject(unavailable());
@@ -581,6 +623,7 @@ export class DataApiGateway {
       return promise;
     };
 
+    /** Parse JSON, converting parse errors or cancellation after parsing to invalid_data. */
     const json = async (response: Response): Promise<unknown> => {
       try {
         const value: unknown = await response.json();
@@ -593,6 +636,7 @@ export class DataApiGateway {
       }
     };
 
+    /** Read raw generated responses and unwrap only ApplicationFailure causes from FetchError. */
     const raw = async (request: () => Promise<ApiResponse<unknown>>) => {
       try {
         return await json((await request()).raw);
@@ -608,6 +652,11 @@ export class DataApiGateway {
       }
     };
 
+    /**
+     * Resolve and validate a linked payload, reserving a 30-second expiry margin.
+     * Reacquire the envelope once on expiry or cache 403/404 within the same call budget;
+     * propagate other failures and record the successful link's safe expiry on the call.
+     */
     const linked = <T>(
       key: string,
       request: () => Promise<ApiResponse<unknown>>,
@@ -654,6 +703,7 @@ export class DataApiGateway {
         throw expired();
       });
 
+    /** Parse operation parameters or throw INVALID_INPUT before making a request. */
     const validated = <T>(schema: z.ZodType<T>, params: unknown): T => {
       const result = schema.safeParse(params);
 
@@ -924,27 +974,64 @@ export class DataApiGateway {
 export interface GatewayCall {
   /** Earliest safe cursor expiry of this call, including the 30-second link margin. */
   readonly expiresAt: number;
+
+  /** Return the validated API documentation document without resolving links. */
   document(): Promise<z.infer<typeof directSchemas.document>>;
+
+  /** Return the validated constants categories array directly from the API. */
   constants(): Promise<z.infer<typeof directSchemas.constants>>;
+
+  /** Resolve and validate the authorized member profile from its cache link. */
   member(): Promise<z.infer<typeof payloadSchemas.member>>;
+
+  /** Validate lookup parameters and resolve the matching driver records. */
   drivers(
     params: GetLookupDriversRequest,
   ): Promise<z.infer<typeof payloadSchemas.drivers>>;
+
+  /** Resolve and validate the car collection from its cache link. */
   cars(): Promise<z.infer<typeof payloadSchemas.cars>>;
+
+  /** Resolve and validate the track collection from its cache link. */
   tracks(): Promise<z.infer<typeof payloadSchemas.tracks>>;
+
+  /** Resolve recent races using validated parameters; omitted parameters use API defaults. */
   recent(
     params?: GetStatsMemberRecentRacesRequest,
   ): Promise<z.infer<typeof payloadSchemas.recent>>;
+
+  /** Resolve seasons using validated parameters; omitted parameters use API defaults. */
   seasons(
     params?: GetSeriesSeasonListRequest,
   ): Promise<z.infer<typeof payloadSchemas.seasons>>;
+
+  /** Resolve and validate the requested season schedule, requiring a successful response. */
   schedule(
     params: GetSeriesSeasonScheduleRequest,
   ): Promise<z.infer<typeof payloadSchemas.schedule>>;
+
+  /** Resolve and validate the requested subsession result. */
   result(
     params: GetResultsRequest,
   ): Promise<z.infer<typeof payloadSchemas.result>>;
+
+  /**
+   * Validate search parameters and retain a manifest without downloading result chunks.
+   * Return a gateway-local handle valid for five minutes, with expiresAt in Unix
+   * milliseconds. Reuse the exact handle object for chunk reads across calls.
+   * Capacity exhaustion throws RESPONSE_LIMIT_EXCEEDED; request and validation
+   * failures propagate. Searches are never automatically recreated after expiry.
+   */
   search(params?: GetResultsSearchSeriesRequest): Promise<GatewaySearch>;
+
+  /**
+   * Return one chunk in its original row order, copying rows from the private cache.
+   * The index is zero-based; an out-of-range or noninteger index throws INVALID_INPUT.
+   * Missing or expired handles throw CURSOR_EXPIRED; cache 403/404 also retires the handle.
+   * Invalid rows/counts throw DATA_RESOLUTION_FAILED, and byte/retention limits throw
+   * RESPONSE_LIMIT_EXCEEDED. Other fetch failures propagate; cached reads still consume
+   * the call's byte budget.
+   */
   chunk(
     search: GatewaySearch,
     index: number,

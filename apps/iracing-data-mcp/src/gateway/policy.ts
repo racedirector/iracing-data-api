@@ -18,19 +18,26 @@ export const GATEWAY_LIMITS = Object.freeze({
   retainedBytes: 32 * 1024 * 1024,
   cursorTtlMs: 300_000,
 });
+
+/** Throw DATA_RESOLUTION_FAILED with reason unsafe_link. */
 export function unsafeLink(): never {
   throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
     reason: "unsafe_link",
   });
 }
 
+/** Throw DATA_RESOLUTION_FAILED with reason invalid_data. */
 export function invalidData(): never {
   throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
     reason: "invalid_data",
   });
 }
 
-/** Reject ambiguous encodings before WHATWG URL normalization can hide traversal. */
+/**
+ * Reject ambiguous encodings before WHATWG URL normalization can hide traversal.
+ * Return an HTTPS URL on an allowed cache host or throw DATA_RESOLUTION_FAILED
+ * with reason unsafe_link. Directory URLs must end in a slash and have no query.
+ */
 export function cacheUrl(input: string, directory = false): URL {
   if (input.length > 8192 || /[\\\s\x00-\x1f\x7f]/.test(input)) {
     unsafeLink();
@@ -72,6 +79,11 @@ export function cacheUrl(input: string, directory = false): URL {
   return url;
 }
 
+/**
+ * Resolve one filename within a validated cache directory.
+ * Reject paths, escapes, or names longer than 255 characters with
+ * DATA_RESOLUTION_FAILED (unsafe_link).
+ */
 export function chunkUrl(base: string, filename: string): URL {
   const url = cacheUrl(base, true);
 
@@ -119,6 +131,8 @@ denied.addSubnet("2001::", 23, "ipv6");
 denied.addSubnet("2001:db8::", 32, "ipv6");
 denied.addSubnet("2002::", 16, "ipv6");
 denied.addSubnet("3fff::", 20, "ipv6");
+
+/** Return whether an IP literal passes the gateway's IPv4/IPv6 address policy. */
 export function isPublicAddress(address: string): boolean {
   const family = isIP(address);
 
@@ -133,6 +147,10 @@ export function isPublicAddress(address: string): boolean {
   return false;
 }
 
+/**
+ * Convert Retry-After seconds or a date to whole seconds, rounded up and capped at 3,600.
+ * `now` is Unix time in milliseconds; missing, invalid, or past values return one second.
+ */
 export function retryAfter(value: string | null, now: number): number {
   const seconds =
     value && /^\d+$/.test(value)
