@@ -26,6 +26,26 @@ export const ConstantsResponseSchema = z
   .array(z.record(z.string(), z.unknown()))
   .meta({ id: "iracingConstantsResponse" });
 
+export const ResultsSearchSeriesResponseSchema = z
+  .object({
+    type: z.literal("search_series_results"),
+    data: z.object({
+      success: z.boolean(),
+      chunk_info: z.object({
+        chunk_size: z.number().int().nonnegative(),
+        num_chunks: z.number().int().nonnegative(),
+        rows: z.number().int().nonnegative(),
+        base_download_url: z.url(),
+        chunk_file_names: z.array(z.string()),
+      }),
+      params: z.record(z.string(), z.unknown()),
+    }),
+  })
+  .meta({
+    description: "Direct manifest response from `/data/results/search_series`.",
+    id: "resultsSearchSeriesResponse",
+  });
+
 export const ServiceMethodParametersDocsResponseSchema = z
   .object({
     type: z.string(),
@@ -104,6 +124,9 @@ export const GetTrackResponseSchema = z.array(
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type APIResponse = z.infer<typeof APIResponseSchema>;
 export type ConstantsResponse = z.infer<typeof ConstantsResponseSchema>;
+export type ResultsSearchSeriesResponse = z.infer<
+  typeof ResultsSearchSeriesResponseSchema
+>;
 
 export type ServiceMethodParametersDocsResponse = z.infer<
   typeof ServiceMethodParametersDocsResponseSchema
