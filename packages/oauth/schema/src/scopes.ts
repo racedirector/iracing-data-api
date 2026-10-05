@@ -21,7 +21,7 @@ export const OAuthScopeListCodec = z.codec(
   OAuthScopesStringSchema,
   OAuthScopeListSchema,
   {
-    decode: (value) => value.trim().split(/\s+/),
+    decode: (value) => OAuthScopeListSchema.parse(value.trim().split(/\s+/)),
     encode: (value) => value.join(" "),
   },
 );
