@@ -3,9 +3,9 @@
   "compilerOptions": {
     "rootDir": "./src",
     "outDir": "./dist",
-    "module": "preserve",
+    "module": "NodeNext",
     "target": "es2022",
-    "moduleResolution": "bundler"
+    "moduleResolution": "NodeNext"
   },
   "exclude": ["node_modules", "dist", "test"]
 }
