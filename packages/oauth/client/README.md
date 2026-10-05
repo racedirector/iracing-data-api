@@ -57,6 +57,14 @@ session under the iRacing customer ID, so that flow requires profile access. If
 you already have a refresh token and want to force a refresh manually, call
 `client.refresh(refreshToken)`.
 
+`restoreSessionForId()` treats the stored `refresh_token` as an opaque OAuth
+grant credential. It does not decode the refresh token or require JWT structure;
+when an expired access token needs renewal, the authorization server decides
+whether the refresh credential is expired, revoked, malformed, or otherwise
+invalid. The JWT convenience helpers in `dist/utils.js`, including
+`isRefreshTokenExpired()` and `isRefreshTokenValid()`, intentionally retain their
+JWT-only behavior and are not used to gate session restoration.
+
 Concurrent `restoreSessionForId()` calls for the same expired session share one
 refresh operation within an `OAuthClient` instance. The operation completes only
 after the merged session, including the rotated refresh token and retained fields,

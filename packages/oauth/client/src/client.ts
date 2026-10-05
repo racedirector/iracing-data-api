@@ -18,7 +18,6 @@ import {
   AccessTokenValidationOptions,
   decodeAccessToken,
   isAccessTokenExpired,
-  isRefreshTokenExpired,
   maskSecret,
   validateAccessToken as validateDecodedAccessToken,
 } from "./utils";
@@ -157,7 +156,6 @@ export class OAuthClient {
     if (!username) {
       throw ClientMetadataError.missingCredentials("username");
     }
-
     if (!password) {
       throw ClientMetadataError.missingCredentials("password");
     }
@@ -431,7 +429,7 @@ export class OAuthClient {
    * @param sessionId - The session identifier to refresh.
    * @returns The complete persisted session.
    * @throws {OAuthRefreshError} If the session does not exist, is missing a refresh token,
-   *   or the refresh token is expired.
+   *   or the authorization server rejects the refresh grant.
    */
   private async refreshSessionForSessionId(sessionId: string) {
     const session = await this.getSession(sessionId);
@@ -448,10 +446,6 @@ export class OAuthClient {
 
     if (!session.refresh_token) {
       throw OAuthRefreshError.missingRefreshToken(sessionId);
-    }
-
-    if (isRefreshTokenExpired(session.refresh_token)) {
-      throw OAuthRefreshError.tokenExpired(sessionId);
     }
 
     const refreshed = await this.refresh(session.refresh_token);
