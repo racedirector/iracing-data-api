@@ -117,7 +117,8 @@ function assertPosixOwnershipAndMode(
 ) {
   if (process.platform === "win32") return;
 
-  const uid = typeof process.getuid === "function" ? process.getuid() : undefined;
+  const uid =
+    typeof process.getuid === "function" ? process.getuid() : undefined;
   if (uid !== undefined && stats.uid !== uid) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
@@ -174,12 +175,7 @@ function assertSecureFile(stats: FileStats, target: string) {
       `OAuth token document exceeds ${OAUTH_TOKEN_DOCUMENT_MAX_BYTES} bytes: ${target}`,
     );
   }
-  assertPosixOwnershipAndMode(
-    stats,
-    target,
-    0o600,
-    "OAuth token document",
-  );
+  assertPosixOwnershipAndMode(stats, target, 0o600, "OAuth token document");
 }
 
 async function ensureSecureParent(
@@ -247,10 +243,7 @@ function validateTokenDocument(value: unknown): OAuthTokenResponse {
       "OAuth token document access_token must be nonempty.",
     );
   }
-  if (
-    token.refresh_token !== undefined &&
-    !token.refresh_token.trim()
-  ) {
+  if (token.refresh_token !== undefined && !token.refresh_token.trim()) {
     throw new OAuthTokenDocumentError(
       "invalid_document",
       "OAuth token document refresh_token must be nonempty when present.",
@@ -522,7 +515,10 @@ async function removeOAuthTokenDocument(
     await fileSystem.unlink(destination);
   } catch (error) {
     if (!isErrno(error, "ENOENT")) {
-      throw ioError(`Unable to delete OAuth token document: ${destination}`, error);
+      throw ioError(
+        `Unable to delete OAuth token document: ${destination}`,
+        error,
+      );
     }
   }
   await syncDirectory(fileSystem, parent, durability);
