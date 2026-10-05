@@ -239,7 +239,13 @@ test("official MCP client initializes, lists and calls stateless JSON tools", as
   assert.equal(transport.sessionId, undefined);
   assert.deepEqual(
     (await client.listTools()).tools.map((x) => x.name),
-    ["probe"],
+    [
+      "get_my_driver",
+      "find_drivers",
+      "get_recent_races",
+      "lookup_content",
+      "probe",
+    ],
   );
   assert.equal(
     (await client.callTool({ name: "probe", arguments: {} })).content[0].text,

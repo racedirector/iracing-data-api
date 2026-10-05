@@ -3,6 +3,7 @@ import {
   ProtocolError,
   ProtocolErrorCode,
 } from "@modelcontextprotocol/server";
+import { registerIdentityContentTools } from "./tools/identity-content.js";
 import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
@@ -17,7 +18,9 @@ export type McpToolRegistrar = (
   services: McpServices,
 ) => void;
 
-const toolRegistrars: readonly McpToolRegistrar[] = [];
+const toolRegistrars: readonly McpToolRegistrar[] = [
+  registerIdentityContentTools,
+];
 
 /**
  * Registers the app-owned tool surface on one request-scoped MCP server.

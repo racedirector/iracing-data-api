@@ -116,6 +116,11 @@ export class DataApiGateway {
   readonly #logger: ReturnType<typeof createDiagnosticLogger>;
   readonly #inflight = new Map<string, SharedFetch>();
   readonly #searches = new Map<GatewaySearch, SearchState>();
+  #generation = 0;
+  /** Account-owner invalidation epoch for app-local projected cursors. */
+  get generation(): number {
+    return this.#generation;
+  }
   #activeCalls = 0;
   #network = 0;
   #cooldown = 0;
@@ -135,6 +140,7 @@ export class DataApiGateway {
 
   /** Discard retained searches and chunks so their handles can no longer be used. */
   invalidate(): void {
+    this.#generation++;
     this.#searches.clear();
     this.#retained = 0;
   }

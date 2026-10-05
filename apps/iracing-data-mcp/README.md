@@ -12,7 +12,7 @@ This workspace establishes the application, service and diagnostic seams:
 - `McpApplicationConfigSchema` owns app-local server identity configuration.
 - App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. Docker packaging (#358) and concrete tools remain deferred.
+Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354. Docker packaging (#358) and later tools remain deferred.
 
 ## Development
 
@@ -27,7 +27,7 @@ See [scoped guidance](AGENTS.md) and the repository [verification contract](../.
 
 ## Error and diagnostic contract (#351)
 
-The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway uses this contract; domain tools remain deferred.
+The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway and #354 tools use this contract.
 
 Create one `createRequestContext()` at the application request boundary; reuse it for output and logs. Client, JSON-RPC and upstream IDs are never used as diagnostic IDs. `ApplicationFailure` accepts a code and bounded optional metadata, never a message/cause. `toolError()` returns `isError: true`, `structuredContent: { error: { code, message, retryable, request_id, reason?, retry_after_seconds? } }` and one JSON text equivalent. `ErrorEnvelopeSchema` strictly validates the envelope and code-specific policy. Unknown exceptions become `INTERNAL_ERROR`; messages come only from fixed app recovery text.
 
@@ -111,7 +111,7 @@ HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes
 
 ### Local threat model and rollout
 
-The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, gateway fetching/retries, domain tools, telemetry and Docker packaging remain deferred.
+The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, telemetry and Docker packaging remain deferred. Gateway reads and the four tools below use the existing OAuth owner.
 
 Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency depends on iRacing and is bounded by the gateway deadlines below.
 
@@ -168,7 +168,7 @@ const pageSource = await services.dataApiGateway!.withCall(
   }),
   toolAbortSignal,
 );
-// A later tool slice validates/projects items and owns opaque collection cursors.
+// #354 validates/projects collection items and owns opaque cursors.
 ```
 
 `GatewayCall` exposes only the planned read operations: document, categories constants, member, drivers, cars, tracks, recent races, season list/schedule, results and series search. Inputs use the maintained wire schemas; tool slices must apply their stricter noncoercing input schemas and bounded projections. Direct documents/constants are parsed with canonical schemas; link operations require a valid link envelope and the operation's observed collection/object shape. These raw internal payloads must never be forwarded directly to a model. Detailed field validation/projection belongs to each tool slice.
@@ -211,3 +211,86 @@ Known link expiry contributes to `call.expiresAt`: the earlier of five minutes a
 429 establishes a shared cooldown from bounded Retry-After seconds or HTTP date (up to one hour; invalid/absent values use one second). New work returns `RATE_LIMITED` immediately with safe retry metadata. API 401/403 remain `UPSTREAM_UNAUTHORIZED`, without refresh/retry loops. Unsafe links/malformed data are `DATA_RESOLUTION_FAILED`; oversized sources are `RESPONSE_LIMIT_EXCEEDED`; timeout/cancellation/network failure is `UPSTREAM_UNAVAILABLE`. Narrow oversized requests, wait for cooldown, rerun expired searches, or give support the app request ID. Raw URLs, headers, bodies and exception causes are excluded from fixed errors and allowlisted diagnostics.
 
 Offline gateway tests cover operation shapes, both cache hosts, expiry/reacquisition, manifest/path/DNS attacks, decoded and cumulative caps, compression, cancellation/deadlines, admission/concurrency, deduplication, retention, account-local invalidation and safe diagnostics. Existing session/quarantine/rotation and HTTP/security tests remain active. No domain tools, model-facing cursors, Docker/Compose, telemetry, hosted auth, callbacks, public package versions or publication are added. Rollout uses the shared services before listening; rollback stops/drains and reverts this private slice. Never restore consumed refresh credentials; use stopped host login when rotation is uncertain.
+
+## Identity, recent races and content tools (#354)
+
+The four read-only tools require only the existing `iracing.auth` session. Tokens
+are never arguments. Health, initialize and tool listing remain available before
+login. Inputs reject unknown fields, numeric strings and changes to continuation
+filters. IDs must be positive safe integers. Names and labels are untrusted data.
+
+| Tool               | Initial arguments                                                  | Result                                                                                                                                                                                            |
+| ------------------ | ------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_my_driver`    | `{}`                                                               | `cust_id`, `display_name` from Data API `member/info`                                                                                                                                             |
+| `find_drivers`     | `query` (trimmed, 2–100 characters), optional `league_id`, `limit` | Driver IDs/names in upstream rank order; `ambiguous` means multiple source matches, including when the current page has one row. No driver is selected automatically.                             |
+| `get_recent_races` | Optional `cust_id`, `limit` (1–10, default 10)                     | `cust_id`, `races`, `returned_count`, `complete:true`, `position_basis:"upstream"`. This is the upstream recent window, not exhaustive history. Positions, including sentinels, remain unchanged. |
+| `lookup_content`   | `kind:"cars"                                                       | "tracks"`, optional unique `ids`(1–50) **or**`query`(2–100 characters), optional`limit`                                                                                                           | Cars: ID/name/abbreviation. Tracks: ID/name/config/category/oval/dirt. Case-insensitive substring matching on names/config; ascending ID order. ID requests include sorted `missing_ids`. Neither IDs nor query means browse. |
+
+Collection tools default to 25 items, accept `limit` 1–100, and return
+`items`, `returned_count`, `complete`, `next_cursor` and `source_total` (the
+matching collection size). Content pages include `kind`; ID pages retain the same
+`missing_ids` across continuation. Every complete tool result is at most 64 KiB,
+counting both structured JSON and the equivalent text. Page size shrinks to fit
+bytes; a single item that cannot fit fails with `RESPONSE_LIMIT_EXCEEDED`.
+Recent results do not have a cursor; their `complete` describes the requested
+recent window only. Optional unavailable fields become `null`, never invented
+zeros. Malformed essential fields fail with `DATA_RESOLUTION_FAILED`.
+
+Example official MCP client calls, after the host CLI login and server restart:
+
+```ts
+const self = await client.callTool({ name: "get_my_driver", arguments: {} });
+const recent = await client.callTool({
+  name: "get_recent_races",
+  arguments: { cust_id: self.structuredContent!.cust_id, limit: 5 },
+});
+const drivers = await client.callTool({
+  name: "find_drivers",
+  arguments: { query: "Synthetic Driver", limit: 25 },
+});
+// Inspect candidates; ask the user to disambiguate rather than picking a match.
+const tracks = await client.callTool({
+  name: "lookup_content",
+  arguments: { kind: "tracks", query: "Watkins Glen", limit: 25 },
+});
+const cars = await client.callTool({
+  name: "lookup_content",
+  arguments: { kind: "cars", ids: [101, 102], limit: 25 },
+});
+if (tracks.structuredContent!.next_cursor) {
+  const next = await client.callTool({
+    name: "lookup_content",
+    arguments: { cursor: tracks.structuredContent!.next_cursor },
+  });
+}
+```
+
+A continuation accepts `{cursor}` alone. Opaque 256-bit random tokens refer to
+private immutable projected collections, normalized filters, tool, account-owner
+generation, page limit and offset. Replaying one returns the same page and next
+token, including concurrent calls; it performs authorization restoration inside
+`withCall` but no Data API/cache request. Upstream reads for one tool share one
+cancelable gateway budget. Cursors expire at the earlier of five minutes and the
+gateway's earliest known envelope expiry minus thirty seconds. No page resets the
+expiry. Restart, authorization loss or gateway/account-owner invalidation retires
+them. At most 32 tokens and 32 MiB of serialized projected state/replay results are
+retained; capacity fails promptly, without eviction/restart mixing. Cursors are
+never persisted and carry no signed URL or credential.
+
+Recovery: correct `INVALID_INPUT` arguments; rerun an initial query after
+`CURSOR_EXPIRED`; lower the page size or narrow a query after
+`RESPONSE_LIMIT_EXCEEDED`. A source over the gateway byte cap still fails before
+projection, so lowering the page size cannot fix an oversized source. Authorization
+and refresh recovery remains the stopped-login workflow above; uncertain refresh
+consumption is never retried. Source account details, ownership, liveries, assets,
+prices and URLs are excluded. Synthetic integration tests cover identity/recent
+performance, driver ambiguity and content resolution; live upstream completeness
+is not claimed.
+
+This private `0.0.0` slice needs no public package version bump or generated
+contract change. Rollout adds these registrations to the existing shared services;
+local protocol/cursor replay targets less than one second, while upstream calls
+retain the gateway deadlines. Rollback stops/drains and reverts this slice, losing
+all cursors; never restore consumed refresh credentials. Series/schedule, detailed
+results, history search, Docker/Compose, telemetry, hosted auth, browser callbacks,
+resources/prompts and arbitrary proxying remain separate slices.
