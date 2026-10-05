@@ -6,3 +6,4 @@ export * from "./diagnostics/mapping.js";
 export * from "./diagnostics/logging.js";
 export * from "./http.js";
 export * from "./session.js";
+export * from "./gateway/gateway.js";

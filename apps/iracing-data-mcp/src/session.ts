@@ -12,6 +12,7 @@ import {
   createRequestContext,
 } from "./diagnostics/errors.js";
 import { createDiagnosticLogger } from "./diagnostics/logging.js";
+import { DataApiGateway } from "./gateway/gateway.js";
 import type { McpServices } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
@@ -47,7 +48,14 @@ function validateSession(token: OAuthTokenResponse | undefined) {
   return token;
 }
 
-/** One process owns one file until stopped. Loading and health never refresh. */
+/**
+ * Compose the OAuth client, Data API configuration, and gateway around one session file.
+ * One process owns one file until stopped. Loading and health never refresh;
+ * token requests restore the session and may refresh and persist rotated credentials.
+ * Missing or invalid stored credentials leave services in authorization_required
+ * and make later token requests fail. OAuth client construction errors instead
+ * reject composition with CONFIGURATION_ERROR.
+ */
 export async function createMcpServices(
   options: SessionCompositionOptions,
 ): Promise<McpServices> {
@@ -240,13 +248,22 @@ export async function createMcpServices(
     );
   }
 
+  const dataApiConfiguration = new Configuration({
+    accessToken: async () =>
+      (await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY))!
+        .access_token,
+  });
+
+  const dataApiGateway = new DataApiGateway({
+    configuration: dataApiConfiguration,
+    authorizationState: () => state,
+    logger,
+  });
+
   return Object.freeze({
     oauthClient,
     authorizationState: () => state,
-    dataApiConfiguration: new Configuration({
-      accessToken: async () =>
-        (await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY))!
-          .access_token,
-    }),
+    dataApiConfiguration,
+    dataApiGateway,
   });
 }
