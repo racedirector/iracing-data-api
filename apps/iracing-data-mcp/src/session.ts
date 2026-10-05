@@ -246,6 +246,7 @@ export async function createMcpServices(
       (await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY))!
         .access_token,
   });
+
   const dataApiGateway = new DataApiGateway({
     configuration: dataApiConfiguration,
     authorizationState: () => state,

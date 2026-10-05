@@ -23,6 +23,7 @@ export function unsafeLink(): never {
     reason: "unsafe_link",
   });
 }
+
 export function invalidData(): never {
   throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
     reason: "invalid_data",
@@ -31,13 +32,18 @@ export function invalidData(): never {
 
 /** Reject ambiguous encodings before WHATWG URL normalization can hide traversal. */
 export function cacheUrl(input: string, directory = false): URL {
-  if (input.length > 8192 || /[\\\s\x00-\x1f\x7f]/.test(input)) unsafeLink();
+  if (input.length > 8192 || /[\\\s\x00-\x1f\x7f]/.test(input)) {
+    unsafeLink();
+  }
+
   let url: URL;
+
   try {
     url = new URL(input);
   } catch {
     return unsafeLink();
   }
+
   if (
     url.protocol !== "https:" ||
     !CACHE_HOSTS.includes(url.hostname) ||
@@ -45,31 +51,51 @@ export function cacheUrl(input: string, directory = false): URL {
     url.password ||
     url.hash ||
     (url.port && url.port !== "443")
-  )
+  ) {
     unsafeLink();
+  }
+
   const rawPath = input.slice(input.indexOf("://") + 3).split("?")[0];
+
   if (
     rawPath.split("/").some((part) => part === "." || part === "..") ||
     /%(?:2e|2f|5c|00|25)/i.test(rawPath) ||
     url.pathname.includes("//")
-  )
+  ) {
     unsafeLink();
-  if (directory && (!url.pathname.endsWith("/") || url.search)) unsafeLink();
+  }
+
+  if (directory && (!url.pathname.endsWith("/") || url.search)) {
+    unsafeLink();
+  }
+
   return url;
 }
+
 export function chunkUrl(base: string, filename: string): URL {
   const url = cacheUrl(base, true);
+
   if (
     !/^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*$/.test(filename) ||
     filename.length > 255
-  )
+  ) {
     unsafeLink();
+  }
+
   const child = cacheUrl(new URL(filename, url).href);
-  if (child.origin !== url.origin || child.pathname !== url.pathname + filename)
+
+  if (
+    child.origin !== url.origin ||
+    child.pathname !== url.pathname + filename
+  ) {
     unsafeLink();
+  }
+
   return child;
 }
+
 const denied = new BlockList();
+
 for (const [address, prefix] of [
   ["0.0.0.0", 8],
   ["10.0.0.0", 8],
@@ -84,8 +110,10 @@ for (const [address, prefix] of [
   ["198.51.100.0", 24],
   ["203.0.113.0", 24],
   ["224.0.0.0", 3],
-] as const)
+] as const) {
   denied.addSubnet(address, prefix, "ipv4");
+}
+
 // Only globally routed IPv6 unicast is accepted; reject mapped/transition/local ranges.
 denied.addSubnet("2001::", 23, "ipv6");
 denied.addSubnet("2001:db8::", 32, "ipv6");
@@ -93,11 +121,18 @@ denied.addSubnet("2002::", 16, "ipv6");
 denied.addSubnet("3fff::", 20, "ipv6");
 export function isPublicAddress(address: string): boolean {
   const family = isIP(address);
-  if (family === 4) return !denied.check(address, "ipv4");
-  if (family === 6)
+
+  if (family === 4) {
+    return !denied.check(address, "ipv4");
+  }
+
+  if (family === 6) {
     return /^[23][0-9a-f]{3}:/i.test(address) && !denied.check(address, "ipv6");
+  }
+
   return false;
 }
+
 export function retryAfter(value: string | null, now: number): number {
   const seconds =
     value && /^\d+$/.test(value)
@@ -105,6 +140,7 @@ export function retryAfter(value: string | null, now: number): number {
       : value
         ? (Date.parse(value) - now) / 1000
         : NaN;
+
   return Number.isFinite(seconds) && seconds >= 0
     ? Math.min(3600, Math.ceil(seconds))
     : 1;
