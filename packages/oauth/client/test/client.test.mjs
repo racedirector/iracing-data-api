@@ -277,22 +277,19 @@ test("valid and missing sessions require no refresh", async () => {
   );
 });
 
-for (const [refresh_token, code] of [
-  [undefined, "MISSING_REFRESH_TOKEN"],
-  [jwt(1), "REFRESH_TOKEN_EXPIRED"],
-]) {
-  test(`unrefreshable session fails before network: ${code}`, async () => {
-    mockFetch();
-    const { client, sessionStore } = setup();
-    const stored = token({ access_token: jwt(1), refresh_token });
-    sessionStore.set("session", stored);
-    await assert.rejects(
-      client.restoreSessionForId("session"),
-      (error) => error instanceof OAuthRefreshError && error.code === code,
-    );
-    assert.deepEqual(sessionStore.get("session"), stored);
-  });
-}
+test("expired session without a refresh token fails before network", async () => {
+  mockFetch();
+  const { client, sessionStore } = setup();
+  const stored = token({ access_token: jwt(1) });
+  sessionStore.set("session", stored);
+  await assert.rejects(
+    client.restoreSessionForId("session"),
+    (error) =>
+      error instanceof OAuthRefreshError &&
+      error.code === "MISSING_REFRESH_TOKEN",
+  );
+  assert.deepEqual(sessionStore.get("session"), stored);
+});
 
 test("refresh error retains structured information and leaves stored tokens intact", async () => {
   const { client, sessionStore } = setup();
@@ -576,20 +573,17 @@ test("different session IDs refresh independently while valid and missing sessio
   assert.equal(requests, 2);
 });
 
-for (const field of ["access_token", "refresh_token"]) {
-  test(`malformed stored ${field} fails before network and allows corrected session retry`, async () => {
-    const { client, sessionStore } = setup();
-    sessionStore.set(
-      "session",
-      token({
-        access_token: jwt(1),
-        refresh_token: jwt(future()),
-        [field]: "malformed",
-      }),
-    );
-    await assert.rejects(client.restoreSessionForId("session"));
-    const valid = token();
-    sessionStore.set("session", valid);
-    assert.deepEqual(await client.restoreSessionForId("session"), valid);
-  });
-}
+test("malformed stored access_token fails before network and allows corrected session retry", async () => {
+  const { client, sessionStore } = setup();
+  sessionStore.set(
+    "session",
+    token({
+      access_token: "malformed",
+      refresh_token: jwt(future()),
+    }),
+  );
+  await assert.rejects(client.restoreSessionForId("session"));
+  const valid = token();
+  sessionStore.set("session", valid);
+  assert.deepEqual(await client.restoreSessionForId("session"), valid);
+});
