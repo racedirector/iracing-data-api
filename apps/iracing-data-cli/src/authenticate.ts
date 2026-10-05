@@ -11,6 +11,7 @@ import type { AddressInfo } from "node:net";
 
 const CALLBACK_HOST = "127.0.0.1";
 const CALLBACK_PATH = "/oauth/iracing/callback";
+const DEFAULT_REDIRECT_URI = `http://${CALLBACK_HOST}:0${CALLBACK_PATH}`;
 const SESSION_ID = "iracing-data-cli";
 const SCOPES = ["iracing.auth"] as const;
 
@@ -37,6 +38,7 @@ export type SignalSource = {
 export type BrowserLoginOptions = {
   clientId: string;
   clientSecret?: string;
+  redirectUri?: string;
   timeoutSeconds: number;
   openBrowser: boolean;
   diagnostics: Diagnostics;
@@ -75,6 +77,29 @@ export async function authenticateWithBrowser(
     throw new Error("--timeout-seconds must be a positive number");
   }
 
+  const registeredRedirectUri = options.redirectUri ?? DEFAULT_REDIRECT_URI;
+  let callbackUrl: URL;
+  try {
+    callbackUrl = new URL(registeredRedirectUri);
+  } catch {
+    throw new Error(
+      "IRACING_AUTH_REDIRECT_URI must be a valid HTTP loopback URL.",
+    );
+  }
+  if (
+    callbackUrl.protocol !== "http:" ||
+    !["127.0.0.1", "[::1]"].includes(callbackUrl.hostname) ||
+    callbackUrl.username ||
+    callbackUrl.password ||
+    registeredRedirectUri.includes("#")
+  ) {
+    throw new Error(
+      "IRACING_AUTH_REDIRECT_URI must use http://127.0.0.1 or http://[::1], without credentials or a fragment. Register this loopback URI with iRacing before using browser login.",
+    );
+  }
+  const callbackHost = callbackUrl.hostname.replace(/^\[|\]$/g, "");
+  const callbackPort = Number(callbackUrl.port || "80");
+
   const server = createServer();
   let timeout: NodeJS.Timeout | undefined;
   let callbackClaimed = false;
@@ -90,8 +115,14 @@ export async function authenticateWithBrowser(
 
   try {
     await new Promise<void>((resolve, reject) => {
-      server.once("error", reject);
-      server.listen(0, CALLBACK_HOST, () => resolve());
+      server.once("error", () =>
+        reject(
+          new Error(
+            "Could not bind the OAuth callback listener. Free the port configured by IRACING_AUTH_REDIRECT_URI, or configure another loopback URI registered with iRacing.",
+          ),
+        ),
+      );
+      server.listen(callbackPort, callbackHost, () => resolve());
     });
 
     const address = server.address() as AddressInfo | null;
@@ -99,7 +130,11 @@ export async function authenticateWithBrowser(
       throw new Error("OAuth callback listener did not expose an address.");
     }
 
-    const redirectUri = `http://${CALLBACK_HOST}:${address.port}${CALLBACK_PATH}`;
+    // Preserve the registered URI byte-for-byte except for native-app port 0.
+    const redirectUri =
+      callbackPort === 0
+        ? registeredRedirectUri.replace(/:0(?=\/|\?|$)/, `:${address.port}`)
+        : registeredRedirectUri;
     const config: OAuthClientConfig = {
       clientId,
       clientSecret,
@@ -119,7 +154,12 @@ export async function authenticateWithBrowser(
       (resolve, reject) => {
         rejectFlow = reject;
         timeout = setTimeout(
-          () => reject(new Error("Timed out waiting for the OAuth callback.")),
+          () =>
+            reject(
+              new Error(
+                "Timed out waiting for the OAuth callback. If iRacing rejected the URL, check IRACING_AUTH_CLIENT and ensure IRACING_AUTH_REDIRECT_URI matches a registered redirect URI (use port 0 only for a registered native-app URI).",
+              ),
+            ),
           Math.round(timeoutSeconds * 1000),
         );
         signalSource.once("SIGINT", onSignal);
@@ -127,7 +167,7 @@ export async function authenticateWithBrowser(
 
         server.on("request", async (request, response) => {
           const requestUrl = new URL(request.url ?? "/", redirectUri);
-          if (requestUrl.pathname !== CALLBACK_PATH) {
+          if (requestUrl.pathname !== callbackUrl.pathname) {
             response.statusCode = 404;
             response.end("Not found.");
             return;

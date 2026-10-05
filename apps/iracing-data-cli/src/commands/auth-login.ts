@@ -19,6 +19,7 @@ export function createAuthLoginCommand(diagnostics: Diagnostics) {
       const token = await authenticateWithBrowser({
         clientId: process.env.IRACING_AUTH_CLIENT ?? "",
         clientSecret: process.env.IRACING_AUTH_SECRET || undefined,
+        redirectUri: process.env.IRACING_AUTH_REDIRECT_URI || undefined,
         timeoutSeconds: Number(options.timeoutSeconds),
         openBrowser: options.open,
         diagnostics,

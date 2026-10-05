@@ -22,21 +22,30 @@ Registered redirect URI: http://127.0.0.1:0/oauth/iracing/callback
 Requested scope: iracing.auth
 ```
 
-The CLI binds `127.0.0.1` on an ephemeral runtime port before opening the authorization page. iRacing's registered loopback URI remains the `:0` URI above. Public clients are not issued a secret; confidential clients may be issued one. If iRacing issued a client secret, the token exchange must use it.
+By default, the CLI binds `127.0.0.1` on an ephemeral runtime port before opening the authorization page. This works only if the client has the `:0` URI above registered. Set `IRACING_AUTH_REDIRECT_URI` to the HTTP loopback URI actually registered for your client to use a different path or a fixed port. For example, if `http://127.0.0.1:3000/callback` is registered:
+
+```dotenv
+IRACING_AUTH_REDIRECT_URI=http://127.0.0.1:3000/callback
+```
+
+The CLI listens on that host, port, and path and sends the same URI in both authorization and token requests. For a registered native-app URI with port `0`, only the port is replaced at runtime. IPv4 `127.0.0.1` and IPv6 `[::1]` loopback addresses are supported. See [iRacing's redirect URI rules](https://oauth.iracing.com/oauth2/book/redirect_uris_overview.html). Hosted HTTPS callbacks require a web application and cannot be received by this local CLI.
+
+If the authorization page rejects the URL, verify the client ID and registered callback URI with iRacing; changing the local configuration does not register a URI. If a fixed callback port is occupied, stop its listener or configure another URI already registered for the client. Public clients are not issued a secret; confidential clients may be issued one. If iRacing issued a client secret, the token exchange must use it.
 
 ## Configure the local environment
 
 From the repository root:
 
 ```bash
-cp apps/iracing-data-cli/.env.example apps/iracing-data-cli/.env
+cp apps/iracing-data-cli/.env.example .env
 ```
 
-Fill in the local file:
+If a root `.env` already exists, add the following values to it instead of replacing it. Fill in the local file:
 
 ```dotenv
 IRACING_AUTH_CLIENT=<client-id>
 IRACING_AUTH_SECRET=<secret-if-issued>
+IRACING_AUTH_REDIRECT_URI=http://127.0.0.1:0/oauth/iracing/callback
 ```
 
 `IRACING_AUTH_CLIENT` is required. `IRACING_AUTH_SECRET` is optional only when iRacing did not issue a secret for the registered client. Do not commit `.env`, client secrets, access tokens, refresh tokens, or generated credential files.
@@ -47,10 +56,20 @@ Install the repository dependencies first, then build the app:
 
 ```bash
 pnpm install --frozen-lockfile
-pnpm --filter iracing-data-cli build
+pnpm --filter '@iracing-data/cli...' build
 ```
 
-Run from the app directory so its `.env` file is loaded by the implemented `start` script:
+Run from the repository root; the root script loads the root `.env` and forwards command arguments:
+
+```bash
+pnpm run iracing-data auth login
+pnpm run iracing-data auth login --output ./credentials.json
+pnpm run iracing-data auth login --output ./credentials.yaml
+```
+
+Existing shell environment variables take precedence over `.env` values. `pnpm exec iracing-data` invokes the bin directly and does not load `.env`. After editing CLI source, rebuild before running the root script.
+
+Alternatively, create `apps/iracing-data-cli/.env` from the app's `.env.example` and run from the app directory so its `.env` file is loaded by the app's `start` script:
 
 ```bash
 cd apps/iracing-data-cli
@@ -119,7 +138,7 @@ Use a real registered OAuth client and do the following without copying token va
 
    ```bash
    pnpm install --frozen-lockfile
-   pnpm --filter iracing-data-cli build
+   pnpm --filter '@iracing-data/cli...' build
    cd apps/iracing-data-cli
    ```
 

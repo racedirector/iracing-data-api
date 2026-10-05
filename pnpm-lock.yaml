@@ -169,6 +169,9 @@ importers:
       '@iracing-data/api-schema-to-openapi':
         specifier: workspace:*
         version: link:packages/helpers/api-schema-to-openapi
+      '@iracing-data/cli':
+        specifier: workspace:*
+        version: link:apps/iracing-data-cli
       '@iracing-data/oauth-schema-to-openapi':
         specifier: workspace:*
         version: link:packages/helpers/oauth-schema-to-openapi

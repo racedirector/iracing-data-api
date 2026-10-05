@@ -246,3 +246,102 @@ test("callback failures are sanitized and never expose token or secret material"
     /synthetic-secret|synthetic-access|synthetic-refresh/,
   );
 });
+
+async function unusedPort() {
+  const { createServer } = require("node:http");
+  const server = createServer();
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  const port = server.address().port;
+  await new Promise((resolve) => server.close(resolve));
+  return port;
+}
+
+for (const fixedPort of [false, true]) {
+  test(`uses the registered callback path and ${fixedPort ? "fixed" : "ephemeral"} port`, async () => {
+    const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+    const port = fixedPort ? await unusedPort() : 0;
+    const registered = `http://127.0.0.1:${port}/api/auth/callback/iracing?flow=cli`;
+    let actual;
+    const result = await authenticateWithBrowser({
+      clientId: "client-id",
+      redirectUri: registered,
+      timeoutSeconds: 2,
+      openBrowser: true,
+      diagnostics: diagnostics().value,
+      clientFactory: ({ redirectUri }) => {
+        actual = redirectUri;
+        return {
+          authorize: async () => ({
+            url: new URL("https://example.test/authorize"),
+          }),
+          callback: async (params) => {
+            assert.equal(params.get("flow"), "cli");
+            return TOKEN;
+          },
+        };
+      },
+      browserOpener: async () => {
+        if (fixedPort) assert.equal(actual, registered);
+        else {
+          assert.notEqual(new URL(actual).port, "0");
+          assert.equal(new URL(actual).pathname, "/api/auth/callback/iracing");
+          assert.equal(new URL(actual).search, "?flow=cli");
+        }
+        const response = await fetch(`${actual}&code=ok&state=state`);
+        assert.equal(response.status, 200);
+      },
+    });
+    assert.deepEqual(result, TOKEN);
+    await assert.rejects(fetch(actual));
+  });
+}
+
+test("rejects unsupported callback URIs before opening a browser", async () => {
+  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+  for (const redirectUri of [
+    "invalid",
+    "https://127.0.0.1:3000/callback",
+    "http://localhost:3000/callback",
+    "http://example.test/callback",
+    "http://user:secret@127.0.0.1:3000/callback",
+    "http://127.0.0.1:3000/callback#fragment",
+  ]) {
+    await assert.rejects(
+      authenticateWithBrowser({
+        clientId: "client-id",
+        redirectUri,
+        timeoutSeconds: 2,
+        openBrowser: true,
+        diagnostics: diagnostics().value,
+        clientFactory: () => {
+          throw new Error("must not construct client");
+        },
+        browserOpener: async () => {
+          throw new Error("must not open browser");
+        },
+      }),
+      /IRACING_AUTH_REDIRECT_URI/,
+    );
+  }
+});
+
+test("reports a recovery action when the registered port is occupied", async () => {
+  const { createServer } = require("node:http");
+  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+  const server = createServer();
+  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+  try {
+    await assert.rejects(
+      authenticateWithBrowser({
+        clientId: "client-id",
+        redirectUri: `http://127.0.0.1:${server.address().port}/callback`,
+        timeoutSeconds: 2,
+        openBrowser: false,
+        diagnostics: diagnostics().value,
+      }),
+      /Free the port configured by IRACING_AUTH_REDIRECT_URI/,
+    );
+  } finally {
+    await new Promise((resolve) => server.close(resolve));
+  }
+});
