@@ -126,10 +126,11 @@ for (const [name, value, reason] of [
     const services = await f.start();
     assert.equal(services.authorizationState(), "authorization_required");
     await assert.rejects(access(services), failure(f.api, reason));
-    await f.write(token());
+    const replacement = token();
+    await f.write(replacement);
     await assert.rejects(access(services), failure(f.api, reason));
     const restarted = await f.start();
-    assert.equal(await access(restarted), token().access_token);
+    assert.equal(await access(restarted), replacement.access_token);
     await fs.unlink(f.file);
     const loggedOut = await f.start();
     await assert.rejects(access(loggedOut), failure(f.api, "missing_session"));
