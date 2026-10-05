@@ -70,6 +70,52 @@ control how the client tracks authorization state and OAuth tokens. See
 `packages/oauth/client/src/storage/memory-store.ts` for a default in-memory
 implementation.
 
+## Durable single-document token storage
+
+`OAuthTokenDocumentSessionStore` is the narrow durable `SessionStore` for a
+single configured session key. It persists the existing bare
+`OAuthTokenResponse` JSON document instead of a key/value envelope, so the file
+is directly compatible with the repository CLI's JSON credential output.
+
+```typescript
+import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
+
+const sessionStore = new OAuthTokenDocumentSessionStore({
+  filePath: "/var/lib/my-app/credentials.json",
+  sessionKey: "local-session",
+});
+```
+
+The store rejects all keys except the configured key, validates the OAuth token
+document, serializes mutations within one process, and publishes in-memory state
+only after the durable mutation succeeds. A load or persistence failure
+quarantines that store instance so it cannot fall back to stale credentials.
+Create a new instance only after the underlying credential state has been
+repaired or replaced.
+
+`readOAuthTokenDocument()` distinguishes a missing document (`undefined`) from
+corrupt, unreadable, unsafe, or oversized state. `writeOAuthTokenDocument()`
+uses a same-directory exclusive temporary file, fsyncs it, atomically publishes
+it, and fsyncs the parent directory. On POSIX it requires current-user ownership,
+mode `0700` for the credential directory, mode `0600` for the document, regular
+files only, no symlinks, and a 64 KiB maximum document size.
+
+Directory fsync is required by default. `durability: "best-effort"` is an
+explicit portability escape hatch for platforms/filesystems that cannot sync a
+directory; callers that require Docker/Linux crash durability should keep the
+default. Windows does not provide POSIX ownership/mode guarantees through these
+Node APIs, so callers must rely on host/container ACLs and use best-effort
+directory durability where required.
+
+This store is intentionally process-local. It does not implement distributed
+locking, multiple writers, replicas, file watching, or hot credential
+replacement. One process should own one credential directory at a time. Treat
+OAuth credential files as secrets rather than backups; a backup containing an
+older refresh token is generally unusable after token rotation.
+
+The generic `DiskStore` remains a key/value utility with its historical behavior;
+it is not upgraded or implicitly substituted by the token-document store.
+
 See [`examples/oauth-example`](../../../examples/oauth-example) for a more complete walkthrough.
 
 ## Related @iracing-data packages

@@ -17,3 +17,4 @@ export interface SimpleStore<K extends Key = string, V extends Value = Value> {
 
 export * from "./memory-store";
 export * from "./disk-store";
+export * from "./token-document-store";
