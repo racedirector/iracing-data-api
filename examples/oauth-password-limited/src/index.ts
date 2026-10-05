@@ -13,7 +13,6 @@ import { Command } from "@commander-js/extra-typings";
 import {
   CarApi,
   Configuration,
-  ConstantsApi,
   DocApi,
   IracingAPIResponse,
   LookupApi,
@@ -31,6 +30,7 @@ import {
   OAuthTokenResponse,
   OAuthClient,
 } from "@iracing-data/oauth-client/dist/client";
+import { fetchConstants } from "./constants";
 import {
   TrackAssetEntryType,
   TrackAssetJSONFileSchema,
@@ -119,25 +119,6 @@ async function fetchTracks(configuration: Configuration) {
   await Promise.all([
     writeResponseDataToFile("track-assets.json", await track.getTrackAssets()),
     writeResponseDataToFile("track.json", await track.getTrack()),
-  ]);
-}
-
-async function fetchConstants(configuration: Configuration) {
-  const constants = new ConstantsApi(configuration);
-
-  await Promise.all([
-    writeResponseDataToFile(
-      "categories.json",
-      await constants.getConstantsCategories(),
-    ),
-    writeResponseDataToFile(
-      "divisions.json",
-      await constants.getConstantsDivisions(),
-    ),
-    writeResponseDataToFile(
-      "event-types.json",
-      await constants.getConstantsEventTypes(),
-    ),
   ]);
 }
 
@@ -243,7 +224,7 @@ async function fetchData(configuration: Configuration, accessToken?: string) {
       fetchTracks(configuration),
       fetchSeries(configuration),
       fetchLookup(configuration),
-      fetchConstants(configuration),
+      fetchConstants(configuration, outputPath),
     ]);
 
   if (docs.status === "rejected") {

@@ -6,7 +6,7 @@ Typed Rust client generated from this repository's maintained iRacing Data API O
 
 ```toml
 [dependencies]
-iracing-data-api-client = "0.0.1"
+iracing-data-api-client = "0.1.0"
 ```
 
 Enable `rustls-tls` or `native-tls` when your application needs HTTPS transport through this client. See [repository guidance](https://github.com/racedirector/iracing-data-api/blob/main/AGENTS.md) for canonical sources and regeneration, and [release instructions](https://github.com/racedirector/iracing-data-api/blob/main/docs/RELEASING.md) before publishing.
@@ -164,8 +164,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | _StatsApi_       | [**get_stats_season_qualify_results**](docs/StatsApi.md#get_stats_season_qualify_results)                             | **GET** /data/stats/season_qualify_results              |
 | _StatsApi_       | [**get_stats_season_supersession_standings**](docs/StatsApi.md#get_stats_season_supersession_standings)               | **GET** /data/stats/season_supersession_standings       |
 | _StatsApi_       | [**get_stats_season_team_standings**](docs/StatsApi.md#get_stats_season_team_standings)                               | **GET** /data/stats/season_team_standings               |
-| _StatsApi_       | [**get_stats_season_time_trial_results**](docs/StatsApi.md#get_stats_season_time_trial_results)                       | **GET** /data/stats/season_time_trial_results           |
-| _StatsApi_       | [**get_stats_season_time_trial_standings**](docs/StatsApi.md#get_stats_season_time_trial_standings)                   | **GET** /data/stats/season_time_trial_standings         |
+| _StatsApi_       | [**get_stats_season_time_trial_results**](docs/StatsApi.md#get_stats_season_time_trial_results)                       | **GET** /data/stats/season_tt_results                   |
+| _StatsApi_       | [**get_stats_season_time_trial_standings**](docs/StatsApi.md#get_stats_season_time_trial_standings)                   | **GET** /data/stats/season_tt_standings                 |
 | _StatsApi_       | [**get_stats_world_records**](docs/StatsApi.md#get_stats_world_records)                                               | **GET** /data/stats/world_records                       |
 | _TeamApi_        | [**get_team**](docs/TeamApi.md#get_team)                                                                              | **GET** /data/team/get                                  |
 | _TeamApi_        | [**get_team_membership**](docs/TeamApi.md#get_team_membership)                                                        | **GET** /data/team/membership                           |
@@ -181,6 +181,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [IracingDivision](docs/IracingDivision.md)
 - [IracingEventType](docs/IracingEventType.md)
 - [IracingServiceMethodDocs](docs/IracingServiceMethodDocs.md)
+- [IracingServiceMethodDocsNote](docs/IracingServiceMethodDocsNote.md)
 - [IracingServiceMethodParametersDocs](docs/IracingServiceMethodParametersDocs.md)
 - [PostAuthRequest](docs/PostAuthRequest.md)
 

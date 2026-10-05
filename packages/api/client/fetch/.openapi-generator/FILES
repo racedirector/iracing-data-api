@@ -14,6 +14,7 @@ docs/IracingCategory.md
 docs/IracingDivision.md
 docs/IracingEventType.md
 docs/IracingServiceMethodDocs.md
+docs/IracingServiceMethodDocsNote.md
 docs/IracingServiceMethodParametersDocs.md
 docs/LeagueApi.md
 docs/LookupApi.md
@@ -52,6 +53,7 @@ src/models/IracingCategory.ts
 src/models/IracingDivision.ts
 src/models/IracingEventType.ts
 src/models/IracingServiceMethodDocs.ts
+src/models/IracingServiceMethodDocsNote.ts
 src/models/IracingServiceMethodParametersDocs.ts
 src/models/PostAuthRequest.ts
 src/models/index.ts

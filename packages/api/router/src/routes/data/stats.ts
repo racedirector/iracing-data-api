@@ -127,7 +127,7 @@ export const seasonTeamStandings = createEndpoint(
 );
 
 export const seasonTimeTrialStandings = createEndpoint(
-  "/data/stats/season_time_trial_standings",
+  "/data/stats/season_tt_standings",
   {
     method: "GET",
     query: StatsSeasonTTStandingsParametersSchema,
@@ -138,7 +138,7 @@ export const seasonTimeTrialStandings = createEndpoint(
 );
 
 export const seasonTimeTrialResults = createEndpoint(
-  "/data/stats/season_time_trial_results",
+  "/data/stats/season_tt_results",
   {
     method: "GET",
     query: StatsSeasonTTResultsParametersSchema,

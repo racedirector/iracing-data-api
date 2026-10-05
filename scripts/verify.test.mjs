@@ -28,7 +28,7 @@ test("build selection follows policy and includes dependency closure", () => {
     "--fail-if-no-match",
     "build",
   ]);
-  assert.deepEqual(verificationPlan("generated", policy).at(-1).args, [
+  assert.deepEqual(verificationPlan("generated", policy).at(-2).args, [
     "--filter",
     "sdk...",
     "--fail-if-no-match",
@@ -76,4 +76,10 @@ test("missing executables fail rather than silently skipping", () => {
     })),
     1,
   );
+});
+
+test("generated wire tests run after the generated client build", () => {
+  const plan = verificationPlan("generated", policy);
+  assert.equal(plan.at(-2).args.at(-1), "build");
+  assert.deepEqual(plan.at(-1).args, ["test:data-contract"]);
 });

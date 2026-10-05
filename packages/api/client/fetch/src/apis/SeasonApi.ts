@@ -188,7 +188,9 @@ export class SeasonApi extends runtime.BaseAPI {
     const queryParameters: any = {};
 
     if (requestParameters["event_types"] != null) {
-      queryParameters["event_types"] = requestParameters["event_types"];
+      queryParameters["event_types"] = requestParameters["event_types"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -241,11 +243,15 @@ export class SeasonApi extends runtime.BaseAPI {
     const queryParameters: any = {};
 
     if (requestParameters["event_types"] != null) {
-      queryParameters["event_types"] = requestParameters["event_types"];
+      queryParameters["event_types"] = requestParameters["event_types"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     if (requestParameters["season_ids"] != null) {
-      queryParameters["season_ids"] = requestParameters["season_ids"];
+      queryParameters["season_ids"] = requestParameters["season_ids"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     const headerParameters: runtime.HTTPHeaders = {};

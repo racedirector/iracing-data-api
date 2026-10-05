@@ -15,8 +15,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**getStatsSeasonQualifyResults**](StatsApi.md#getstatsseasonqualifyresults)               | **GET** /data/stats/season_qualify_results        |             |
 | [**getStatsSeasonSupersessionStandings**](StatsApi.md#getstatsseasonsupersessionstandings) | **GET** /data/stats/season_supersession_standings |             |
 | [**getStatsSeasonTeamStandings**](StatsApi.md#getstatsseasonteamstandings)                 | **GET** /data/stats/season_team_standings         |             |
-| [**getStatsSeasonTimeTrialResults**](StatsApi.md#getstatsseasontimetrialresults)           | **GET** /data/stats/season_time_trial_results     |             |
-| [**getStatsSeasonTimeTrialStandings**](StatsApi.md#getstatsseasontimetrialstandings)       | **GET** /data/stats/season_time_trial_standings   |             |
+| [**getStatsSeasonTimeTrialResults**](StatsApi.md#getstatsseasontimetrialresults)           | **GET** /data/stats/season_tt_results             |             |
+| [**getStatsSeasonTimeTrialStandings**](StatsApi.md#getstatsseasontimetrialstandings)       | **GET** /data/stats/season_tt_standings           |             |
 | [**getStatsWorldRecords**](StatsApi.md#getstatsworldrecords)                               | **GET** /data/stats/world_records                 |             |
 
 ## getStatsMemberBests
@@ -241,7 +241,7 @@ async function example() {
   const body = {
     // number | Defaults to the authenticated member. (optional)
     cust_id: 8.14,
-    // 1 | 2 | 3 | 4 | Season year; if not supplied the current calendar year (UTC) is used. (optional)
+    // number | Season year; if not supplied the current calendar year (UTC) is used. (optional)
     year: 8.14,
     // number | Season (quarter) within the year; if not supplied the recap will be for the entire year. (optional)
     season: 8.14,
@@ -261,11 +261,11 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name        | Type               | Description                                                                              | Notes                                                   |
-| ----------- | ------------------ | ---------------------------------------------------------------------------------------- | ------------------------------------------------------- |
-| **cust_id** | `number`           | Defaults to the authenticated member.                                                    | [Optional] [Defaults to `undefined`]                    |
-| **year**    | `1`, `2`, `3`, `4` | Season year; if not supplied the current calendar year (UTC) is used.                    | [Optional] [Defaults to `undefined`] [Enum: 1, 2, 3, 4] |
-| **season**  | `number`           | Season (quarter) within the year; if not supplied the recap will be for the entire year. | [Optional] [Defaults to `undefined`]                    |
+| Name        | Type     | Description                                                                              | Notes                                |
+| ----------- | -------- | ---------------------------------------------------------------------------------------- | ------------------------------------ |
+| **cust_id** | `number` | Defaults to the authenticated member.                                                    | [Optional] [Defaults to `undefined`] |
+| **year**    | `number` | Season year; if not supplied the current calendar year (UTC) is used.                    | [Optional] [Defaults to `undefined`] |
+| **season**  | `number` | Season (quarter) within the year; if not supplied the recap will be for the entire year. | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 

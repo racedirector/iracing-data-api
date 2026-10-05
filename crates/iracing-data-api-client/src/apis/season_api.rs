@@ -190,7 +190,7 @@ pub async fn get_season_spectator_subsession_ids(
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref param_value) = params.event_types {
-        req_builder = match "multi" {
+        req_builder = match "csv" {
             "multi" => req_builder.query(
                 &param_value
                     .into_iter()
@@ -256,7 +256,7 @@ pub async fn get_season_spectator_subsession_ids_detail(
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
     if let Some(ref param_value) = params.event_types {
-        req_builder = match "multi" {
+        req_builder = match "csv" {
             "multi" => req_builder.query(
                 &param_value
                     .into_iter()
@@ -275,7 +275,7 @@ pub async fn get_season_spectator_subsession_ids_detail(
         };
     }
     if let Some(ref param_value) = params.season_ids {
-        req_builder = match "multi" {
+        req_builder = match "csv" {
             "multi" => req_builder.query(
                 &param_value
                     .into_iter()

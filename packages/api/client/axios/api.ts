@@ -173,9 +173,15 @@ export type IracingEventType =
  */
 export interface IracingServiceMethodDocs {
   link: string;
-  parameters: { [key: string]: IracingServiceMethodParametersDocs };
+  parameters?: { [key: string]: IracingServiceMethodParametersDocs };
+  note?: IracingServiceMethodDocsNote;
   expirationSeconds?: number;
 }
+/**
+ * @type IracingServiceMethodDocsNote
+ */
+export type IracingServiceMethodDocsNote = Array<string> | string;
+
 /**
  * An iRacing API Service Method Parameters object.
  */
@@ -847,10 +853,7 @@ export const ConstantsApiFp = function (configuration?: Configuration) {
     async getConstantsCategories(
       options?: RawAxiosRequestConfig,
     ): Promise<
-      (
-        axios?: AxiosInstance,
-        basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getConstantsCategories(options);
@@ -875,10 +878,7 @@ export const ConstantsApiFp = function (configuration?: Configuration) {
     async getConstantsDivisions(
       options?: RawAxiosRequestConfig,
     ): Promise<
-      (
-        axios?: AxiosInstance,
-        basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getConstantsDivisions(options);
@@ -903,10 +903,7 @@ export const ConstantsApiFp = function (configuration?: Configuration) {
     async getConstantsEventTypes(
       options?: RawAxiosRequestConfig,
     ): Promise<
-      (
-        axios?: AxiosInstance,
-        basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      (axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<object>>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getConstantsEventTypes(options);
@@ -943,7 +940,7 @@ export const ConstantsApiFactory = function (
      */
     getConstantsCategories(
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<Array<object>> {
       return localVarFp
         .getConstantsCategories(options)
         .then((request) => request(axios, basePath));
@@ -955,7 +952,7 @@ export const ConstantsApiFactory = function (
      */
     getConstantsDivisions(
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<Array<object>> {
       return localVarFp
         .getConstantsDivisions(options)
         .then((request) => request(axios, basePath));
@@ -967,7 +964,7 @@ export const ConstantsApiFactory = function (
      */
     getConstantsEventTypes(
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<Array<object>> {
       return localVarFp
         .getConstantsEventTypes(options)
         .then((request) => request(axios, basePath));
@@ -13820,7 +13817,9 @@ export const SeasonApiAxiosParamCreator = function (
       await setBearerAuthToObject(localVarHeaderParameter, configuration);
 
       if (event_types) {
-        localVarQueryParameter["event_types"] = event_types;
+        localVarQueryParameter["event_types"] = event_types.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -13870,11 +13869,15 @@ export const SeasonApiAxiosParamCreator = function (
       await setBearerAuthToObject(localVarHeaderParameter, configuration);
 
       if (event_types) {
-        localVarQueryParameter["event_types"] = event_types;
+        localVarQueryParameter["event_types"] = event_types.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       if (season_ids) {
-        localVarQueryParameter["season_ids"] = season_ids;
+        localVarQueryParameter["season_ids"] = season_ids.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -15278,14 +15281,14 @@ export const StatsApiAxiosParamCreator = function (
     /**
      *
      * @param {number} [cust_id] Defaults to the authenticated member.
-     * @param {GetStatsMemberRecapYearEnum} [year] Season year; if not supplied the current calendar year (UTC) is used.
+     * @param {number} [year] Season year; if not supplied the current calendar year (UTC) is used.
      * @param {number} [season] Season (quarter) within the year; if not supplied the recap will be for the entire year.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getStatsMemberRecap: async (
       cust_id?: number,
-      year?: GetStatsMemberRecapYearEnum,
+      year?: number,
       season?: number,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
@@ -15817,7 +15820,7 @@ export const StatsApiAxiosParamCreator = function (
         "race_week_num",
         race_week_num,
       );
-      const localVarPath = `/data/stats/season_time_trial_results`;
+      const localVarPath = `/data/stats/season_tt_results`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
@@ -15895,7 +15898,7 @@ export const StatsApiAxiosParamCreator = function (
         "car_class_id",
         car_class_id,
       );
-      const localVarPath = `/data/stats/season_time_trial_standings`;
+      const localVarPath = `/data/stats/season_tt_standings`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
@@ -16129,14 +16132,14 @@ export const StatsApiFp = function (configuration?: Configuration) {
     /**
      *
      * @param {number} [cust_id] Defaults to the authenticated member.
-     * @param {GetStatsMemberRecapYearEnum} [year] Season year; if not supplied the current calendar year (UTC) is used.
+     * @param {number} [year] Season year; if not supplied the current calendar year (UTC) is used.
      * @param {number} [season] Season (quarter) within the year; if not supplied the recap will be for the entire year.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getStatsMemberRecap(
       cust_id?: number,
-      year?: GetStatsMemberRecapYearEnum,
+      year?: number,
       season?: number,
       options?: RawAxiosRequestConfig,
     ): Promise<
@@ -16864,7 +16867,7 @@ export interface StatsApiGetStatsMemberRecapRequest {
   /**
    * Season year; if not supplied the current calendar year (UTC) is used.
    */
-  readonly year?: GetStatsMemberRecapYearEnum;
+  readonly year?: number;
 
   /**
    * Season (quarter) within the year; if not supplied the recap will be for the entire year.
@@ -17290,14 +17293,6 @@ export const GetStatsMemberDivisionEventTypeEnum = {
 } as const;
 export type GetStatsMemberDivisionEventTypeEnum =
   (typeof GetStatsMemberDivisionEventTypeEnum)[keyof typeof GetStatsMemberDivisionEventTypeEnum];
-export const GetStatsMemberRecapYearEnum = {
-  NUMBER_1: 1,
-  NUMBER_2: 2,
-  NUMBER_3: 3,
-  NUMBER_4: 4,
-} as const;
-export type GetStatsMemberRecapYearEnum =
-  (typeof GetStatsMemberRecapYearEnum)[keyof typeof GetStatsMemberRecapYearEnum];
 
 /**
  * TeamApi - axios parameter creator

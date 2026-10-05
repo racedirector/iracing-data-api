@@ -10,7 +10,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## getConstantsCategories
 
-> IracingAPIResponse getConstantsCategories()
+> Array&lt;object&gt; getConstantsCategories()
 
 Constant; returned directly as an array of objects
 
@@ -46,7 +46,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**IracingAPIResponse**](IracingAPIResponse.md)
+**Array<object>**
 
 ### Authorization
 
@@ -59,18 +59,18 @@ This endpoint does not need any parameter.
 
 ### HTTP response details
 
-| Status code | Description                         | Response headers                                                                     |
-| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **401**     | Access token is missing or invalid. | -                                                                                    |
-| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **503**     | Maintenance                         | -                                                                                    |
+| Status code | Description                                        | Response headers                                                                     |
+| ----------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Constants returned directly as an array of objects | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **401**     | Access token is missing or invalid.                | -                                                                                    |
+| **429**     | Rate limited                                       | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                                        | -                                                                                    |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 ## getConstantsDivisions
 
-> IracingAPIResponse getConstantsDivisions()
+> Array&lt;object&gt; getConstantsDivisions()
 
 Constant; returned directly as an array of objects
 
@@ -106,7 +106,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**IracingAPIResponse**](IracingAPIResponse.md)
+**Array<object>**
 
 ### Authorization
 
@@ -119,18 +119,18 @@ This endpoint does not need any parameter.
 
 ### HTTP response details
 
-| Status code | Description                         | Response headers                                                                     |
-| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **401**     | Access token is missing or invalid. | -                                                                                    |
-| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **503**     | Maintenance                         | -                                                                                    |
+| Status code | Description                                        | Response headers                                                                     |
+| ----------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Constants returned directly as an array of objects | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **401**     | Access token is missing or invalid.                | -                                                                                    |
+| **429**     | Rate limited                                       | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                                        | -                                                                                    |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 
 ## getConstantsEventTypes
 
-> IracingAPIResponse getConstantsEventTypes()
+> Array&lt;object&gt; getConstantsEventTypes()
 
 Constant; returned directly as an array of objects
 
@@ -166,7 +166,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**IracingAPIResponse**](IracingAPIResponse.md)
+**Array<object>**
 
 ### Authorization
 
@@ -179,11 +179,11 @@ This endpoint does not need any parameter.
 
 ### HTTP response details
 
-| Status code | Description                         | Response headers                                                                     |
-| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **401**     | Access token is missing or invalid. | -                                                                                    |
-| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **503**     | Maintenance                         | -                                                                                    |
+| Status code | Description                                        | Response headers                                                                     |
+| ----------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Constants returned directly as an array of objects | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **401**     | Access token is missing or invalid.                | -                                                                                    |
+| **429**     | Rate limited                                       | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                                        | -                                                                                    |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)

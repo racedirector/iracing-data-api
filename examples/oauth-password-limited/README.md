@@ -32,5 +32,13 @@ pnpm --filter iracing-password-limited-oauth start
   `examples/oauth-password-limited/output/credentials.json`.
 - `/data` API responses are written into
   `examples/oauth-password-limited/output`.
+- Constants endpoints return arrays directly. The example saves these as
+  `categories.json`, `divisions.json`, and `event-types.json` without following a
+  cache link; other cached endpoints still fetch their returned links.
 - Track SVG layers are written into
   `examples/oauth-password-limited/output/tracks`.
+
+## Offline verification
+
+`pnpm --filter iracing-password-limited-oauth test` checks constants output with
+synthetic responses, including empty arrays. No login or credentials are needed.

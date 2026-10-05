@@ -10,7 +10,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_constants_categories
 
-> models::IracingApiResponse get_constants_categories()
+> Vec<serde_json::Value> get_constants_categories()
 
 Constant; returned directly as an array of objects
 
@@ -20,7 +20,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**Vec<serde_json::Value>**](serde_json::Value.md)
 
 ### Authorization
 
@@ -35,7 +35,7 @@ This endpoint does not need any parameter.
 
 ## get_constants_divisions
 
-> models::IracingApiResponse get_constants_divisions()
+> Vec<serde_json::Value> get_constants_divisions()
 
 Constant; returned directly as an array of objects
 
@@ -45,7 +45,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**Vec<serde_json::Value>**](serde_json::Value.md)
 
 ### Authorization
 
@@ -60,7 +60,7 @@ This endpoint does not need any parameter.
 
 ## get_constants_event_types
 
-> models::IracingApiResponse get_constants_event_types()
+> Vec<serde_json::Value> get_constants_event_types()
 
 Constant; returned directly as an array of objects
 
@@ -70,7 +70,7 @@ This endpoint does not need any parameter.
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**Vec<serde_json::Value>**](serde_json::Value.md)
 
 ### Authorization
 
