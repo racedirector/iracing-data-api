@@ -1,0 +1,15 @@
+**/.env*
+**/.iracing-data
+**/.upstream-contract
+**/.git
+**/node_modules
+**/dist
+**/*.tsbuildinfo
+**/credentials*
+**/client-secret*
+**/captures
+**/output
+**/coverage
+**/target
+**/.codex
+**/.agents

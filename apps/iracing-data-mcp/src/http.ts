@@ -49,6 +49,10 @@ export interface HttpApplicationOptions {
   /** Optional registrar used by tests or later slices to add tools. */
   readonly registerTools?: McpToolRegistrar;
 
+  /** Exact authorities/origins; production validates configuration before composition. */
+  readonly allowedHosts?: readonly string[];
+  readonly allowedOrigins?: readonly string[];
+
   /** Sanitizing logger used for transport and tool diagnostics. */
   readonly logger?: ReturnType<typeof createDiagnosticLogger>;
 
@@ -287,16 +291,21 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
     if (
       hostCount !== 1 ||
-      !["127.0.0.1:3000", "localhost:3000"].includes(req.headers.host ?? "")
+      !(options.allowedHosts ?? ["127.0.0.1:3000", "localhost:3000"]).includes(
+        req.headers.host ?? "",
+      )
     ) {
       return reply(403, "Host rejected.");
     }
 
     if (
       req.headers.origin !== undefined &&
-      !["http://127.0.0.1:3000", "http://localhost:3000"].includes(
-        req.headers.origin,
-      )
+      !(
+        options.allowedOrigins ?? [
+          "http://127.0.0.1:3000",
+          "http://localhost:3000",
+        ]
+      ).includes(req.headers.origin)
     ) {
       return reply(403, "Origin rejected.");
     }
