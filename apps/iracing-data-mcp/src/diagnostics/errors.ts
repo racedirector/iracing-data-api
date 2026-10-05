@@ -121,7 +121,21 @@ const failures = new WeakMap<
     retry_after_seconds?: number;
   }>
 >();
+
+/**
+ * Canonical application-level failure exposed through the MCP tool error contract.
+ *
+ * Instances carry only an allowlisted {@link ApplicationErrorCode} plus bounded metadata.
+ * Callers cannot supply an outward-facing message, nested cause, stack payload, or arbitrary
+ * diagnostics; serialization always derives recovery text from {@link errorPolicy}.
+ */
 export class ApplicationFailure extends Error {
+  /**
+   * Creates a sanitized application failure.
+   *
+   * @param code Stable application error code. Invalid values degrade to `INTERNAL_ERROR`.
+   * @param options Optional allowlisted `reason` and retry delay metadata.
+   */
   constructor(code: ApplicationErrorCode, options: unknown = {}) {
     const validCode = ApplicationErrorCodeSchema.safeParse(code);
     const safeCode = validCode.success ? validCode.data : "INTERNAL_ERROR";
@@ -202,7 +216,15 @@ export type FailureDomain =
   | "upstream"
   | "configuration"
   | "internal";
+
+/**
+ * Represents an HTTP or MCP protocol rejection that must stay outside tool error envelopes.
+ *
+ * Transport code catches this discriminator and emits protocol-owned status/code responses
+ * without exposing arbitrary exception details to the model-facing application contract.
+ */
 export class ProtocolFailure extends Error {
+  /** Creates a protocol failure for the owning transport domain. */
   constructor(readonly domain: "http" | "mcp_protocol") {
     super("Protocol request rejected.");
     this.name = "ProtocolFailure";
