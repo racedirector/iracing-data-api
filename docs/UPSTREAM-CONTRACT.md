@@ -10,6 +10,20 @@ Data capture fetches authenticated `https://members-ng.iracing.com/data/doc`. It
 
 Each snapshot has `formatVersion`, `kind`, normalized `content`, a SHA-256 `contentHash` over the exact UTF-8 pretty JSON content plus trailing newline, and `provenance` (fixed official source, UTC capture time, live/fixture mode, normalizer version). Provenance is excluded from comparison. Diff validates snapshot hashes/versions and emits sorted JSON Pointer paths with added/removed/changed values. Different normalizer versions require recapturing both inputs rather than comparing incompatible normalization. Never describe a fixture as a live capture or a changed hash as a required public API change.
 
+## Repository CLI capture
+
+For authenticated Data API audits, build the private CLI and use its shared credential handoff:
+
+```bash
+pnpm --filter '@iracing-data/cli...' build
+pnpm run iracing-data auth login
+pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.json
+```
+
+Reuse existing credentials before starting login. Login updates ignored `.iracing-data/credentials.json`; `docs` uses an explicit `--credentials` file, then `IRACING_ACCESS_TOKEN`, then that default file. Snapshot mode calls the same fixed-source capture/normalizer below and records live provenance. Use unique ignored JSON destinations, do not pass `--force` for audit snapshots, and fetch only once. See [CLI instructions](../apps/iracing-data-cli/README.md).
+
+Build the schema/generator dependencies and compare that snapshot offline with `node -r ts-node/register scripts/audit-data-docs.cjs <snapshot.json>`. Exit 2 means structural review candidates, not a complete semantic verdict; ranges, conditional notes, unknown fields and runtime serialization still need review. Its offline tests run in `pnpm test:upstream`.
+
 ## Manual capture
 
 Install frozen dependencies first. Commands run from the repository root and write only new JSON basenames under ignored `.upstream-contract/`, with private permissions. Existing outputs are never overwritten. Raw bodies, headers, and credentials are never saved or logged. Network capture refuses redirects and times out after 30 seconds.

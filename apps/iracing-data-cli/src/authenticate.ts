@@ -13,7 +13,7 @@ const CALLBACK_HOST = "127.0.0.1";
 const CALLBACK_PATH = "/oauth/iracing/callback";
 const DEFAULT_REDIRECT_URI = `http://${CALLBACK_HOST}:0${CALLBACK_PATH}`;
 const SESSION_ID = "iracing-data-cli";
-const SCOPES = ["iracing.auth"] as const;
+const SCOPES = ["iracing.auth", "iracing.profile"] as const;
 
 export type OAuthClientLike = {
   authorize(): Promise<{ url: URL }>;
@@ -27,7 +27,7 @@ export type OAuthClientConfig = {
   clientId: string;
   clientSecret?: string;
   redirectUri: string;
-  scopes: readonly ["iracing.auth"];
+  scopes: readonly ["iracing.auth", "iracing.profile"];
 };
 
 export type SignalSource = {
