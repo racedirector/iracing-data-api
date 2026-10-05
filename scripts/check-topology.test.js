@@ -51,8 +51,10 @@ for (const [name, mutate, expected] of [
   [
     "nested stale TypeScript reference",
     (root) =>
-      update(root, "packages/api/router/tsconfig.json", (j) =>
-        j.references.push({ path: "./missing.json" }),
+      update(
+        root,
+        "packages/helpers/api-schema-to-openapi/tsconfig.json",
+        (j) => j.references.push({ path: "./missing.json" }),
       ),
     /stale TypeScript reference/,
   ],
@@ -90,7 +92,11 @@ for (const [name, mutate, expected] of [
   [
     "internal publication drift",
     (root) =>
-      update(root, "packages/api/router/package.json", (j) => delete j.private),
+      update(
+        root,
+        "packages/helpers/api-schema-to-openapi/package.json",
+        (j) => delete j.private,
+      ),
     /private flag disagrees/,
   ],
   [
@@ -126,15 +132,17 @@ for (const [name, mutate, expected] of [
       update(
         root,
         "packages/oauth/client/package.json",
-        (j) => (j.dependencies["@iracing-data/api-router"] = "workspace:*"),
+        (j) => (j.dependencies["@iracing-data/cli"] = "workspace:*"),
       ),
     /public package depends on internal/,
   ],
   [
     "deleted workspace",
     (root) =>
-      fs.rmSync(path.join(root, "packages/api/router"), { recursive: true }),
-    /workspace policy: unexpected packages\/api\/router/,
+      fs.rmSync(path.join(root, "packages/helpers/api-schema-to-openapi"), {
+        recursive: true,
+      }),
+    /workspace policy: unexpected packages\/helpers\/api-schema-to-openapi/,
   ],
   [
     "Cargo membership drift",
@@ -170,7 +178,7 @@ test("stale workspace glob fails", (t) => {
 
 test("release selection rejects private and unknown packages", () => {
   for (const name of [
-    "@iracing-data/api-router",
+    "@iracing-data/cli",
     "@iracing-data/api-schema-to-openapi",
     "unknown",
   ]) {

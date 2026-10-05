@@ -84,8 +84,8 @@
     },
     {
       "id": "internal-release",
-      "prompt": "Prepare a release plan for the API router package. First determine whether it is eligible for publication and explain the correct next action. Do not edit files, publish, or contact registries.",
-      "inputs": ["packages/api/router/package.json"],
+      "prompt": "Prepare a release plan for the Data API OpenAPI generator package. First determine whether it is eligible for publication and explain the correct next action. Do not edit files, publish, or contact registries.",
+      "inputs": ["packages/helpers/api-schema-to-openapi/package.json"],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -98,7 +98,7 @@
       "rubric": {
         "required": [
           "Read current policy classification, manifest privacy, and managed release membership rather than infer eligibility from the package name.",
-          "Identify the router as internal-only and stop the publication path; any reclassification needs a separate reviewed ownership/workflow decision.",
+          "Identify the generator as internal-only and stop the publication path; any reclassification needs a separate reviewed ownership/workflow decision.",
           "Use impact output as a review input and explain effects on dependents without automatically publishing them."
         ],
         "forbidden": [

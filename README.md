@@ -1,6 +1,6 @@
 # iracing-data-api
 
-A monorepo of TypeScript packages for working with the iRacing Data API and its OAuth authentication flow, plus a generated Rust client. Packages cover Zod validation schemas, OpenAPI generation, generated HTTP clients (Fetch and Axios), an OAuth client, and a Better Call router.
+A monorepo of TypeScript packages for working with the iRacing Data API and its OAuth authentication flow, plus a generated Rust client. Packages cover Zod validation schemas, OpenAPI generation, generated HTTP clients (Fetch and Axios), and an OAuth client.
 
 ## Which package should I use?
 
@@ -32,7 +32,6 @@ The JSON/YAML files are generated artifacts. Maintained inputs are the [Data API
 - [@iracing-data/api-schema-to-openapi](packages/helpers/api-schema-to-openapi/README.md) – Generate OpenAPI specs from the schemas.
 - [@iracing-data/api-client-fetch](packages/api/client/fetch/README.md) – Fetch-based API client.
 - [@iracing-data/api-client-axios](packages/api/client/axios/README.md) – Axios-based API client.
-- [@iracing-data/api-router](packages/api/router/README.md) – Better Call router bundling generated `/data` routes.
 
 ### OAuth
 

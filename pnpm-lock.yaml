@@ -352,18 +352,6 @@ importers:
         specifier: ^4.0 || ^5.0
         version: 5.9.3
 
-  packages/api/router:
-    dependencies:
-      '@iracing-data/api-client-fetch':
-        specifier: workspace:*
-        version: link:../client/fetch
-      '@iracing-data/api-schema':
-        specifier: workspace:*
-        version: link:../schema
-      better-call:
-        specifier: ^1.1.0
-        version: 1.4.0(zod@4.6.5)
-
   packages/api/schema:
     dependencies:
       zod:

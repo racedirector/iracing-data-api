@@ -7,7 +7,7 @@
 <!-- Check the areas this touches. Delete anything that does not apply. -->
 
 - [ ] OAuth client, schemas, or OpenAPI
-- [ ] Data API schemas, OpenAPI, or router
+- [ ] Data API schemas or OpenAPI
 - [ ] Generated clients
 - [ ] Rust client
 - [ ] Examples or documentation

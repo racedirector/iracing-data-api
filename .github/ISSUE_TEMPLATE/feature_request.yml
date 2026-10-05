@@ -27,7 +27,6 @@ body:
         - OAuth
         - Data API schemas or client behavior
         - Generated clients
-        - Better Call router
         - MCP application
         - Rust client
         - Examples or public developer experience

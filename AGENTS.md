@@ -8,7 +8,7 @@ Use `workspace-policy.json` for package classifications and ownership areas, `pn
 
 - `public-release-target`: authored public schema or runtime package.
 - `generated-public-client`: public SDK derived from the Data API OpenAPI contract.
-- `internal-tool`: private router or OpenAPI build tooling.
+- `internal-tool`: private CLI or OpenAPI build tooling.
 - `example`: private consumer demonstrating public packages.
 - `repository-root`: private orchestration workspace.
 
@@ -24,7 +24,7 @@ Public packages are independently versioned. `dist-workspace.toml` defines the m
 | `scripts/client-presentation` templates and `scripts/normalize-client-presentation.js`                                                           | Fetch/Axios and Rust manifest presentation metadata and README introductions | [TypeScript clients](packages/api/client/AGENTS.md), [Rust client](crates/iracing-data-api-client/AGENTS.md) |
 | Authored TypeScript and compiler configuration                                                                                                   | `dist/` and TypeScript build caches                                          | Package `build` script; do not hand-edit build output                                                        |
 
-The OAuth client and API router are **authored runtime code**, not generated clients. The router consumes schemas and the Fetch client; it is not the source for OpenAPI generation. OAuth OpenAPI does not feed the current Data API SDK generation scripts.
+The OAuth client is **authored runtime code**, not a generated client. OAuth OpenAPI does not feed the current Data API SDK generation scripts.
 
 Do not patch generated source, OpenAPI output, generated documentation, or generator bookkeeping by hand. Fix the schema, mapping, generator configuration, post-processing, or presentation template that owns the change, then regenerate the affected branch. Package release versions are authored decisions even inside generated manifests: inspect regeneration for overwritten versions or configuration and retain the reviewed release intent. Scoped `AGENTS.md` files are authored guidance, not generator output.
 

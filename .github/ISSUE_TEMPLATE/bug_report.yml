@@ -29,7 +29,6 @@ body:
         - Fetch generated client
         - Axios generated client
         - Rust generated client
-        - Better Call router
         - MCP application
         - Example or documentation
         - Release, packaging, or npm metadata

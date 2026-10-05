@@ -22,7 +22,9 @@ test("API contract edits affect both specs, SDKs, consumers and release ordering
     "openapi/iracing.json",
     "openapi/iracing.yaml",
   ]);
-  assert.ok(impact.internalDependents.includes("@iracing-data/api-router"));
+  assert.ok(
+    impact.internalDependents.includes("@iracing-data/api-schema-to-openapi"),
+  );
   assert.ok(impact.generationCommands.includes("pnpm codegen"));
   assert.ok(
     impact.releaseOrder.indexOf("@iracing-data/api-schema") <
