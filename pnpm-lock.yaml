@@ -267,8 +267,8 @@ importers:
         specifier: ^1.7.9
         version: 1.13.2(debug@4.4.3(supports-color@10.2.2))
       better-call:
-        specifier: ^1.0.24
-        version: 1.4.0(zod@4.6.5)
+        specifier: ^1.4.1
+        version: 1.4.1(zod@4.6.5)
       cookie-parser:
         specifier: ^1.4.7
         version: 1.4.7
@@ -1299,8 +1299,8 @@ packages:
     resolution: {integrity: sha512-bopVNp6ugyA150DDuZfPFdt1KZ5a94ZDiwX4hMgZDzF+GttD80lEy8kj98kbyhLXnPvhtIo93mdnLIjpCAeeOw==}
     engines: {node: '>=10.0.0'}
 
-  better-call@1.4.0:
-    resolution: {integrity: sha512-bBKOT4vv1kZLDgxVePdilk/Jwkn+dtRRsmi3DzHcDP+WnswyVl6dR59l2HEeP/0cB+bDoopASAesWDPIdd/zZA==}
+  better-call@1.4.1:
+    resolution: {integrity: sha512-O5CIGC6wlJtfMZy8Yl4uRsNoHyAnwsAIQwAy5bRvqhmH+ha7+hXMx1Ujvb5K9pJ/NMm/GH3l3HL5nSMzVaoMNA==}
     peerDependencies:
       zod: ^4.0.0
     peerDependenciesMeta:
@@ -3720,7 +3720,7 @@ snapshots:
 
   basic-ftp@5.3.1: {}
 
-  better-call@1.4.0(zod@4.6.5):
+  better-call@1.4.1(zod@4.6.5):
     dependencies:
       '@better-auth/utils': 0.5.0
       '@better-fetch/fetch': 1.3.2
