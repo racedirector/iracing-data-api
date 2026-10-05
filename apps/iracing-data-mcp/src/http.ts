@@ -32,6 +32,7 @@ export type Schedule = (
 ) => () => void;
 const schedule: Schedule = (callback, milliseconds) => {
   const timer = setTimeout(callback, milliseconds);
+
   return () => clearTimeout(timer);
 };
 
@@ -41,12 +42,16 @@ const schedule: Schedule = (callback, milliseconds) => {
 export interface HttpApplicationOptions {
   /** Stable application identity advertised by request-scoped MCP servers. */
   readonly config: McpApplicationConfig;
+
   /** Long-lived OAuth and Data API dependencies shared across requests. */
   readonly services: McpServices;
+
   /** Optional registrar used by tests or later slices to add tools. */
   readonly registerTools?: McpToolRegistrar;
+
   /** Sanitizing logger used for transport and tool diagnostics. */
   readonly logger?: ReturnType<typeof createDiagnosticLogger>;
+
   /** Deterministic lifecycle clock seam; production uses real timers. */
   readonly schedule?: Schedule;
 }
@@ -60,16 +65,26 @@ export interface HttpApplicationOptions {
  */
 export function createHttpApplication(options: HttpApplicationOptions) {
   const logger = options.logger ?? createDiagnosticLogger();
+
   const clock = options.schedule ?? schedule;
+
   const active = new Set<() => void>();
+
   let admitted = 0;
+
   let stopping = false;
+
   let shutdownPromise: Promise<void> | undefined;
+
   const server = createServer((req, res) => {
     const context = createRequestContext();
+
     res.once("finish", () => {
-      if (stopping) server.closeIdleConnections();
+      if (stopping) {
+        server.closeIdleConnections();
+      }
     });
+
     const reply = (status: number, message: string) => {
       logger.log("info", context, { status });
       res.writeHead(status, {
@@ -81,25 +96,38 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       });
       res.end(message);
     };
+
     const hostCount = req.rawHeaders.filter(
       (header, index) => index % 2 === 0 && header.toLowerCase() === "host",
     ).length;
+
     if (
       hostCount !== 1 ||
       !["127.0.0.1:3000", "localhost:3000"].includes(req.headers.host ?? "")
-    )
+    ) {
       return reply(403, "Host rejected.");
+    }
+
     if (
       req.headers.origin !== undefined &&
       !["http://127.0.0.1:3000", "http://localhost:3000"].includes(
         req.headers.origin,
       )
-    )
+    ) {
       return reply(403, "Origin rejected.");
-    if (stopping) return reply(503, "Server is shutting down.");
+    }
+
+    if (stopping) {
+      return reply(503, "Server is shutting down.");
+    }
+
     if (req.url === "/healthz") {
-      if (req.method !== "GET") return reply(405, "Method not allowed.");
+      if (req.method !== "GET") {
+        return reply(405, "Method not allowed.");
+      }
+
       res.writeHead(200, { "Content-Type": "application/json" });
+
       // No durable auth source exists until #352. Fixed app identity avoids raw config.
       return res.end(
         JSON.stringify({
@@ -110,74 +138,112 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         }),
       );
     }
-    if (req.url !== "/mcp") return reply(404, "Not found.");
-    if (req.method !== "POST") return reply(405, "Method not allowed.");
+
+    if (req.url !== "/mcp") {
+      return reply(404, "Not found.");
+    }
+
+    if (req.method !== "POST") {
+      return reply(405, "Method not allowed.");
+    }
+
     const controller = new AbortController();
+
     const cancel = () => controller.abort();
+
     active.add(cancel);
+
     const disconnected = () => {
-      if (!res.writableFinished) cancel();
+      if (!res.writableFinished) {
+        cancel();
+      }
     };
+
     res.on("close", disconnected);
     req.on("aborted", cancel);
+
     void (async () => {
       let mcp: ReturnType<typeof createMcpServer> | undefined;
+
       let release = () => {};
+
       try {
         // Bound uploads before parsing or SDK construction; pause oversize input so
         // the fixed 413 response can be flushed before closing the connection.
         const text = await new Promise<string>((resolve, reject) => {
           const chunks: Buffer[] = [];
+
           let bytes = 0;
+
           const cleanup = () => {
             req.off("data", data);
             req.off("end", end);
             req.off("error", fail);
             controller.signal.removeEventListener("abort", abort);
           };
+
           const fail = () => {
             cleanup();
             reject(new Error("Request failed."));
           };
+
           const abort = () => {
             req.pause();
             fail();
           };
+
           const end = () => {
             cleanup();
             resolve(Buffer.concat(chunks).toString("utf8"));
           };
+
           const data = (chunk: Buffer) => {
             bytes += chunk.length;
             if (bytes > transportLimits.bodyBytes) {
               cleanup();
               req.pause();
               const error = new Error("Request body too large.");
+
               error.name = "RequestBodyTooLargeError";
               reject(error);
-            } else chunks.push(chunk);
+            } else {
+              chunks.push(chunk);
+            }
           };
+
           req.on("data", data);
           req.once("end", end);
           req.once("error", fail);
           controller.signal.addEventListener("abort", abort, { once: true });
-          if (controller.signal.aborted) abort();
+          if (controller.signal.aborted) {
+            abort();
+          }
         });
+
         if (controller.signal.aborted || stopping) {
-          if (!res.destroyed) reply(503, "Server is shutting down.");
+          if (!res.destroyed) {
+            reply(503, "Server is shutting down.");
+          }
+
           return;
         }
+
         let body: unknown;
+
         try {
           body = JSON.parse(text);
         } catch {
           reply(400, "Invalid JSON.");
+
           return;
         }
+
         if (Array.isArray(body)) {
           reply(400, "Batch requests are unsupported.");
+
           return;
         }
+
         mcp = createMcpServer({
           ...options,
           registerTools: options.registerTools,
@@ -187,21 +253,29 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           enableJsonResponse: true,
           maxRequestBodySize: transportLimits.bodyBytes,
         });
+
         mcp.server.onerror = (error) => logger.failure(context, error);
         await mcp.connect(transport);
         const send = transport.send.bind(transport);
+
         let toolId: string | number | undefined;
+
         let settled = false;
+
         const failure = (code: "INTERNAL_ERROR" | "RATE_LIMITED") => {
           const error = new ApplicationFailure(code);
+
           logger.failure(context, error, {
             operation: "tool_call",
             stage: "failed",
           });
+
           return toolError(error, context);
         };
+
         transport.send = async (message, extra) => {
           let safe: JSONRPCMessage = message;
+
           if ("error" in message) {
             release();
             safe = {
@@ -212,14 +286,20 @@ export function createHttpApplication(options: HttpApplicationOptions) {
               },
             };
           }
+
           if ("result" in message && message.id === toolId) {
-            if (settled) return;
+            if (settled) {
+              return;
+            }
+
             settled = true;
             const result = message.result;
+
             if (result.isError) {
               const parsed = ErrorEnvelopeSchema.safeParse(
                 result.structuredContent,
               );
+
               safe = {
                 ...message,
                 result: parsed.success
@@ -233,11 +313,15 @@ export function createHttpApplication(options: HttpApplicationOptions) {
                   : failure("INTERNAL_ERROR"),
               };
             }
+
             release();
           }
+
           await send(safe, extra);
         };
+
         const receive = transport.onmessage!;
+
         transport.onmessage = (message, extra) => {
           if (
             "method" in message &&
@@ -253,10 +337,13 @@ export function createHttpApplication(options: HttpApplicationOptions) {
                   result: failure("RATE_LIMITED"),
                 })
                 .catch((error) => logger.failure(context, error));
+
               return;
             }
+
             admitted++;
             let released = false;
+
             const clear = clock(() => {
               void transport
                 .send({
@@ -267,6 +354,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
                 .finally(cancel)
                 .catch((error) => logger.failure(context, error));
             }, transportLimits.toolMs);
+
             release = () => {
               if (!released) {
                 released = true;
@@ -275,8 +363,10 @@ export function createHttpApplication(options: HttpApplicationOptions) {
               }
             };
           }
+
           receive(message, extra);
         };
+
         controller.signal.addEventListener(
           "abort",
           () => {
@@ -291,8 +381,10 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         );
         if (controller.signal.aborted) {
           await mcp.close();
+
           return;
         }
+
         await Promise.race([
           toNodeHandler(
             {
@@ -300,16 +392,19 @@ export function createHttpApplication(options: HttpApplicationOptions) {
                 const response = await transport.handleRequest(request, {
                   parsedBody: body,
                 });
+
                 // SDK HTTP failures may echo protocol headers or exception data.
                 // Preserve the SDK-owned status, discard its free-form error body.
                 if (response.status >= 400) {
                   logger.log("info", context, { status: response.status });
                   await response.body?.cancel();
+
                   return new Response("Protocol request rejected.", {
                     status: response.status,
                     headers: { "Content-Type": "text/plain" },
                   });
                 }
+
                 return response;
               },
             },
@@ -327,12 +422,14 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       } catch (error) {
         const oversized =
           error instanceof Error && error.name === "RequestBodyTooLargeError";
+
         logger.log("error", context, { status: oversized ? 413 : 500 });
-        if (!res.headersSent && !res.destroyed)
+        if (!res.headersSent && !res.destroyed) {
           reply(
             oversized ? 413 : 500,
             oversized ? "Request body too large." : "Request failed.",
           );
+        }
       } finally {
         release();
         await mcp?.close();
@@ -342,12 +439,14 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       }
     })();
   });
+
   // Bound slow/incomplete HTTP bodies independently of tool execution.
   server.requestTimeout = transportLimits.toolMs;
   server.headersTimeout = transportLimits.toolMs;
   server.on("clientError", (_error, socket) =>
     socket.end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"),
   );
+
   return {
     server,
     get admittedTools() {
@@ -366,19 +465,27 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       });
     },
     shutdown() {
-      if (shutdownPromise) return shutdownPromise;
+      if (shutdownPromise) {
+        return shutdownPromise;
+      }
+
       stopping = true;
       shutdownPromise = new Promise<void>((resolve) => {
         const clear = clock(() => {
-          for (const abort of active) abort();
+          for (const abort of active) {
+            abort();
+          }
+
           server.closeAllConnections();
         }, transportLimits.drainMs);
+
         server.close(() => {
           clear();
           resolve();
         });
         server.closeIdleConnections();
       });
+
       return shutdownPromise;
     },
   };
@@ -396,8 +503,10 @@ export function installTerminationHandlers(
   const terminate = () => {
     void app.shutdown();
   };
+
   process.on("SIGTERM", terminate);
   process.on("SIGINT", terminate);
+
   return () => {
     process.off("SIGTERM", terminate);
     process.off("SIGINT", terminate);

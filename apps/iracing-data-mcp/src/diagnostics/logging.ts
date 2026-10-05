@@ -49,14 +49,23 @@ const diagnosticFields = z.object({
 export function redactDiagnostics(
   input: unknown,
 ): z.infer<typeof diagnosticFields> {
-  if (input === null || typeof input !== "object") return {};
+  if (input === null || typeof input !== "object") {
+    return {};
+  }
+
   const result: Record<string, unknown> = {};
+
   for (const [key, schema] of Object.entries(diagnosticFields.shape)) {
     // Read only own data properties; never invoke getters or toJSON on exception objects.
     const descriptor = Object.getOwnPropertyDescriptor(input, key);
+
     const parsed = schema.safeParse(descriptor?.value);
-    if (parsed.success && parsed.data !== undefined) result[key] = parsed.data;
+
+    if (parsed.success && parsed.data !== undefined) {
+      result[key] = parsed.data;
+    }
   }
+
   return result;
 }
 
@@ -74,6 +83,7 @@ export function createDiagnosticLogger(
       const safeLevel = ["info", "error", "debug"].includes(level)
         ? level
         : "error";
+
       write(
         JSON.stringify({
           level: safeLevel,
@@ -98,5 +108,6 @@ export function createDiagnosticLogger(
 /** Health projection only; #350 owns the endpoint and liveness response. */
 export function healthDiagnostics(input: unknown) {
   const { auth_state } = redactDiagnostics(input);
+
   return { auth_state: auth_state ?? "configuration_error" };
 }

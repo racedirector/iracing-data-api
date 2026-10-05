@@ -38,6 +38,7 @@ export function registerMcpTools(
 export interface CreateMcpServerOptions {
   /** Stable application identity advertised during MCP initialization. */
   readonly config: McpApplicationConfig;
+
   /** Long-lived dependencies shared by request-scoped MCP server instances. */
   readonly services: McpServices;
   readonly registerTools?: McpToolRegistrar;
@@ -63,5 +64,6 @@ export function createMcpServer({
       throw new ProtocolError(ProtocolErrorCode.InvalidParams, "Unknown tool.");
     });
   }
+
   return server;
 }

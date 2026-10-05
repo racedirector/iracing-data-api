@@ -14,6 +14,10 @@ export function parseMcpApplicationConfig(
   input: unknown = {},
 ): McpApplicationConfig {
   const parsed = McpApplicationConfigSchema.safeParse(input);
-  if (!parsed.success) throw new ApplicationFailure("CONFIGURATION_ERROR");
+
+  if (!parsed.success) {
+    throw new ApplicationFailure("CONFIGURATION_ERROR");
+  }
+
   return Object.freeze(parsed.data);
 }
