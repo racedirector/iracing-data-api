@@ -11,14 +11,13 @@
 | `packages/api/client/axios`                | generated-public-client | codegen        |
 | `packages/api/client/fetch`                | generated-public-client | codegen        |
 | `crates/iracing-data-api-client`           | generated-public-client | codegen        |
-| `packages/api/router`                      | internal-tool           | api            |
 | `packages/helpers/api-schema-to-openapi`   | internal-tool           | codegen        |
 | `packages/helpers/oauth-schema-to-openapi` | internal-tool           | codegen        |
 | `examples/oauth-example`                   | example                 | examples       |
 | `examples/oauth-example-cli`               | example                 | examples       |
 | `examples/oauth-password-limited`          | example                 | examples       |
 
-The public set preserves the existing managed releases in `dist-workspace.toml`. The router remains available for local development but has no managed release and is private. The two OpenAPI generators are repository build tools, invoked through root codegen scripts, and are private. Publishing these tools in the future requires an explicit policy and release-model change.
+The public set preserves the existing managed releases in `dist-workspace.toml`. The two OpenAPI generators are repository build tools, invoked through root codegen scripts, and are private. Publishing these tools in the future requires an explicit policy and release-model change.
 
 ## Validation
 

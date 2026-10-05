@@ -4,7 +4,7 @@ Start with **Compatible**, **Compatibility issues found**, or **Unable to verify
 
 Build one row per meaningful endpoint/parameter/protocol rule:
 
-| Surface        | Upstream fact and evidence                  | Current schema/input-output                                | Router/runtime                      | Mapping/generated/docs/tests    | Result and interpretation             |
+| Surface        | Upstream fact and evidence                  | Current schema/input-output                                | Client/runtime                      | Mapping/generated/docs/tests    | Result and interpretation             |
 | -------------- | ------------------------------------------- | ---------------------------------------------------------- | ----------------------------------- | ------------------------------- | ------------------------------------- |
 | Endpoint/field | Source URL, snapshot hash/pointer; unknowns | Required/optional/null/conditional, coercion, unknown keys | Validation, encoding, calls, errors | Actual representations/coverage | Match/mismatch/ambiguous/out of scope |
 

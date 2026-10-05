@@ -19,7 +19,7 @@ Both OpenAPI helper dependency closures were built, followed by `pnpm codegen:op
 
 ## Release and rollback
 
-This is an additive API migration. Release the independent schema packages before the OAuth client, whose canonical imports and re-exports depend on the new OAuth schema. Proposed versions are API schema `0.0.1-alpha.2`, OAuth schema `0.1.0`, and OAuth client `0.0.1-alpha.11`. No generated SDK release is required for unchanged outputs. Router, generators, and examples are private consumers. Publishing is a separate action and is not part of this change.
+This is an additive API migration. Release the independent schema packages before the OAuth client, whose canonical imports and re-exports depend on the new OAuth schema. Proposed versions are API schema `0.0.1-alpha.2`, OAuth schema `0.1.0`, and OAuth client `0.0.1-alpha.11`. No generated SDK release is required for unchanged outputs. Generators and examples are private consumers. Publishing is a separate action and is not part of this change.
 
 Users can migrate imports incrementally. Keep deprecated exports indefinitely within this work; removal requires a separately approved breaking release. Before publication, rollback by reverting the migration. Once canonical names are published, corrective releases must retain both naming surfaces.
 

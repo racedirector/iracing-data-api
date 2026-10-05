@@ -23,9 +23,6 @@
       "path": "./packages/api/client/fetch"
     },
     {
-      "path": "./packages/api/router"
-    },
-    {
       "path": "./packages/api/schema"
     },
     {

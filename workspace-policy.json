@@ -57,13 +57,6 @@
       "owner": "codegen"
     },
     {
-      "path": "packages/api/router",
-      "name": "@iracing-data/api-router",
-      "ecosystem": "npm",
-      "kind": "internal-tool",
-      "owner": "api"
-    },
-    {
       "path": "packages/api/schema",
       "name": "@iracing-data/api-schema",
       "ecosystem": "npm",
