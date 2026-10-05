@@ -1,3 +1,4 @@
+import path from "node:path";
 import {
   oauthTokenDocumentFileSystem,
   serializeOAuthTokenDocument,
@@ -5,9 +6,8 @@ import {
   type OAuthTokenDocumentFileSystem,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
-import type { FileHandle } from "node:fs/promises";
-import path from "node:path";
 import { stringify as stringifyYaml } from "yaml";
+import type { FileHandle } from "node:fs/promises";
 
 export type TokenFormat = "json" | "yaml";
 export type TokenOutputFileSystem = OAuthTokenDocumentFileSystem;
