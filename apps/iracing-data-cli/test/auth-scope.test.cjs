@@ -21,25 +21,27 @@ test("auth-only browser login requests exactly iracing.auth and preserves explic
     clientId: "client-id",
     scopes: ["iracing.auth"],
     timeoutSeconds: 2,
-    openBrowser: true,
+    openBrowser: false,
     diagnostics,
     clientFactory: ({ redirectUri, scopes }) => {
       configuredScopes = scopes;
       return {
-        authorize: async () => ({
-          url: new URL("https://example.test/authorize?state=synthetic-state"),
-        }),
+        authorize: async () => {
+          setTimeout(
+            () => void fetch(`${redirectUri}?code=ok&state=synthetic-state`),
+            10,
+          );
+          return {
+            url: new URL(
+              "https://example.test/authorize?state=synthetic-state",
+            ),
+          };
+        },
         callback: async (_params, sessionId) => {
           callbackSessionId = sessionId;
           return TOKEN;
         },
       };
-    },
-    browserOpener: async (_authorizationUrl) => {
-      // clientFactory has already received the bound runtime redirect URI.
-      // Recover it by creating the callback from the active listener URL exposed
-      // through a second factory-free observation is unnecessary; authorize can
-      // schedule the callback once configuration is available instead.
     },
   });
 
