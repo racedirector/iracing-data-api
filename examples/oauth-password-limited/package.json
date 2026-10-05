@@ -5,7 +5,8 @@
   "main": "dist/index.js",
   "scripts": {
     "start": "tsx --tsconfig tsconfig.build.json --env-file=.env src/index.ts",
-    "build": "tsc --build tsconfig.build.json"
+    "build": "tsc --build tsconfig.build.json",
+    "test": "tsx --tsconfig tsconfig.build.json --test test/*.test.ts"
   },
   "dependencies": {
     "@iracing-data/api-client-fetch": "workspace:*",
