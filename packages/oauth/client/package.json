@@ -1,6 +1,6 @@
 {
   "name": "@iracing-data/oauth-client",
-  "version": "0.0.1-alpha.11",
+  "version": "0.0.1-alpha.12",
   "description": "OAuth 2.0 client for iRacing with authorization-code flow, token refresh, and pluggable session storage.",
   "license": "MIT",
   "main": "dist/index.js",
@@ -28,7 +28,7 @@
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.3"
   },
   "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/oauth/client#readme",
   "bugs": {
