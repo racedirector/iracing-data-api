@@ -126,7 +126,7 @@ function assertPosixOwnershipAndMode(
     );
   }
 
-  const mode = stats.mode & 0o777;
+  const mode = Number(stats.mode) & 0o777;
   if (mode !== expectedMode) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
