@@ -3,10 +3,7 @@ import {
   OAuthScopeListCodec,
   type OAuthScopeList,
 } from "@iracing-data/oauth-client";
-import {
-  authenticateWithBrowser,
-  DEFAULT_SCOPES,
-} from "../../authenticate.js";
+import { authenticateWithBrowser, DEFAULT_SCOPES } from "../../authenticate.js";
 import {
   defaultCredentialsPath,
   defaultMcpCredentialsPath,
