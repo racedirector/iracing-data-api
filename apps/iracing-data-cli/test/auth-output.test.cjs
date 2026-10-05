@@ -2,38 +2,91 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 const diagnostics = { info() {}, warn() {}, error() {} };
 async function run(args) {
-  const { createAuthLoginCommand } =
-    await import("../dist/commands/auth-login.js");
+  const { createLoginCommand } = await import("../dist/commands/auth/login.js");
   let output;
-  const command = createAuthLoginCommand(diagnostics, {
-    authenticate: async () => ({
-      access_token: "synthetic",
-      token_type: "Bearer",
-      expires_in: 60,
-    }),
-    writeOutput: async (_token, options) => {
-      output = options;
+  let authOptions;
+  const command = createLoginCommand({
+    diagnostics,
+    dependencies: {
+      authenticate: async (options) => {
+        authOptions = options;
+        return {
+          access_token: "synthetic",
+          token_type: "Bearer",
+          expires_in: 60,
+        };
+      },
+      writeOutput: async (_token, options) => {
+        output = options;
+      },
     },
   });
   await command.parseAsync(args, { from: "user" });
-  return output;
+  return { output, authOptions };
 }
-test("login updates the stable ignored credential file by default", async () => {
+test("login updates the stable ignored credential file with auth+profile by default", async () => {
   const { defaultCredentialsPath } = await import("../dist/credentials.js");
-  const options = await run([]);
-  assert.equal(options.output, defaultCredentialsPath);
-  assert.match(options.output, /\.iracing-data\/credentials\.json$/);
-  assert.equal(options.force, true);
+  const { output, authOptions } = await run([]);
+  assert.equal(output.output, defaultCredentialsPath);
+  assert.match(output.output, /\.iracing-data\/credentials\.json$/);
+  assert.equal(output.force, true);
+  assert.deepEqual(authOptions.scopes, ["iracing.auth", "iracing.profile"]);
+});
+test("auth-only login targets the dedicated MCP credential document", async () => {
+  const { defaultMcpCredentialsPath } = await import("../dist/credentials.js");
+  const { output, authOptions } = await run(["--scope", "iracing.auth"]);
+  assert.equal(output.output, defaultMcpCredentialsPath);
+  assert.match(
+    output.output,
+    /\.iracing-data\/iracing-data-mcp\/credentials\.json$/,
+  );
+  assert.equal(output.force, true);
+  assert.deepEqual(authOptions.scopes, ["iracing.auth"]);
+});
+test("explicit auth+profile scope preserves the existing default destination", async () => {
+  const { defaultCredentialsPath } = await import("../dist/credentials.js");
+  const { output, authOptions } = await run([
+    "--scope",
+    "iracing.auth",
+    "iracing.profile",
+  ]);
+  assert.equal(output.output, defaultCredentialsPath);
+  assert.deepEqual(authOptions.scopes, ["iracing.auth", "iracing.profile"]);
+});
+test("rejects unsupported scope choices before authenticating", async () => {
+  for (const args of [
+    ["--scope", "iracing.profile"],
+    ["--scope", "openid"],
+    ["--scope", "iracing.auth", "openid"],
+    ["--scope", "iracing.profile", "iracing.auth"],
+  ]) {
+    await assert.rejects(run(args), /--scope must be either/);
+  }
 });
 test("credential override updates that file and output override remains protected", async () => {
-  assert.deepEqual(await run(["--credentials", "alternate.json"]), {
+  assert.deepEqual((await run(["--credentials", "alternate.json"])).output, {
     output: "alternate.json",
     format: undefined,
     force: true,
   });
-  assert.equal((await run(["--output", "alternate.json"])).force, false);
+  assert.deepEqual(
+    (
+      await run([
+        "--scope",
+        "iracing.auth",
+        "--credentials",
+        "mcp-alternate.json",
+      ])
+    ).output,
+    {
+      output: "mcp-alternate.json",
+      format: undefined,
+      force: true,
+    },
+  );
+  assert.equal((await run(["--output", "alternate.json"])).output.force, false);
   assert.equal(
-    (await run(["--output", "alternate.json", "--force"])).force,
+    (await run(["--output", "alternate.json", "--force"])).output.force,
     true,
   );
   await assert.rejects(
@@ -41,9 +94,13 @@ test("credential override updates that file and output override remains protecte
     /Use either/,
   );
 });
-test("rejects a format that would make the default credential file unreadable", async () => {
+test("rejects a format that would make a default credential file unreadable", async () => {
   await assert.rejects(
     run(["--format", "yaml"]),
+    /shared credential file uses JSON/,
+  );
+  await assert.rejects(
+    run(["--scope", "iracing.auth", "--format", "yaml"]),
     /shared credential file uses JSON/,
   );
   await assert.rejects(run(["--format", "toml"]), /Unsupported output format/);

@@ -3,6 +3,7 @@ import {
   InMemoryStore,
   OAuthClient,
   type InternalState,
+  type OAuthScopeList,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
 import { openUrlInBrowser } from "./browser.js";
@@ -13,7 +14,11 @@ const CALLBACK_HOST = "127.0.0.1";
 const CALLBACK_PATH = "/oauth/iracing/callback";
 const DEFAULT_REDIRECT_URI = `http://${CALLBACK_HOST}:0${CALLBACK_PATH}`;
 const SESSION_ID = "iracing-data-cli";
-const SCOPES = ["iracing.auth", "iracing.profile"] as const;
+
+export const DEFAULT_SCOPES = [
+  "iracing.auth",
+  "iracing.profile",
+] satisfies OAuthScopeList;
 
 export type OAuthClientLike = {
   authorize(): Promise<{ url: URL }>;
@@ -27,7 +32,7 @@ export type OAuthClientConfig = {
   clientId: string;
   clientSecret?: string;
   redirectUri: string;
-  scopes: readonly ["iracing.auth", "iracing.profile"];
+  scopes: Readonly<OAuthScopeList>;
 };
 
 export type SignalSource = {
@@ -39,6 +44,7 @@ export type BrowserLoginOptions = {
   clientId: string;
   clientSecret?: string;
   redirectUri?: string;
+  scopes?: Readonly<OAuthScopeList>;
   timeoutSeconds: number;
   openBrowser: boolean;
   diagnostics: Diagnostics;
@@ -130,7 +136,6 @@ export async function authenticateWithBrowser(
       throw new Error("OAuth callback listener did not expose an address.");
     }
 
-    // Preserve the registered URI byte-for-byte except for native-app port 0.
     const redirectUri =
       callbackPort === 0
         ? registeredRedirectUri.replace(/:0(?=\/|\?|$)/, `:${address.port}`)
@@ -139,7 +144,7 @@ export async function authenticateWithBrowser(
       clientId,
       clientSecret,
       redirectUri,
-      scopes: SCOPES,
+      scopes: options.scopes ?? DEFAULT_SCOPES,
     };
     const client = options.clientFactory
       ? options.clientFactory(config)
