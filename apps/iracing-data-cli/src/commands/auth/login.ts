@@ -1,8 +1,11 @@
 import { Command } from "@commander-js/extra-typings";
 import {
+  OAuthScopeListCodec,
+  type OAuthScopeList,
+} from "@iracing-data/oauth-client";
+import {
   authenticateWithBrowser,
   DEFAULT_SCOPES,
-  type OAuthScopes,
 } from "../../authenticate.js";
 import {
   defaultCredentialsPath,
@@ -19,21 +22,23 @@ interface CreateLoginCommandOptions {
   };
 }
 
-function resolveScopes(values: string[] | undefined): OAuthScopes {
+function resolveScopes(values: string[] | undefined): OAuthScopeList {
   if (!values) return DEFAULT_SCOPES;
-  if (values.length === 1 && values[0] === "iracing.auth") {
-    return ["iracing.auth"];
+
+  const scopes = OAuthScopeListCodec.parse(values.join(" "));
+  const authOnly = scopes.length === 1 && scopes[0] === "iracing.auth";
+  const authAndProfile =
+    scopes.length === 2 &&
+    scopes[0] === "iracing.auth" &&
+    scopes[1] === "iracing.profile";
+
+  if (!authOnly && !authAndProfile) {
+    throw new Error(
+      "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.",
+    );
   }
-  if (
-    values.length === 2 &&
-    values[0] === "iracing.auth" &&
-    values[1] === "iracing.profile"
-  ) {
-    return ["iracing.auth", "iracing.profile"];
-  }
-  throw new Error(
-    "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.",
-  );
+
+  return scopes;
 }
 
 export function createLoginCommand({
