@@ -1,5 +1,4 @@
 import { McpServer } from "@modelcontextprotocol/server";
-
 import type { McpApplicationConfig } from "./config";
 import type { McpServices } from "./services";
 
