@@ -12,6 +12,7 @@ import {
   createRequestContext,
 } from "./diagnostics/errors.js";
 import { createDiagnosticLogger } from "./diagnostics/logging.js";
+import { DataApiGateway } from "./gateway/gateway.js";
 import type { McpServices } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
@@ -240,13 +241,21 @@ export async function createMcpServices(
     );
   }
 
+  const dataApiConfiguration = new Configuration({
+    accessToken: async () =>
+      (await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY))!
+        .access_token,
+  });
+  const dataApiGateway = new DataApiGateway({
+    configuration: dataApiConfiguration,
+    authorizationState: () => state,
+    logger,
+  });
+
   return Object.freeze({
     oauthClient,
     authorizationState: () => state,
-    dataApiConfiguration: new Configuration({
-      accessToken: async () =>
-        (await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY))!
-          .access_token,
-    }),
+    dataApiConfiguration,
+    dataApiGateway,
   });
 }

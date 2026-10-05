@@ -12,7 +12,7 @@ This workspace establishes the application, service and diagnostic seams:
 - `McpApplicationConfigSchema` owns app-local server identity configuration.
 - App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. Data API gateway behavior (#353), Docker packaging (#358), and concrete tools remain deferred.
+Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. Docker packaging (#358) and concrete tools remain deferred.
 
 ## Development
 
@@ -27,7 +27,7 @@ See [scoped guidance](AGENTS.md) and the repository [verification contract](../.
 
 ## Error and diagnostic contract (#351)
 
-The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. Gateway (#353), cache resolution and domain tools remain deferred.
+The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway uses this contract; domain tools remain deferred.
 
 Create one `createRequestContext()` at the application request boundary; reuse it for output and logs. Client, JSON-RPC and upstream IDs are never used as diagnostic IDs. `ApplicationFailure` accepts a code and bounded optional metadata, never a message/cause. `toolError()` returns `isError: true`, `structuredContent: { error: { code, message, retryable, request_id, reason?, retry_after_seconds? } }` and one JSON text equivalent. `ErrorEnvelopeSchema` strictly validates the envelope and code-specific policy. Unknown exceptions become `INTERNAL_ERROR`; messages come only from fixed app recovery text.
 
@@ -113,7 +113,7 @@ HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes
 
 The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, gateway fetching/retries, domain tools, telemetry and Docker packaging remain deferred.
 
-Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency is not implemented or claimed here.
+Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency depends on iRacing and is bounded by the gateway deadlines below.
 
 ## Durable OAuth ownership (#352)
 
@@ -155,3 +155,59 @@ Supported recovery and ownership:
 For local logout, stop/drain and exit first, delete the selected credential file locally, then restart if desired. This is local deletion, not upstream revocation. Do not run CLI refresh/authenticated commands concurrently against the server-owned credential, copy a rotating credential, restore an older backup, or run multiple replicas against one file. This local singleton model has no credential watcher, distributed lock, hosted authentication or MCP browser login.
 
 Offline tests use private temporary files and synthetic grants to cover bootstrap, required scope/refresh, expiry, concurrency, rotation/restart, missing/corrupt/unsafe/unreadable/unsupported state, transient/revoked/ambiguous grants, persistence failure, quarantine, stopped login/logout, health/protocol availability and redaction. Existing HTTP/security and diagnostic leakage tests remain active. No public package version, generated artifact, release or publication changes are required. Rollout composes this private service with #350; rollback stops the process and reverts the app delta, using fresh login if token consumption is uncertain.
+
+## Bounded Data API gateway (#353)
+
+`createMcpServices()` composes one `dataApiGateway` beside the existing OAuth owner. Later tool handlers must compose every upstream operation for one tool invocation inside `withCall`, passing the SDK cancellation signal. This is an app-local service, not a public generic gateway or an arbitrary URL proxy. Health, initialize and listing do not invoke it.
+
+```ts
+const pageSource = await services.dataApiGateway!.withCall(
+  async (call) => ({
+    items: await call.cars(),
+    expiresAt: call.expiresAt,
+  }),
+  toolAbortSignal,
+);
+// A later tool slice validates/projects items and owns opaque collection cursors.
+```
+
+`GatewayCall` exposes only the planned read operations: document, categories constants, member, drivers, cars, tracks, recent races, season list/schedule, results and series search. Inputs use the maintained wire schemas; tool slices must apply their stricter noncoercing input schemas and bounded projections. Direct documents/constants are parsed with canonical schemas; link operations require a valid link envelope and the operation's observed collection/object shape. These raw internal payloads must never be forwarded directly to a model. Detailed field validation/projection belongs to each tool slice.
+
+The generated Fetch client builds authenticated requests through a bounded custom fetch. Only `https://members-ng.iracing.com` receives its asynchronous bearer token. Configuration middleware, cookies, credentials and unrelated headers are discarded. Cache requests create fresh unauthenticated headers. Both paths reject redirects before reading or resolving anything else.
+
+Cache destinations are exactly the evidence-backed HTTPS hosts `scorpio-assets.s3.us-east-1.amazonaws.com` and `scorpio-assets.s3.amazonaws.com` from the [architecture synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). Userinfo, fragments, unsafe ports, whitespace/backslashes, traversal and ambiguous encoded path escapes fail closed. Manifest bases must be directories without query overrides; chunks are simple filenames under that same directory. Every connection resolves all DNS answers, rejects nonpublic/mapped/transition addresses, and pins a validated address in the TLS lookup callback while retaining hostname certificate verification. There is no redirect follower, proxy agent, cookie jar or host wildcard. A new legitimate host requires reviewed evidence and an allowlist change.
+
+Fixed limits cannot be raised through tool input:
+
+| Bound                                                   | Limit                             |
+| ------------------------------------------------------- | --------------------------------- |
+| Decoded/decompressed bytes per response                 | 8 MiB                             |
+| Cumulative bytes per call, including cached chunk reads | 16 MiB                            |
+| API/cache fetches per call                              | 8                                 |
+| One fetch, through body completion                      | 10 seconds                        |
+| One call, including authorization wait                  | 30 seconds                        |
+| Global API/cache network operations                     | 2                                 |
+| Admitted gateway calls                                  | 8 (HTTP tool admission remains 8) |
+| Retained search states / manifest and chunk bytes       | 32 / 32 MiB                       |
+| Internal search lifetime                                | 5 minutes                         |
+
+Streaming enforces decoded sizes regardless of missing/deceptive Content-Length; production transport decodes gzip, deflate and Brotli first. Capacity is rejected promptly without a queue. Identical in-flight fetches share work inside the singleton owner, charge each caller's own fetch/byte budget, and stop when the last caller cancels. One canceled caller cannot abort another's download. No response cache survives a call except bounded search-local chunks. Authorization loss invalidates retained searches; process restart also invalidates every handle. Cancellation/deadline can stop Data API/cache work; it never retries or aborts an ambiguously consumed OAuth refresh grant.
+
+Search consumes the bounded raw response of the generated `getResultsSearchSeriesRaw` method and validates it with `ResultsSearchSeriesResponseSchema`. Live reconciliation found that merged #348 added this schema but did **not** update the public OpenAPI mapping/generated decoder: this parent still decodes `.value()` as a link. The gateway therefore uses `.raw` JSON and never casts a manifest to a link. That public mapping/regeneration/release correction is separate from #353; no generated files are edited here.
+
+Manifest validation requires successful search, matching/unique filenames, consistent chunk/row counts, at most 1,000 files/500,000 rows and safe paths. `call.search()` returns an internal handle containing totals and policy expiry, with signed URLs held privately. `call.chunk(handle, index)` retrieves only the selected file, validates its expected row count, preserves file/row order, and replays a private cached copy. It never aggregates a search. Example for a later search tool:
+
+```ts
+const source = await gateway.withCall(async (call) => {
+  const search = await call.search(validatedSearchParameters);
+  const rows = search.chunks ? await call.chunk(search, 0) : [];
+  return { search, rows };
+}, toolAbortSignal);
+// #357 owns model-facing opaque cursors, offsets, filtering and page projections.
+```
+
+Known link expiry contributes to `call.expiresAt`: the earlier of five minutes and envelope expiry minus 30 seconds. This supports #354's collection cursor lifetime without exposing signed links. Search has no observed envelope expiry, so its five-minute limit is app policy. Elapsed expiry and cache 403/404 yield `CURSOR_EXPIRED`. Only a first-page linked operation may reacquire its envelope once, within all original caps; a continuation never rematerializes a search. No other API/cache/OAuth retry loop exists.
+
+429 establishes a shared cooldown from bounded Retry-After seconds or HTTP date (up to one hour; invalid/absent values use one second). New work returns `RATE_LIMITED` immediately with safe retry metadata. API 401/403 remain `UPSTREAM_UNAUTHORIZED`, without refresh/retry loops. Unsafe links/malformed data are `DATA_RESOLUTION_FAILED`; oversized sources are `RESPONSE_LIMIT_EXCEEDED`; timeout/cancellation/network failure is `UPSTREAM_UNAVAILABLE`. Narrow oversized requests, wait for cooldown, rerun expired searches, or give support the app request ID. Raw URLs, headers, bodies and exception causes are excluded from fixed errors and allowlisted diagnostics.
+
+Offline gateway tests cover operation shapes, both cache hosts, expiry/reacquisition, manifest/path/DNS attacks, decoded and cumulative caps, compression, cancellation/deadlines, admission/concurrency, deduplication, retention, account-local invalidation and safe diagnostics. Existing session/quarantine/rotation and HTTP/security tests remain active. No domain tools, model-facing cursors, Docker/Compose, telemetry, hosted auth, callbacks, public package versions or publication are added. Rollout uses the shared services before listening; rollback stops/drains and reverts this private slice. Never restore consumed refresh credentials; use stopped host login when rotation is uncertain.
