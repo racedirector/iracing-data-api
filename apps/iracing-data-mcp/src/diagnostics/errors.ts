@@ -17,7 +17,7 @@ export const errorPolicy = Object.freeze({
     false,
   ],
   RATE_LIMITED: [
-    "iRacing rate limited the request. Wait before retrying.",
+    "Request capacity is temporarily limited. Wait before retrying.",
     true,
   ],
   UPSTREAM_UNAVAILABLE: [
@@ -47,13 +47,16 @@ export const errorPolicy = Object.freeze({
   ],
 } as const);
 
-for (const policy of Object.values(errorPolicy)) Object.freeze(policy);
+for (const policy of Object.values(errorPolicy)) {
+  Object.freeze(policy);
+}
 
 export type ApplicationErrorCode = keyof typeof errorPolicy;
 const codes = Object.keys(errorPolicy) as [
   ApplicationErrorCode,
   ...ApplicationErrorCode[],
 ];
+
 export const ApplicationErrorCodeSchema = z.enum(codes);
 const reasons = {
   AUTHORIZATION_REQUIRED: [
@@ -84,31 +87,42 @@ export const ErrorEnvelopeSchema = z
   .superRefine(({ error }, ctx) => {
     const allowed = reasons[error.code as keyof typeof reasons] as
       readonly string[] | undefined;
-    if (error.reason !== undefined && !allowed?.includes(error.reason))
+
+    if (error.reason !== undefined && !allowed?.includes(error.reason)) {
       ctx.addIssue({ code: "custom", message: "Invalid error reason" });
+    }
+
     const safeRefresh =
       error.code === "TOKEN_REFRESH_FAILED" &&
       error.reason === "transient_refresh";
+
     if (
       error.message !== errorPolicy[error.code][0] ||
       error.retryable !== (safeRefresh || errorPolicy[error.code][1])
-    )
+    ) {
       ctx.addIssue({ code: "custom", message: "Invalid error policy" });
-    if (error.retry_after_seconds !== undefined && !error.retryable)
+    }
+
+    if (error.retry_after_seconds !== undefined && !error.retryable) {
       ctx.addIssue({ code: "custom", message: "Invalid retry metadata" });
+    }
   });
 export type ErrorEnvelope = z.infer<typeof ErrorEnvelopeSchema>;
 
 // Contexts are generated here, never accepted from a client or upstream ID.
 const contexts = new WeakMap<RequestContext, string>();
+
 export interface RequestContext {
   readonly request_id: string;
 }
 export function createRequestContext(): RequestContext {
   const context = Object.freeze({ request_id: randomUUID() });
+
   contexts.set(context, context.request_id);
+
   return context;
 }
+
 export function requestId(context: RequestContext): string {
   return contexts.get(context) ?? createRequestContext().request_id;
 }
@@ -138,7 +152,9 @@ export class ApplicationFailure extends Error {
    */
   constructor(code: ApplicationErrorCode, options: unknown = {}) {
     const validCode = ApplicationErrorCodeSchema.safeParse(code);
+
     const safeCode = validCode.success ? validCode.data : "INTERNAL_ERROR";
+
     super(errorPolicy[safeCode][0]);
     this.name = "ApplicationFailure";
     const parsed = z
@@ -147,16 +163,22 @@ export class ApplicationFailure extends Error {
         retry_after_seconds: z.number().optional(),
       })
       .safeParse(options);
+
     const input = parsed.success ? parsed.data : {};
+
     const allowed = reasons[safeCode as keyof typeof reasons] as
       readonly string[] | undefined;
+
     const reason = allowed?.includes(input.reason ?? "")
       ? input.reason
       : undefined;
+
     const retryable =
       errorPolicy[safeCode][1] ||
       (safeCode === "TOKEN_REFRESH_FAILED" && reason === "transient_refresh");
+
     const seconds = input.retry_after_seconds;
+
     failures.set(
       this,
       Object.freeze({
@@ -181,7 +203,9 @@ export function errorEnvelope(
 ): ErrorEnvelope {
   const details =
     error instanceof ApplicationFailure ? failures.get(error) : undefined;
+
   const code = details?.code ?? "INTERNAL_ERROR";
+
   return ErrorEnvelopeSchema.parse({
     error: {
       ...details,
@@ -195,9 +219,14 @@ export function errorEnvelope(
     },
   });
 }
+
 export function toolError(error: unknown, context: RequestContext) {
-  if (error instanceof ProtocolFailure) throw new ProtocolFailure(error.domain);
+  if (error instanceof ProtocolFailure) {
+    throw new ProtocolFailure(error.domain);
+  }
+
   const structuredContent = errorEnvelope(error, context);
+
   return {
     isError: true as const,
     structuredContent,

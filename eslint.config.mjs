@@ -1,3 +1,4 @@
+import stylistic from "@stylistic/eslint-plugin";
 import tseslint from "@typescript-eslint/eslint-plugin";
 import parser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier";
@@ -31,6 +32,7 @@ export default [
     },
     plugins: {
       "@typescript-eslint": tseslint,
+      "@stylistic": stylistic,
       import: importPlugin,
       prettier: eslintPluginPrettier,
     },
@@ -154,9 +156,57 @@ export default [
     },
   },
   {
-    files: ["packages/iracing-telemetry-types/*"],
+    files: ["apps/iracing-data-mcp/**/*.{js,mjs,ts}"],
     rules: {
-      "@typescript-eslint/triple-slash-reference": "off",
+      curly: ["error", "all"],
+
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        {
+          blankLine: "always",
+          prev: "*",
+          next: "return",
+        },
+        {
+          blankLine: "always",
+          prev: ["block", "block-like"],
+          next: "*",
+        },
+        {
+          blankLine: "any",
+          prev: ["const", "let", "var"],
+          next: ["const", "let", "var"],
+        },
+        {
+          blankLine: "always",
+          prev: ["const", "let", "var"],
+          next: "*",
+        },
+      ],
+
+      "@stylistic/lines-around-comment": [
+        "error",
+        {
+          beforeLineComment: true,
+          allowBlockStart: true,
+          allowInterfaceStart: true,
+          allowObjectStart: true,
+          allowArrayStart: true,
+        },
+      ],
+
+      "max-lines-per-function": [
+        "warn",
+        {
+          max: 80,
+          skipBlankLines: true,
+          skipComments: true,
+          IIFEs: true,
+        },
+      ],
+      "max-nested-callbacks": ["error", { max: 3 }],
+      "max-depth": ["error", { max: 3 }],
+      complexity: ["warn", 12],
     },
   },
 ];
