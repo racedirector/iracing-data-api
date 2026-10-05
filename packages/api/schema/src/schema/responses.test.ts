@@ -120,7 +120,10 @@ it("rejects link envelopes and malformed search-series manifests", () => {
       ...value,
       data: {
         ...value.data,
-        chunk_info: { ...value.data.chunk_info, chunk_file_names: "chunk.json" },
+        chunk_info: {
+          ...value.data.chunk_info,
+          chunk_file_names: "chunk.json",
+        },
       },
     },
   ])
