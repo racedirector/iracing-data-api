@@ -17,7 +17,7 @@ export const errorPolicy = Object.freeze({
     false,
   ],
   RATE_LIMITED: [
-    "iRacing rate limited the request. Wait before retrying.",
+    "Request capacity is temporarily limited. Wait before retrying.",
     true,
   ],
   UPSTREAM_UNAVAILABLE: [

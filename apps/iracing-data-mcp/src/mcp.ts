@@ -1,4 +1,8 @@
-import { McpServer } from "@modelcontextprotocol/server";
+import {
+  McpServer,
+  ProtocolError,
+  ProtocolErrorCode,
+} from "@modelcontextprotocol/server";
 import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
@@ -36,18 +40,28 @@ export interface CreateMcpServerOptions {
   readonly config: McpApplicationConfig;
   /** Long-lived dependencies shared by request-scoped MCP server instances. */
   readonly services: McpServices;
+  readonly registerTools?: McpToolRegistrar;
 }
 
 /** Creates a fresh MCP server around long-lived application services. */
 export function createMcpServer({
   config,
   services,
+  registerTools,
 }: CreateMcpServerOptions): McpServer {
-  const server = new McpServer({
-    name: config.name,
-    version: config.version,
-  });
+  const server = new McpServer(
+    { name: config.name, version: config.version },
+    { supportedProtocolVersions: ["2025-11-25", "2025-06-18", "2025-03-26"] },
+  );
 
   registerMcpTools(server, services);
+  registerTools?.(server, services);
+  if (toolRegistrars.length === 0 && !registerTools) {
+    server.server.registerCapabilities({ tools: {} });
+    server.server.setRequestHandler("tools/list", () => ({ tools: [] }));
+    server.server.setRequestHandler("tools/call", () => {
+      throw new ProtocolError(ProtocolErrorCode.InvalidParams, "Unknown tool.");
+    });
+  }
   return server;
 }
