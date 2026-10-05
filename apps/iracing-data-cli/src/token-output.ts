@@ -187,6 +187,64 @@ export function serializeToken(
   return serializeDocument(token, format);
 }
 
+async function writeJsonTokenOutput(
+  token: OAuthTokenResponse,
+  destination: string,
+  force: boolean,
+  fileSystem: TokenOutputFileSystem,
+) {
+  const existing = await pathExists(fileSystem, destination, "Credential");
+  if (existing?.isDirectory()) {
+    throw new Error(`Credential destination is a directory: ${destination}`);
+  }
+  if (existing && !force) {
+    throw new Error(
+      `Credential file already exists: ${destination}. Pass --force to replace it.`,
+    );
+  }
+
+  try {
+    await writeOAuthTokenDocument(destination, token, {
+      overwrite: force,
+      durability: process.platform === "win32" ? "best-effort" : "required",
+      fileSystem,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "";
+    if (message.startsWith("Unable to create OAuth token document directory:")) {
+      throw new Error(
+        `Unable to create credential parent directory: ${path.dirname(destination)}`,
+        { cause: error },
+      );
+    }
+    if (message.startsWith("Unable to create temporary OAuth token document")) {
+      throw new Error(
+        `Unable to create temporary credential file for: ${destination}`,
+        { cause: error },
+      );
+    }
+    if (message.startsWith("Unable to write temporary OAuth token document")) {
+      throw new Error(
+        `Unable to write temporary credential file for: ${destination}`,
+        { cause: error },
+      );
+    }
+    if (message.startsWith("Unable to atomically publish OAuth token document")) {
+      throw new Error(
+        `Unable to replace credential destination: ${destination}`,
+        { cause: error },
+      );
+    }
+    if (message.startsWith("OAuth token document already exists:")) {
+      throw new Error(
+        `Credential file already exists: ${destination}. Pass --force to replace it.`,
+        { cause: error },
+      );
+    }
+    throw error;
+  }
+}
+
 export async function writeTokenOutput(
   token: OAuthTokenResponse,
   options: TokenOutputOptions = {},
@@ -204,11 +262,12 @@ export async function writeTokenOutput(
       options.cwd ?? process.cwd(),
       options.output,
     );
-    await writeOAuthTokenDocument(destination, token, {
-      overwrite: options.force ?? false,
-      durability: process.platform === "win32" ? "best-effort" : "required",
-      fileSystem: options.fileSystem,
-    });
+    await writeJsonTokenOutput(
+      token,
+      destination,
+      options.force ?? false,
+      options.fileSystem ?? tokenOutputFileSystem,
+    );
     return;
   }
 
