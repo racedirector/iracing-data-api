@@ -34,6 +34,8 @@ paths:
                 additionalProperties: false
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /sessions:
     get:
       operationId: getSessions
@@ -165,9 +167,11 @@ paths:
                             - string
                             - "null"
                         last_subdivisions:
-                          type:
-                            - string
-                            - "null"
+                          anyOf:
+                            - type: array
+                              items:
+                                type: string
+                            - type: "null"
                         last_city:
                           type:
                             - string
@@ -221,6 +225,8 @@ paths:
                 additionalProperties: false
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /revoke/current:
     post:
       operationId: revokeCurrent
@@ -239,6 +245,8 @@ paths:
           $ref: "#/components/responses/SessionsRevoked"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /revoke/sessions:
     post:
       operationId: revokeSessions
@@ -263,6 +271,8 @@ paths:
           $ref: "#/components/responses/SessionsRevoked"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /revoke/client:
     post:
       operationId: revokeClient
@@ -273,6 +283,8 @@ paths:
           $ref: "#/components/responses/SessionsRevoked"
         "401":
           $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
   /authorize:
     get:
       operationId: authorize
@@ -392,6 +404,8 @@ paths:
                   - error_description
                   - error_uri
                 additionalProperties: false
+        "403":
+          $ref: "#/components/responses/Forbidden"
 components:
   schemas:
     tokenGrantParameters:
@@ -535,6 +549,36 @@ components:
         x-request-id: *a1
     Unauthorized:
       description: Access token is missing or invalid.
+      headers:
+        x-request-id: *a1
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: number
+              status_reason:
+                type: string
+              error:
+                type: string
+              error_description:
+                type: string
+              error_uri:
+                type: string
+              state:
+                type: string
+            required:
+              - status
+              - status_reason
+              - error
+              - error_description
+              - error_uri
+            additionalProperties: false
+    Forbidden:
+      description: The request is forbidden.
+      headers:
+        x-request-id: *a1
       content:
         application/json:
           schema:

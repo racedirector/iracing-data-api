@@ -18,9 +18,7 @@ import {
 } from "@iracing-data/oauth-schema";
 
 export type OAuthAccessTokenProvider =
-  | string
-  | Promise<string>
-  | (() => string | Promise<string>);
+  string | Promise<string> | (() => string | Promise<string>);
 
 export interface OAuthApiClientGeneratedOptions {
   accessToken?: OAuthAccessTokenProvider;
@@ -167,7 +165,10 @@ export class OAuthApiClientGenerated {
   ) {
     const headers = new Headers(init.headers);
     if (requiresAuth) {
-      headers.set("Authorization", "Bearer " + (await this.resolveAccessToken()));
+      headers.set(
+        "Authorization",
+        "Bearer " + (await this.resolveAccessToken()),
+      );
     }
 
     let response: Response;
@@ -201,7 +202,9 @@ export class OAuthApiClientGenerated {
     try {
       value = await response.json();
     } catch {
-      throw new OAuthApiContractError("OAuth API response contained invalid JSON.");
+      throw new OAuthApiContractError(
+        "OAuth API response contained invalid JSON.",
+      );
     }
 
     try {
