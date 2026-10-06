@@ -107,7 +107,9 @@ test("does not log untrusted errors or response bodies", async () => {
         createOAuthApi() {
           return {
             async getProfile() {
-              throw new OAuthApiContractError("OAuth API response was not JSON.");
+              throw new OAuthApiContractError(
+                "OAuth API response was not JSON.",
+              );
             },
           };
         },
