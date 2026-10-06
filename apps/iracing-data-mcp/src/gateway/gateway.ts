@@ -33,12 +33,14 @@ import {
 } from "../diagnostics/errors.js";
 import { createDiagnosticLogger } from "../diagnostics/logging.js";
 import { mapFailure } from "../diagnostics/mapping.js";
+import { RetentionBudget } from "../retention.js";
 import {
   arrayPayload,
   directSchemas,
   parse,
   parseEnvelope,
   parseManifest,
+  validateSearchEcho,
   payloadSchemas,
 } from "./parsers.js";
 import {
@@ -110,6 +112,7 @@ function unavailable() {
 
 /** One shared gateway per application/session owner; no persistent cache or tool registration. */
 export class DataApiGateway {
+  readonly retention = new RetentionBudget();
   readonly #options: GatewayOptions;
   readonly #transport: GatewayTransport;
   readonly #now: () => number;
@@ -137,13 +140,27 @@ export class DataApiGateway {
     this.#transport = options.transport ?? createGatewayTransport();
     this.#now = options.now ?? Date.now;
     this.#logger = options.logger ?? createDiagnosticLogger();
+    this.retention.registerPruner(() => this.#prune());
   }
 
   /** Discard retained searches and chunks so their handles can no longer be used. */
   invalidate(): void {
     this.#generation++;
-    this.#searches.clear();
-    this.#retained = 0;
+    for (const handle of this.#searches.keys()) {
+      this.#drop(handle);
+    }
+  }
+
+  /** Explicitly retire a lazy search without invalidating other tools. */
+  releaseSearch(handle: GatewaySearch): void {
+    this.#drop(handle);
+  }
+
+  /** Check exact retained handle identity, including on cursor replay. */
+  hasSearch(handle: GatewaySearch): boolean {
+    this.#prune();
+
+    return this.#searches.has(handle);
   }
 
   /** Remove a search and release its retained byte budget; unknown handles are ignored. */
@@ -159,6 +176,13 @@ export class DataApiGateway {
       this.#retained -= cached.bytes;
     }
 
+    this.retention.release(
+      search.bytes +
+        [...search.cache.values()].reduce(
+          (sum, cached) => sum + cached.bytes,
+          0,
+        ),
+    );
     this.#searches.delete(handle);
   }
 
@@ -842,11 +866,13 @@ export class DataApiGateway {
 
           // #348's canonical schema landed, but this parent's generated converter still
           // models a link. Consume raw, bounded JSON; never cast a manifest to a link.
-          const info = parseManifest(
-            await raw(() =>
-              new ResultsApi(configuration).getResultsSearchSeriesRaw(request),
-            ),
+          const manifest = await raw(() =>
+            new ResultsApi(configuration).getResultsSearchSeriesRaw(request),
           );
+
+          const info = parseManifest(manifest);
+
+          validateSearchEcho(manifest, p);
 
           this.#prune();
           if (this.#searches.size >= GATEWAY_LIMITS.cursors) {
@@ -867,6 +893,7 @@ export class DataApiGateway {
             throw new ApplicationFailure("RESPONSE_LIMIT_EXCEEDED");
           }
 
+          this.retention.reserve(bytes);
           this.#retained += bytes;
           this.#searches.set(handle, { info, expiry, bytes, cache: new Map() });
 
@@ -968,6 +995,12 @@ export class DataApiGateway {
 
             // Another call may have completed the same deduplicated chunk meanwhile.
             if (!search.cache.has(index)) {
+              this.retention.reserve(bytes);
+              if (!this.#searches.has(handle)) {
+                this.retention.release(bytes);
+                throw expired();
+              }
+
               search.cache.set(index, { rows, bytes });
               this.#retained += bytes;
             }

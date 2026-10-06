@@ -10,6 +10,7 @@ const names = [
   "list_series_seasons",
   "get_series_schedule",
   "get_race_result",
+  "search_driver_races",
 ];
 const hidden = {
   account: "ACCOUNT_SECRET",
