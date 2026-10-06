@@ -98,9 +98,21 @@ export function analyzeImpact(files, workspaces) {
   const add = (entry) => {
     if (entry) affected.add(entry.name);
   };
-  const apiClients = workspaces.filter(
+  const generatedClients = workspaces.filter(
     (entry) => entry.kind === "generated-public-client",
   );
+  const oauthClients = generatedClients.filter(
+    (entry) => entry.path === "packages/oauth/client/generated",
+  );
+  const apiClients = generatedClients.filter(
+    (entry) => !oauthClients.includes(entry),
+  );
+  const markGenerated = (entries) => {
+    for (const entry of entries) {
+      add(entry);
+      generated.add(entry.name);
+    }
+  };
   let api = false;
   let oauth = false;
   const global = changedFiles.some((file) =>
@@ -128,17 +140,29 @@ export function analyzeImpact(files, workspaces) {
       /^(packages\/oauth\/schema\/|packages\/helpers\/oauth-schema-to-openapi\/|openapi\/oauth\.)/.test(
         file,
       );
+
     if (
-      /^scripts\/(openapi-generator|normalize-|client-presentation|generated\.|check-generated)/.test(
+      file === "openapitools.json" ||
+      /^scripts\/(normalize-client-presentation|generated\.|check-generated)/.test(
         file,
-      ) ||
-      file === "openapitools.json"
+      )
     ) {
-      for (const entry of apiClients) {
-        add(entry);
-        generated.add(entry.name);
-      }
+      markGenerated(generatedClients);
       commands.add("pnpm codegen");
+    } else if (
+      /^scripts\/(openapi-generator-oauth-fetch|oauth-client-presentation\/)/.test(
+        file,
+      )
+    ) {
+      markGenerated(oauthClients);
+      commands.add("pnpm codegen:client:oauth:fetch");
+    } else if (
+      /^scripts\/(openapi-generator-(axios|fetch|rust)|client-presentation\/)/.test(
+        file,
+      )
+    ) {
+      markGenerated(apiClients);
+      commands.add("pnpm codegen:client:api");
     }
   }
   if (global) for (const entry of workspaces) add(entry);
@@ -153,22 +177,21 @@ export function analyzeImpact(files, workspaces) {
   if (api) {
     derived.add("openapi/iracing.json");
     derived.add("openapi/iracing.yaml");
-    for (const entry of apiClients) {
-      add(entry);
-      generated.add(entry.name);
-    }
+    markGenerated(apiClients);
     commands.add("pnpm codegen");
   }
   if (oauth) {
     derived.add("openapi/oauth.json");
     derived.add("openapi/oauth.yaml");
+    markGenerated(oauthClients);
     commands.add(
       "pnpm --filter '@iracing-data/oauth-schema-to-openapi...' build",
     );
     commands.add("pnpm codegen:openapi:oauth");
     commands.add("pnpm codegen:openapi:oauth:yaml");
+    commands.add("pnpm codegen:client:oauth:fetch");
   }
-  for (const entry of apiClients)
+  for (const entry of generatedClients)
     if (direct.has(entry.name)) generated.add(entry.name);
   let previous;
   do {
@@ -200,6 +223,7 @@ export function analyzeImpact(files, workspaces) {
   const releasable = impacted.filter(
     (entry) => entry.managed && publicKinds.has(entry.kind),
   );
+  const apiClientNames = new Set(apiClients.map((entry) => entry.name));
   return {
     changedFiles,
     globalToolingImpact: global,
@@ -229,7 +253,7 @@ export function analyzeImpact(files, workspaces) {
       releasable.map((entry) => ({
         ...entry,
         dependencies:
-          api && entry.kind === "generated-public-client"
+          api && apiClientNames.has(entry.name)
             ? [...entry.dependencies, "@iracing-data/api-schema"]
             : entry.dependencies,
       })),
