@@ -67,6 +67,13 @@ export async function createMcpServices(
 
   let terminal: ApplicationFailure | undefined;
 
+  // Covers grant submission through durable replacement, not just the HTTP response.
+  let rotationPending = false;
+
+  let ownerClosing = false;
+
+  let ownerShutdown: Promise<void> | undefined;
+
   const store = new OAuthTokenDocumentSessionStore({
     filePath: options.credentialFile ?? MCP_CREDENTIAL_FILE,
     sessionKey: MCP_LOCAL_SESSION_KEY,
@@ -98,14 +105,17 @@ export async function createMcpServices(
   async function discardCredential() {
     // A fresh store can delete after the original store quarantines a failed write.
     // It performs no grant and uses only the existing secure persistence API.
-    await new OAuthTokenDocumentSessionStore({
+    return await new OAuthTokenDocumentSessionStore({
       filePath: options.credentialFile ?? MCP_CREDENTIAL_FILE,
       sessionKey: MCP_LOCAL_SESSION_KEY,
       durability: "required",
       fileSystem: options.fileSystem,
     })
       .del(MCP_LOCAL_SESSION_KEY)
-      .catch(() => undefined);
+      .then(
+        () => true,
+        () => false,
+      );
   }
 
   // App policy wraps the shared store; all filesystem persistence stays in OAuth.
@@ -138,6 +148,15 @@ export async function createMcpServices(
 
       try {
         await store.set(key, token);
+
+        // A write that was already underway during shutdown can publish after deletion.
+        // Never allow that late publication or restoration to revive this owner.
+        if (terminal) {
+          await discardCredential();
+          throw terminal;
+        }
+
+        rotationPending = false;
       } catch {
         const failure = quarantine(authorization("persistence_failed"));
 
@@ -153,6 +172,7 @@ export async function createMcpServices(
         throw terminal;
       }
 
+      rotationPending = true;
       try {
         return await super.refresh(token);
       } catch (error) {
@@ -171,6 +191,7 @@ export async function createMcpServices(
             : undefined;
 
         if (code === "temporarily_unavailable" || code === "server_error") {
+          rotationPending = false;
           const failure = new ApplicationFailure("TOKEN_REFRESH_FAILED", {
             reason: "transient_refresh",
           });
@@ -202,8 +223,16 @@ export async function createMcpServices(
         throw terminal;
       }
 
+      if (ownerClosing) {
+        throw authorization("invalid_session");
+      }
+
       try {
         const token = validateSession(await super.restoreSessionForId(key));
+
+        if (terminal) {
+          throw terminal;
+        }
 
         transition("ready");
 
@@ -260,7 +289,31 @@ export async function createMcpServices(
     logger,
   });
 
+  function shutdownAuthorizationOwner() {
+    ownerShutdown ??= (async () => {
+      ownerClosing = true;
+      if (!rotationPending) {
+        return;
+      }
+
+      quarantine(
+        new ApplicationFailure("TOKEN_REFRESH_FAILED", {
+          reason: "rotation_uncertain",
+        }),
+      );
+      logger.failure(context, terminal, { operation: "shutdown" });
+      dataApiGateway.invalidate();
+      if (!(await discardCredential())) {
+        // Do not report a clean stop when secure deletion could not be confirmed.
+        throw new ApplicationFailure("CONFIGURATION_ERROR");
+      }
+    })();
+
+    return ownerShutdown;
+  }
+
   return Object.freeze({
+    shutdownAuthorizationOwner,
     oauthClient,
     authorizationState: () => state,
     dataApiConfiguration,

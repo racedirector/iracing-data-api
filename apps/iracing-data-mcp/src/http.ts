@@ -551,7 +551,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           resolve();
         });
         server.closeIdleConnections();
-      });
+      }).then(() => options.services.shutdownAuthorizationOwner?.());
 
       return shutdownPromise;
     },
@@ -566,9 +566,25 @@ export function createHttpApplication(options: HttpApplicationOptions) {
  */
 export function installTerminationHandlers(
   app: ReturnType<typeof createHttpApplication>,
+  onStopped?: (exitCode: 0 | 1) => void,
 ) {
+  let terminating = false;
+
   const terminate = () => {
-    void app.shutdown();
+    if (terminating) {
+      return;
+    }
+
+    terminating = true;
+    void app.shutdown().then(
+      () => onStopped?.(0),
+      () => {
+        console.error(
+          "MCP shutdown failed. Keep the server stopped and replace credentials with host login before restarting.",
+        );
+        onStopped?.(1);
+      },
+    );
   };
 
   process.on("SIGTERM", terminate);

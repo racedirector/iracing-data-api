@@ -11,6 +11,7 @@ const diagnosticFields = z.object({
   operation: z
     .enum([
       "startup",
+      "shutdown",
       "tool_call",
       "refresh",
       "session_restore",

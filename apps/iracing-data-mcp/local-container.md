@@ -134,3 +134,21 @@ public Node image digest is
 review and refresh it with dependency updates. Corepack in the build stage uses
 the exact pnpm version/integrity in the root `packageManager`; the runtime removes
 package-manager binaries and ships app dist with production dependencies only.
+
+Shutdown also closes the process credential owner after bounded HTTP drain. If a
+refresh grant was submitted but its replacement was not durably committed, the
+owner records a safe `shutdown` / `TOKEN_REFRESH_FAILED` diagnostic, invalidates
+retained account data and removes the uncertain credential before production
+exit. Late grant results cannot restore ready state; publications already underway
+are checked after completion and removal is attempted when the owner is terminal.
+Failed cleanup requires stopped re-login. A clean completed rotation is retained;
+a structured nonconsuming OAuth transient rejection also preserves the old
+credential. Repeat shutdown signals share one owner cleanup.
+
+If credential deletion cannot be confirmed, shutdown exits **nonzero** and tells
+you to keep the service stopped and repair/re-login before restarting. Do not
+configure automatic restart for that failure: a failed deletion cannot guarantee
+durable quarantine to a new process. Forced SIGKILL/power loss can interrupt any
+cleanup and does not prove whether a submitted refresh was consumed; perform
+stopped host re-login before restarting after such an interruption. Never restore
+an old refresh token from backup.
