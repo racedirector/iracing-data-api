@@ -63,7 +63,7 @@ export class OAuthApiClient {
         accessToken: options.accessToken,
         basePath: options.basePath,
         headers: { Accept: "application/json" },
-        fetchApi: async (input, init = {}) => {
+        fetchApi: async (input, init: RequestInit = {}) => {
           const headers = new Headers(init.headers);
           return await fetchApi(input, {
             ...init,
