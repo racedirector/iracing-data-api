@@ -11,7 +11,7 @@
     "codegen:client:api:axios": "./scripts/openapi-generator-axios.sh",
     "codegen:client:api:fetch": "./scripts/openapi-generator-fetch.sh",
     "codegen:client:api:rust": "./scripts/openapi-generator-rust.sh",
-    "codegen:client:oauth:fetch": "./scripts/openapi-generator-oauth-fetch.sh",
+    "codegen:client:oauth:fetch": "sh ./scripts/openapi-generator-oauth-fetch.sh",
     "codegen:openapi": "pnpm -w --parallel --stream '/^codegen:openapi:.+$/'",
     "codegen:openapi:api": "iracing-api-openapi -o ./openapi -f iracing.json",
     "codegen:openapi:api:yaml": "iracing-api-openapi -o ./openapi -f iracing.yaml",
