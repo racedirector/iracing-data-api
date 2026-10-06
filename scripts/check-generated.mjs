@@ -10,6 +10,7 @@ export const surfaces = [
   "packages/api/client/fetch",
   "packages/api/client/axios",
   "crates/iracing-data-api-client",
+  "packages/oauth/client/src/generated",
 ];
 const ignoredNames = new Set([
   "node_modules",
@@ -122,6 +123,17 @@ export function checkGenerated({ update = false } = {}) {
         },
       );
     }
+
+    const oauthClient = path.join(temporary, surfaces[4], "oauth-api.ts");
+    command(
+      "node",
+      [path.join(root, "scripts", "generate-oauth-client.mjs")],
+      {
+        OPENAPI_DOC: path.join(specs, "oauth.json"),
+        OUTPUT_FILE: oauthClient,
+      },
+    );
+
     const changes = surfaces.flatMap((surface) =>
       diffTrees(path.join(root, surface), path.join(temporary, surface)).map(
         (name) => `${surface}/${name}`,
