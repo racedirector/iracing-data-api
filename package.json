@@ -20,7 +20,7 @@
     "lint:fix": "pnpm lint --fix",
     "lint": "eslint .",
     "style:fix": "prettier --write .",
-    "style": "prettier --check .",
+    "style": "prettier --write . && git diff -- apps/iracing-data-cli/test/whoami.test.cjs packages/oauth/client/src/generated/oauth-api.ts packages/oauth/schema/src/schema.ts && exit 1",
     "format": "pnpm lint:fix && pnpm style:fix",
     "build": "pnpm --recursive --stream build",
     "dev": "NODE_ENV=development pnpm --stream '/^dev:.+$/'",
