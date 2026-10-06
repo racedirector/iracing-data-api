@@ -1,50 +1,66 @@
 import { Command } from "@commander-js/extra-typings";
-import { OAuthProfileResponseSchema } from "@iracing-data/oauth-client";
+import {
+  OAuthApiClient,
+  OAuthApiContractError,
+  OAuthApiHttpError,
+  type OAuthProfileApi,
+} from "@iracing-data/oauth-client";
 import { resolveAccessToken, type CredentialOptions } from "../credentials.js";
 import type { Diagnostics } from "../diagnostics.js";
 
+export type WhoamiDependencies = {
+  createOAuthApi(accessToken: string): OAuthProfileApi;
+};
+
+const defaultDependencies: WhoamiDependencies = {
+  createOAuthApi(accessToken) {
+    return new OAuthApiClient({ accessToken });
+  },
+};
+
 export async function whoami(
-  options: CredentialOptions & { fetcher?: typeof fetch } = {},
+  options: CredentialOptions = {},
+  dependencies: WhoamiDependencies = defaultDependencies,
 ) {
   const token = await resolveAccessToken(options);
-  let response: Response;
+
+  let profile;
   try {
-    response = await (options.fetcher ?? fetch)(
-      "https://oauth.iracing.com/oauth2/iracing/profile",
-      {
-        headers: {
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        redirect: "error",
-        signal: AbortSignal.timeout(30000),
-      },
-    );
-  } catch {
-    throw new Error(
-      "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
-    );
+    profile = await dependencies.createOAuthApi(token).getProfile();
+  } catch (error) {
+    if (error instanceof OAuthApiHttpError) {
+      throw new Error(
+        `Identity request failed: HTTP ${error.response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
+      );
+    }
+
+    if (error instanceof OAuthApiContractError) {
+      if (error.message.includes("before a response was received")) {
+        throw new Error(
+          "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
+        );
+      }
+      if (error.message.includes("not JSON")) {
+        throw new Error("Identity response was not JSON. No response body logged.");
+      }
+      throw new Error(
+        "Identity response did not match the expected profile. No response body logged.",
+      );
+    }
+
+    throw error;
   }
-  if (!response.ok)
-    throw new Error(
-      `Identity request failed: HTTP ${response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
-    );
-  if (!response.headers.get("content-type")?.includes("application/json"))
-    throw new Error("Identity response was not JSON. No response body logged.");
-  try {
-    const profile = OAuthProfileResponseSchema.parse(await response.json());
-    return {
-      iracing_cust_id: profile.iracing_cust_id,
-      iracing_name: profile.iracing_name,
-    };
-  } catch {
-    throw new Error(
-      "Identity response did not match the expected profile. No response body logged.",
-    );
-  }
+
+  return {
+    iracing_cust_id: profile.iracing_cust_id,
+    iracing_name: profile.iracing_name,
+  };
 }
 
-export function createWhoamiCommand(diagnostics: Diagnostics) {
+export function createWhoamiCommand(
+  diagnostics: Diagnostics,
+  dependencies: WhoamiDependencies = defaultDependencies,
+) {
   return new Command("whoami")
     .description(
       "Check active credentials and show the authenticated iRacing profile",
@@ -54,7 +70,7 @@ export function createWhoamiCommand(diagnostics: Diagnostics) {
       "Override the shared JSON or YAML credential file",
     )
     .action(async (options) => {
-      const profile = await whoami(options);
+      const profile = await whoami(options, dependencies);
       process.stdout.write(`${JSON.stringify(profile, null, 2)}\n`);
       diagnostics.info("iRacing identity verified.");
     });
