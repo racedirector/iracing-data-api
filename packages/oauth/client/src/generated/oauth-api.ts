@@ -84,8 +84,8 @@ export class OAuthApiClientGenerated {
     return new URL(this.basePath + "/authorize?" + query.toString());
   }
 
-  async exchangeToken(parameters: OAuthTokenParameters) {
-    const response = await this.request(
+  async exchangeTokenRaw(parameters: OAuthTokenParameters) {
+    return await this.request(
       "/token",
       {
         method: "POST",
@@ -97,6 +97,10 @@ export class OAuthApiClientGenerated {
       },
       false,
     );
+  }
+
+  async exchangeToken(parameters: OAuthTokenParameters) {
+    const response = await this.exchangeTokenRaw(parameters);
     return this.parseJson(
       response,
       OAuthTokenResponseSchema.parse,
