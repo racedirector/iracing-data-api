@@ -5,6 +5,7 @@ packages:
   - "packages/api/client/*"
   - "packages/helpers/*"
   - "packages/oauth/*"
+  - "packages/oauth/client/*"
 allowBuilds:
   "@nestjs/core": false
   "@openapitools/openapi-generator-cli": false
