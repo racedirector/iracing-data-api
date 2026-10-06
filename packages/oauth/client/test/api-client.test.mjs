@@ -39,7 +39,7 @@ test("getProfile sends bearer auth and parses the maintained profile contract", 
   assert.ok(calls[0].options.signal);
 });
 
-test("revokeSessions serializes opaque session ids as one form field", async () => {
+test("revokeSessions delegates opaque session serialization to the generated client", async () => {
   let request;
   const client = new OAuthApiClient({
     accessToken: "synthetic-token",
@@ -56,10 +56,7 @@ test("revokeSessions serializes opaque session ids as one form field", async () 
 
   assert.equal(request.url, "https://oauth.iracing.com/oauth2/revoke/sessions");
   assert.equal(request.options.method, "POST");
-  assert.equal(
-    new Headers(request.options.headers).get("content-type"),
-    "application/x-www-form-urlencoded",
-  );
+  assert.ok(request.options.body instanceof URLSearchParams);
   assert.equal(
     request.options.body.toString(),
     "session_ids=opaque-a%2Copaque-b",
