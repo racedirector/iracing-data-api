@@ -435,6 +435,9 @@ importers:
 
   packages/oauth/client:
     dependencies:
+      '@iracing-data/oauth-client-fetch':
+        specifier: workspace:*
+        version: link:generated
       '@iracing-data/oauth-schema':
         specifier: workspace:*
         version: link:../schema
@@ -451,6 +454,12 @@ importers:
       vitest:
         specifier: ^5.0.3
         version: 5.0.3(@types/node@26.6.3)(vite@8.1.1(@types/node@26.6.3)(esbuild@0.27.1)(tsx@4.23.15)(yaml@2.9.1))
+
+  packages/oauth/client/generated:
+    devDependencies:
+      typescript:
+        specifier: ^4.0 || ^5.0
+        version: 5.9.3
 
   packages/oauth/schema:
     dependencies:

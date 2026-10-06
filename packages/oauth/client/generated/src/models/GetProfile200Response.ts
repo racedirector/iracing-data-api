@@ -24,13 +24,13 @@ export interface GetProfile200Response {
    * @type {string}
    * @memberof GetProfile200Response
    */
-  iracingName: string;
+  iracing_name: string;
   /**
    *
    * @type {number}
    * @memberof GetProfile200Response
    */
-  iracingCustId: number;
+  iracing_cust_id: number;
 }
 
 /**
@@ -39,9 +39,9 @@ export interface GetProfile200Response {
 export function instanceOfGetProfile200Response(
   value: object,
 ): value is GetProfile200Response {
-  if (!("iracingName" in value) || value["iracingName"] === undefined)
+  if (!("iracing_name" in value) || value["iracing_name"] === undefined)
     return false;
-  if (!("iracingCustId" in value) || value["iracingCustId"] === undefined)
+  if (!("iracing_cust_id" in value) || value["iracing_cust_id"] === undefined)
     return false;
   return true;
 }
@@ -60,8 +60,8 @@ export function GetProfile200ResponseFromJSONTyped(
     return json;
   }
   return {
-    iracingName: json["iracing_name"],
-    iracingCustId: json["iracing_cust_id"],
+    iracing_name: json["iracing_name"],
+    iracing_cust_id: json["iracing_cust_id"],
   };
 }
 
@@ -78,7 +78,7 @@ export function GetProfile200ResponseToJSONTyped(
   }
 
   return {
-    iracing_name: value["iracingName"],
-    iracing_cust_id: value["iracingCustId"],
+    iracing_name: value["iracing_name"],
+    iracing_cust_id: value["iracing_cust_id"],
   };
 }

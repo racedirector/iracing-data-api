@@ -1,6 +1,5 @@
 .gitignore
 .npmignore
-.openapi-generator-ignore
 README.md
 docs/DefaultApi.md
 docs/ExchangeToken400Response.md

@@ -32,37 +32,37 @@ export interface GetSessions200ResponseSessionsInner {
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  sessionId: string;
+  session_id: string;
   /**
    * A client identifier.
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  clientId: string;
+  client_id: string;
   /**
    * The name of the client as selected during client registration.
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  clientName: string;
+  client_name: string;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  clientDeveloperName: string | null;
+  client_developer_name: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  clientDeveloperUrl: string | null;
+  client_developer_url: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  clientDeveloperEmail: string | null;
+  client_developer_email: string | null;
   /**
    *
    * @type {string}
@@ -74,31 +74,31 @@ export interface GetSessions200ResponseSessionsInner {
    * @type {Array<string>}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  scopeDescriptions: Array<string> | null;
+  scope_descriptions: Array<string> | null;
   /**
    *
    * @type {number}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  authTime: number;
+  auth_time: number;
   /**
    *
    * @type {number}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastActivity: number;
+  last_activity: number;
   /**
    *
    * @type {number}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  sessionExpiration: number;
+  session_expiration: number;
   /**
    *
    * @type {boolean}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  currentSession: boolean;
+  current_session: boolean;
   /**
    *
    * @type {boolean}
@@ -110,103 +110,103 @@ export interface GetSessions200ResponseSessionsInner {
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  impersonationNote: string | null;
+  impersonation_note: string | null;
   /**
    *
    * @type {GetSessions200ResponseSessionsInnerFirstIp}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstIp: GetSessions200ResponseSessionsInnerFirstIp | null;
+  first_ip: GetSessions200ResponseSessionsInnerFirstIp | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstContinent: string | null;
+  first_continent: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstCountry: string | null;
+  first_country: string | null;
   /**
    *
    * @type {Array<string>}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstSubdivisions: Array<string> | null;
+  first_subdivisions: Array<string> | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstCity: string | null;
+  first_city: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstUserAgentHeader: string | null;
+  first_user_agent_header: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstUserAgentOperatingSystem: string | null;
+  first_user_agent_operating_system: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  firstUserAgentBrowser: string | null;
+  first_user_agent_browser: string | null;
   /**
    *
    * @type {GetSessions200ResponseSessionsInnerFirstIp}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastIp: GetSessions200ResponseSessionsInnerFirstIp | null;
+  last_ip: GetSessions200ResponseSessionsInnerFirstIp | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastContinent: string | null;
+  last_continent: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastCountry: string | null;
+  last_country: string | null;
   /**
    *
    * @type {Array<string>}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastSubdivisions: Array<string> | null;
+  last_subdivisions: Array<string> | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastCity: string | null;
+  last_city: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastUserAgentHeader: string | null;
+  last_user_agent_header: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastUserAgentOperatingSystem: string | null;
+  last_user_agent_operating_system: string | null;
   /**
    *
    * @type {string}
    * @memberof GetSessions200ResponseSessionsInner
    */
-  lastUserAgentBrowser: string | null;
+  last_user_agent_browser: string | null;
 }
 
 /**
@@ -215,95 +215,100 @@ export interface GetSessions200ResponseSessionsInner {
 export function instanceOfGetSessions200ResponseSessionsInner(
   value: object,
 ): value is GetSessions200ResponseSessionsInner {
-  if (!("sessionId" in value) || value["sessionId"] === undefined) return false;
-  if (!("clientId" in value) || value["clientId"] === undefined) return false;
-  if (!("clientName" in value) || value["clientName"] === undefined)
+  if (!("session_id" in value) || value["session_id"] === undefined)
+    return false;
+  if (!("client_id" in value) || value["client_id"] === undefined) return false;
+  if (!("client_name" in value) || value["client_name"] === undefined)
     return false;
   if (
-    !("clientDeveloperName" in value) ||
-    value["clientDeveloperName"] === undefined
+    !("client_developer_name" in value) ||
+    value["client_developer_name"] === undefined
   )
     return false;
   if (
-    !("clientDeveloperUrl" in value) ||
-    value["clientDeveloperUrl"] === undefined
+    !("client_developer_url" in value) ||
+    value["client_developer_url"] === undefined
   )
     return false;
   if (
-    !("clientDeveloperEmail" in value) ||
-    value["clientDeveloperEmail"] === undefined
+    !("client_developer_email" in value) ||
+    value["client_developer_email"] === undefined
   )
     return false;
   if (!("scope" in value) || value["scope"] === undefined) return false;
   if (
-    !("scopeDescriptions" in value) ||
-    value["scopeDescriptions"] === undefined
+    !("scope_descriptions" in value) ||
+    value["scope_descriptions"] === undefined
   )
     return false;
-  if (!("authTime" in value) || value["authTime"] === undefined) return false;
-  if (!("lastActivity" in value) || value["lastActivity"] === undefined)
+  if (!("auth_time" in value) || value["auth_time"] === undefined) return false;
+  if (!("last_activity" in value) || value["last_activity"] === undefined)
     return false;
   if (
-    !("sessionExpiration" in value) ||
-    value["sessionExpiration"] === undefined
+    !("session_expiration" in value) ||
+    value["session_expiration"] === undefined
   )
     return false;
-  if (!("currentSession" in value) || value["currentSession"] === undefined)
+  if (!("current_session" in value) || value["current_session"] === undefined)
     return false;
   if (!("impersonated" in value) || value["impersonated"] === undefined)
     return false;
   if (
-    !("impersonationNote" in value) ||
-    value["impersonationNote"] === undefined
+    !("impersonation_note" in value) ||
+    value["impersonation_note"] === undefined
   )
     return false;
-  if (!("firstIp" in value) || value["firstIp"] === undefined) return false;
-  if (!("firstContinent" in value) || value["firstContinent"] === undefined)
+  if (!("first_ip" in value) || value["first_ip"] === undefined) return false;
+  if (!("first_continent" in value) || value["first_continent"] === undefined)
     return false;
-  if (!("firstCountry" in value) || value["firstCountry"] === undefined)
+  if (!("first_country" in value) || value["first_country"] === undefined)
     return false;
   if (
-    !("firstSubdivisions" in value) ||
-    value["firstSubdivisions"] === undefined
+    !("first_subdivisions" in value) ||
+    value["first_subdivisions"] === undefined
   )
     return false;
-  if (!("firstCity" in value) || value["firstCity"] === undefined) return false;
-  if (
-    !("firstUserAgentHeader" in value) ||
-    value["firstUserAgentHeader"] === undefined
-  )
+  if (!("first_city" in value) || value["first_city"] === undefined)
     return false;
   if (
-    !("firstUserAgentOperatingSystem" in value) ||
-    value["firstUserAgentOperatingSystem"] === undefined
+    !("first_user_agent_header" in value) ||
+    value["first_user_agent_header"] === undefined
   )
     return false;
   if (
-    !("firstUserAgentBrowser" in value) ||
-    value["firstUserAgentBrowser"] === undefined
-  )
-    return false;
-  if (!("lastIp" in value) || value["lastIp"] === undefined) return false;
-  if (!("lastContinent" in value) || value["lastContinent"] === undefined)
-    return false;
-  if (!("lastCountry" in value) || value["lastCountry"] === undefined)
-    return false;
-  if (!("lastSubdivisions" in value) || value["lastSubdivisions"] === undefined)
-    return false;
-  if (!("lastCity" in value) || value["lastCity"] === undefined) return false;
-  if (
-    !("lastUserAgentHeader" in value) ||
-    value["lastUserAgentHeader"] === undefined
+    !("first_user_agent_operating_system" in value) ||
+    value["first_user_agent_operating_system"] === undefined
   )
     return false;
   if (
-    !("lastUserAgentOperatingSystem" in value) ||
-    value["lastUserAgentOperatingSystem"] === undefined
+    !("first_user_agent_browser" in value) ||
+    value["first_user_agent_browser"] === undefined
+  )
+    return false;
+  if (!("last_ip" in value) || value["last_ip"] === undefined) return false;
+  if (!("last_continent" in value) || value["last_continent"] === undefined)
+    return false;
+  if (!("last_country" in value) || value["last_country"] === undefined)
+    return false;
+  if (
+    !("last_subdivisions" in value) ||
+    value["last_subdivisions"] === undefined
+  )
+    return false;
+  if (!("last_city" in value) || value["last_city"] === undefined) return false;
+  if (
+    !("last_user_agent_header" in value) ||
+    value["last_user_agent_header"] === undefined
   )
     return false;
   if (
-    !("lastUserAgentBrowser" in value) ||
-    value["lastUserAgentBrowser"] === undefined
+    !("last_user_agent_operating_system" in value) ||
+    value["last_user_agent_operating_system"] === undefined
+  )
+    return false;
+  if (
+    !("last_user_agent_browser" in value) ||
+    value["last_user_agent_browser"] === undefined
   )
     return false;
   return true;
@@ -323,41 +328,44 @@ export function GetSessions200ResponseSessionsInnerFromJSONTyped(
     return json;
   }
   return {
-    sessionId: json["session_id"],
-    clientId: json["client_id"],
-    clientName: json["client_name"],
-    clientDeveloperName: json["client_developer_name"],
-    clientDeveloperUrl: json["client_developer_url"],
-    clientDeveloperEmail: json["client_developer_email"],
+    session_id: json["session_id"],
+    client_id: json["client_id"],
+    client_name: json["client_name"],
+    client_developer_name: json["client_developer_name"],
+    client_developer_url: json["client_developer_url"],
+    client_developer_email: json["client_developer_email"],
     scope: json["scope"],
-    scopeDescriptions:
+    scope_descriptions:
       json["scope_descriptions"] == null ? null : json["scope_descriptions"],
-    authTime: json["auth_time"],
-    lastActivity: json["last_activity"],
-    sessionExpiration: json["session_expiration"],
-    currentSession: json["current_session"],
+    auth_time: json["auth_time"],
+    last_activity: json["last_activity"],
+    session_expiration: json["session_expiration"],
+    current_session: json["current_session"],
     impersonated: json["impersonated"],
-    impersonationNote: json["impersonation_note"],
-    firstIp: GetSessions200ResponseSessionsInnerFirstIpFromJSON(
+    impersonation_note: json["impersonation_note"],
+    first_ip: GetSessions200ResponseSessionsInnerFirstIpFromJSON(
       json["first_ip"],
     ),
-    firstContinent: json["first_continent"],
-    firstCountry: json["first_country"],
-    firstSubdivisions:
+    first_continent: json["first_continent"],
+    first_country: json["first_country"],
+    first_subdivisions:
       json["first_subdivisions"] == null ? null : json["first_subdivisions"],
-    firstCity: json["first_city"],
-    firstUserAgentHeader: json["first_user_agent_header"],
-    firstUserAgentOperatingSystem: json["first_user_agent_operating_system"],
-    firstUserAgentBrowser: json["first_user_agent_browser"],
-    lastIp: GetSessions200ResponseSessionsInnerFirstIpFromJSON(json["last_ip"]),
-    lastContinent: json["last_continent"],
-    lastCountry: json["last_country"],
-    lastSubdivisions:
+    first_city: json["first_city"],
+    first_user_agent_header: json["first_user_agent_header"],
+    first_user_agent_operating_system:
+      json["first_user_agent_operating_system"],
+    first_user_agent_browser: json["first_user_agent_browser"],
+    last_ip: GetSessions200ResponseSessionsInnerFirstIpFromJSON(
+      json["last_ip"],
+    ),
+    last_continent: json["last_continent"],
+    last_country: json["last_country"],
+    last_subdivisions:
       json["last_subdivisions"] == null ? null : json["last_subdivisions"],
-    lastCity: json["last_city"],
-    lastUserAgentHeader: json["last_user_agent_header"],
-    lastUserAgentOperatingSystem: json["last_user_agent_operating_system"],
-    lastUserAgentBrowser: json["last_user_agent_browser"],
+    last_city: json["last_city"],
+    last_user_agent_header: json["last_user_agent_header"],
+    last_user_agent_operating_system: json["last_user_agent_operating_system"],
+    last_user_agent_browser: json["last_user_agent_browser"],
   };
 }
 
@@ -376,37 +384,38 @@ export function GetSessions200ResponseSessionsInnerToJSONTyped(
   }
 
   return {
-    session_id: value["sessionId"],
-    client_id: value["clientId"],
-    client_name: value["clientName"],
-    client_developer_name: value["clientDeveloperName"],
-    client_developer_url: value["clientDeveloperUrl"],
-    client_developer_email: value["clientDeveloperEmail"],
+    session_id: value["session_id"],
+    client_id: value["client_id"],
+    client_name: value["client_name"],
+    client_developer_name: value["client_developer_name"],
+    client_developer_url: value["client_developer_url"],
+    client_developer_email: value["client_developer_email"],
     scope: value["scope"],
-    scope_descriptions: value["scopeDescriptions"],
-    auth_time: value["authTime"],
-    last_activity: value["lastActivity"],
-    session_expiration: value["sessionExpiration"],
-    current_session: value["currentSession"],
+    scope_descriptions: value["scope_descriptions"],
+    auth_time: value["auth_time"],
+    last_activity: value["last_activity"],
+    session_expiration: value["session_expiration"],
+    current_session: value["current_session"],
     impersonated: value["impersonated"],
-    impersonation_note: value["impersonationNote"],
+    impersonation_note: value["impersonation_note"],
     first_ip: GetSessions200ResponseSessionsInnerFirstIpToJSON(
-      value["firstIp"],
+      value["first_ip"],
     ),
-    first_continent: value["firstContinent"],
-    first_country: value["firstCountry"],
-    first_subdivisions: value["firstSubdivisions"],
-    first_city: value["firstCity"],
-    first_user_agent_header: value["firstUserAgentHeader"],
-    first_user_agent_operating_system: value["firstUserAgentOperatingSystem"],
-    first_user_agent_browser: value["firstUserAgentBrowser"],
-    last_ip: GetSessions200ResponseSessionsInnerFirstIpToJSON(value["lastIp"]),
-    last_continent: value["lastContinent"],
-    last_country: value["lastCountry"],
-    last_subdivisions: value["lastSubdivisions"],
-    last_city: value["lastCity"],
-    last_user_agent_header: value["lastUserAgentHeader"],
-    last_user_agent_operating_system: value["lastUserAgentOperatingSystem"],
-    last_user_agent_browser: value["lastUserAgentBrowser"],
+    first_continent: value["first_continent"],
+    first_country: value["first_country"],
+    first_subdivisions: value["first_subdivisions"],
+    first_city: value["first_city"],
+    first_user_agent_header: value["first_user_agent_header"],
+    first_user_agent_operating_system:
+      value["first_user_agent_operating_system"],
+    first_user_agent_browser: value["first_user_agent_browser"],
+    last_ip: GetSessions200ResponseSessionsInnerFirstIpToJSON(value["last_ip"]),
+    last_continent: value["last_continent"],
+    last_country: value["last_country"],
+    last_subdivisions: value["last_subdivisions"],
+    last_city: value["last_city"],
+    last_user_agent_header: value["last_user_agent_header"],
+    last_user_agent_operating_system: value["last_user_agent_operating_system"],
+    last_user_agent_browser: value["last_user_agent_browser"],
   };
 }

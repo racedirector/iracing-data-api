@@ -2,14 +2,14 @@
 
 ## Properties
 
-| Name               | Type   |
-| ------------------ | ------ |
-| `status`           | number |
-| `statusReason`     | string |
-| `error`            | string |
-| `errorDescription` | string |
-| `errorUri`         | string |
-| `state`            | string |
+| Name                | Type   |
+| ------------------- | ------ |
+| `status`            | number |
+| `status_reason`     | string |
+| `error`             | string |
+| `error_description` | string |
+| `error_uri`         | string |
+| `state`             | string |
 
 ## Example
 
@@ -19,10 +19,10 @@ import type { InlineObject } from "@iracing-data/oauth-client-fetch";
 // TODO: Update the object below with actual values
 const example = {
   status: null,
-  statusReason: null,
+  status_reason: null,
   error: null,
-  errorDescription: null,
-  errorUri: null,
+  error_description: null,
+  error_uri: null,
   state: null,
 } satisfies InlineObject;
 

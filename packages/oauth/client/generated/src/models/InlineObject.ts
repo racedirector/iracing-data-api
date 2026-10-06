@@ -30,7 +30,7 @@ export interface InlineObject {
    * @type {string}
    * @memberof InlineObject
    */
-  statusReason: string;
+  status_reason: string;
   /**
    *
    * @type {string}
@@ -42,13 +42,13 @@ export interface InlineObject {
    * @type {string}
    * @memberof InlineObject
    */
-  errorDescription: string;
+  error_description: string;
   /**
    *
    * @type {string}
    * @memberof InlineObject
    */
-  errorUri: string;
+  error_uri: string;
   /**
    *
    * @type {string}
@@ -62,12 +62,15 @@ export interface InlineObject {
  */
 export function instanceOfInlineObject(value: object): value is InlineObject {
   if (!("status" in value) || value["status"] === undefined) return false;
-  if (!("statusReason" in value) || value["statusReason"] === undefined)
+  if (!("status_reason" in value) || value["status_reason"] === undefined)
     return false;
   if (!("error" in value) || value["error"] === undefined) return false;
-  if (!("errorDescription" in value) || value["errorDescription"] === undefined)
+  if (
+    !("error_description" in value) ||
+    value["error_description"] === undefined
+  )
     return false;
-  if (!("errorUri" in value) || value["errorUri"] === undefined) return false;
+  if (!("error_uri" in value) || value["error_uri"] === undefined) return false;
   return true;
 }
 
@@ -84,10 +87,10 @@ export function InlineObjectFromJSONTyped(
   }
   return {
     status: json["status"],
-    statusReason: json["status_reason"],
+    status_reason: json["status_reason"],
     error: json["error"],
-    errorDescription: json["error_description"],
-    errorUri: json["error_uri"],
+    error_description: json["error_description"],
+    error_uri: json["error_uri"],
     state: json["state"] == null ? undefined : json["state"],
   };
 }
@@ -106,10 +109,10 @@ export function InlineObjectToJSONTyped(
 
   return {
     status: value["status"],
-    status_reason: value["statusReason"],
+    status_reason: value["status_reason"],
     error: value["error"],
-    error_description: value["errorDescription"],
-    error_uri: value["errorUri"],
+    error_description: value["error_description"],
+    error_uri: value["error_uri"],
     state: value["state"],
   };
 }

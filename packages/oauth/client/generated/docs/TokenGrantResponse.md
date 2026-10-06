@@ -2,14 +2,14 @@
 
 ## Properties
 
-| Name                    | Type   |
-| ----------------------- | ------ |
-| `accessToken`           | string |
-| `tokenType`             | string |
-| `expiresIn`             | number |
-| `refreshToken`          | string |
-| `refreshTokenExpiresIn` | number |
-| `scope`                 | string |
+| Name                       | Type   |
+| -------------------------- | ------ |
+| `access_token`             | string |
+| `token_type`               | string |
+| `expires_in`               | number |
+| `refresh_token`            | string |
+| `refresh_token_expires_in` | number |
+| `scope`                    | string |
 
 ## Example
 
@@ -18,11 +18,11 @@ import type { TokenGrantResponse } from "@iracing-data/oauth-client-fetch";
 
 // TODO: Update the object below with actual values
 const example = {
-  accessToken: null,
-  tokenType: null,
-  expiresIn: null,
-  refreshToken: null,
-  refreshTokenExpiresIn: null,
+  access_token: null,
+  token_type: null,
+  expires_in: null,
+  refresh_token: null,
+  refresh_token_expires_in: null,
   scope: null,
 } satisfies TokenGrantResponse;
 

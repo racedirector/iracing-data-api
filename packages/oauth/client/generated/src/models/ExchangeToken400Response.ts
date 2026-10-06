@@ -30,7 +30,7 @@ export interface ExchangeToken400Response {
    * @type {string}
    * @memberof ExchangeToken400Response
    */
-  statusReason: string;
+  status_reason: string;
   /**
    *
    * @type {string}
@@ -42,13 +42,13 @@ export interface ExchangeToken400Response {
    * @type {string}
    * @memberof ExchangeToken400Response
    */
-  errorDescription: string;
+  error_description: string;
   /**
    *
    * @type {string}
    * @memberof ExchangeToken400Response
    */
-  errorUri: string;
+  error_uri: string;
   /**
    *
    * @type {string}
@@ -64,12 +64,15 @@ export function instanceOfExchangeToken400Response(
   value: object,
 ): value is ExchangeToken400Response {
   if (!("status" in value) || value["status"] === undefined) return false;
-  if (!("statusReason" in value) || value["statusReason"] === undefined)
+  if (!("status_reason" in value) || value["status_reason"] === undefined)
     return false;
   if (!("error" in value) || value["error"] === undefined) return false;
-  if (!("errorDescription" in value) || value["errorDescription"] === undefined)
+  if (
+    !("error_description" in value) ||
+    value["error_description"] === undefined
+  )
     return false;
-  if (!("errorUri" in value) || value["errorUri"] === undefined) return false;
+  if (!("error_uri" in value) || value["error_uri"] === undefined) return false;
   return true;
 }
 
@@ -88,10 +91,10 @@ export function ExchangeToken400ResponseFromJSONTyped(
   }
   return {
     status: json["status"],
-    statusReason: json["status_reason"],
+    status_reason: json["status_reason"],
     error: json["error"],
-    errorDescription: json["error_description"],
-    errorUri: json["error_uri"],
+    error_description: json["error_description"],
+    error_uri: json["error_uri"],
     state: json["state"] == null ? undefined : json["state"],
   };
 }
@@ -112,10 +115,10 @@ export function ExchangeToken400ResponseToJSONTyped(
 
   return {
     status: value["status"],
-    status_reason: value["statusReason"],
+    status_reason: value["status_reason"],
     error: value["error"],
-    error_description: value["errorDescription"],
-    error_uri: value["errorUri"],
+    error_description: value["error_description"],
+    error_uri: value["error_uri"],
     state: value["state"],
   };
 }

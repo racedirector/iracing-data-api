@@ -2,10 +2,10 @@
 
 ## Properties
 
-| Name            | Type   |
-| --------------- | ------ |
-| `iracingName`   | string |
-| `iracingCustId` | number |
+| Name              | Type   |
+| ----------------- | ------ |
+| `iracing_name`    | string |
+| `iracing_cust_id` | number |
 
 ## Example
 
@@ -14,8 +14,8 @@ import type { GetProfile200Response } from "@iracing-data/oauth-client-fetch";
 
 // TODO: Update the object below with actual values
 const example = {
-  iracingName: null,
-  iracingCustId: null,
+  iracing_name: null,
+  iracing_cust_id: null,
 } satisfies GetProfile200Response;
 
 console.log(example);

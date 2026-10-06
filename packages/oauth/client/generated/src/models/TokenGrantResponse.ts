@@ -24,31 +24,31 @@ export interface TokenGrantResponse {
    * @type {string}
    * @memberof TokenGrantResponse
    */
-  accessToken: string;
+  access_token: string;
   /**
    *
    * @type {string}
    * @memberof TokenGrantResponse
    */
-  tokenType: TokenGrantResponseTokenTypeEnum;
+  token_type: TokenGrantResponseTokenTypeEnum;
   /**
    * The number of seconds after which this access token will no longer be considered valid.
    * @type {number}
    * @memberof TokenGrantResponse
    */
-  expiresIn: number;
+  expires_in: number;
   /**
    * The refresh token may be used in a Refresh Token Grant to obtain new access and refresh tokens. Each refresh token may only be used once. The value is considered opaque and its format may change without warning at our discretion.
    * @type {string}
    * @memberof TokenGrantResponse
    */
-  refreshToken?: string;
+  refresh_token?: string;
   /**
    * The number of seconds after which this refresh token will no longer be considered valid. The server may not issue a refresh token, in which case this field will be omitted.
    * @type {number}
    * @memberof TokenGrantResponse
    */
-  refreshTokenExpiresIn?: number;
+  refresh_token_expires_in?: number;
   /**
    * One or more scopes to request, if any, separated by whitespace.
    * @type {string}
@@ -72,10 +72,12 @@ export type TokenGrantResponseTokenTypeEnum =
 export function instanceOfTokenGrantResponse(
   value: object,
 ): value is TokenGrantResponse {
-  if (!("accessToken" in value) || value["accessToken"] === undefined)
+  if (!("access_token" in value) || value["access_token"] === undefined)
     return false;
-  if (!("tokenType" in value) || value["tokenType"] === undefined) return false;
-  if (!("expiresIn" in value) || value["expiresIn"] === undefined) return false;
+  if (!("token_type" in value) || value["token_type"] === undefined)
+    return false;
+  if (!("expires_in" in value) || value["expires_in"] === undefined)
+    return false;
   return true;
 }
 
@@ -91,12 +93,12 @@ export function TokenGrantResponseFromJSONTyped(
     return json;
   }
   return {
-    accessToken: json["access_token"],
-    tokenType: json["token_type"],
-    expiresIn: json["expires_in"],
-    refreshToken:
+    access_token: json["access_token"],
+    token_type: json["token_type"],
+    expires_in: json["expires_in"],
+    refresh_token:
       json["refresh_token"] == null ? undefined : json["refresh_token"],
-    refreshTokenExpiresIn:
+    refresh_token_expires_in:
       json["refresh_token_expires_in"] == null
         ? undefined
         : json["refresh_token_expires_in"],
@@ -117,11 +119,11 @@ export function TokenGrantResponseToJSONTyped(
   }
 
   return {
-    access_token: value["accessToken"],
-    token_type: value["tokenType"],
-    expires_in: value["expiresIn"],
-    refresh_token: value["refreshToken"],
-    refresh_token_expires_in: value["refreshTokenExpiresIn"],
+    access_token: value["access_token"],
+    token_type: value["token_type"],
+    expires_in: value["expires_in"],
+    refresh_token: value["refresh_token"],
+    refresh_token_expires_in: value["refresh_token_expires_in"],
     scope: value["scope"],
   };
 }

@@ -2,38 +2,38 @@
 
 ## Properties
 
-| Name                            | Type                                                                                        |
-| ------------------------------- | ------------------------------------------------------------------------------------------- |
-| `sessionId`                     | string                                                                                      |
-| `clientId`                      | string                                                                                      |
-| `clientName`                    | string                                                                                      |
-| `clientDeveloperName`           | string                                                                                      |
-| `clientDeveloperUrl`            | string                                                                                      |
-| `clientDeveloperEmail`          | string                                                                                      |
-| `scope`                         | string                                                                                      |
-| `scopeDescriptions`             | Array&lt;string&gt;                                                                         |
-| `authTime`                      | number                                                                                      |
-| `lastActivity`                  | number                                                                                      |
-| `sessionExpiration`             | number                                                                                      |
-| `currentSession`                | boolean                                                                                     |
-| `impersonated`                  | boolean                                                                                     |
-| `impersonationNote`             | string                                                                                      |
-| `firstIp`                       | [GetSessions200ResponseSessionsInnerFirstIp](GetSessions200ResponseSessionsInnerFirstIp.md) |
-| `firstContinent`                | string                                                                                      |
-| `firstCountry`                  | string                                                                                      |
-| `firstSubdivisions`             | Array&lt;string&gt;                                                                         |
-| `firstCity`                     | string                                                                                      |
-| `firstUserAgentHeader`          | string                                                                                      |
-| `firstUserAgentOperatingSystem` | string                                                                                      |
-| `firstUserAgentBrowser`         | string                                                                                      |
-| `lastIp`                        | [GetSessions200ResponseSessionsInnerFirstIp](GetSessions200ResponseSessionsInnerFirstIp.md) |
-| `lastContinent`                 | string                                                                                      |
-| `lastCountry`                   | string                                                                                      |
-| `lastSubdivisions`              | Array&lt;string&gt;                                                                         |
-| `lastCity`                      | string                                                                                      |
-| `lastUserAgentHeader`           | string                                                                                      |
-| `lastUserAgentOperatingSystem`  | string                                                                                      |
-| `lastUserAgentBrowser`          | string                                                                                      |
+| Name                                | Type                                                                                        |
+| ----------------------------------- | ------------------------------------------------------------------------------------------- |
+| `session_id`                        | string                                                                                      |
+| `client_id`                         | string                                                                                      |
+| `client_name`                       | string                                                                                      |
+| `client_developer_name`             | string                                                                                      |
+| `client_developer_url`              | string                                                                                      |
+| `client_developer_email`            | string                                                                                      |
+| `scope`                             | string                                                                                      |
+| `scope_descriptions`                | Array&lt;string&gt;                                                                         |
+| `auth_time`                         | number                                                                                      |
+| `last_activity`                     | number                                                                                      |
+| `session_expiration`                | number                                                                                      |
+| `current_session`                   | boolean                                                                                     |
+| `impersonated`                      | boolean                                                                                     |
+| `impersonation_note`                | string                                                                                      |
+| `first_ip`                          | [GetSessions200ResponseSessionsInnerFirstIp](GetSessions200ResponseSessionsInnerFirstIp.md) |
+| `first_continent`                   | string                                                                                      |
+| `first_country`                     | string                                                                                      |
+| `first_subdivisions`                | Array&lt;string&gt;                                                                         |
+| `first_city`                        | string                                                                                      |
+| `first_user_agent_header`           | string                                                                                      |
+| `first_user_agent_operating_system` | string                                                                                      |
+| `first_user_agent_browser`          | string                                                                                      |
+| `last_ip`                           | [GetSessions200ResponseSessionsInnerFirstIp](GetSessions200ResponseSessionsInnerFirstIp.md) |
+| `last_continent`                    | string                                                                                      |
+| `last_country`                      | string                                                                                      |
+| `last_subdivisions`                 | Array&lt;string&gt;                                                                         |
+| `last_city`                         | string                                                                                      |
+| `last_user_agent_header`            | string                                                                                      |
+| `last_user_agent_operating_system`  | string                                                                                      |
+| `last_user_agent_browser`           | string                                                                                      |
 
 ## Example
 
@@ -42,36 +42,36 @@ import type { GetSessions200ResponseSessionsInner } from "@iracing-data/oauth-cl
 
 // TODO: Update the object below with actual values
 const example = {
-  sessionId: null,
-  clientId: null,
-  clientName: null,
-  clientDeveloperName: null,
-  clientDeveloperUrl: null,
-  clientDeveloperEmail: null,
+  session_id: null,
+  client_id: null,
+  client_name: null,
+  client_developer_name: null,
+  client_developer_url: null,
+  client_developer_email: null,
   scope: null,
-  scopeDescriptions: null,
-  authTime: null,
-  lastActivity: null,
-  sessionExpiration: null,
-  currentSession: null,
+  scope_descriptions: null,
+  auth_time: null,
+  last_activity: null,
+  session_expiration: null,
+  current_session: null,
   impersonated: null,
-  impersonationNote: null,
-  firstIp: null,
-  firstContinent: null,
-  firstCountry: null,
-  firstSubdivisions: null,
-  firstCity: null,
-  firstUserAgentHeader: null,
-  firstUserAgentOperatingSystem: null,
-  firstUserAgentBrowser: null,
-  lastIp: null,
-  lastContinent: null,
-  lastCountry: null,
-  lastSubdivisions: null,
-  lastCity: null,
-  lastUserAgentHeader: null,
-  lastUserAgentOperatingSystem: null,
-  lastUserAgentBrowser: null,
+  impersonation_note: null,
+  first_ip: null,
+  first_continent: null,
+  first_country: null,
+  first_subdivisions: null,
+  first_city: null,
+  first_user_agent_header: null,
+  first_user_agent_operating_system: null,
+  first_user_agent_browser: null,
+  last_ip: null,
+  last_continent: null,
+  last_country: null,
+  last_subdivisions: null,
+  last_city: null,
+  last_user_agent_header: null,
+  last_user_agent_operating_system: null,
+  last_user_agent_browser: null,
 } satisfies GetSessions200ResponseSessionsInner;
 
 console.log(example);
