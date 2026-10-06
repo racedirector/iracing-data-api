@@ -6,11 +6,12 @@
   "scripts": {
     "iracing-data": "node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js",
     "codegen": "node scripts/check-generated.mjs --write",
-    "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
+    "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:(api|oauth):.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api:axios": "./scripts/openapi-generator-axios.sh",
     "codegen:client:api:fetch": "./scripts/openapi-generator-fetch.sh",
     "codegen:client:api:rust": "./scripts/openapi-generator-rust.sh",
+    "codegen:client:oauth:fetch": "node scripts/generate-oauth-client.mjs",
     "codegen:openapi": "pnpm -w --parallel --stream '/^codegen:openapi:.+$/'",
     "codegen:openapi:api": "iracing-api-openapi -o ./openapi -f iracing.json",
     "codegen:openapi:api:yaml": "iracing-api-openapi -o ./openapi -f iracing.yaml",
