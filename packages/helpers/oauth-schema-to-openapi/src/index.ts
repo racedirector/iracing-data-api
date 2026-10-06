@@ -46,7 +46,7 @@ export const document = createDocument({
         },
       },
       Forbidden: {
-        description: "Access token does not grant the required scope.",
+        description: "The request is forbidden.",
         headers: OAuthHeadersSchema,
         content: {
           "application/json": {
