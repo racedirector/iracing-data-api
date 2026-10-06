@@ -108,6 +108,12 @@ function encodeQuery(values: Record<string, unknown>) {
   return query;
 }
 
+function normalizeBasePath(value: string) {
+  let end = value.length;
+  while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+  return value.slice(0, end);
+}
+
 export class OAuthApiClientGenerated {
   private readonly accessToken?: OAuthAccessTokenProvider;
   private readonly basePath: string;
@@ -116,7 +122,7 @@ export class OAuthApiClientGenerated {
 
   constructor(options: OAuthApiClientGeneratedOptions = {}) {
     this.accessToken = options.accessToken;
-    this.basePath = (options.basePath ?? ${JSON.stringify(basePath)}).replace(/\\/+$/, "");
+    this.basePath = normalizeBasePath(options.basePath ?? ${JSON.stringify(basePath)});
     this.fetchApi = options.fetchApi ?? fetch;
     this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
   }
