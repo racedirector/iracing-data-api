@@ -41,7 +41,7 @@ jobs:
 
       - name: Commit generated package
         run: |
-          if git diff --quiet -- packages/oauth/client/generated; then
+          if [ -z "$(git status --porcelain -- packages/oauth/client/generated)" ]; then
             echo "Generated package is already current."
             exit 0
           fi
