@@ -1,7 +1,6 @@
 import {
   Configuration,
   DefaultApi,
-  ResponseError,
   type ExchangeTokenRequest as GeneratedExchangeTokenRequest,
 } from "@iracing-data/oauth-client-fetch";
 import {
@@ -65,6 +64,12 @@ export class OAuthApiClient {
         headers: { Accept: "application/json" },
         fetchApi: async (input, init: RequestInit = {}) => {
           const headers = new Headers(init.headers);
+          if (
+            init.body instanceof URLSearchParams &&
+            !headers.has("content-type")
+          ) {
+            headers.set("content-type", "application/x-www-form-urlencoded");
+          }
           return await fetchApi(input, {
             ...init,
             headers,
@@ -83,7 +88,8 @@ export class OAuthApiClient {
       );
       return response.raw;
     } catch (error) {
-      if (error instanceof ResponseError) return error.response;
+      const response = this.errorResponse(error);
+      if (response) return response;
       throw this.contractError(error);
     }
   }
@@ -140,9 +146,21 @@ export class OAuthApiClient {
 
   private normalizeError(error: unknown): Error {
     if (error instanceof OAuthApiHttpError) return error;
-    if (error instanceof ResponseError)
-      return new OAuthApiHttpError(error.response);
+    const response = this.errorResponse(error);
+    if (response) return new OAuthApiHttpError(response);
     return this.contractError(error);
+  }
+
+  private errorResponse(error: unknown): Response | undefined {
+    if (
+      error instanceof Error &&
+      error.name === "ResponseError" &&
+      "response" in error &&
+      error.response instanceof Response
+    ) {
+      return error.response;
+    }
+    return undefined;
   }
 
   private contractError(error: unknown) {
