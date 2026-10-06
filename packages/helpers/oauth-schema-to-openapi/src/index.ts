@@ -38,6 +38,16 @@ export const document = createDocument({
       },
       Unauthorized: {
         description: "Access token is missing or invalid.",
+        headers: OAuthHeadersSchema,
+        content: {
+          "application/json": {
+            schema: OAuthErrorResponseSchema,
+          },
+        },
+      },
+      Forbidden: {
+        description: "Access token does not grant the required scope.",
+        headers: OAuthHeadersSchema,
         content: {
           "application/json": {
             schema: OAuthErrorResponseSchema,
@@ -70,6 +80,7 @@ export const document = createDocument({
             },
           },
           401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -88,6 +99,7 @@ export const document = createDocument({
             },
           },
           401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -105,6 +117,7 @@ export const document = createDocument({
         responses: {
           200: { $ref: "#/components/responses/SessionsRevoked" },
           401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -128,6 +141,7 @@ export const document = createDocument({
         responses: {
           200: { $ref: "#/components/responses/SessionsRevoked" },
           401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -138,6 +152,7 @@ export const document = createDocument({
         responses: {
           200: { $ref: "#/components/responses/SessionsRevoked" },
           401: { $ref: "#/components/responses/Unauthorized" },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
@@ -179,6 +194,7 @@ export const document = createDocument({
               "application/json": { schema: OAuthErrorResponseSchema },
             },
           },
+          403: { $ref: "#/components/responses/Forbidden" },
         },
       },
     },
