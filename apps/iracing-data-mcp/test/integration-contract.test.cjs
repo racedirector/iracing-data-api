@@ -14,7 +14,11 @@ test(
         stdio: ["ignore", "pipe", "pipe", "ipc"],
       },
     );
-    t.after(() => child.kill());
+    let deadline;
+    t.after(() => {
+      clearTimeout(deadline);
+      child.kill("SIGKILL");
+    });
     let stdout = "",
       stderr = "",
       report;
@@ -22,8 +26,20 @@ test(
     child.stderr.on("data", (chunk) => (stderr += chunk));
     child.on("message", (message) => (report = message));
     const status = await new Promise((resolve, reject) => {
-      child.on("error", reject);
-      child.on("exit", resolve);
+      deadline = setTimeout(() => {
+        child.kill("SIGKILL");
+        reject(
+          new Error("Independent MCP child exceeded its 10 second deadline"),
+        );
+      }, 10000);
+      child.on("error", (error) => {
+        clearTimeout(deadline);
+        reject(error);
+      });
+      child.on("exit", (status) => {
+        clearTimeout(deadline);
+        resolve(status);
+      });
     });
     assert.doesNotMatch(
       stdout + stderr,

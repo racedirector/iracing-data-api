@@ -794,7 +794,13 @@ async function main() {
   }
   process.send?.({ checks });
 }
-main().catch(() => {
-  console.error("Independent composition contract failed");
+main().catch((error) => {
+  const line =
+    typeof error?.stack === "string"
+      ? error.stack.match(/composed\.cjs:(\d+):\d+/)?.[1]
+      : undefined;
+  console.error(
+    `Independent composition contract failed at fixture line ${line ?? "unknown"}`,
+  );
   process.exitCode = 1;
 });
