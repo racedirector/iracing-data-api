@@ -4,10 +4,7 @@ import {
   OAuthPasswordLimitedGrantParametersSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
-import {
-  OAuthApiClient,
-  type OAuthApiClientFactory,
-} from "./api-client";
+import { OAuthApiClient, type OAuthApiClientFactory } from "./api-client";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
 import {
@@ -96,7 +93,8 @@ export class OAuthClient {
     this.stateStore = stateStore;
     this.sessionStore = sessionStore;
     this.createOAuthApi =
-      options.createOAuthApi ?? ((apiOptions) => new OAuthApiClient(apiOptions));
+      options.createOAuthApi ??
+      ((apiOptions) => new OAuthApiClient(apiOptions));
 
     this.authorizationServer = {
       issuer: this.clientMetadata.issuer,
