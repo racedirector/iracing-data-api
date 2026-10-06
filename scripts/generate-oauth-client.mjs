@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { format } from "prettier";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const input = process.env.OPENAPI_DOC || path.join(root, "openapi/oauth.json");
@@ -248,7 +249,7 @@ export class OAuthApiClientGenerated {
 `;
 
 fs.mkdirSync(path.dirname(output), { recursive: true });
-fs.writeFileSync(output, generated);
+fs.writeFileSync(output, await format(generated, { parser: "typescript" }));
 console.info(
   `[oauth-client] Generated ${path.relative(root, output)} from ${path.relative(root, input)}`,
 );
