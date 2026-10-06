@@ -18,7 +18,9 @@ const report = (...files) => analyzeImpact(files, workspaces);
 test("API contract edits affect both specs, SDKs, consumers and release ordering", () => {
   const impact = report("packages/api/schema/src/car.ts");
   assert.equal(impact.generatedClients.length, 3);
-  assert.ok(!impact.generatedClients.includes("@iracing-data/oauth-client-fetch"));
+  assert.ok(
+    !impact.generatedClients.includes("@iracing-data/oauth-client-fetch"),
+  );
   assert.deepEqual(impact.derivedArtifacts, [
     "openapi/iracing.json",
     "openapi/iracing.yaml",
@@ -34,7 +36,9 @@ test("API contract edits affect both specs, SDKs, consumers and release ordering
 });
 test("OAuth changes regenerate the OAuth client and follow manifest dependents", () => {
   const impact = report("packages/oauth/schema/src/token.ts");
-  assert.deepEqual(impact.generatedClients, ["@iracing-data/oauth-client-fetch"]);
+  assert.deepEqual(impact.generatedClients, [
+    "@iracing-data/oauth-client-fetch",
+  ]);
   assert.ok(impact.authoredPackages.includes("@iracing-data/oauth-client"));
   assert.ok(
     impact.generationCommands.includes("pnpm codegen:client:oauth:fetch"),
