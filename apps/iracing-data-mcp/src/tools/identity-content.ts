@@ -15,10 +15,14 @@ import {
   DriversInput,
   RecentInput,
   ContentInput,
+  SeriesSeasonsInput,
+  SeriesScheduleInput,
   DriverProjection,
   CarProjection,
   TrackProjection,
   RecentProjection,
+  SeriesSeasonProjection,
+  SeriesScheduleProjection,
   Id,
 } from "./contracts.js";
 import type { DataApiGateway, GatewayCall } from "../gateway/gateway.js";
@@ -262,6 +266,119 @@ export function registerIdentityContentTools(
               }
             : {}),
         },
+      });
+    },
+  );
+  register(
+    "list_series_seasons",
+    "List active series seasons by default, or a historical year/quarter pair. Optionally filter one positive series ID locally. Results are ordered by season ID; continue with cursor alone.",
+    SeriesSeasonsInput,
+    async (input, call, gateway) => {
+      const owner = cursors(gateway);
+
+      if ("cursor" in input) {
+        return owner.resume(
+          "list_series_seasons",
+          input.cursor,
+          gateway.generation,
+        );
+      }
+
+      const source = await call.seasons({
+        include_series: false,
+        ...(input.season_year === undefined
+          ? {}
+          : {
+              season_year: input.season_year,
+              season_quarter: input.season_quarter,
+            }),
+      });
+
+      const rows = parse(z.array(SeriesSeasonProjection), source.seasons);
+
+      const seasonIds = rows.map((row) => row.season_id);
+
+      if (new Set(seasonIds).size !== seasonIds.length) {
+        throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
+      const selected = rows
+        .filter(
+          (row) =>
+            input.series_id === undefined || row.series_id === input.series_id,
+        )
+        .sort((a, b) => a.season_id - b.season_id);
+
+      return owner.start({
+        tool: "list_series_seasons",
+        filters: {
+          series_id: input.series_id,
+          season_year: input.season_year,
+          season_quarter: input.season_quarter,
+        },
+        generation: gateway.generation,
+        items: selected,
+        limit: input.limit,
+        expiresAt: call.expiresAt,
+      });
+    },
+  );
+  register(
+    "get_series_schedule",
+    "Get one season schedule. race_week_num is the upstream zero-based race week (0 is the first week). Optional week filtering is local; results are deterministically ordered. Continue with cursor alone. No weather, assets, duration or recurrence interpretation.",
+    SeriesScheduleInput,
+    async (input, call, gateway) => {
+      const owner = cursors(gateway);
+
+      if ("cursor" in input) {
+        return owner.resume(
+          "get_series_schedule",
+          input.cursor,
+          gateway.generation,
+        );
+      }
+
+      const source = await call.schedule({ season_id: input.season_id });
+
+      const season_id = parse(Id, source.season_id);
+
+      if (season_id !== input.season_id) {
+        throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
+      const rows = parse(z.array(SeriesScheduleProjection), source.schedules);
+
+      const selected = rows
+        .filter(
+          (row) =>
+            input.race_week_num === undefined ||
+            row.race_week_num === input.race_week_num,
+        )
+        .sort(
+          (a, b) =>
+            a.race_week_num - b.race_week_num ||
+            a.start_date.localeCompare(b.start_date) ||
+            a.week_end_time.localeCompare(b.week_end_time) ||
+            a.series_id - b.series_id ||
+            a.series_name.localeCompare(b.series_name) ||
+            a.track.track_id - b.track.track_id ||
+            a.track.track_name.localeCompare(b.track.track_name) ||
+            (a.track.config_name ?? "").localeCompare(
+              b.track.config_name ?? "",
+            ),
+        );
+
+      return owner.start({
+        tool: "get_series_schedule",
+        filters: {
+          season_id: input.season_id,
+          race_week_num: input.race_week_num,
+        },
+        generation: gateway.generation,
+        items: selected,
+        limit: input.limit,
+        expiresAt: call.expiresAt,
+        context: { season_id },
       });
     },
   );
