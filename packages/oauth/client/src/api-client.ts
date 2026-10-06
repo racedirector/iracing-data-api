@@ -17,9 +17,7 @@ import {
 } from "@iracing-data/oauth-schema";
 
 export type OAuthAccessTokenProvider =
-  | string
-  | Promise<string>
-  | (() => string | Promise<string>);
+  string | Promise<string> | (() => string | Promise<string>);
 
 export interface OAuthApiClientOptions {
   accessToken?: OAuthAccessTokenProvider;
@@ -90,7 +88,9 @@ export class OAuthApiClient {
     }
   }
 
-  async exchangeToken(parameters: OAuthTokenParameters): Promise<OAuthTokenResponse> {
+  async exchangeToken(
+    parameters: OAuthTokenParameters,
+  ): Promise<OAuthTokenResponse> {
     const response = await this.exchangeTokenRaw(parameters);
     if (!response.ok) throw new OAuthApiHttpError(response);
     return await this.parseJson(response, OAuthTokenResponseSchema.parse);
@@ -140,7 +140,8 @@ export class OAuthApiClient {
 
   private normalizeError(error: unknown): Error {
     if (error instanceof OAuthApiHttpError) return error;
-    if (error instanceof ResponseError) return new OAuthApiHttpError(error.response);
+    if (error instanceof ResponseError)
+      return new OAuthApiHttpError(error.response);
     return this.contractError(error);
   }
 
