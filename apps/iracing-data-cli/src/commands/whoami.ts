@@ -41,7 +41,9 @@ export async function whoami(
         );
       }
       if (error.message.includes("not JSON")) {
-        throw new Error("Identity response was not JSON. No response body logged.");
+        throw new Error(
+          "Identity response was not JSON. No response body logged.",
+        );
       }
       throw new Error(
         "Identity response did not match the expected profile. No response body logged.",
