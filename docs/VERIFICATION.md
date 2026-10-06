@@ -84,3 +84,23 @@ Record actual Docker/Node/image and host architecture from each run. Only exerci
 builds establish platform evidence; Windows host ACL semantics and an unexecuted
 architecture must not be claimed as tested. See the [local container guide](../apps/iracing-data-mcp/local-container.md)
 for credential ownership and stopped recovery commands.
+
+## MCP application contract evidence
+
+The private MCP package tests use the official client over local HTTP with synthetic
+OAuth/Data API/cache boundaries. They cover eight strict tool schemas and six user
+workflows, input/output/error snapshots and generated-method mappings, redaction,
+complete serialized result caps, cancellation/admission, cooldown and cursor replay/expiry.
+They are discovered through the declared package test script in `verify:js`; they
+require neither a model nor an account. See the [tool and recovery guide](../apps/iracing-data-mcp/README.md)
+and [composition lifetimes](../apps/iracing-data-mcp/architecture.md).
+
+Local Docker recovery passed 22 acceptance groups on 2026-10-06 with macOS arm64,
+linux/arm64 image, Docker 29.5.2 and Node 24.21.0. The same 22 groups
+[passed in CI](https://github.com/racedirector/iracing-data-api/actions/runs/37411801261/job/112101646317)
+on Ubuntu 24.04.5/Linux amd64 with Docker 28.0.4 and Node 24.21.0.
+Unexecuted platforms and native desktop UI/live upstream authorization
+are not established by synthetic tests. Shutdown cleanup failure exits nonzero;
+forced termination cannot ensure durable quarantine. Keep stopped and re-login
+before restarting after either condition, with no automatic restart or restoration
+of consumed credentials.

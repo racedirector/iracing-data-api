@@ -1,4 +1,4 @@
-# Local Docker MCP (#358)
+# Local Docker MCP
 
 This private app runs one local credential owner at `http://127.0.0.1:3000/mcp`.
 Health and MCP initialize/listing remain usable when credentials are missing or
@@ -14,8 +14,17 @@ configure the CLI privately, then put the same secret in a 0600 file inside the
 MCP data directory. Never put secrets in Docker environment values, command-line
 flags, build arguments, image layers, or diagnostic dumps.
 
+Use the repository Node version in `.nvmrc` and pinned pnpm from `packageManager`,
+then install frozen dependencies before building. Explicitly export the nonsecret
+client ID below: the CLI can load `.env` privately, but that does not set the
+parent shell variable used by Compose. Do not source a secret-bearing `.env`
+wholesale. Keep the redirect URI and any CLI secret in its normal private
+configuration.
+
 ```sh
+pnpm install --frozen-lockfile
 pnpm --filter '@iracing-data/cli...' build
+export IRACING_AUTH_CLIENT='<registered-client-id>'
 export IRACING_MCP_DATA_DIR="$PWD/.iracing-data/iracing-data-mcp"
 mkdir -p "$IRACING_MCP_DATA_DIR"
 chmod 700 "$IRACING_MCP_DATA_DIR"
@@ -51,6 +60,19 @@ custom ports. Wildcards, non-loopback names, HTTPS, unpaired origins, credential
 paths, query strings, whitespace and `null` origins are rejected. Requests without Origin are
 accepted after Host validation. Keep the loopback port binding unchanged.
 
+## Connect a local MCP client
+
+After the container starts, register it with Codex on the same host:
+
+```sh
+codex mcp add iracing-data --url http://127.0.0.1:3000/mcp
+```
+
+The syntax was checked against Codex CLI 0.160.0; no native desktop UI or live
+account connection is claimed. Use no MCP bearer token or MCP OAuth login: iRacing
+authorization belongs to the mounted credential document. See the [tool guide](README.md)
+for eight tools, six workflows, protocol evidence and result/recovery semantics.
+
 ## Stop, repair, restart, logout
 
 Before every login/re-login, import, logout, permission repair or file replacement:
@@ -66,7 +88,15 @@ Exactly one running process may own a credential document. Do not run CLI Data
 API commands or another MCP against that document while the container runs.
 Auth-only credentials cannot use `whoami`, which needs profile scope. For local
 logout, stop/drain and remove `credentials.json`, then restart: health reports
-`authorization_required`. This removes local credentials; it does not revoke
+`authorization_required`. For the bind mount:
+
+```sh
+docker compose -f apps/iracing-data-mcp/compose.yaml stop
+rm -- "$IRACING_MCP_DATA_DIR/credentials.json"
+docker compose -f apps/iracing-data-mcp/compose.yaml up -d
+```
+
+This removes local credentials; it does not revoke
 upstream authorization. Do not restore old backups after refresh-token rotation.
 Corruption, missing files and uncertain rotation require stopped login. Startup
 configuration failures use a safe message with remediation; token contents and
@@ -103,7 +133,17 @@ with `type: volume`, `source: iracing-data-mcp`, the same target, and add top-le
 `volumes: {iracing-data-mcp: {external: true}}`. Subsequent re-login uses fresh host
 staging credentials, stopped import, staging removal and restart. Local volume
 logout removes credentials through a stopped one-off container under the mapped
-UID. Never initialize ownership or import into an active server's volume.
+UID, after stopping/draining every owner:
+
+```sh
+docker run --rm --network none --read-only --user "$IRACING_MCP_UID:$IRACING_MCP_GID" \
+  --cap-drop ALL --security-opt no-new-privileges:true \
+  --mount type=volume,src=iracing-data-mcp,dst=/var/lib/iracing-data-mcp \
+  --entrypoint sh "iracing-data-mcp:$IRACING_MCP_IMAGE_TAG" -c \
+  'rm -- /var/lib/iracing-data-mcp/credentials.json'
+```
+
+Never initialize ownership or import into an active server's volume.
 
 Windows host ACLs do not provide verified POSIX modes/UIDs. Use a Linux-owned
 named volume and perform login/staging/import in an environment where the shared
@@ -120,8 +160,10 @@ node apps/iracing-data-mcp/test/docker-smoke.mjs
 ```
 
 It uses temporary synthetic credentials, no account access, and removes its
-container/data on completion. This focused packaging smoke does not replace the
-later comprehensive recovery slice. Rollback stops/drains and reverts this slice;
+container/data on completion. Run the complete synthetic restart/rotation/recovery suite with `pnpm verify:docker`;
+see [verification prerequisites and CI coverage](../../docs/VERIFICATION.md#offline-docker-recovery).
+It exercises the actual production entry point with a read-only test harness, no
+real grants and no production endpoint override knobs. Rollback stops/drains and reverts the application/image;
 never restore consumed refresh tokens. No generated artifacts or public package
 versions change.
 
@@ -152,3 +194,13 @@ durable quarantine to a new process. Forced SIGKILL/power loss can interrupt any
 cleanup and does not prove whether a submitted refresh was consumed; perform
 stopped host re-login before restarting after such an interruption. Never restore
 an old refresh token from backup.
+
+Recovery validation on 2026-10-06 passed all 22 acceptance groups locally on the
+same macOS arm64 / linux/arm64 / Docker 29.5.2 / Node 24.21.0 platform. Coverage
+includes rotation and restart exactly once, write/fsync/rename failure quarantine,
+stopped login/logout, named-volume import, bind atomic replacement and termination
+during refresh. The same 22 groups
+[passed in CI](https://github.com/racedirector/iracing-data-api/actions/runs/37411801261/job/112101646317)
+on Ubuntu 24.04.5/Linux amd64, Docker 28.0.4 and Node 24.21.0. No Windows support
+is verified.
+Single-owner orchestration in tests does not implement a production process lock.

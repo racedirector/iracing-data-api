@@ -9,6 +9,10 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 - Validate data or use types only: choose [@iracing-data/api-schema](packages/api/schema/README.md).
 - Prefer Axios: use [@iracing-data/api-client-axios](packages/api/client/axios/README.md).
 
+## Local MCP application
+
+For bounded read-only agent queries, use the private [local Data API MCP](apps/iracing-data-mcp/README.md). Its [Docker setup and credential recovery](apps/iracing-data-mcp/local-container.md) use host CLI auth-only login and a loopback Streamable HTTP connection. It is separate from public npm package releases.
+
 ## First Data API call
 
 With an existing bearer token, follow the [Fetch-first quickstart](examples/data-api-first-call/README.md): install `@iracing-data/api-client-fetch`, set `IRACING_ACCESS_TOKEN`, call `DocApi.getDocs()`. The runnable example prints the whole Data API documentation JSON and reports HTTP failures. [Token acquisition and refresh](packages/oauth/client/README.md) are a separate step.
