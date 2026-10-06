@@ -17,7 +17,7 @@ PACKAGE_VERSION="$(node "$SCRIPT_DIR/read-package-version.mjs" "$ROOT_DIR/packag
   -g typescript-fetch \
   -i "$OPENAPI_DOC" \
   -o "$OUTPUT_PACKAGE" \
-  --additional-properties=hideGenerationTimestamp=true,npmVersion="$PACKAGE_VERSION",useSingleRequestParameter=true,paramNaming='snake_case',npmName='@iracing-data/oauth-client-fetch' \
+  --additional-properties=hideGenerationTimestamp=true,npmVersion="$PACKAGE_VERSION",useSingleRequestParameter=true,paramNaming='snake_case',modelPropertyNaming='original',npmName='@iracing-data/oauth-client-fetch' \
   "$@"
 
 node "$SCRIPT_DIR/normalize-client-presentation.js" fetch "$OUTPUT_PACKAGE" "$SCRIPT_DIR/oauth-client-presentation"
