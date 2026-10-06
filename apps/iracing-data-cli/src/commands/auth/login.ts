@@ -23,13 +23,20 @@ const INVALID_SCOPE_MESSAGE =
   "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.";
 
 function resolveScopes(values: string[] | undefined): OAuthScopeList {
-  if (!values) return DEFAULT_SCOPES;
+  if (!values) {
+    return DEFAULT_SCOPES;
+  }
 
   const parsed = OAuthScopeListCodec.safeParse(values.join(" "));
-  if (!parsed.success) throw new Error(INVALID_SCOPE_MESSAGE);
+
+  if (!parsed.success) {
+    throw new Error(INVALID_SCOPE_MESSAGE);
+  }
 
   const scopes = parsed.data;
+
   const authOnly = scopes.length === 1 && scopes[0] === "iracing.auth";
+
   const authAndProfile =
     scopes.length === 2 &&
     scopes[0] === "iracing.auth" &&
@@ -72,21 +79,30 @@ export function createLoginCommand({
       "300",
     )
     .action(async (options) => {
-      if (options.output && options.credentials)
+      if (options.output && options.credentials) {
         throw new Error("Use either --output or --credentials, not both.");
+      }
 
       const scopes = resolveScopes(options.scope);
+
       const authOnly = scopes.length === 1;
+
       const destination =
         options.output ??
         options.credentials ??
         (authOnly ? defaultMcpCredentialsPath : defaultCredentialsPath);
 
       resolveTokenFormat(destination, options.format);
-      if (!options.output && !options.credentials && options.format === "yaml")
+      if (
+        !options.output &&
+        !options.credentials &&
+        options.format === "yaml"
+      ) {
         throw new Error(
           "The shared credential file uses JSON. Pass --credentials with a .yaml path for YAML output.",
         );
+      }
+
       const token = await dependencies.authenticate({
         clientId: process.env.IRACING_AUTH_CLIENT ?? "",
         clientSecret: process.env.IRACING_AUTH_SECRET || undefined,

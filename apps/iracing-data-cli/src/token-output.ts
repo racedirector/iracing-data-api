@@ -28,19 +28,31 @@ export function resolveTokenFormat(
   explicit?: string,
 ): TokenFormat {
   if (explicit !== undefined) {
-    if (explicit === "json" || explicit === "yaml") return explicit;
+    if (explicit === "json" || explicit === "yaml") {
+      return explicit;
+    }
+
     throw new Error(`Unsupported output format: ${explicit}`);
   }
+
   if (output) {
     const extension = path.extname(output).toLowerCase();
-    if (extension === ".yaml" || extension === ".yml") return "yaml";
+
+    if (extension === ".yaml" || extension === ".yml") {
+      return "yaml";
+    }
   }
+
   return "json";
 }
 
 export function serializeDocument(token: unknown, format: TokenFormat): string {
-  if (format === "json") return `${JSON.stringify(token, null, 2)}\n`;
+  if (format === "json") {
+    return `${JSON.stringify(token, null, 2)}\n`;
+  }
+
   const value = stringifyYaml(token);
+
   return value.endsWith("\n") ? value : `${value}\n`;
 }
 
@@ -52,7 +64,10 @@ async function pathExists(
   try {
     return await fileSystem.lstat(target);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+      return undefined;
+    }
+
     throw new Error(
       `Unable to inspect ${label.toLowerCase()} destination: ${target}`,
       {
@@ -70,9 +85,11 @@ async function writeFileOutput(
   label: string,
 ) {
   const existing = await pathExists(fileSystem, destination, label);
+
   if (existing?.isDirectory()) {
     throw new Error(`${label} destination is a directory: ${destination}`);
   }
+
   if (existing && !force) {
     throw new Error(
       `${label} file already exists: ${destination}. Pass --force to replace it.`,
@@ -80,6 +97,7 @@ async function writeFileOutput(
   }
 
   const parent = path.dirname(destination);
+
   try {
     await fileSystem.mkdir(parent, { recursive: true, mode: 0o700 });
   } catch (error) {
@@ -97,8 +115,10 @@ async function writeFileOutput(
   );
 
   let created = false;
+
   try {
     let handle: FileHandle;
+
     try {
       handle = await fileSystem.open(temporary, "wx", 0o600);
       created = true;
@@ -136,6 +156,7 @@ async function writeFileOutput(
         await fileSystem.link(temporary, destination);
         await fileSystem.unlink(temporary);
       }
+
       created = false;
     } catch (error) {
       throw new Error(
@@ -157,12 +178,14 @@ export async function writeDocumentOutput(
   options: TokenOutputOptions = {},
 ): Promise<void> {
   const format = resolveTokenFormat(options.output, options.format);
+
   const serialized = serializeDocument(token, format);
 
   if (!options.output) {
     (options.writeStdout ?? ((value) => process.stdout.write(value)))(
       serialized,
     );
+
     return;
   }
 
@@ -170,6 +193,7 @@ export async function writeDocumentOutput(
     options.cwd ?? process.cwd(),
     options.output,
   );
+
   await writeFileOutput(
     destination,
     serialized,
@@ -183,7 +207,10 @@ export function serializeToken(
   token: OAuthTokenResponse,
   format: TokenFormat,
 ): string {
-  if (format === "json") return serializeOAuthTokenDocument(token);
+  if (format === "json") {
+    return serializeOAuthTokenDocument(token);
+  }
+
   return serializeDocument(token, format);
 }
 
@@ -194,9 +221,11 @@ async function writeJsonTokenOutput(
   fileSystem: TokenOutputFileSystem,
 ) {
   const existing = await pathExists(fileSystem, destination, "Credential");
+
   if (existing?.isDirectory()) {
     throw new Error(`Credential destination is a directory: ${destination}`);
   }
+
   if (existing && !force) {
     throw new Error(
       `Credential file already exists: ${destination}. Pass --force to replace it.`,
@@ -211,6 +240,7 @@ async function writeJsonTokenOutput(
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : "";
+
     if (
       message.startsWith("Unable to create OAuth token document directory:")
     ) {
@@ -219,18 +249,21 @@ async function writeJsonTokenOutput(
         { cause: error },
       );
     }
+
     if (message.startsWith("Unable to create temporary OAuth token document")) {
       throw new Error(
         `Unable to create temporary credential file for: ${destination}`,
         { cause: error },
       );
     }
+
     if (message.startsWith("Unable to write temporary OAuth token document")) {
       throw new Error(
         `Unable to write temporary credential file for: ${destination}`,
         { cause: error },
       );
     }
+
     if (
       message.startsWith("Unable to atomically publish OAuth token document")
     ) {
@@ -239,12 +272,14 @@ async function writeJsonTokenOutput(
         { cause: error },
       );
     }
+
     if (message.startsWith("OAuth token document already exists:")) {
       throw new Error(
         `Credential file already exists: ${destination}. Pass --force to replace it.`,
         { cause: error },
       );
     }
+
     throw error;
   }
 }
@@ -254,10 +289,12 @@ export async function writeTokenOutput(
   options: TokenOutputOptions = {},
 ): Promise<void> {
   const format = resolveTokenFormat(options.output, options.format);
+
   if (!options.output) {
     (options.writeStdout ?? ((value) => process.stdout.write(value)))(
       serializeToken(token, format),
     );
+
     return;
   }
 
@@ -266,12 +303,14 @@ export async function writeTokenOutput(
       options.cwd ?? process.cwd(),
       options.output,
     );
+
     await writeJsonTokenOutput(
       token,
       destination,
       options.force ?? false,
       options.fileSystem ?? tokenOutputFileSystem,
     );
+
     return;
   }
 

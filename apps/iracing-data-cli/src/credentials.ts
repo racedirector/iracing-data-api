@@ -22,14 +22,18 @@ export async function resolveAccessToken(
   options: CredentialOptions = {},
 ): Promise<string> {
   let token = options.accessToken ?? process.env.IRACING_ACCESS_TOKEN;
+
   const credentialPath =
     options.credentials ?? (!token ? defaultCredentialsPath : undefined);
+
   if (credentialPath) {
     let value: unknown;
+
     try {
       const text = await (
         options.readCredentials ?? ((path: string) => readFile(path, "utf8"))
       )(credentialPath);
+
       value = /\.ya?ml$/i.test(credentialPath)
         ? parseYaml(text)
         : JSON.parse(text);
@@ -38,6 +42,7 @@ export async function resolveAccessToken(
         "Unable to read credentials. Run iracing-data auth login, set IRACING_ACCESS_TOKEN, or provide --credentials with a JSON or YAML token file.",
       );
     }
+
     token =
       typeof value === "object" &&
       value !== null &&
@@ -46,10 +51,12 @@ export async function resolveAccessToken(
         ? value.access_token
         : undefined;
   }
+
   if (!token?.trim() || /[\r\n]/.test(token) || token.startsWith("Bearer ")) {
     throw new Error(
       "Set IRACING_ACCESS_TOKEN without a Bearer prefix, or pass --credentials with an auth login token file.",
     );
   }
+
   return token;
 }

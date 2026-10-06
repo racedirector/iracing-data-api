@@ -11,8 +11,11 @@ import type { Diagnostics } from "./diagnostics.js";
 import type { AddressInfo } from "node:net";
 
 const CALLBACK_HOST = "127.0.0.1";
+
 const CALLBACK_PATH = "/oauth/iracing/callback";
+
 const DEFAULT_REDIRECT_URI = `http://${CALLBACK_HOST}:0${CALLBACK_PATH}`;
+
 const SESSION_ID = "iracing-data-cli";
 
 export const DEFAULT_SCOPES = [
@@ -55,7 +58,10 @@ export type BrowserLoginOptions = {
 
 function closeServer(server: Server): Promise<void> {
   return new Promise((resolve) => {
-    if (!server.listening) return resolve();
+    if (!server.listening) {
+      return resolve();
+    }
+
     server.close(() => resolve());
     server.closeAllConnections();
   });
@@ -79,12 +85,15 @@ export async function authenticateWithBrowser(
       "Missing required environment variable: IRACING_AUTH_CLIENT",
     );
   }
+
   if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
     throw new Error("--timeout-seconds must be a positive number");
   }
 
   const registeredRedirectUri = options.redirectUri ?? DEFAULT_REDIRECT_URI;
+
   let callbackUrl: URL;
+
   try {
     callbackUrl = new URL(registeredRedirectUri);
   } catch {
@@ -92,6 +101,7 @@ export async function authenticateWithBrowser(
       "IRACING_AUTH_REDIRECT_URI must be a valid HTTP loopback URL.",
     );
   }
+
   if (
     callbackUrl.protocol !== "http:" ||
     !["127.0.0.1", "[::1]"].includes(callbackUrl.hostname) ||
@@ -103,17 +113,26 @@ export async function authenticateWithBrowser(
       "IRACING_AUTH_REDIRECT_URI must use http://127.0.0.1 or http://[::1], without credentials or a fragment. Register this loopback URI with iRacing before using browser login.",
     );
   }
+
   const callbackHost = callbackUrl.hostname.replace(/^\[|\]$/g, "");
+
   const callbackPort = Number(callbackUrl.port || "80");
 
   const server = createServer();
+
   let timeout: NodeJS.Timeout | undefined;
+
   let callbackClaimed = false;
+
   let rejectFlow: ((reason?: unknown) => void) | undefined;
 
   const onSignal = () => rejectFlow?.(new Error("Authentication cancelled."));
+
   const cleanup = async () => {
-    if (timeout) clearTimeout(timeout);
+    if (timeout) {
+      clearTimeout(timeout);
+    }
+
     signalSource.off("SIGINT", onSignal);
     signalSource.off("SIGTERM", onSignal);
     await closeServer(server);
@@ -132,6 +151,7 @@ export async function authenticateWithBrowser(
     });
 
     const address = server.address() as AddressInfo | null;
+
     if (!address) {
       throw new Error("OAuth callback listener did not expose an address.");
     }
@@ -140,12 +160,14 @@ export async function authenticateWithBrowser(
       callbackPort === 0
         ? registeredRedirectUri.replace(/:0(?=\/|\?|$)/, `:${address.port}`)
         : registeredRedirectUri;
+
     const config: OAuthClientConfig = {
       clientId,
       clientSecret,
       redirectUri,
       scopes: options.scopes ?? DEFAULT_SCOPES,
     };
+
     const client = options.clientFactory
       ? options.clientFactory(config)
       : new OAuthClient({
@@ -155,6 +177,7 @@ export async function authenticateWithBrowser(
         });
 
     const { url } = await client.authorize();
+
     const callbackPromise = new Promise<OAuthTokenResponse>(
       (resolve, reject) => {
         rejectFlow = reject;
@@ -172,16 +195,21 @@ export async function authenticateWithBrowser(
 
         server.on("request", async (request, response) => {
           const requestUrl = new URL(request.url ?? "/", redirectUri);
+
           if (requestUrl.pathname !== callbackUrl.pathname) {
             response.statusCode = 404;
             response.end("Not found.");
+
             return;
           }
+
           if (callbackClaimed) {
             response.statusCode = 409;
             response.end("OAuth callback already received.");
+
             return;
           }
+
           callbackClaimed = true;
 
           try {
@@ -189,6 +217,7 @@ export async function authenticateWithBrowser(
               requestUrl.searchParams,
               SESSION_ID,
             );
+
             response.statusCode = 200;
             response.setHeader("Content-Type", "text/html; charset=utf-8");
             response.end(
@@ -208,6 +237,7 @@ export async function authenticateWithBrowser(
     );
 
     const authorizationUrl = url.toString();
+
     if (openBrowser) {
       try {
         await browserOpener(authorizationUrl);
@@ -221,6 +251,7 @@ export async function authenticateWithBrowser(
     } else {
       diagnostics.info(`Open this URL in a browser: ${authorizationUrl}`);
     }
+
     diagnostics.info("Waiting for the OAuth callback...");
 
     return await callbackPromise;

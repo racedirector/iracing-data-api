@@ -8,6 +8,7 @@ export async function openUrlInBrowser(url: string): Promise<void> {
         : process.platform === "win32"
           ? "cmd"
           : "xdg-open";
+
     const args =
       process.platform === "win32" ? ["/c", "start", "", url] : [url];
 
@@ -15,6 +16,7 @@ export async function openUrlInBrowser(url: string): Promise<void> {
       detached: true,
       stdio: "ignore",
     });
+
     child.once("error", reject);
     child.once("spawn", () => {
       child.unref();

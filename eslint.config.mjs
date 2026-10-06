@@ -156,7 +156,7 @@ export default [
     },
   },
   {
-    files: ["apps/iracing-data-mcp/**/*.{js,mjs,ts}"],
+    files: ["apps/**/*.{js,mjs,ts}"],
     rules: {
       curly: ["error", "all"],
 

@@ -16,25 +16,33 @@ type DocsOptions = TokenOutputOptions &
 export async function fetchDocs(options: DocsOptions = {}) {
   resolveTokenFormat(options.output, options.format);
   const token = await resolveAccessToken(options);
+
   // This private repository CLI shares fixed-source capture, timeout, redaction
   // and provenance with the upstream evidence tool instead of duplicating them.
   const toolingUrl = new URL(
     "../../../../scripts/upstream-contract.mjs",
     import.meta.url,
   );
+
   const { capture } = await import(toolingUrl.href);
+
   let snapshot;
+
   try {
     snapshot = await capture("data", { token, fetcher: options.fetcher });
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Documentation request failed";
-    if (/HTTP 401|HTTP 403/.test(message))
+
+    if (/HTTP 401|HTTP 403/.test(message)) {
       throw new Error(
         `${message}. Check token expiry, iracing.auth scope and account access; obtain a new token with auth login.`,
       );
+    }
+
     throw new Error(message);
   }
+
   return options.snapshot ? snapshot : snapshot.content;
 }
 
@@ -57,6 +65,7 @@ export function createDocsCommand(diagnostics: Diagnostics) {
     .option("--force", "Replace an existing output file")
     .action(async (options) => {
       const docs = await fetchDocs(options);
+
       await writeDocumentOutput(docs, {
         ...options,
         outputLabel: "Documentation",

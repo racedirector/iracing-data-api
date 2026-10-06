@@ -7,7 +7,9 @@ export async function whoami(
   options: CredentialOptions & { fetcher?: typeof fetch } = {},
 ) {
   const token = await resolveAccessToken(options);
+
   let response: Response;
+
   try {
     response = await (options.fetcher ?? fetch)(
       "https://oauth.iracing.com/oauth2/iracing/profile",
@@ -25,14 +27,20 @@ export async function whoami(
       "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
     );
   }
-  if (!response.ok)
+
+  if (!response.ok) {
     throw new Error(
       `Identity request failed: HTTP ${response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
     );
-  if (!response.headers.get("content-type")?.includes("application/json"))
+  }
+
+  if (!response.headers.get("content-type")?.includes("application/json")) {
     throw new Error("Identity response was not JSON. No response body logged.");
+  }
+
   try {
     const profile = OAuthProfileResponseSchema.parse(await response.json());
+
     return {
       iracing_cust_id: profile.iracing_cust_id,
       iracing_name: profile.iracing_name,
@@ -55,6 +63,7 @@ export function createWhoamiCommand(diagnostics: Diagnostics) {
     )
     .action(async (options) => {
       const profile = await whoami(options);
+
       process.stdout.write(`${JSON.stringify(profile, null, 2)}\n`);
       diagnostics.info("iRacing identity verified.");
     });
