@@ -9,13 +9,24 @@ const output =
   process.env.OUTPUT_FILE ||
   path.join(root, "packages/oauth/client/src/generated/oauth-api.ts");
 
+const expectedOperations = [
+  ["get", "/iracing/profile", "getProfile"],
+  ["get", "/sessions", "getSessions"],
+  ["post", "/revoke/current", "revokeCurrent"],
+  ["post", "/revoke/sessions", "revokeSessions"],
+  ["post", "/revoke/client", "revokeClient"],
+  ["get", "/authorize", "authorize"],
+  ["post", "/token", "exchangeToken"],
+];
+
 function assertOperation(document, method, route, operationId) {
-  const actual = document.paths?.[route]?.[method]?.operationId;
-  if (actual !== operationId) {
+  const operation = document.paths?.[route]?.[method];
+  if (operation?.operationId !== operationId) {
     throw new Error(
-      `Expected ${method.toUpperCase()} ${route} to have operationId ${operationId}; received ${String(actual)}`,
+      `Expected ${method.toUpperCase()} ${route} to have operationId ${operationId}; received ${String(operation?.operationId)}`,
     );
   }
+  return operation;
 }
 
 function gitBlobSha(content) {
@@ -29,18 +40,12 @@ function gitBlobSha(content) {
 
 const source = fs.readFileSync(input, "utf8");
 const document = JSON.parse(source);
-
 if (document.openapi !== "3.1.1") {
   throw new Error(`Expected OAuth OpenAPI 3.1.1; received ${document.openapi}`);
 }
-
-assertOperation(document, "get", "/iracing/profile", "getProfile");
-assertOperation(document, "get", "/sessions", "getSessions");
-assertOperation(document, "post", "/revoke/current", "revokeCurrent");
-assertOperation(document, "post", "/revoke/sessions", "revokeSessions");
-assertOperation(document, "post", "/revoke/client", "revokeClient");
-assertOperation(document, "get", "/authorize", "authorize");
-assertOperation(document, "post", "/token", "exchangeToken");
+for (const [method, route, operationId] of expectedOperations) {
+  assertOperation(document, method, route, operationId);
+}
 
 const basePath = document.servers?.[0]?.url;
 if (typeof basePath !== "string" || !basePath.startsWith("https://")) {
@@ -84,7 +89,7 @@ export class OAuthApiHttpError extends Error {
   readonly requestId?: string;
 
   constructor(readonly response: Response) {
-    super(\`OAuth API request failed with HTTP \${response.status}.\`);
+    super("OAuth API request failed with HTTP " + response.status + ".");
     this.name = "OAuthApiHttpError";
     this.requestId = response.headers.get("x-request-id") ?? undefined;
   }
@@ -101,11 +106,7 @@ function encodeForm(values: Record<string, unknown>) {
   const form = new URLSearchParams();
   for (const [key, value] of Object.entries(values)) {
     if (value === undefined) continue;
-    if (Array.isArray(value)) {
-      form.set(key, value.join(","));
-      continue;
-    }
-    form.set(key, String(value));
+    form.set(key, Array.isArray(value) ? value.join(",") : String(value));
   }
   return form;
 }
@@ -134,7 +135,7 @@ export class OAuthApiClientGenerated {
 
   createAuthorizationUrl(parameters: OAuthAuthorizeParameters) {
     const query = encodeQuery(parameters as Record<string, unknown>);
-    return new URL(\`\${this.basePath}/authorize?\${query.toString()}\`);
+    return new URL(this.basePath + "/authorize?" + query.toString());
   }
 
   async exchangeToken(parameters: OAuthTokenParameters) {
@@ -150,7 +151,7 @@ export class OAuthApiClientGenerated {
       },
       false,
     );
-    return await this.parseJson(response, OAuthTokenResponseSchema.parse) as OAuthTokenResponse;
+    return this.parseJson(response, OAuthTokenResponseSchema.parse) as Promise<OAuthTokenResponse>;
   }
 
   async getProfile() {
@@ -158,7 +159,7 @@ export class OAuthApiClientGenerated {
       method: "GET",
       headers: { Accept: "application/json" },
     });
-    return await this.parseJson(response, OAuthProfileResponseSchema.parse) as OAuthProfileResponse;
+    return this.parseJson(response, OAuthProfileResponseSchema.parse) as Promise<OAuthProfileResponse>;
   }
 
   async getSessions() {
@@ -166,7 +167,7 @@ export class OAuthApiClientGenerated {
       method: "GET",
       headers: { Accept: "application/json" },
     });
-    return await this.parseJson(response, OAuthSessionsSchema.parse) as OAuthSessions;
+    return this.parseJson(response, OAuthSessionsSchema.parse) as Promise<OAuthSessions>;
   }
 
   async revokeCurrent(parameters: OAuthRevokeCurrentSessionParameters = {}) {
@@ -204,22 +205,21 @@ export class OAuthApiClientGenerated {
   ) {
     const headers = new Headers(init.headers);
     if (requiresAuth) {
-      headers.set("Authorization", `Bearer \${await this.resolveAccessToken()}`);
+      headers.set("Authorization", "Bearer " + (await this.resolveAccessToken()));
     }
 
     let response: Response;
     try {
-      response = await this.fetchApi(\`\${this.basePath}\${route}\`, {
+      response = await this.fetchApi(this.basePath + route, {
         ...init,
         headers,
         redirect: "error",
         signal: init.signal ?? AbortSignal.timeout(this.requestTimeoutMs),
       });
     } catch (error) {
+      const reason = error instanceof Error ? error.name : "unknown error";
       throw new OAuthApiContractError(
-        `OAuth API request failed before a response was received: \${
-          error instanceof Error ? error.name : "unknown error"
-        }`,
+        "OAuth API request failed before a response was received: " + reason,
       );
     }
 
@@ -255,4 +255,6 @@ export class OAuthApiClientGenerated {
 
 fs.mkdirSync(path.dirname(output), { recursive: true });
 fs.writeFileSync(output, generated);
-console.info(`[oauth-client] Generated ${path.relative(root, output)} from ${path.relative(root, input)}`);
+console.info(
+  `[oauth-client] Generated ${path.relative(root, output)} from ${path.relative(root, input)}`,
+);
