@@ -96,11 +96,13 @@ export class OAuthApiClientGenerated {
         body: encodeForm(parameters as Record<string, unknown>),
       },
       false,
+      false,
     );
   }
 
   async exchangeToken(parameters: OAuthTokenParameters) {
     const response = await this.exchangeTokenRaw(parameters);
+    if (!response.ok) throw new OAuthApiHttpError(response);
     return this.parseJson(
       response,
       OAuthTokenResponseSchema.parse,
@@ -161,6 +163,7 @@ export class OAuthApiClientGenerated {
     route: string,
     init: RequestInit,
     requiresAuth = true,
+    throwOnHttpError = true,
   ) {
     const headers = new Headers(init.headers);
     if (requiresAuth) {
@@ -182,7 +185,7 @@ export class OAuthApiClientGenerated {
       );
     }
 
-    if (!response.ok) throw new OAuthApiHttpError(response);
+    if (throwOnHttpError && !response.ok) throw new OAuthApiHttpError(response);
     return response;
   }
 
