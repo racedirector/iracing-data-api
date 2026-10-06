@@ -19,5 +19,12 @@ export class OAuthApiClient extends OAuthApiClientGenerated {
 export type OAuthApiClientOptions = OAuthApiClientGeneratedOptions;
 
 export type OAuthProfileApi = Pick<OAuthApiClient, "getProfile">;
+export type OAuthProtocolApi = Pick<
+  OAuthApiClient,
+  "exchangeTokenRaw" | "getProfile"
+>;
+export type OAuthApiClientFactory = (
+  options: OAuthApiClientOptions,
+) => OAuthProtocolApi;
 
 export * from "./generated/oauth-api";
