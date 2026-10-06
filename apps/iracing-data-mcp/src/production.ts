@@ -6,11 +6,18 @@ import { parseMcpApplicationConfig } from "./config.js";
 import { createHttpApplication, installTerminationHandlers } from "./http.js";
 import { createMcpServices, MCP_CREDENTIAL_FILE } from "./session.js";
 
+/** Creates a recovery error without including configuration values or underlying errors. */
 const configurationError = () =>
   new Error(
     "MCP configuration invalid. Set a client ID, exact Host/Origin lists, and a same-client secret file if required; use a non-root UID/GID and an owned 0700 credential directory with 0600 files. Stop the server before repairing credentials.",
   );
 
+/**
+ * Returns a frozen list of comma-separated authorities, or HTTP origins when
+ * `origin` is true. Entries must use localhost or 127.0.0.1 and exactly match
+ * their URL representation, without whitespace, wildcards, paths, or credentials.
+ * Throws a configuration error for an empty list or any invalid entry.
+ */
 function exactList(value: string, origin: boolean) {
   const values = value.split(",");
 
@@ -42,6 +49,14 @@ function exactList(value: string, origin: boolean) {
   return Object.freeze(values);
 }
 
+/**
+ * Returns frozen production settings with a trimmed, 1–512-character client ID.
+ * Rejects inline secrets; an optional secret file must be an absolute path beside
+ * the credential file, with a different filename. File access is checked later.
+ * Host/origin lists use exact localhost or 127.0.0.1 entries, defaulting to port
+ * 3000 and HTTP origins; every origin's authority must appear in the host list.
+ * Throws a configuration error for invalid settings.
+ */
 export function parseProductionConfig(env: NodeJS.ProcessEnv) {
   const clientId = z
     .string()
@@ -96,6 +111,12 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
   });
 }
 
+/**
+ * Checks that the directory exists, is not a symlink, and is owned by the current
+ * user with mode 0700. Requires nonzero process UID and GID; does not create or
+ * repair the directory. Rejects with a configuration error on validation or I/O
+ * failure, replacing the underlying error.
+ */
 export async function checkProductionDirectory(directory: string) {
   try {
     const stats = await lstat(directory);
@@ -117,6 +138,13 @@ export async function checkProductionDirectory(directory: string) {
   }
 }
 
+/**
+ * Reads a UTF-8 secret from a regular file owned by the current user with mode
+ * 0600, rejecting a final-component symlink or a reported size above 4096 bytes.
+ * Returns the trimmed value, which must be nonempty and contain no CR, LF, or NUL.
+ * Validation and file open, read, stat, or close failures reject with a
+ * configuration error that replaces the underlying error.
+ */
 export async function readProductionSecret(file: string) {
   try {
     const handle = await open(
@@ -151,7 +179,15 @@ export async function readProductionSecret(file: string) {
   }
 }
 
-/** Compose exactly one session/gateway owner and use the existing bounded HTTP lifecycle. */
+/**
+ * Composes one session/gateway owner and returns the HTTP application listening
+ * on 0.0.0.0:3000, with SIGTERM/SIGINT shutdown handlers installed.
+ * Validates configuration and local file permissions before composing services.
+ * Missing or invalid stored credentials allow startup in authorization_required.
+ * Configuration and file checks reject with a configuration error; service
+ * construction errors propagate. Listen or signal-handler setup failures shut
+ * down the application and reject with a configuration error.
+ */
 export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const config = parseProductionConfig(env);
 

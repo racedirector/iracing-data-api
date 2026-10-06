@@ -252,6 +252,11 @@ function installToolAdmission(
  * The returned application owns shared admission/shutdown state while every MCP POST creates
  * a fresh SDK server and transport. Host/origin validation, body limits, cancellation, tool
  * admission, and bounded shutdown are enforced before request work can escape this boundary.
+ *
+ * Host/origin allowlists replace their defaults and are matched verbatim. Defaults
+ * allow localhost:3000 and 127.0.0.1:3000 with their HTTP origins. Every route
+ * requires exactly one allowed Host header; Origin may be absent, but must be
+ * allowed when present. Rejected hosts or origins receive HTTP 403.
  */
 export function createHttpApplication(options: HttpApplicationOptions) {
   const logger = options.logger ?? createDiagnosticLogger();
