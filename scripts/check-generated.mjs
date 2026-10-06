@@ -125,14 +125,10 @@ export function checkGenerated({ update = false } = {}) {
     }
 
     const oauthClient = path.join(temporary, surfaces[4], "oauth-api.ts");
-    command(
-      "node",
-      [path.join(root, "scripts", "generate-oauth-client.mjs")],
-      {
-        OPENAPI_DOC: path.join(specs, "oauth.json"),
-        OUTPUT_FILE: oauthClient,
-      },
-    );
+    command("node", [path.join(root, "scripts", "generate-oauth-client.mjs")], {
+      OPENAPI_DOC: path.join(specs, "oauth.json"),
+      OUTPUT_FILE: oauthClient,
+    });
 
     const changes = surfaces.flatMap((surface) =>
       diffTrees(path.join(root, surface), path.join(temporary, surface)).map(
