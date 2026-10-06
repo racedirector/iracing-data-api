@@ -1,9 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  OAuthApiClient,
-  OAuthApiHttpError,
-} from "../dist/index.js";
+import { OAuthApiClient, OAuthApiHttpError } from "../dist/index.js";
 
 test("getProfile sends bearer auth and parses the maintained profile contract", async () => {
   const calls = [];
@@ -57,10 +54,7 @@ test("revokeSessions serializes opaque session ids as one form field", async () 
 
   await client.revokeSessions({ session_ids: ["opaque-a", "opaque-b"] });
 
-  assert.equal(
-    request.url,
-    "https://oauth.iracing.com/oauth2/revoke/sessions",
-  );
+  assert.equal(request.url, "https://oauth.iracing.com/oauth2/revoke/sessions");
   assert.equal(request.options.method, "POST");
   assert.equal(
     new Headers(request.options.headers).get("content-type"),
