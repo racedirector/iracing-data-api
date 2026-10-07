@@ -45,3 +45,42 @@ Upstream evidence capture is opt-in and separate from verification. See [upstrea
 The canonical CI result is enforced on main by the [repository protection rules](REPOSITORY-PROTECTION.md), which also document recovery from a broken required check.
 
 `pnpm test:data-contract` exercises the built Fetch and Axios clients with synthetic offline responses. It verifies documentation-note preservation, direct constants arrays, time-trial paths, calendar-year requests and CSV spectator filters. It runs after generated client builds in `verify:generated`; it never reads credentials or calls iRacing. The Rust crate registers an authored documentation deserialization test outside generated source.
+
+## Offline Docker recovery
+
+`pnpm verify:docker` builds MCP dependencies and the digest-pinned production image,
+then exercises local persistence/recovery using synthetic credentials. The separate
+**Docker offline recovery** Ubuntu CI job runs the same command with frozen pnpm
+installation. Ordinary `pnpm verify` retains its service-free contract; Docker
+validation is an additional explicit contract, not a workspace unit test.
+
+Prerequisites are a running Linux-container Docker daemon, the repository Node/pnpm
+versions, frozen dependencies, enough space for an image/layer inspection, and a
+POSIX host user with **nonzero UID and GID**. Linux runners provide Docker; macOS
+requires Docker Desktop. First build may download public Node images and locked
+npm dependencies. Runtime grant/Data API requests are synthetic and intercepted
+only in the read-only mounted harness; unexpected external requests fail closed.
+The suite executes the actual image `dist/main.js`, session store, gateway, HTTP
+and termination handlers. The test harness and fault controls are excluded from
+production packaging, with no runtime test configuration or image publication.
+
+Coverage includes image/layer secret exclusion, non-root/read-only/capability and
+loopback/mount assertions, missing/corrupt/unsafe credential health and official MCP
+initialize/listing, concurrent single-flight refresh, atomic rotation across restart,
+write/file-fsync/rename/directory-fsync failures and quarantine, stopped re-login and
+logout, unsupported hot replacement, one-owner test orchestration, and the stopped
+named-volume importer. Synthetic grants verify each replacement credential is used
+exactly once; no browser, account, keychain or real iRacing grant is involved.
+Termination during a consumed in-flight grant must preserve safe uncertainty rather
+than leave a reusable consumed credential. Containers, named volumes, synthetic
+files and saved-image inspection artifacts are removed in `finally` cleanup.
+
+The normal schema selector targets `tests/schema-compatibility`; generated Fetch
+and Axios wire tests belong exclusively to `tests/data-contract`, after SDK builds
+in `verify:generated`. A regression check keeps the selectors disjoint so a clean
+`verify:js` run does not accidentally load unbuilt Axios output.
+
+Record actual Docker/Node/image and host architecture from each run. Only exercised
+builds establish platform evidence; Windows host ACL semantics and an unexecuted
+architecture must not be claimed as tested. See the [local container guide](../apps/iracing-data-mcp/local-container.md)
+for credential ownership and stopped recovery commands.

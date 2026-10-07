@@ -27,7 +27,11 @@ async function fixture(t, registerTools, clock = timers()) {
     {},
     {
       get(_target, key) {
-        if (key === "authorizationState") return undefined;
+        if (
+          key === "authorizationState" ||
+          key === "shutdownAuthorizationOwner"
+        )
+          return undefined;
         throw new Error("Unexpected upstream service access");
       },
     },

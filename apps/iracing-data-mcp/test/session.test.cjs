@@ -414,3 +414,127 @@ test("directory sync uncertainty after publication fails closed through persiste
   assert.equal((await f.start()).authorizationState(), "ready");
   assert.doesNotMatch(f.logs.join(""), /SECRET|credentials.json/);
 });
+
+function started() {
+  let release;
+  let entered;
+  const gate = new Promise((resolve) => (release = resolve));
+  const entry = new Promise((resolve) => (entered = resolve));
+  return { gate, release, entry, entered };
+}
+
+test("shutdown quarantines a consumed held grant and prevents late persistence/readiness", async (t) => {
+  const f = await fixture(t);
+  await f.write(token({ access_token: jwt(1) }));
+  const hold = await started();
+  global.fetch = async () => {
+    hold.entered();
+    await hold.gate;
+    return Response.json(token({ refresh_token: "LATE_SECRET" }));
+  };
+  const services = await f.start();
+  const pending = access(services).catch((error) => error);
+  await hold.entry;
+  const first = services.shutdownAuthorizationOwner();
+  assert.equal(first, services.shutdownAuthorizationOwner());
+  await first;
+  assert.equal(services.authorizationState(), "authorization_required");
+  await assert.rejects(fs.stat(f.file), { code: "ENOENT" });
+  hold.release();
+  assert.equal(
+    f.api.errorEnvelope(await pending, f.api.createRequestContext()).error
+      .reason,
+    "rotation_uncertain",
+  );
+  await assert.rejects(fs.stat(f.file), { code: "ENOENT" });
+  await assert.rejects(access(services), failure(f.api, "rotation_uncertain"));
+  assert.doesNotMatch(f.logs.join(""), /LATE_SECRET|REFRESH_SECRET/);
+});
+
+test("shutdown deletes a replacement published by a rename already in flight", async (t) => {
+  const f = await fixture(t);
+  await f.write(token({ access_token: jwt(1) }));
+  const hold = await started();
+  const services = await f.start({
+    fileSystem: {
+      rename: async (...args) => {
+        hold.entered();
+        await hold.gate;
+        return fs.rename(...args);
+      },
+    },
+  });
+  global.fetch = async () =>
+    Response.json(token({ refresh_token: "LATE_SECRET" }));
+  const pending = access(services).catch((error) => error);
+  await hold.entry;
+  await services.shutdownAuthorizationOwner();
+  await assert.rejects(fs.stat(f.file), { code: "ENOENT" });
+  hold.release();
+  assert.equal(
+    f.api.errorEnvelope(await pending, f.api.createRequestContext()).error
+      .reason,
+    "rotation_uncertain",
+  );
+  await assert.rejects(fs.stat(f.file), { code: "ENOENT" });
+  assert.equal(services.authorizationState(), "authorization_required");
+});
+
+test("known nonconsuming refresh rejection preserves credentials through stopped shutdown", async (t) => {
+  const f = await fixture(t);
+  await f.write(token({ access_token: jwt(1) }));
+  const services = await f.start();
+  global.fetch = async () =>
+    Response.json({ error: "temporarily_unavailable" }, { status: 400 });
+  await assert.rejects(
+    access(services),
+    failure(f.api, "transient_refresh", true),
+  );
+  await services.shutdownAuthorizationOwner();
+  assert.equal(
+    (await oauth.readOAuthTokenDocument(f.file)).refresh_token,
+    "REFRESH_SECRET",
+  );
+});
+
+test("failed uncertainty cleanup rejects shutdown and keeps the current owner terminal", async (t) => {
+  const f = await fixture(t);
+  await f.write(token({ access_token: jwt(1) }));
+  const hold = await started();
+  const services = await f.start({
+    fileSystem: {
+      unlink: async () => {
+        throw new Error("SECRET EACCES");
+      },
+    },
+  });
+  global.fetch = async () => {
+    hold.entered();
+    await hold.gate;
+    return Response.json(token({ refresh_token: "LATE_SECRET" }));
+  };
+  const pending = access(services).catch((error) => error);
+  await hold.entry;
+  await assert.rejects(
+    services.shutdownAuthorizationOwner(),
+    (error) =>
+      f.api.errorEnvelope(error, f.api.createRequestContext()).error.code ===
+      "CONFIGURATION_ERROR",
+  );
+  hold.release();
+  assert.equal(
+    f.api.errorEnvelope(await pending, f.api.createRequestContext()).error
+      .reason,
+    "rotation_uncertain",
+  );
+  assert.equal(services.authorizationState(), "authorization_required");
+  // Deletion failure cannot promise durable quarantine for a fresh process: recovery is stopped login.
+  assert.equal(
+    (await oauth.readOAuthTokenDocument(f.file)).refresh_token,
+    "REFRESH_SECRET",
+  );
+  assert.doesNotMatch(
+    f.logs.join(""),
+    /LATE_SECRET|REFRESH_SECRET|SECRET EACCES/,
+  );
+});

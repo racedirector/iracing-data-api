@@ -12,6 +12,9 @@ import type { OAuthClient } from "@iracing-data/oauth-client";
 export interface McpServices {
   readonly dataApiGateway?: DataApiGateway;
   readonly authorizationState?: () => AuthorizationState;
+
+  /** Called once after HTTP drain to quarantine any consumed, uncommitted rotation. */
+  readonly shutdownAuthorizationOwner?: () => Promise<void>;
   readonly oauthClient: OAuthClient;
   readonly dataApiConfiguration: DataApiConfiguration;
 }

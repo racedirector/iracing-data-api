@@ -45,7 +45,9 @@
     "upstream:contract": "node scripts/upstream-contract.mjs",
     "test:upstream": "node --test scripts/upstream-contract.test.mjs scripts/audit-data-docs.test.cjs",
     "test:schema-compatibility": "node --test -r ts-node/register tests/schema-compatibility/*.test.cjs",
-    "test:data-contract": "node --test tests/schema-compatibility/data-docs-wire.test.cjs"
+    "test:data-contract": "node --test tests/data-contract/*.test.cjs",
+    "test:docker": "pnpm --filter '@iracing-data/iracing-data-mcp...' build && node apps/iracing-data-mcp/test/docker/recovery.mjs",
+    "verify:docker": "pnpm test:docker"
   },
   "keywords": [],
   "author": "",
