@@ -1,0 +1,87 @@
+{
+  "driver": { "cust_id": "number", "display_name": "string" },
+  "car": {
+    "car_id": "number",
+    "car_name": "string",
+    "car_name_abbreviated": "string|null"
+  },
+  "track": {
+    "track_id": "number",
+    "track_name": "string",
+    "config_name": "string|null",
+    "category_id": "number|null",
+    "is_oval": "boolean|null",
+    "is_dirt": "boolean|null"
+  },
+  "recent": {
+    "subsession_id": "number",
+    "series_id": "number|null",
+    "series_name": "string|null",
+    "season_year": "number|null",
+    "season_quarter": "number|null",
+    "car_id": "number|null",
+    "session_start_time": "string|null",
+    "start_position": "number|null",
+    "finish_position": "number|null",
+    "laps": "number|null",
+    "incidents": "number|null",
+    "points": "number|null",
+    "oldi_rating": "number|null",
+    "newi_rating": "number|null",
+    "track_id": "number|null",
+    "track_name": "string|null"
+  },
+  "season": {
+    "season_id": "number",
+    "series_id": "number",
+    "season_name": "string",
+    "season_year": "number",
+    "season_quarter": "number",
+    "active": "boolean"
+  },
+  "schedule": {
+    "race_week_num": "number",
+    "start_date": "string",
+    "week_end_time": "string",
+    "series_id": "number",
+    "series_name": "string",
+    "track": {
+      "track_id": "number",
+      "track_name": "string",
+      "config_name": "string|null"
+    }
+  },
+  "participant": {
+    "cust_id": "number|null",
+    "team_id": "number|null",
+    "display_name": "string",
+    "car_id": "number|null",
+    "car_class_id": "number|null",
+    "starting_position": "number|null",
+    "finish_position": "number|null",
+    "finish_position_in_class": "number|null",
+    "laps_complete": "number|null",
+    "incidents": "number|null",
+    "champ_points": "number|null",
+    "oldi_rating": "number|null",
+    "newi_rating": "number|null",
+    "reason_out": "string|null",
+    "attribution": "string"
+  },
+  "search": {
+    "subsession_id": "number",
+    "start_time": "string",
+    "end_time": "string|null",
+    "season_id": "number|null",
+    "series_id": "number|null",
+    "series_name": "string|null",
+    "track": {
+      "track_id": "number",
+      "track_name": "string|null",
+      "config_name": "string|null"
+    },
+    "event_type": "number",
+    "num_drivers": "number|null",
+    "official_session": "boolean|null"
+  }
+}
