@@ -161,6 +161,8 @@ async function start(source, env = {}, volume = false, harness = true) {
     `type=${volume ? "volume" : "bind"},src=${source},dst=/var/lib/iracing-data-mcp`,
     "-e",
     "IRACING_MCP_CLIENT_ID=synthetic-client",
+    "-e",
+    "IRACING_MCP_LISTEN_HOST=0.0.0.0",
   ];
 
   if (harness) {
