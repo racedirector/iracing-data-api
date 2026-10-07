@@ -22,4 +22,5 @@ services:
       IRACING_MCP_CLIENT_ID: ${IRACING_MCP_CLIENT_ID:?Set the same client ID used by host login}
       IRACING_MCP_ALLOWED_HOSTS: ${IRACING_MCP_ALLOWED_HOSTS:-127.0.0.1:3000,localhost:3000}
       IRACING_MCP_ALLOWED_ORIGINS: ${IRACING_MCP_ALLOWED_ORIGINS:-http://127.0.0.1:3000,http://localhost:3000}
+      IRACING_MCP_LISTEN_HOST: 0.0.0.0
     stop_grace_period: 15s

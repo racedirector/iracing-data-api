@@ -95,7 +95,10 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
     true,
   );
 
+  const listenHost = env.IRACING_MCP_LISTEN_HOST ?? "127.0.0.1";
+
   if (
+    !["127.0.0.1", "0.0.0.0"].includes(listenHost) ||
     allowedOrigins.some(
       (origin) => !allowedHosts.includes(new URL(origin).host),
     )
@@ -108,6 +111,7 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
     secretFile,
     allowedHosts,
     allowedOrigins,
+    listenHost,
   });
 }
 
@@ -213,7 +217,7 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   });
 
   try {
-    await app.listen(3000, "0.0.0.0");
+    await app.listen(3000, config.listenHost);
     installTerminationHandlers(app);
 
     return app;
