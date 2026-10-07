@@ -49,6 +49,10 @@ export interface HttpApplicationOptions {
   /** Optional registrar used by tests or later slices to add tools. */
   readonly registerTools?: McpToolRegistrar;
 
+  /** Exact authorities/origins; production validates configuration before composition. */
+  readonly allowedHosts?: readonly string[];
+  readonly allowedOrigins?: readonly string[];
+
   /** Sanitizing logger used for transport and tool diagnostics. */
   readonly logger?: ReturnType<typeof createDiagnosticLogger>;
 
@@ -248,6 +252,11 @@ function installToolAdmission(
  * The returned application owns shared admission/shutdown state while every MCP POST creates
  * a fresh SDK server and transport. Host/origin validation, body limits, cancellation, tool
  * admission, and bounded shutdown are enforced before request work can escape this boundary.
+ *
+ * Host/origin allowlists replace their defaults and are matched verbatim. Defaults
+ * allow localhost:3000 and 127.0.0.1:3000 with their HTTP origins. Every route
+ * requires exactly one allowed Host header; Origin may be absent, but must be
+ * allowed when present. Rejected hosts or origins receive HTTP 403.
  */
 export function createHttpApplication(options: HttpApplicationOptions) {
   const logger = options.logger ?? createDiagnosticLogger();
@@ -287,16 +296,21 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
     if (
       hostCount !== 1 ||
-      !["127.0.0.1:3000", "localhost:3000"].includes(req.headers.host ?? "")
+      !(options.allowedHosts ?? ["127.0.0.1:3000", "localhost:3000"]).includes(
+        req.headers.host ?? "",
+      )
     ) {
       return reply(403, "Host rejected.");
     }
 
     if (
       req.headers.origin !== undefined &&
-      !["http://127.0.0.1:3000", "http://localhost:3000"].includes(
-        req.headers.origin,
-      )
+      !(
+        options.allowedOrigins ?? [
+          "http://127.0.0.1:3000",
+          "http://localhost:3000",
+        ]
+      ).includes(req.headers.origin)
     ) {
       return reply(403, "Origin rejected.");
     }

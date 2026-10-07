@@ -12,7 +12,7 @@ This workspace establishes the application, service and diagnostic seams:
 - `McpApplicationConfigSchema` owns app-local server identity configuration.
 - App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354; series-season and schedule projections are implemented by #355; race-result projections by #356; continuation-aware driver race search by #357. Docker packaging (#358) remains deferred.
+Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354; series-season and schedule projections are implemented by #355; race-result projections by #356; continuation-aware driver race search by #357. Local Docker packaging is implemented by #358; see the [deployment guide](local-container.md).
 
 ## Development
 
