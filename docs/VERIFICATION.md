@@ -97,8 +97,13 @@ and [composition lifetimes](../apps/iracing-data-mcp/architecture.md).
 
 Local Docker recovery passed 22 acceptance groups on 2026-10-06 with macOS arm64,
 linux/arm64 image, Docker 29.5.2 and Node 24.21.0. The same 22 groups
-[passed in CI](https://github.com/racedirector/iracing-data-api/actions/runs/37411801261/job/112101646317)
-on Ubuntu 24.04.5/Linux amd64 with Docker 28.0.4 and Node 24.21.0.
+[passed in parent #360 / PR #391 recovery CI](https://github.com/racedirector/iracing-data-api/actions/runs/37411801261/job/112101646317)
+(run `37411801261`, head `2bfe946078b6ae2872cea6893ddce384128bc959`)
+on Ubuntu 24.04.5/Linux amd64 with Docker 28.0.4 and Node 24.21.0. This records
+parent platform evidence, not a result from PR #392's documentation head.
+PR #392's subsequent [CI run `37699272600`](https://github.com/racedirector/iracing-data-api/actions/runs/37699272600)
+passed Verify and Docker offline recovery for head
+`29344a87ef8780816547e3d890cd75362bce25e4`; later review fixes require fresh checks.
 Unexecuted platforms and native desktop UI/live upstream authorization
 are not established by synthetic tests. Shutdown cleanup failure exits nonzero;
 forced termination cannot ensure durable quarantine. Keep stopped and re-login
