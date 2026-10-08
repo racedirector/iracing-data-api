@@ -1,491 +1,215 @@
-# iracing-data-mcp
+# Local iRacing Data API MCP
 
-`apps/iracing-data-mcp` is the private MCP application for exposing bounded, agent-oriented iRacing Data API capabilities. It is a sibling protocol adapter over the maintained OAuth client, generated Fetch client, and API schemas; it is not a telemetry application and does not sit on top of another repository application or API router.
+This private application exposes eight bounded, read-only tools over the maintained
+Data API schemas, generated Fetch client and OAuth client. Run one local Docker
+container and connect an MCP client on the same machine. It supports Data API
+queries with `iracing.auth`; it provides no telemetry, profile lookup, arbitrary
+API proxy, writes, unbounded history or hosted multi-user service.
 
-## Current boundary
+## Set up and connect
 
-This workspace establishes the application, service and diagnostic seams:
+Follow the [local container guide](local-container.md) for the exact frozen build,
+Compose commands, host CLI login, credential directory and optional secret file.
+Login requests `iracing.auth` and uses the same registered client ID as the
+container. The host CLI owns browser authorization; the container has no browser
+OAuth routes. Auth-only credentials cannot use the CLI's profile-based `whoami`.
 
-- `McpServices` holds long-lived OAuth and Data API dependencies.
-- `createMcpServer()` creates a fresh official-SDK server instance around those shared services.
-- `registerMcpTools()` is the request-scoped registration seam for later tool slices.
-- `McpApplicationConfigSchema` owns app-local server identity configuration.
-- App-local diagnostics define safe error envelopes, mapping seams and JSON stderr logging.
+After starting the container, connect Codex on the same machine:
 
-Protected stateless Streamable HTTP and loopback protections are implemented by #350. Durable OAuth/session integration is implemented by #352. The bounded app-local Data API gateway is implemented by #353. The first four projected tools and collection cursors are implemented by #354; series-season and schedule projections are implemented by #355; race-result projections by #356; continuation-aware driver race search by #357. Local Docker packaging is implemented by #358; see the [deployment guide](local-container.md).
+```sh
+codex mcp add iracing-data --url http://127.0.0.1:3000/mcp
+```
 
-## Development
+This syntax was checked against installed Codex CLI 0.160.0. Automated tests use
+the official MCP client over local Streamable HTTP with synthetic data; native
+desktop UI and live iRacing access were not exercised by those tests. Registration
+alone does not establish valid iRacing authorization. Other local clients must
+support Streamable HTTP at this URL. The supported protocol versions are
+`2025-11-25`, `2025-06-18` and `2025-03-26`; stdio is unsupported.
 
-From the repository root:
+`GET /healthz`, initialization and tool listing remain available when credentials
+are missing or corrupt. Health reports liveness and authorization state, not proof
+that an upstream API operation will succeed. Authenticated tool calls require a
+valid durable credential document.
 
-```bash
-pnpm --filter @iracing-data/iracing-data-mcp build
+## Tool inputs and results
+
+All inputs are strict: unknown keys, numeric strings and cursor/filter mixtures
+are rejected. IDs are positive safe integers. Paged tools accept `limit` 1–100,
+default 25; recent races instead accept 1–10, default 10. Continue paged tools with
+`{"cursor":"returned-token"}` alone, retaining the initial page size and filters.
+Success returns `structuredContent` and equivalent JSON text; the complete
+serialized result, including both copies, must fit 64 KiB. Only allowlisted fields
+are returned; unavailable optional projected fields are `null`.
+
+| Tool                  | Initial arguments                                                                                    | Meaning and bounds                                                                                                                                                                                                                                         |
+| --------------------- | ---------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `get_my_driver`       | `{}`                                                                                                 | Authenticated customer ID and display name from member/info; no profile scope or full profile.                                                                                                                                                             |
+| `find_drivers`        | `query` (2–100 trimmed characters), optional `league_id`, `limit`                                    | Driver IDs/names in upstream ranking order. `ambiguous` is true for multiple matches; no driver is automatically chosen.                                                                                                                                   |
+| `get_recent_races`    | Optional `cust_id`, `limit`                                                                          | Defaults to the authenticated customer; at most ten upstream recent races, no continuation. Positions retain source values and `position_basis:"upstream"`, including negative sentinels.                                                                  |
+| `lookup_content`      | `kind:"cars"` or `"tracks"`; optional unique `ids` (1–50) **or** `query`; `limit`                    | Car/track/configuration identity, ascending IDs; requested unavailable IDs appear in `missing_ids`. Name/configuration matches may need human selection.                                                                                                   |
+| `list_series_seasons` | Optional `series_id`, paired `season_year` + `season_quarter`, `limit`                               | Omitted period preserves upstream active-season default. Historical year is 2000–2100, quarter 1–4. Series filtering is local; rows sort by season ID.                                                                                                     |
+| `get_series_schedule` | `season_id`, optional `race_week_num` (0–52), `limit`                                                | Local week filtering; week **0 is the first week**. Calendar `start_date` is preserved; `week_end_time` is normalized to UTC. Deterministic week/date/series/track/config order, without recurrence interpretation.                                        |
+| `get_race_result`     | `subsession_id`, optional unique `cust_ids` (1–10), `simsession_number` (-20–20, default 0), `limit` | Selected session participants in source order with race context. Nonnegative positions add one; negative sentinels become null; `position_basis:"one_based"`. Missing simsession is `NOT_FOUND`.                                                           |
+| `search_driver_races` | `range`; optional `cust_id`, `series_id`, unique `track_ids` (1–50), `official_only`, `limit`        | One customer's race summaries, default self; event type forced to 5. `range` is exactly `{start,start_end}` with ordered UTC timestamps, start inclusive/end exclusive and duration ≤90 days, or `{season_year,season_quarter}`. Track filtering is local. |
+
+Race results expose customer/team identity, name, car/class, grid/finish/class
+finish, completed laps, incidents, championship points, old/new iRating and reason
+out. Individual rows have `attribution:"driver"`; team rows have
+`attribution:"team"`. A customer filter selects nested team-driver rows with their
+team ID and their own outcome fields. Team totals are never copied into individual
+results. An empty match does not prove participation or nonparticipation. Per-lap records,
+licenses, liveries, weather and recursive results are excluded.
+
+Search rows expose session identity, timestamps, season/series, track/configuration,
+event type, driver count and official status. They do not guarantee personal
+finishes, incidents or other outcomes. Manifest/file/row order is preserved;
+`order:"subsession_id"` identifies a time proxy, not a promised chronological sort.
+`source_total` counts upstream manifest rows **before** local filtering, while
+`complete` means the snapshot was fully scanned. Each page scans at most four
+distinct chunks; an empty page with a continuation is valid. Search does not fetch
+the entire source eagerly. Contradictory manifest parameters/counts or malformed
+rows fail; omitted optional parameter echoes are allowed.
+
+Collection `source_total` instead counts the retained projected collection after
+local filtering. Neither family establishes complete upstream historical coverage.
+
+## Six useful workflows
+
+The following arguments are synthetic examples; resolve real identifiers first.
+Each workflow has deterministic official-client fixture coverage.
+
+1. **My recent performance:** call `get_my_driver` with `{}`, then
+   `get_recent_races` with `{limit:10}`. Describe the bounded recent window and its
+   source position basis; do not infer all-season performance.
+2. **Find another driver:** call `find_drivers` with `{query:"Example Driver"}`.
+   Inspect all ranked matches/continuations and choose a customer explicitly before
+   using `cust_id` in recent/history queries.
+3. **Resolve content:** call `lookup_content` with
+   `{kind:"tracks",query:"Watkins Glen"}` or `{kind:"cars",ids:[1,2]}`.
+   Inspect track configuration IDs and `missing_ids`; a name match is not a unique
+   configuration guarantee.
+4. **Find a schedule:** call `list_series_seasons` with `{series_id:20}` for active
+   seasons or `{series_id:20,season_year:2026,season_quarter:4}` for an explicit
+   historical period. Select a season, then call `get_series_schedule` with
+   `{season_id:1234,race_week_num:0}`. Calendar dates and week numbering are explicit.
+5. **Compare two races:** call `get_race_result` with
+   `{subsession_id:100,cust_ids:[42]}` and `{subsession_id:101,cust_ids:[42]}`.
+   Inspect attribution, nullable outcome fields and matching participants before
+   comparing; do not treat team totals as driver performance.
+6. **Watkins Glen history:** resolve all relevant configuration IDs, choose an
+   explicit season or start range, and call `search_driver_races` with
+   `{cust_id:42,range:{season_year:2026,season_quarter:4},track_ids:[30]}`.
+   Continue while `next_cursor` exists, even on empty pages. For selected subsessions,
+   call `get_race_result` with `{subsession_id:100,cust_ids:[42]}`. Report scanned
+   pages/configurations, whether search completed, and which detail calls succeeded
+   or lacked a matching participant. Partial search or selected detail calls cannot
+   establish complete season performance.
+
+A date-range alternative uses
+`{range:{start:"2026-10-01T00:00:00Z",start_end:"2026-10-05T00:00:00Z"},official_only:true}`.
+No team or unbounded all-driver search is exposed.
+
+## Continuation, limits and recovery
+
+Cursors are opaque server-side state bound to tool, filters, account generation,
+page size and offset. Successful replay, including concurrent replay, returns the
+same page and next token. Failed/canceled search pages do not advance the offset.
+Expiry is five minutes or an earlier known safe upstream expiry; pages never
+extend it. Restart, authorization loss or owner invalidation discards cursors.
+Chunk 403/404 expires search state; the app never silently restarts or mixes snapshots.
+
+One shared owner caps all collection/search tokens at 32 and retained serialized
+manifests/chunks/snapshots/replay at 32 MiB. Gateway calls cap eight fetches, 16 MiB
+decoded bytes and 30 seconds; individual responses cap 8 MiB with a ten-second
+fetch timeout. Network concurrency is two, tool-call admission eight. Oversize
+sources fail before projection; smaller pages cannot repair an oversized chunk.
+These are limits, not latency guarantees.
+
+Errors return `isError:true`, safe JSON text and
+`structuredContent.error` with fixed `code`, `message`, `retryable`, generated
+`request_id`, and bounded optional `reason`/`retry_after_seconds`.
+
+| Code                      | Action                                                                                                                                                           |
+| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `INVALID_INPUT`           | Correct arguments; no retry until changed.                                                                                                                       |
+| `AUTHORIZATION_REQUIRED`  | Stop/drain, host login with `iracing.auth`, restart. Missing, invalid, insufficient-scope and persistence failures have bounded reasons.                         |
+| `TOKEN_REFRESH_FAILED`    | Retry only when the envelope has `retryable:true` and `reason:"transient_refresh"`. Unknown consumption or rotation is non-retryable: keep stopped and re-login. |
+| `UPSTREAM_UNAUTHORIZED`   | Inspect account entitlement/access; no refresh loop.                                                                                                             |
+| `RATE_LIMITED`            | Wait for the bounded retry hint/cooldown, then retry.                                                                                                            |
+| `UPSTREAM_UNAVAILABLE`    | Network/timeout/5xx: bounded later retry.                                                                                                                        |
+| `DATA_RESOLUTION_FAILED`  | Malformed data/unsafe link: correct the source/query or report the request ID; no blind retry.                                                                   |
+| `RESPONSE_LIMIT_EXCEEDED` | Narrow source/range/filters; wait for cursor expiry or restart to release retained capacity.                                                                     |
+| `CURSOR_EXPIRED`          | Repeat the initial query; never reuse the expired cursor.                                                                                                        |
+| `NOT_FOUND`               | Check identifiers or select an existing simsession.                                                                                                              |
+| `CONFIGURATION_ERROR`     | Repair client/configuration/mount permissions while stopped, then restart.                                                                                       |
+| `INTERNAL_ERROR`          | Report the safe request ID for support.                                                                                                                          |
+
+There is no automatic retry/sleep. JSON stderr logs use fixed redacted diagnostics
+and application-generated request IDs. Do not share token documents, secrets,
+environment dumps, bearer headers, cookies or signed cache URLs for support.
+
+Stop before re-login, logout, permission repair, import or credential replacement;
+see [tested recovery commands](local-container.md#stop-repair-restart-logout).
+Shutdown drains HTTP before closing the credential owner. Uncertain submitted
+refresh grants invalidate account state and attempt credential removal. If cleanup
+cannot be confirmed, exit is nonzero: keep stopped and re-login before restarting.
+Forced SIGKILL/power loss can prevent durable quarantine; it also requires stopped
+re-login. Do not configure automatic restart after uncertain cleanup or restore a
+consumed refresh token from backup.
+
+## Security and supported deployment
+
+Compose publishes only `127.0.0.1:3000`, with a non-root mapped UID/GID, read-only
+root filesystem, bounded tmpfs, dropped capabilities and no Docker socket. An
+owned 0700 directory and 0600 credential/secret files are checked, not bypassed.
+Exact Host/Origin allowlists reduce DNS rebinding risk; local processes can still
+access this unauthenticated MCP boundary. This threat model does not defend against
+malicious same-user processes. iRacing tokens are never MCP bearer credentials.
+
+LAN/public exposure, multiple refreshing owners, hot credential replacement,
+container browser callbacks and hosted tenancy are unsupported. Exactly one owner
+is an operator responsibility, **not an implemented process lock**. Treat returned
+upstream names/text as untrusted data, never instructions.
+
+Local packaging and 22 Docker recovery acceptance groups passed on macOS arm64
+with Docker 29.5.2, a linux/arm64 runtime and Node 24.21.0. The same 22 groups
+[passed in CI](https://github.com/racedirector/iracing-data-api/actions/runs/37411801261/job/112101646317)
+on Ubuntu 24.04.5/Linux amd64, Docker 28.0.4 and Node 24.21.0.
+Windows/other architectures are unverified. Windows ACLs do not prove
+POSIX modes/ownership; use an environment enforcing that contract rather than
+bypassing checks. See [platform and deployment evidence](local-container.md).
+
+## Development, compatibility and rollout
+
+From the repository root with frozen dependencies:
+
+```sh
+pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm --filter @iracing-data/iracing-data-mcp test
+pnpm verify
+pnpm verify:docker
 ```
 
-See [scoped guidance](AGENTS.md) and the repository [verification contract](../../docs/VERIFICATION.md) before changing boundaries or dependencies.
-
-## Error and diagnostic contract (#351)
-
-The canonical architecture is the [final #314 synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). The diagnostic contract comes from #351 / [PR #371](https://github.com/racedirector/iracing-data-api/pull/371), the parent of #350. The #353 gateway and #354/#355/#356/#357 tools use this contract.
-
-Create one `createRequestContext()` at the application request boundary; reuse it for output and logs. Client, JSON-RPC and upstream IDs are never used as diagnostic IDs. `ApplicationFailure` accepts a code and bounded optional metadata, never a message/cause. `toolError()` returns `isError: true`, `structuredContent: { error: { code, message, retryable, request_id, reason?, retry_after_seconds? } }` and one JSON text equivalent. `ErrorEnvelopeSchema` strictly validates the envelope and code-specific policy. Unknown exceptions become `INTERNAL_ERROR`; messages come only from fixed app recovery text.
-
-```ts
-const context = createRequestContext();
-const failure = new ApplicationFailure("RATE_LIMITED", {
-  retry_after_seconds: 30,
-});
-logger.failure(context, failure, { operation: "data_api", status: 429 });
-return toolError(failure, context);
-```
-
-| Code                      | Recovery / retry policy                                                                                                                                                                 |
-| ------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `INVALID_INPUT`           | Correct input; non-retryable until changed.                                                                                                                                             |
-| `AUTHORIZATION_REQUIRED`  | Stop app, run host `iracing-data auth login --scope iracing.auth`, restart. Missing/revoked/invalid/insufficient-scope/unpersisted sessions stay distinct through bounded reasons.      |
-| `TOKEN_REFRESH_FAILED`    | Retryable only with explicit `safe_to_retry` lifecycle evidence (`transient_refresh`). Unknown grant consumption or rotation is `rotation_uncertain`, non-retryable; stop and re-login. |
-| `UPSTREAM_UNAUTHORIZED`   | Valid-session API 401/403: inspect account access/entitlement; no refresh loop.                                                                                                         |
-| `RATE_LIMITED`            | Retry later; optional delta seconds.                                                                                                                                                    |
-| `UPSTREAM_UNAVAILABLE`    | Network/timeout/5xx; bounded later retry.                                                                                                                                               |
-| `DATA_RESOLUTION_FAILED`  | Invalid data or unsafe link; request ID for support, no body.                                                                                                                           |
-| `RESPONSE_LIMIT_EXCEEDED` | Narrow query/source; smaller projected pages alone may not repair an oversized source.                                                                                                  |
-| `CURSOR_EXPIRED`          | Restart the initial search; never retry the expired cursor.                                                                                                                             |
-| `NOT_FOUND`               | Check identifiers; distinct from parsing/resolution failure.                                                                                                                            |
-| `CONFIGURATION_ERROR`     | Repair local configuration/credential mount and restart.                                                                                                                                |
-| `INTERNAL_ERROR`          | Request ID for support.                                                                                                                                                                 |
-
-Retry hints are finite, nonnegative integers capped at 3,600 seconds; non-retryable errors omit them. No automated retry/sleep is implemented. Reasons are code-specific fixed literals, never upstream text. HTTP-date Retry-After interpretation belongs to #353. Refresh outcome must be supplied by the session owner from lifecycle evidence; status/message matching alone cannot prove a consumed refresh token is safe to retry. Persistence after a replacement maps to authorization required with `persistence_failed`; never restore an old consumed token as rollback.
-
-`mapFailure()` separates `http`, `mcp_protocol`, `tool`, `oauth_session`, `upstream`, `configuration` and `internal` domains. HTTP/protocol faults produce a safe `ProtocolFailure` discriminator, and `toolError()` rejects them. The HTTP boundary supplies their actual HTTP statuses and SDK JSON-RPC responses, malformed requests and unknown tool handling. This seam does not catch/serialize SDK protocol exceptions. OAuth mapping recognizes existing client errors (the wrapped oauth4webapi library code is distinct from the OAuth `invalid_grant` identifier; only the retained own `cause.error` discriminator is inspected, never the body or description) and requires explicit context for ambiguous rotation/persistence. An upstream 401/403 alone is access denial; the gateway must explicitly confirm entitlement denial before supplying `upstreamAuthorization: "account_entitlement"`. Upstream mapping recognizes the generated Fetch runtime's errors, including its ES5 Error-subclass prototype behavior, without changing generated code or reading response bodies. Future gateway/session slices supply typed application failures for unsafe links, limits, cursor expiry and absent data.
-
-### Central redaction and support diagnostics
-
-Redaction uses **projection**, not a best-effort token regex: arbitrary strings, exception objects, messages, nested causes, raw OAuth/upstream bodies and unknown fields are discarded entirely. `redactDiagnostics()` reads only allowlisted own data properties and never invokes nested serializers/getters. Fixed enums admit operations, planned tool names, lifecycle stages and safe auth transitions; bounded numbers admit timing, status, bytes, items and retry attempts. New diagnostic fields require a schema change and leakage tests. Credentials, JWT claims, customer/member IDs/names, authorization codes, PKCE/state, headers/cookies, credential documents, signed URLs/query strings, secret-bearing paths and stacks have no permitted output field. No identity exception is permitted in diagnostics.
-
-`createDiagnosticLogger()` emits newline-delimited JSON to stderr by default; its optional writer is for tests. `info`, `error` and `debug` all use the same projection; debug cannot dump an exception. `failure()` derives the stable error code through the safe envelope. Use these boundaries for every future app diagnostic channel; do not send raw errors to console, SDK logging, health or tool text. This contract sanitizes app outputs; it does not intercept process-global/dependency console calls. In particular, the legacy OAuth `DiskStore` logs raw warnings and must not be wired into this app; the session composition uses the durable token-document store.
-
-`healthDiagnostics()` projects only `ready|authorization_required|configuration_error`, defaulting conservatively to configuration error. It makes no upstream request and exposes no exception, file content, account or paths. The HTTP boundary owns the endpoint, liveness and app-version fields; #352 owns the auth-state source.
-
-Support correlates the app request ID with stable error code, safe stage/status/count/timing and auth transitions. Reproduce offline with synthetic data; never ask users to share credential files, raw bodies or stacks. Normal validation is credential-free. Focused tests assert every public code, retry/reason bounds, typed mapping seams, protocol separation, configuration throws and marker absence in structured/text output, diagnostic JSON, health, normal/debug logs and outward messages.
-
-Rollout is app-local contract adoption by later slices; no live service or token migration is introduced. Rollback reverts this slice. Private `0.0.0` app only: no public package version change, regeneration or publishing. Fast local serialization performs bounded projection only and no I/O beyond the logger sink; future transport/gateway latency targets remain owned by those slices.
-
-## Local HTTP transport (#350)
-
-`createHttpApplication({config, services})` is the Node HTTP application entry point. Inject one application-scoped `McpServices` object; every POST creates a fresh official SDK server/transport. `await app.listen()` defaults to `127.0.0.1:3000`. Explicit host overrides are supported; container entrypoints must pass `0.0.0.0` explicitly (`await app.listen(3000, "0.0.0.0")`). The transport does not instantiate OAuth services or read credentials. `createMcpServices()` supplies durable service composition before listening.
-
-```ts
-const app = createHttpApplication({
-  config: parseMcpApplicationConfig(),
-  services, // existing application-scoped McpServices
-});
-const removeSignalHandlers = installTerminationHandlers(app);
-await app.listen();
-// Programmatic shutdown is also supported:
-await app.shutdown();
-removeSignalHandlers();
-```
-
-Supported endpoint: `http://127.0.0.1:3000/mcp`. The deployment contract publishes the host port only as `127.0.0.1:3000:3000`; Docker/Compose packaging is deferred to #358. Listening on all container interfaces does not authorize LAN/public publication. There is no LAN, public, reverse-proxy or multi-user deployment support.
-
-All routes accept only exact Host authorities `127.0.0.1:3000` and `localhost:3000`. Duplicate Host headers and every other authority are rejected with HTTP 403 before MCP handling. Forwarded and X-Forwarded-Host headers are ignored. Missing Origin is valid for native clients. A present Origin must be exactly `http://127.0.0.1:3000` or `http://localhost:3000`; null, malformed, HTTPS, wrong ports, userinfo, paths and deceptive hosts receive 403. No CORS headers or wildcard matching are added.
-
-| Route                                    | Behavior                                                                                                                                                      |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `POST /mcp`                              | Official SDK stateless Streamable HTTP, JSON responses; initialize, tools/list and tools/call. Eight bounded read-only domain tools are currently registered. |
-| `GET /mcp`, `DELETE /mcp`, other methods | 405 with `Allow: POST`; no SSE push or session deletion.                                                                                                      |
-| `GET /healthz`                           | 200 with fixed private app identity/version, `live:true` and allowlisted `auth_state`. Cached local authorization state only; no upstream calls.              |
-| Other paths                              | 404; no browser OAuth routes or generic RPC routes.                                                                                                           |
-
-The pinned official server 2.3.0 and Node adapter 2.1.1 serve Streamable HTTP revisions `2025-11-25`, `2025-06-18` and `2025-03-26`. Initialize negotiates through the SDK: an unknown proposed revision receives the supported `2025-11-25` alternative, which the official client must accept or reject. Unsupported `MCP-Protocol-Version` headers receive 400. The newer SDK's 2026 envelope/subscription mode is outside this v1 endpoint. No MCP session identifiers, event store, legacy HTTP+SSE transport or stdio are installed. Clients must accept both JSON and event-stream media types per the Streamable HTTP contract, although responses here use JSON exclusively. JSON-RPC batches are rejected with 400 to preserve one request-scoped call per exchange.
-
-Limits are fixed application policy, never tool arguments or environment overrides:
-
-- Request body: 64 KiB, counted while reading chunks. Exactly 65,536 bytes are allowed; larger bodies receive 413 immediately without waiting for upload completion. Rejected uploads are paused and the connection closes after the fixed response. Malformed JSON receives 400; no raw body is returned or logged. Incomplete bodies/headers also have a 30-second HTTP timeout.
-- Tool calls: at most eight admitted globally, no waiting queue. A ninth call receives the canonical `isError` envelope with `RATE_LIMITED`; retry after active work completes. This is outer application admission, independent of #353's future network-operation limits.
-- Tool lifetime: 30 seconds. Deadline expiry returns the safe #351 `INTERNAL_ERROR` envelope with an app request ID, releases admission and closes the request-scoped SDK server to abort its tool context signal. Client disconnect also closes the server and releases capacity. Future tool handlers must honor `ctx.mcpReq.signal` and pass it to cancellable service calls; JavaScript cannot forcibly stop a handler that ignores cancellation. Late results cannot produce a second response. Success and error completion also release capacity.
-- Shutdown: SIGTERM/SIGINT stop new requests/admission and drain admitted work for at most ten seconds; remaining SDK work is cancelled and HTTP connections close. `app.shutdown()` is idempotent and directly testable. The timer seam permits deterministic offline tests; importing the library installs no signal handlers.
-
-HTTP/protocol faults stay separate from tool envelopes. SDK JSON-RPC error codes are preserved while free-form messages/data are projected to fixed safe text. SDK tool-error text is replaced by the #351 envelope; canonical application failures retain their code/recovery metadata and receive the current application request ID. New transport logs use the #351 allowlist exclusively. `/healthz` reads the cached authorization state from the shared services; legacy injected services without that source retain the conservative `configuration_error` fallback. Liveness remains 200 regardless of authorization.
-
-### Local threat model and rollout
-
-The server trusts local OS processes, which may exercise the eventual authenticated iRacing account. Host/Origin checks reduce browser and DNS-rebinding exposure; they do not authenticate users. The MCP server has no bearer authentication: an Authorization header is ignored, including an iRacing OAuth token, and cannot bypass Host/Origin checks. iRacing credentials authorize only iRacing requests. Browser login routes, MCP token schemes, telemetry and Docker packaging remain deferred. Gateway reads and the eight tools below use the existing OAuth owner.
-
-Rollout is private application composition on the parent stack, followed by #352/#353 and tool slices. Rollback reverts this transport slice and stops its listener; it introduces no credential migration. The private app stays `0.0.0`; no public package release or generated contract/client changes are required. Fast local protocol/health operations target less than one second; upstream latency depends on iRacing and is bounded by the gateway deadlines below.
-
-## Durable OAuth ownership (#352)
-
-Compose once before listening and share the returned services with all request-scoped servers:
-
-```ts
-const services = await createMcpServices({
-  clientMetadata: {
-    clientId: configuredClientId,
-    clientSecret: configuredOptionalSecret,
-    redirectUri: registeredRedirectUri,
-    scopes: ["iracing.auth"],
-  },
-  // Host development uses the CLI's dedicated auth-only file:
-  credentialFile: ".iracing-data/iracing-data-mcp/credentials.json",
-});
-const app = createHttpApplication({
-  config: parseMcpApplicationConfig(),
-  services,
-});
-const removeSignalHandlers = installTerminationHandlers(app);
-await app.listen();
-```
-
-The default credential file is `/var/lib/iracing-data-mcp/credentials.json`; the canonical local session key is `iracing-data-mcp-local`. Select the same dedicated file in the host CLI and service composition. Client metadata uses the existing OAuth package schema; invalid configuration produces the fixed `CONFIGURATION_ERROR` recovery. It requires the registered redirect URI for schema compatibility; the MCP app does not receive callbacks. Browser state storage rejects authorization creation. Neither tokens nor secrets belong in command arguments or diagnostics.
-
-The existing `OAuthTokenDocumentSessionStore` owns secure bare JSON reading, modes/ownership/symlink/size checks, serialized atomic durable writes and deletion. Required directory durability is used; unsupported platforms/filesystems fail closed. A refresh token and explicit `iracing.auth` scope are required. Additional scope does not grant any additional MCP capability. Expired access tokens are accepted for lazy restoration. Startup reads the document once without network; it does not verify account entitlement. Health reads cached local readiness, including expired but refreshable sessions, rather than claiming upstream availability. Initialize and listing remain available without credentials.
-
-The generated Fetch configuration obtains its access token asynchronously through the one long-lived OAuth client's `restoreSessionForId()`. Per-session single-flight covers refresh and durable publication. Replacement-token omission retains the OAuth client's existing merge semantics; the app does not invent rotation behavior. A replacement scope that removes `iracing.auth` fails closed. There is no automatic refresh retry. An explicit structured OAuth `temporarily_unavailable` or `server_error` rejection exposed by the pinned OAuth dependency permits a subsequent caller to retry (`transient_refresh`). Network loss, malformed success, unstructured rejection, and 5xx responses that the dependency does not establish as structured nonconsumption are `rotation_uncertain`. `invalid_grant` is `revoked_authorization`; a failed durable replacement write is `persistence_failed`.
-
-Uncertain consumption, revocation, or failed persistence quarantines the process before another caller can refresh. The app attempts secure durable deletion through the existing store API so restart cannot normally reuse the old credential. If filesystem failure also prevents deletion, the process remains quarantined: **repair the filesystem and replace the file using stopped login before restarting**. A crash before deletion likewise requires stopped reauthentication; successful deletion cannot be guaranteed on a failed filesystem. No old credential backup is a recovery mechanism.
-
-Supported recovery and ownership:
-
-1. Stop/drain the MCP application (`await app.shutdown()` or SIGTERM/SIGINT) and wait for the owner process to exit. A tool cancellation does not cancel the shared refresh grant; let it persist/drain, or reauthenticate after a forced termination with uncertain consumption.
-2. Run host login against exactly the selected file. From the repository root, the development default is `pnpm run iracing-data auth login --scope iracing.auth`; an explicit destination is `pnpm run iracing-data auth login --scope iracing.auth --credentials <same-file>`.
-3. Restart the MCP application to load the replacement. A running owner never hot reloads externally changed/deleted credentials.
-
-For local logout, stop/drain and exit first, delete the selected credential file locally, then restart if desired. This is local deletion, not upstream revocation. Do not run CLI refresh/authenticated commands concurrently against the server-owned credential, copy a rotating credential, restore an older backup, or run multiple replicas against one file. This local singleton model has no credential watcher, distributed lock, hosted authentication or MCP browser login.
-
-Offline tests use private temporary files and synthetic grants to cover bootstrap, required scope/refresh, expiry, concurrency, rotation/restart, missing/corrupt/unsafe/unreadable/unsupported state, transient/revoked/ambiguous grants, persistence failure, quarantine, stopped login/logout, health/protocol availability and redaction. Existing HTTP/security and diagnostic leakage tests remain active. No public package version, generated artifact, release or publication changes are required. Rollout composes this private service with #350; rollback stops the process and reverts the app delta, using fresh login if token consumption is uncertain.
-
-## Bounded Data API gateway (#353)
-
-`createMcpServices()` composes one `dataApiGateway` beside the existing OAuth owner. Later tool handlers must compose every upstream operation for one tool invocation inside `withCall`, passing the SDK cancellation signal. This is an app-local service, not a public generic gateway or an arbitrary URL proxy. Health, initialize and listing do not invoke it.
-
-```ts
-const pageSource = await services.dataApiGateway!.withCall(
-  async (call) => ({
-    items: await call.cars(),
-    expiresAt: call.expiresAt,
-  }),
-  toolAbortSignal,
-);
-// #354 validates/projects collection items and owns opaque cursors.
-```
-
-`GatewayCall` exposes only the planned read operations: document, categories constants, member, drivers, cars, tracks, recent races, season list/schedule, results and series search. Inputs use the maintained wire schemas; tool slices must apply their stricter noncoercing input schemas and bounded projections. Direct documents/constants are parsed with canonical schemas; link operations require a valid link envelope and the operation's observed collection/object shape. These raw internal payloads must never be forwarded directly to a model. Detailed field validation/projection belongs to each tool slice.
-
-The generated Fetch client builds authenticated requests through a bounded custom fetch. Only `https://members-ng.iracing.com` receives its asynchronous bearer token. Configuration middleware, cookies, credentials and unrelated headers are discarded. Cache requests create fresh unauthenticated headers. Both paths reject redirects before reading or resolving anything else.
-
-Cache destinations are exactly the evidence-backed HTTPS hosts `scorpio-assets.s3.us-east-1.amazonaws.com` and `scorpio-assets.s3.amazonaws.com` from the [architecture synthesis](https://github.com/racedirector/iracing-data-api/issues/314#issuecomment-5986992534). Userinfo, fragments, unsafe ports, whitespace/backslashes, traversal and ambiguous encoded path escapes fail closed. Manifest bases must be directories without query overrides; chunks are simple filenames under that same directory. Every connection resolves all DNS answers, rejects nonpublic/mapped/transition addresses, and pins a validated address in the TLS lookup callback while retaining hostname certificate verification. There is no redirect follower, proxy agent, cookie jar or host wildcard. A new legitimate host requires reviewed evidence and an allowlist change.
-
-Fixed limits cannot be raised through tool input:
-
-| Bound                                                   | Limit                             |
-| ------------------------------------------------------- | --------------------------------- |
-| Decoded/decompressed bytes per response                 | 8 MiB                             |
-| Cumulative bytes per call, including cached chunk reads | 16 MiB                            |
-| API/cache fetches per call                              | 8                                 |
-| One fetch, through body completion                      | 10 seconds                        |
-| One call, including authorization wait                  | 30 seconds                        |
-| Global API/cache network operations                     | 2                                 |
-| Admitted gateway calls                                  | 8 (HTTP tool admission remains 8) |
-| Retained search states / manifest and chunk bytes       | 32 / 32 MiB                       |
-| Internal search lifetime                                | 5 minutes                         |
-
-Streaming enforces decoded sizes regardless of missing/deceptive Content-Length; production transport decodes gzip, deflate and Brotli first. Capacity is rejected promptly without a queue. Identical in-flight fetches share work inside the singleton owner, charge each caller's own fetch/byte budget, and stop when the last caller cancels. One canceled caller cannot abort another's download. No response cache survives a call except bounded search-local chunks. Authorization loss invalidates retained searches; process restart also invalidates every handle. Cancellation/deadline can stop Data API/cache work; it never retries or aborts an ambiguously consumed OAuth refresh grant.
-
-Search consumes the bounded raw response of the generated `getResultsSearchSeriesRaw` method and validates it with `ResultsSearchSeriesResponseSchema`. Live reconciliation found that merged #348 added this schema but did **not** update the public OpenAPI mapping/generated decoder: this parent still decodes `.value()` as a link. The gateway therefore uses `.raw` JSON and never casts a manifest to a link. That public mapping/regeneration/release correction is separate from #353; no generated files are edited here.
-
-Manifest validation requires successful search, matching/unique filenames, consistent chunk/row counts, at most 1,000 files/500,000 rows and safe paths. `call.search()` returns an internal handle containing totals and policy expiry, with signed URLs held privately. `call.chunk(handle, index)` retrieves only the selected file, validates its expected row count, preserves file/row order, and replays a private cached copy. It never aggregates a search. Example for a later search tool:
-
-```ts
-const source = await gateway.withCall(async (call) => {
-  const search = await call.search(validatedSearchParameters);
-  const rows = search.chunks ? await call.chunk(search, 0) : [];
-  return { search, rows };
-}, toolAbortSignal);
-// #357 owns model-facing opaque cursors, offsets, filtering and page projections.
-```
-
-Known link expiry contributes to `call.expiresAt`: the earlier of five minutes and envelope expiry minus 30 seconds. This supports #354's collection cursor lifetime without exposing signed links. Search has no observed envelope expiry, so its five-minute limit is app policy. Elapsed expiry and cache 403/404 yield `CURSOR_EXPIRED`. Only a first-page linked operation may reacquire its envelope once, within all original caps; a continuation never rematerializes a search. No other API/cache/OAuth retry loop exists.
-
-429 establishes a shared cooldown from bounded Retry-After seconds or HTTP date (up to one hour; invalid/absent values use one second). New work returns `RATE_LIMITED` immediately with safe retry metadata. API 401/403 remain `UPSTREAM_UNAUTHORIZED`, without refresh/retry loops. Unsafe links/malformed data are `DATA_RESOLUTION_FAILED`; oversized sources are `RESPONSE_LIMIT_EXCEEDED`; timeout/cancellation/network failure is `UPSTREAM_UNAVAILABLE`. Narrow oversized requests, wait for cooldown, rerun expired searches, or give support the app request ID. Raw URLs, headers, bodies and exception causes are excluded from fixed errors and allowlisted diagnostics.
-
-Offline gateway tests cover operation shapes, both cache hosts, expiry/reacquisition, manifest/path/DNS attacks, decoded and cumulative caps, compression, cancellation/deadlines, admission/concurrency, deduplication, retention, account-local invalidation and safe diagnostics. Existing session/quarantine/rotation and HTTP/security tests remain active. No domain tools, model-facing cursors, Docker/Compose, telemetry, hosted auth, callbacks, public package versions or publication are added. Rollout uses the shared services before listening; rollback stops/drains and reverts this private slice. Never restore consumed refresh credentials; use stopped host login when rotation is uncertain.
-
-## Identity, recent races and content tools (#354)
-
-The four read-only tools require only the existing `iracing.auth` session. Tokens
-are never arguments. Health, initialize and tool listing remain available before
-login. Inputs reject unknown fields, numeric strings and changes to continuation
-filters. IDs must be positive safe integers. Names and labels are untrusted data.
-
-| Tool               | Initial arguments                                                                                                 | Result                                                                                                                                                                                                                        |
-| ------------------ | ----------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `get_my_driver`    | `{}`                                                                                                              | `cust_id`, `display_name` from Data API `member/info`                                                                                                                                                                         |
-| `find_drivers`     | `query` (trimmed, 2–100 characters), optional `league_id`, `limit`                                                | Driver IDs/names in upstream rank order; `ambiguous` means multiple source matches, including when the current page has one row. No driver is selected automatically.                                                         |
-| `get_recent_races` | Optional `cust_id`, `limit` (1–10, default 10)                                                                    | `cust_id`, `races`, `returned_count`, `complete:true`, `position_basis:"upstream"`. This is the upstream recent window, not exhaustive history. Positions, including sentinels, remain unchanged.                             |
-| `lookup_content`   | `kind` (`"cars"` or `"tracks"`), optional unique `ids` (1–50) **or** `query` (2–100 characters), optional `limit` | Cars: ID/name/abbreviation. Tracks: ID/name/config/category/oval/dirt. Case-insensitive substring matching on names/config; ascending ID order. ID requests include sorted `missing_ids`. Neither IDs nor query means browse. |
-
-Collection tools default to 25 items, accept `limit` 1–100, and return
-`items`, `returned_count`, `complete`, `next_cursor` and `source_total` (the
-matching collection size). Content pages include `kind`; ID pages retain the same
-`missing_ids` across continuation. Every complete tool result is at most 64 KiB,
-counting both structured JSON and the equivalent text. Page size shrinks to fit
-bytes; a single item that cannot fit fails with `RESPONSE_LIMIT_EXCEEDED`.
-Recent results do not have a cursor; their `complete` describes the requested
-recent window only. Optional unavailable fields become `null`, never invented
-zeros. Malformed essential fields fail with `DATA_RESOLUTION_FAILED`.
-
-Example official MCP client calls, after the host CLI login and server restart:
-
-```ts
-const self = await client.callTool({ name: "get_my_driver", arguments: {} });
-const recent = await client.callTool({
-  name: "get_recent_races",
-  arguments: { cust_id: self.structuredContent!.cust_id, limit: 5 },
-});
-const drivers = await client.callTool({
-  name: "find_drivers",
-  arguments: { query: "Synthetic Driver", limit: 25 },
-});
-// Inspect candidates; ask the user to disambiguate rather than picking a match.
-const tracks = await client.callTool({
-  name: "lookup_content",
-  arguments: { kind: "tracks", query: "Watkins Glen", limit: 25 },
-});
-const cars = await client.callTool({
-  name: "lookup_content",
-  arguments: { kind: "cars", ids: [101, 102], limit: 25 },
-});
-if (tracks.structuredContent!.next_cursor) {
-  const next = await client.callTool({
-    name: "lookup_content",
-    arguments: { cursor: tracks.structuredContent!.next_cursor },
-  });
-}
-```
-
-A continuation accepts `{cursor}` alone. Opaque 256-bit random tokens refer to
-private immutable projected collections, normalized filters, tool, account-owner
-generation, page limit and offset. Replaying one returns the same page and next
-token, including concurrent calls; it performs authorization restoration inside
-`withCall` but no Data API/cache request. Upstream reads for one tool share one
-cancelable gateway budget. Cursors expire at the earlier of five minutes and the
-gateway's earliest known envelope expiry minus thirty seconds. No page resets the
-expiry. Restart, authorization loss or gateway/account-owner invalidation retires
-them. At most 32 tokens and 32 MiB of serialized projected state/replay results are
-retained; capacity fails promptly, without eviction/restart mixing. Cursors are
-never persisted and carry no signed URL or credential.
-
-Recovery: correct `INVALID_INPUT` arguments; rerun an initial query after
-`CURSOR_EXPIRED`; lower the page size or narrow a query after
-`RESPONSE_LIMIT_EXCEEDED`. A source over the gateway byte cap still fails before
-projection, so lowering the page size cannot fix an oversized source. Authorization
-and refresh recovery remains the stopped-login workflow above; uncertain refresh
-consumption is never retried. Source account details, ownership, liveries, assets,
-prices and URLs are excluded. Synthetic integration tests cover identity/recent
-performance, driver ambiguity and content resolution; live upstream completeness
-is not claimed.
-
-This private `0.0.0` slice needs no public package version bump or generated
-contract change. Rollout adds these registrations to the existing shared services;
-local protocol/cursor replay targets less than one second, while upstream calls
-retain the gateway deadlines. Rollback stops/drains and reverts this slice, losing
-all cursors; never restore consumed refresh credentials. Docker/Compose, telemetry, hosted auth, browser callbacks, resources/prompts
-and arbitrary proxying remain separate slices.
-
-## Series seasons and schedules (#355)
-
-`list_series_seasons` and `get_series_schedule` are read-only projections over the
-bounded #353 gateway. They use the same `iracing.auth` owner, `withCall` cancellation
-and budgets, complete-result cap, and `CollectionCursors` owner as #354. Their
-continuations therefore use `{cursor}` alone and share the same process/account-local
-32-token / 32-MiB cursor budget and earliest-safe-expiry rules.
-
-| Tool                  | Initial arguments                                                                                       | Result / ordering                                                                                                                                                                                                                                                                                    |
-| --------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `list_series_seasons` | Optional positive `series_id`; optional paired `season_year` + `season_quarter` (1–4); optional `limit` | Calls upstream `season_list` with `include_series:false`. Omitting year/quarter preserves the upstream active-season default. `series_id` filtering is local. Rows expose only `season_id`, `series_id`, `season_name`, `season_year`, `season_quarter`, `active`, ordered by ascending `season_id`. |
-| `get_series_schedule` | Positive `season_id`; optional `race_week_num` (0–52); optional `limit`                                 | Fetches that season once, validates the returned season ID, filters weeks locally, and orders deterministically by week/date/series/track/config. `race_week_num` is explicitly **zero-based**: week `0` is the first race week. Rows expose only dates, series identity and track ID/name/config.   |
-
-Historical season filtering is all-or-nothing: supplying only `season_year` or only
-`season_quarter` is `INVALID_INPUT`; numeric strings, nonpositive IDs, unknown keys,
-and attempts to mix a cursor with initial filters are also rejected before network
-work. The active default intentionally sends neither year nor quarter. The app uses
-`season_list` rather than aggregating the much larger series/seasons payload.
-
-```ts
-const active = await client.callTool({
-  name: "list_series_seasons",
-  arguments: { series_id: 20, limit: 25 },
-});
-const historical = await client.callTool({
-  name: "list_series_seasons",
-  arguments: { series_id: 20, season_year: 2025, season_quarter: 3 },
-});
-const firstWeek = await client.callTool({
-  name: "get_series_schedule",
-  arguments: { season_id: 1234, race_week_num: 0 },
-});
-if (active.structuredContent!.next_cursor) {
-  const next = await client.callTool({
-    name: "list_series_seasons",
-    arguments: { cursor: active.structuredContent!.next_cursor },
-  });
-}
-```
-
-Schedule projections preserve upstream `start_date` calendar dates and normalize
-`week_end_time` to UTC ISO timestamps. Unavailable track configuration names are
-`null`. They
-do not expose weather, assets, race/session durations, or interpret recurrence /
-session-time rules. Season projections likewise strip unrelated upstream bulk.
-Canonical `SeriesSeasonListParametersSchema` and
-`SeriesSeasonScheduleParametersSchema` validate wire requests in the gateway;
-this repository has no canonical response schemas for these linked payloads,
-so gateway envelope checks and strict app projections validate essential fields.
-Malformed essential fields or a schedule whose returned `season_id` does not match
-the request fail with `DATA_RESOLUTION_FAILED`; an empty local series/week filter is
-a valid complete empty collection. No raw link, response body or generated object is
-forwarded to the model.
-
-This remains private app surface at version `0.0.0`: no public package bump,
-OpenAPI/generated-client change, or publication is required. Rollout adds two
-registrations to the existing shared services. Recovery follows the same strict
-input, cursor-expiry, response-limit, authorization and rotation rules above.
-Rollback stops/drains and reverts this slice, invalidating its cursors; never restore
-a consumed refresh credential. Docker/Compose, telemetry, hosted auth, browser callbacks,
-resources/prompts and arbitrary proxying remain deferred.
-
-## Race results (#356)
-
-`get_race_result` accepts a positive safe integer `subsession_id`, optional unique
-`cust_ids` (1–10), `simsession_number` (-20–20, default 0), and `limit` (1–100,
-default 25). Continue with `{cursor}` alone. It calls canonical `results/get`
-with `include_licenses:false` and shares the existing cancellation, fetch/decoded
-byte budgets, earliest expiry, 100-item/64-KiB output caps and projected cursor
-owner. Items preserve source order.
-
-The context contains subsession, start time, series, season, track and selected
-simsession. Participants contain only customer/team identity, display name,
-car/class, grid/finish/class finish, completed laps, incidents, championship
-points, old/new iRating and reason out. Optional unavailable fields are `null`;
-malformed fields or missing essential identifiers/name/track/session collection
-return `DATA_RESOLUTION_FAILED`. Positions add one to nonnegative source values;
-negative sentinels become `null`, with `position_basis:"one_based"`.
-
-Individual rows declare `attribution:"driver"`; team rows declare
-`attribution:"team"`. Customer filtering selects nested team driver rows,
-retaining their team ID and only their own outcome fields. Team totals are never
-copied into an individual outcome. An empty match is valid and does not prove
-participation. No recursive results, laps, weather, licenses or liveries appear.
-
-```js
-const first = await client.callTool({
-  name: "get_race_result",
-  arguments: { subsession_id: 100, cust_ids: [42], limit: 25 },
-});
-const second = await client.callTool({
-  name: "get_race_result",
-  arguments: { subsession_id: 101, cust_ids: [42] },
-});
-// Compare the projected rows and attribution with explicit coverage.
-```
-
-`NOT_FOUND` means the requested simsession is absent; select a known session.
-`CURSOR_EXPIRED` requires restarting the initial request; never edit a cursor's
-filters. For `DATA_RESOLUTION_FAILED`, retry later or report the safe request ID.
-Existing authorization and rate-limit recovery applies. Offline official-client
-fixtures cover comparisons, individual/team attribution, empty matches,
-sentinels, strict inputs, malformed payloads, source order, replay, expiry,
-byte/item limits, redaction and disconnect cancellation. This private slice adds
-no public contract, generated artifact or package version change. Rollback stops
-and reverts the slice, invalidating its cursors.
-
-## Driver race search (#357)
-
-`search_driver_races` searches one customer's race session summaries. Omit
-`cust_id` to resolve the authenticated member. Provide exactly one `range`:
-`{start,start_end}` with UTC ISO timestamps (start inclusive, end exclusive,
-ordered, at most 90 days), or `{season_year,season_quarter}` (2000–2100, 1–4).
-Optional `series_id` and `official_only` go to the canonical search operation;
-`event_types` is always `"5"`. Optional unique `track_ids` (1–50) filter locally,
-since upstream search accepts no track parameter. No team or unbounded all-driver
-search is exposed. Numeric strings, unknown keys and mixed range variants fail
-with `INVALID_INPUT` before network work.
-
-Rows expose only subsession ID, start/end timestamps, season/series identity,
-track ID/name/configuration, event type, driver count and official status. Context
-includes resolved `cust_id`, filters and `order:"subsession_id"`. Rows preserve
-manifest/file/row order; subsession ID is a time proxy. These are session summaries
-and do not guarantee individual outcomes, finishes, incidents or participation.
-Unavailable optional fields are `null`. `source_total` counts the upstream
-manifest rows, before local filtering; `complete` reports whether this snapshot
-has been fully scanned. Zero matches with a continuation is valid.
-
-Pages default to 25 items, accept up to 100, and scan at most four distinct chunks
-per call. Results fit 64 KiB including the structured JSON and equivalent text;
-smaller pages cannot repair a source chunk that exceeds gateway limits. Search
-never eagerly aggregates the whole source. Continue with `{cursor}` alone. Opaque
-server-side cursors retain the exact gateway handle, filters, owner generation,
-page size, file/row offset and immutable replay response. Concurrent successful
-replays return the same page and next token. Failed/canceled pages leave the offset
-unchanged. Restart, authorization loss, expiry (five minutes or earlier known
-safe expiry), and chunk 403/404 retire a cursor; `CURSOR_EXPIRED` requires a fresh
-initial query and never silently restarts or combines snapshots. Contradictory
-manifest parameters, counts or malformed rows fail with `DATA_RESOLUTION_FAILED`.
-Missing optional parameter echoes are allowed.
-
-Collections and search now share one process-owner cap of 32 model cursor tokens
-and 32 MiB of retained serialized manifests, chunks, snapshots and replay results.
-Expiry and account invalidation reclaim capacity across tools before reservation.
-Capacity fails with `RESPONSE_LIMIT_EXCEEDED`; narrow the range/series/track query,
-wait for cursor expiry, or restart the app. Gateway per-call byte/fetch/deadline
-limits still apply. No cursor contains a URL or credential or survives restart.
-
-For a Watkins Glen performance question, first use `lookup_content` with
-`{kind:"tracks",query:"Watkins Glen"}` and inspect configuration IDs. Use
-`list_series_seasons` to select an explicit year/quarter, then:
-
-```js
-const page = await client.callTool({
-  name: "search_driver_races",
-  arguments: {
-    range: { season_year: 2026, season_quarter: 4 },
-    track_ids: [30], // Synthetic example; use resolved track/configuration IDs.
-    limit: 25,
-  },
-});
-const dated = await client.callTool({
-  name: "search_driver_races",
-  arguments: {
-    cust_id: 42,
-    range: {
-      start: "2026-10-01T00:00:00Z",
-      start_end: "2026-10-05T00:00:00Z",
-    },
-    official_only: true,
-  },
-});
-// Continue even when an incomplete page has no matching rows.
-if (page.structuredContent.next_cursor) {
-  await client.callTool({
-    name: "search_driver_races",
-    arguments: { cursor: page.structuredContent.next_cursor },
-  });
-}
-// For selected subsessions, call get_race_result with cust_ids:[resolvedCustId].
-```
-
-Report which pages/subsessions and track configurations were examined, whether
-search completed, and which detail calls succeeded or lacked a matching participant.
-Do not claim complete season performance from a partial search, recent window or
-selected detail calls. Team detail attribution remains explicit; session summaries
-alone cannot establish an individual outcome. Offline official-client fixtures
-cover synthetic search ordering, local filtering, empty/four-chunk boundaries,
-byte/item caps, replay/concurrency, expiry, auth/invalidation, cancellation,
-manifest contradictions, shared retention and redaction. Live completeness is not
-claimed. Replay targets under one second locally; network work retains gateway
-limits. Rollout adds the eighth read-only registration; rollback stops/drains and
-reverts this private slice, dropping cursors without restoring consumed credentials.
-No public/generated contract or version changes; Docker and later integration
-slices remain separate.
+[Verification](../../docs/VERIFICATION.md) distinguishes service-free verification
+from explicit Docker recovery. Normal CI uses synthetic fixtures without accounts;
+live upstream evidence is separate and opt-in, following
+[upstream contract guidance](../../docs/UPSTREAM-CONTRACT.md). Fixture success does
+not establish live completeness. Follow [scoped guidance](AGENTS.md) and the
+[composition/lifetime record](architecture.md) before changing ownership.
+
+Tool names, strict inputs, outputs, errors, ordering, position/date/week conventions
+and continuation semantics are application API. A new tool or optional output
+field can be additive when existing consumers tolerate it; strict-client consumers
+still need compatibility review. Renaming/removing a tool/field, requiring an
+optional argument, changing position basis, completeness or retryability is
+breaking and needs explicit migration examples and contract tests. Private
+version `0.0.0` supplies no published stable-version guarantee. npm packages remain
+private; images use local git-SHA tags. Independent app publication/release policy
+requires a later decision; no npm or image publication is included here.
+
+Rollout stops/drains the current owner, builds the reviewed SHA image, preserves
+currently valid credential ownership/modes, then starts exactly one owner. Rollback
+stops/drains and restores the prior application/image, losing all in-memory cursors.
+Never restore consumed refresh-token backups. If persistence/rotation is uncertain
+or the credential document is incompatible, perform stopped host login first.
