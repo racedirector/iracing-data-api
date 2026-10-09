@@ -1,3 +1,17 @@
+/**
+ * Protocol masking and JWT convenience validation, separate from session policy.
+ *
+ * maskSecret implements the provider-specific secret-plus-normalized-identifier
+ * SHA-256/base64 transformation; it is not credential encryption or safe logging.
+ * Decode helpers establish structure only. Verification performs jose signature
+ * validation with the maintained algorithm/header/JWKS contract before claims checks;
+ * required issuer/client/audience/scope/environment policy belongs to the caller.
+ *
+ * Refresh-token convenience expiry helpers assume JWT structure by design. Session
+ * restoration in client.ts does not call them to gate opaque grant credentials;
+ * the authorization server decides refresh validity. Synthetic JWT expiry fixtures
+ * exercise structure/lifecycle, not signatures or live upstream authentication.
+ */
 import crypto from "node:crypto";
 import {
   OAuthJWTAccessToken,

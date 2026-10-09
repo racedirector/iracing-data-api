@@ -2,10 +2,13 @@
 
 Generate OpenAPI definitions for the iRacing OAuth 2.0 API from Zod schemas.
 
-## Installation
+## Repository setup
+
+This is private workspace tooling. From the repository root:
 
 ```bash
-pnpm add -D @iracing-data/oauth-schema-to-openapi
+pnpm install --frozen-lockfile
+pnpm --filter '@iracing-data/oauth-schema-to-openapi...' build
 ```
 
 ## Usage
@@ -57,3 +60,9 @@ Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iraci
 - [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
 
 See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+
+## Source navigation
+
+[Document mapping](src/index.ts) owns endpoint and generated-description provenance;
+[CLI](src/cli.ts) owns serialization/filesystem output. The authored runtime
+[lifecycle](../../oauth/client/src/client.ts) owns OAuth processing and sessions.

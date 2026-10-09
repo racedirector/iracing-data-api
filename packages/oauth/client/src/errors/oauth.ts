@@ -1,3 +1,14 @@
+/**
+ * Reusable OAuth error information, not an outward diagnostic envelope.
+ *
+ * Callback errors retain params/state and causes; refresh errors retain dependency
+ * message, description, code and cause. The dependency library code is distinct
+ * from the provider OAuth error identifier, which can remain in the structured cause.
+ * Consumers must inspect explicit discriminators/evidence, not message substrings,
+ * when deciding lifecycle recovery. Network/parser errors can propagate separately.
+ * Do not log/serialize raw errors: parameters, provider text and causes can be
+ * sensitive. CLI/MCP own safe projections and application retry/quarantine policy.
+ */
 import { AuthorizationResponseError, ResponseBodyError } from "oauth4webapi";
 
 export class OAuthCallbackError extends Error {
