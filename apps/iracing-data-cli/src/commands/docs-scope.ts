@@ -1,12 +1,40 @@
 import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
-import { resolveAccessToken } from "../credentials.js";
+import {
+  resolveAccessToken,
+  type CredentialOptions,
+} from "../credentials.js";
 import type { Diagnostics } from "../diagnostics.js";
-import { resolveTokenFormat, writeDocumentOutput } from "../token-output.js";
+import {
+  resolveTokenFormat,
+  writeDocumentOutput,
+  type TokenOutputOptions,
+} from "../token-output.js";
 import type {
   CreateDocsCommandScope,
   DataApiDocumentation,
   DocsOptions,
 } from "./docs.js";
+
+interface DocumentationClient {
+  getDocs(): Promise<DataApiDocumentation>;
+}
+
+export interface DocsScopeDependencies {
+  resolveAccessToken(options: CredentialOptions): Promise<string>;
+  createDocumentationClient(accessToken: string): DocumentationClient;
+  writeDocumentOutput(
+    document: DataApiDocumentation,
+    options: TokenOutputOptions,
+  ): Promise<void>;
+}
+
+const defaultDependencies: DocsScopeDependencies = {
+  resolveAccessToken,
+  createDocumentationClient(accessToken) {
+    return new DocApi(new Configuration({ accessToken }));
+  },
+  writeDocumentOutput,
+};
 
 function responseStatus(error: unknown): number | undefined {
   if (!(error instanceof Error) || error.name !== "ResponseError") return undefined;
@@ -47,11 +75,12 @@ function mapDocumentationError(error: unknown): Error {
  */
 export function createDocsCommandScopeFactory(
   diagnostics: Diagnostics,
+  dependencies: DocsScopeDependencies = defaultDependencies,
 ): CreateDocsCommandScope {
   return async (options: DocsOptions) => {
     resolveTokenFormat(options.output, options.format);
-    const accessToken = await resolveAccessToken(options);
-    const api = new DocApi(new Configuration({ accessToken }));
+    const accessToken = await dependencies.resolveAccessToken(options);
+    const api = dependencies.createDocumentationClient(accessToken);
 
     return {
       docs: {
@@ -65,7 +94,7 @@ export function createDocsCommandScopeFactory(
       },
       output: {
         async write(document) {
-          await writeDocumentOutput(document, {
+          await dependencies.writeDocumentOutput(document, {
             ...options,
             outputLabel: "Documentation",
           });
