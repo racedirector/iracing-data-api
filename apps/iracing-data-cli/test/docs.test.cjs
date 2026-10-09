@@ -255,7 +255,10 @@ test("scope honors explicit JSON and YAML credential files", async (t) => {
       },
       async writeDocumentOutput() {},
     });
-    const scope = await createScope({ credentials: file, accessToken: "other" });
+    const scope = await createScope({
+      credentials: file,
+      accessToken: "other",
+    });
     await scope.docs.get();
     assert.equal(token, "from-file");
   }
