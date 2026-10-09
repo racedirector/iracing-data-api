@@ -1,13 +1,21 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
+
 const diagnostics = { info() {}, warn() {}, error() {} };
+
 async function run(args) {
-  const { createLoginCommand } = await import("../dist/commands/auth/login.js");
+  const { createLoginCommand } =
+    await import("../dist/commands/auth/login/index.js");
   let output;
   let authOptions;
   const command = createLoginCommand({
     diagnostics,
     dependencies: {
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_REDIRECT_URI: "http://127.0.0.1/callback",
+      },
       authenticate: async (options) => {
         authOptions = options;
         return {
@@ -24,6 +32,16 @@ async function run(args) {
   await command.parseAsync(args, { from: "user" });
   return { output, authOptions };
 }
+
+test("login module composes environment, authentication, and persistence behind its entry point", async () => {
+  const { authOptions } = await run(["--no-open", "--timeout-seconds", "30"]);
+  assert.equal(authOptions.clientId, "client-id");
+  assert.equal(authOptions.clientSecret, "client-secret");
+  assert.equal(authOptions.redirectUri, "http://127.0.0.1/callback");
+  assert.equal(authOptions.openBrowser, false);
+  assert.equal(authOptions.timeoutSeconds, 30);
+});
+
 test("login updates the stable ignored credential file with auth+profile by default", async () => {
   const { defaultCredentialsPath } = await import("../dist/credentials.js");
   const { output, authOptions } = await run([]);
@@ -32,6 +50,7 @@ test("login updates the stable ignored credential file with auth+profile by defa
   assert.equal(output.force, true);
   assert.deepEqual(authOptions.scopes, ["iracing.auth", "iracing.profile"]);
 });
+
 test("auth-only login targets the dedicated MCP credential document", async () => {
   const { defaultMcpCredentialsPath } = await import("../dist/credentials.js");
   const { output, authOptions } = await run(["--scope", "iracing.auth"]);
@@ -43,6 +62,7 @@ test("auth-only login targets the dedicated MCP credential document", async () =
   assert.equal(output.force, true);
   assert.deepEqual(authOptions.scopes, ["iracing.auth"]);
 });
+
 test("explicit auth+profile scope preserves the existing default destination", async () => {
   const { defaultCredentialsPath } = await import("../dist/credentials.js");
   const { output, authOptions } = await run([
@@ -53,7 +73,8 @@ test("explicit auth+profile scope preserves the existing default destination", a
   assert.equal(output.output, defaultCredentialsPath);
   assert.deepEqual(authOptions.scopes, ["iracing.auth", "iracing.profile"]);
 });
-test("rejects unsupported scope choices before authenticating", async () => {
+
+test("rejects unsupported scope choices before composing infrastructure", async () => {
   for (const args of [
     ["--scope", "iracing.profile"],
     ["--scope", "openid"],
@@ -63,6 +84,7 @@ test("rejects unsupported scope choices before authenticating", async () => {
     await assert.rejects(run(args), /--scope must be either/);
   }
 });
+
 test("credential override updates that file and output override remains protected", async () => {
   assert.deepEqual((await run(["--credentials", "alternate.json"])).output, {
     output: "alternate.json",
@@ -94,6 +116,7 @@ test("credential override updates that file and output override remains protecte
     /Use either/,
   );
 });
+
 test("rejects a format that would make a default credential file unreadable", async () => {
   await assert.rejects(
     run(["--format", "yaml"]),
