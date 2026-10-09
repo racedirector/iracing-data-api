@@ -3,7 +3,6 @@ import {
   resolveAccessToken,
   type CredentialOptions,
 } from "../../credentials.js";
-import type { Diagnostics } from "../../diagnostics.js";
 import {
   resolveTokenFormat,
   writeDocumentOutput,
@@ -14,6 +13,7 @@ import type {
   DataApiDocumentation,
   DocsOptions,
 } from "./command.js";
+import type { Diagnostics } from "../../diagnostics.js";
 
 interface DocumentationClient {
   getDocs(): Promise<DataApiDocumentation>;
@@ -37,7 +37,8 @@ const defaultDependencies: DocsScopeDependencies = {
 };
 
 function responseStatus(error: unknown): number | undefined {
-  if (!(error instanceof Error) || error.name !== "ResponseError") return undefined;
+  if (!(error instanceof Error) || error.name !== "ResponseError")
+    return undefined;
   const response = (error as Error & { response?: unknown }).response;
   if (!response || typeof response !== "object" || !("status" in response))
     return undefined;

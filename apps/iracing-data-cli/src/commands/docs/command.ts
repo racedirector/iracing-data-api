@@ -6,10 +6,10 @@
  * consumers never need to know how the command's invocation scope is composed.
  */
 import { Command } from "@commander-js/extra-typings";
-import type { IracingServiceMethodDocs } from "@iracing-data/api-client-fetch";
 import type { CredentialOptions } from "../../credentials.js";
 import type { Diagnostics } from "../../diagnostics.js";
 import type { TokenOutputOptions } from "../../token-output.js";
+import type { IracingServiceMethodDocs } from "@iracing-data/api-client-fetch";
 
 export type DataApiDocumentation = Record<
   string,

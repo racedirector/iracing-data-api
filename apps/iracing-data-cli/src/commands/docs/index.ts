@@ -1,4 +1,3 @@
-import type { Diagnostics } from "../../diagnostics.js";
 import {
   createDocsCommand as createCommand,
   type DocsCommandDependencies,
@@ -7,6 +6,7 @@ import {
   createDocsCommandScopeFactory,
   type DocsScopeDependencies,
 } from "./scope.js";
+import type { Diagnostics } from "../../diagnostics.js";
 
 export interface CreateDocsCommandOptions {
   diagnostics: Diagnostics;
