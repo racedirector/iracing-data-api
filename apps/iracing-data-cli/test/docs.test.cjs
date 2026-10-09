@@ -37,29 +37,32 @@ function scopeDependencies({
   };
 }
 
-test("command factory resolves one invocation scope and hands it to the implementation", async () => {
+test("command factory resolves one invocation scope and runs the docs handler", async () => {
   const { createDocsCommand } = await loadCommand();
-  let scopes = 0;
-  let gets = 0;
-  let writes = 0;
+  const events = [];
   const command = createDocsCommand({
     async createScope(options) {
-      scopes++;
+      events.push("scope");
       assert.equal(options.credentials, "credentials.json");
       return {
         docs: {
           async get() {
-            gets++;
+            events.push("get");
             return DOCS;
           },
         },
         output: {
           async write(document) {
-            writes++;
+            events.push("write");
             assert.deepEqual(document, DOCS);
           },
         },
-        diagnostics,
+        diagnostics: {
+          ...diagnostics,
+          info(message) {
+            events.push(message);
+          },
+        },
       };
     },
   });
@@ -68,37 +71,12 @@ test("command factory resolves one invocation scope and hands it to the implemen
     from: "user",
   });
 
-  assert.equal(scopes, 1);
-  assert.equal(gets, 1);
-  assert.equal(writes, 1);
-});
-
-test("implementation body only orchestrates resolved docs, output, and diagnostics", async () => {
-  const { runDocsCommand } = await loadCommand();
-  const events = [];
-
-  await runDocsCommand({
-    docs: {
-      async get() {
-        events.push("get");
-        return DOCS;
-      },
-    },
-    output: {
-      async write(document) {
-        events.push("write");
-        assert.deepEqual(document, DOCS);
-      },
-    },
-    diagnostics: {
-      ...diagnostics,
-      info(message) {
-        events.push(message);
-      },
-    },
-  });
-
-  assert.deepEqual(events, ["get", "write", "Data API documentation fetched."]);
+  assert.deepEqual(events, [
+    "scope",
+    "get",
+    "write",
+    "Data API documentation fetched.",
+  ]);
 });
 
 test("scope resolves credentials and constructs the generated client once", async () => {
