@@ -52,6 +52,15 @@ const workspaces = [
     dependencies: [],
     version: "1.0.0",
   },
+  {
+    name: "iracing-data-api-client",
+    path: "crates/iracing-data-api-client",
+    ecosystem: "cargo",
+    kind: "generated-public-client",
+    managed: true,
+    dependencies: [],
+    version: "1.0.0",
+  },
 ];
 const name = workspaces[0].name;
 
@@ -182,6 +191,38 @@ test("release scope suppresses global-only maintenance without weakening normal 
       workspaces,
       { includeGlobal: false },
     ).managedReleaseCandidates.some((entry) => entry.name === name),
+  );
+});
+
+test("release presentation includes only the individual template owner; planning remains conservative", () => {
+  const options = { includeGlobal: false, precisePresentation: true };
+  for (const file of [
+    "scripts/client-presentation/rust.md",
+    "scripts/client-presentation/rust.json",
+  ]) {
+    assert.deepEqual(
+      analyzeImpact([file], workspaces, options).managedReleaseCandidates.map(
+        (entry) => entry.name,
+      ),
+      ["iracing-data-api-client"],
+    );
+    assert.equal(analyzeImpact([file], workspaces).generatedClients.length, 2);
+  }
+  assert.deepEqual(
+    analyzeImpact(
+      ["scripts/client-presentation/fetch.md"],
+      workspaces,
+      options,
+    ).managedReleaseCandidates.map((entry) => entry.name),
+    ["@iracing-data/fetch"],
+  );
+  assert.equal(
+    analyzeImpact(
+      ["scripts/normalize-client-presentation.js"],
+      workspaces,
+      options,
+    ).generatedClients.length,
+    2,
   );
 });
 

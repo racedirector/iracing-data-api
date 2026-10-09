@@ -132,6 +132,7 @@ export function releaseNotes(
       .filter(Boolean);
     return analyzeImpact(files, workspaces, {
       includeGlobal: false,
+      precisePresentation: true,
     }).managedReleaseCandidates.some((entry) => entry.name === name);
   });
   const url = "https://github.com/racedirector/iracing-data-api";
