@@ -2,10 +2,9 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { parse } from "parse5";
 
+// Data API evidence remains temporarily for #438; OAuth audits use live documentation.
 export const sources = Object.freeze({
-  oauth: "https://oauth.iracing.com/oauth2/book/print.html",
   data: "https://members-ng.iracing.com/data/doc",
 });
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -90,52 +89,7 @@ export function normalize(kind, input, secrets = []) {
     }
     return canonical(document, secrets);
   }
-  if (kind !== "oauth") fail("Unknown upstream kind");
-  const errors = [];
-  const document = parse(input, {
-    onParseError: (error) => errors.push(error.code),
-  });
-  if (
-    errors.some((code) => code !== "missing-doctype") ||
-    !/<\/main\s*>/i.test(input)
-  )
-    fail("Malformed OAuth HTML");
-  const mains = [];
-  function find(node) {
-    if (node.tagName === "main") mains.push(node);
-    for (const child of node.childNodes || []) find(child);
-  }
-  find(document);
-  if (mains.length !== 1) fail("Expected one OAuth book main element");
-  function visit(node, pre = false) {
-    if (node.nodeName === "#text") {
-      const text = pre
-        ? node.value.replace(/\r\n?/g, "\n")
-        : node.value.replace(/\s+/g, " ").trim();
-      return text ? redact(text, secrets) : null;
-    }
-    if (
-      !node.tagName ||
-      ["script", "style", "nav", "iframe"].includes(node.tagName)
-    )
-      return null;
-    const attributes = Object.fromEntries(
-      (node.attrs || [])
-        .filter(({ name }) =>
-          ["href", "src", "alt", "title", "colspan", "rowspan"].includes(name),
-        )
-        .sort((a, b) => a.name.localeCompare(b.name, "en"))
-        .map(({ name, value }) => [name, redact(value, secrets)]),
-    );
-    const children = (node.childNodes || [])
-      .map((child) => visit(child, pre || node.tagName === "pre"))
-      .filter((child) => child !== null);
-    return { tag: node.tagName, attributes, children };
-  }
-  const content = visit(mains[0]);
-  if (!content.children.length || !JSON.stringify(content).includes("iRacing"))
-    fail("Not an iRacing OAuth book");
-  return content;
+  fail("Unknown upstream kind");
 }
 
 export function snapshot(
@@ -228,7 +182,7 @@ export function diff(before, after) {
 
 export async function capture(kind, { token, fetcher = fetch } = {}) {
   if (!sources[kind]) fail("Unknown upstream kind");
-  if (kind === "data" && (!token || /[\r\n]/.test(token)))
+  if (!token || /[\r\n]/.test(token))
     fail(
       "Set IRACING_ACCESS_TOKEN to an existing valid token with iracing.auth scope",
     );
@@ -238,8 +192,8 @@ export async function capture(kind, { token, fetcher = fetch } = {}) {
       redirect: "error",
       signal: AbortSignal.timeout(30000),
       headers: {
-        Accept: kind === "data" ? "application/json" : "text/html",
-        ...(kind === "data" ? { Authorization: `Bearer ${token}` } : {}),
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
       },
     });
   } catch {
@@ -250,7 +204,7 @@ export async function capture(kind, { token, fetcher = fetch } = {}) {
   if (!response.ok)
     fail(`Upstream returned HTTP ${response.status}; no response saved`);
   const type = response.headers.get("content-type") || "";
-  if (!type.includes(kind === "data" ? "application/json" : "text/html"))
+  if (!type.includes("application/json"))
     fail("Unexpected upstream content type");
   let input;
   try {
@@ -309,7 +263,7 @@ export async function main(args) {
     return result.changed ? 2 : 0;
   } else
     fail(
-      "Usage: capture <oauth|data> <output.json> | fixture <oauth|data> <input> <output.json> | diff <before.json> <after.json> <diff.json>",
+      "Usage: capture <data> <output.json> | fixture <data> <input> <output.json> | diff <before.json> <after.json> <diff.json>",
     );
   return 0;
 }

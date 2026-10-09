@@ -46,7 +46,7 @@ Model presence as separate states: **required**, **optional/omitted**, **nullabl
 
 ## Evidence and classification
 
-For every finding, cite at least one live official page and one repository file/symbol. Use git history or the saved baseline only to establish provenance.
+For every finding, cite at least one live official page and one repository file/symbol. Use git history or the explicitly historical authored baseline only to establish provenance, never as current authority. If live retrieval fails, report **Unable to verify part of the protocol**, identify unavailable URLs/surfaces, and keep repository-only findings separate; saved material cannot supply the missing upstream fact.
 
 Classifications:
 
@@ -82,7 +82,7 @@ Each finding must include:
 ```text
 Finding:
 Classification:
-Official documentation and snapshot provenance/hash/pointer (if available):
+Official pages examined (URLs and relevant sections):
 Upstream fact:
 Repository mismatch:
 Interpretation:
@@ -111,7 +111,7 @@ List important compatible or intentionally out-of-scope surfaces that were actua
 
 ### Documentation coverage
 
-List every official iRacing page examined during this execution and identify any relevant page that could not be verified.
+List every official iRacing page examined during this execution, how navigation/cross-links were discovered from the introduction, and any relevant page that could not be retrieved or verified. Record the examination date and coverage limits; no capture envelope, content hash, or JSON Pointer is required.
 
 ### Limits and assumptions
 

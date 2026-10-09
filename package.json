@@ -46,7 +46,7 @@
     "check:agent-regressions": "node scripts/agent-regressions.mjs",
     "test:agent-regressions": "node --test scripts/agent-regressions.test.mjs",
     "upstream:contract": "node scripts/upstream-contract.mjs",
-    "test:upstream": "node --test scripts/upstream-contract.test.mjs scripts/audit-data-docs.test.cjs",
+    "test:upstream": "node --test scripts/upstream-contract.test.mjs scripts/audit-data-docs.test.cjs .agents/skills/iracing-oauth-compatibility-audit/audit-guidance.test.mjs",
     "test:schema-compatibility": "node --test -r ts-node/register tests/schema-compatibility/*.test.cjs",
     "test:data-contract": "node --test tests/data-contract/*.test.cjs",
     "test:docker": "pnpm --filter '@iracing-data/iracing-data-mcp...' build && node apps/iracing-data-mcp/test/docker/recovery.mjs",

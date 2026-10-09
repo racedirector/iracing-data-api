@@ -1,10 +1,10 @@
-# iRacing OAuth protocol baseline
+# Historical iRacing OAuth protocol baseline
 
 Last audited: **2026-09-18**
 
-This concise baseline helps future audits establish historical evidence. It is not a frozen specification and never replaces live official documentation. Update it only when explicitly requested after completing a live audit; retain meaningful prior versions in git history so a later audit can distinguish confirmed upstream change from a newly discovered repository mismatch.
+This authored record is non-authoritative for current behavior and serves only historical provenance. Its page list is not an inventory for a new audit; discover the current documentation from the introduction on every run. If live documentation is unavailable, report inability to verify current behavior; this file must never act as a fallback. This concise baseline helps future audits establish historical evidence. It is not a frozen specification and never replaces live official documentation. Update it only when explicitly requested after completing a live audit; retain meaningful prior versions in git history so a later audit can distinguish confirmed upstream change from a newly discovered repository mismatch.
 
-## Official pages examined
+## Official pages examined in the historical audit
 
 - [Introduction](https://oauth.iracing.com/oauth2/book/introduction.html)
 - [Authentication and Authorization](https://oauth.iracing.com/oauth2/book/auth_overview.html)
@@ -33,7 +33,7 @@ This concise baseline helps future audits establish historical evidence. It is n
 - [Data API Workflow](https://oauth.iracing.com/oauth2/book/data_api_workflow.html)
 - [Identity Verification Workflow](https://oauth.iracing.com/oauth2/book/identity_verification_workflow.html)
 
-## Contract snapshot
+## Historical contract notes
 
 - Service endpoints are rooted at `https://oauth.iracing.com/oauth2`. `/authorize` is GET; `/token` is POST with `application/x-www-form-urlencoded` data. Protected profile/session/revocation endpoints use Bearer authorization.
 - `/authorize` requires `client_id`, exact registered `redirect_uri`, and `response_type=code`. PKCE is required for clients unable to keep a secret and recommended otherwise. `code_challenge_method` supports `S256` and `plain`, defaulting to `plain`; `state`, `scope`, and `prompt` are optional. The documented prompt value is `verify` and unknown prompt values are ignored.
