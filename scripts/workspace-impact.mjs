@@ -111,7 +111,11 @@ export function releaseOrder(entries) {
   return result;
 }
 
-export function analyzeImpact(files, workspaces) {
+export function analyzeImpact(
+  files,
+  workspaces,
+  { includeGlobal = true } = {},
+) {
   const changedFiles = sorted(files);
   const direct = new Set();
   const affected = new Set();
@@ -164,7 +168,9 @@ export function analyzeImpact(files, workspaces) {
       commands.add("pnpm codegen");
     }
   }
-  if (global) for (const entry of workspaces) add(entry);
+  // Release presentation omits global-only maintenance; normal planning remains
+  // conservative and includes every workspace affected by toolchain/CI changes.
+  if (global && includeGlobal) for (const entry of workspaces) add(entry);
   if (
     changedFiles.some((file) => /^(Cargo\.(toml|lock)|\.cargo\/)/.test(file))
   ) {
