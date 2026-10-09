@@ -127,8 +127,24 @@ gh run watch <run-id> --exit-status
 Once the workflow completes:
 
 - Check the package on [npmjs.com](https://www.npmjs.com/org/iracing-data).
-- Confirm the GitHub Release was created with generated notes.
+- Confirm the GitHub Release identifies the package/version, includes package-specific changes and the installation command, and marks prereleases correctly.
 - Do a quick smoke test: `npm install @iracing-data/oauth-client@0.1.0`.
+
+## Package-specific GitHub Releases
+
+After tag-triggered npm publication succeeds, the workflow creates a GitHub Release with the package name and exact version, an exact-version installation command, and package-relevant changes. Manual workflow dispatch continues to publish without creating a GitHub Release.
+
+Release notes use the canonical [change-impact graph](CHANGE-IMPACT.md): package changes, internal dependency changes, and owned generation/presentation changes are included; global-only CI/toolchain maintenance is omitted. Previous-release selection uses the highest lower SemVer same-package tag reachable from the release commit, with a lexical tag tie-break for versions that differ only by build metadata. Commit history follows the first parent, including merged changes. A first release covers reachable package history.
+
+SemVer prereleases are published to `next` and marked as GitHub prereleases, without becoming the latest GitHub Release. A hyphen in build metadata alone does not make a version a prerelease. Stable releases use `latest` on npm.
+
+To inspect notes, check out the exact release tag with full Git history, install frozen dependencies, then run the helper with the actual version:
+
+```bash
+node scripts/release-notes.mjs '@iracing-data/oauth-client@<version>'
+```
+
+`pnpm test:release` validates filtering, previous-release selection, SemVer classification, and workflow integration. The notes helper does not change versions, create tags, publish packages, or modify the registry.
 
 ## Releasing multiple packages
 

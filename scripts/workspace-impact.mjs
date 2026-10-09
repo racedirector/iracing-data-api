@@ -111,7 +111,11 @@ export function releaseOrder(entries) {
   return result;
 }
 
-export function analyzeImpact(files, workspaces) {
+export function analyzeImpact(
+  files,
+  workspaces,
+  { includeGlobal = true, precisePresentation = false } = {},
+) {
   const changedFiles = sorted(files);
   const direct = new Set();
   const affected = new Set();
@@ -157,14 +161,29 @@ export function analyzeImpact(files, workspaces) {
       ) ||
       file === "openapitools.json"
     ) {
-      for (const entry of apiClients) {
+      // Planning conservatively includes all SDKs. Release notes can use the
+      // individual template's owner; shared generator/normalizer changes still
+      // affect every SDK. Resolve ownership from the current workspace paths.
+      const template =
+        /^scripts\/client-presentation\/([^/.]+)\.(md|json)$/.exec(file);
+      const templateOwners =
+        precisePresentation && template
+          ? apiClients.filter((entry) =>
+              entry.ecosystem === "cargo"
+                ? template[1] === "rust"
+                : path.posix.basename(entry.path) === template[1],
+            )
+          : [];
+      for (const entry of templateOwners.length ? templateOwners : apiClients) {
         add(entry);
         generated.add(entry.name);
       }
       commands.add("pnpm codegen");
     }
   }
-  if (global) for (const entry of workspaces) add(entry);
+  // Release presentation omits global-only maintenance; normal planning remains
+  // conservative and includes every workspace affected by toolchain/CI changes.
+  if (global && includeGlobal) for (const entry of workspaces) add(entry);
   if (
     changedFiles.some((file) => /^(Cargo\.(toml|lock)|\.cargo\/)/.test(file))
   ) {
