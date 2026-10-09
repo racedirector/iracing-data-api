@@ -286,7 +286,10 @@ test("workflow preserves publication gates and consumes package notes/prerelease
   );
   const job = workflow.jobs["github-release"];
   assert.equal(job.needs, "publish");
-  assert.equal(job.if, "startsWith(github.ref, 'refs/tags/')");
+  assert.equal(
+    job.if,
+    "github.event_name == 'push' && startsWith(github.ref, 'refs/tags/')",
+  );
   assert.equal(job.steps[0].with["fetch-depth"], 0);
   const notes = job.steps.find((step) => step.id === "notes");
   assert.equal(notes.env.RELEASE_TAG, "${{ github.ref_name }}");
