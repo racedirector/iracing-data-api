@@ -12,7 +12,10 @@ RUN pnpm install --frozen-lockfile --ignore-scripts \
 FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS runtime
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn* \
  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx /usr/local/bin/yarn /usr/local/bin/yarnpkg
-ENV NODE_ENV=production
+# Image defaults are nonsecret and host-independent. User-specific configuration
+# is injected by Compose at runtime from the repository-root .env file.
+ENV NODE_ENV=production \
+    IRACING_MCP_LISTEN_HOST=0.0.0.0
 WORKDIR /app
 COPY --from=build /runtime /app
 USER 1000:1000
