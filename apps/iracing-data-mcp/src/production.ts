@@ -1,3 +1,18 @@
+/**
+ * Production assembly for one local process/account.
+ *
+ * Configuration and secure directory/secret checks precede owner construction.
+ * Only a secret file beside the credential document is accepted; environment
+ * secret values are rejected. The container's mapped non-root UID/GID and exact
+ * loopback Host/Origin configuration are enforced here; compose.yaml owns host
+ * port publication and container isolation. The internal listen address may be
+ * 0.0.0.0 for Docker while the published boundary remains loopback.
+ *
+ * Typed factories compose session, gateway and HTTP lifetimes once. Missing or
+ * corrupt credentials can leave health/initialize available for stopped recovery.
+ * Termination handlers drain HTTP before closing authorization; executable startup
+ * and shutdown diagnostics must not expose configuration values or raw errors.
+ */
 import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";

@@ -1,3 +1,12 @@
+/**
+ * Shared account-level resource accounting for gateway and cursor families.
+ *
+ * Manifest/chunk/snapshot/replay bytes and opaque tokens reserve against the same
+ * caps. Pruners release expired or generation-invalid state before admission; each
+ * owner must release exactly its own reservation on removal. Per-family limits
+ * alone would allow collections and searches together to exceed the account bound.
+ * Request signals are not retained here. Restart discards all in-memory retention.
+ */
 import { ApplicationFailure } from "./diagnostics/errors.js";
 
 /** One gateway owner shares these caps across manifests, chunks and model cursors. */

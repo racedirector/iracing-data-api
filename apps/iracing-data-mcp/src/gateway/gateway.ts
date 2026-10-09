@@ -1,3 +1,26 @@
+/**
+ * Bounded application gateway over generated Data API endpoint methods.
+ *
+ * Generated Fetch methods own wire paths/query serialization. This gateway owns
+ * operation allowlisting, authorization checks, call budgets, bounded response
+ * resolution, shared network admission/cooldown and account-scoped retention.
+ * policy.ts owns URL/address validation and limits; transport.ts owns DNS-pinned
+ * HTTPS and decoded streaming; parsers.ts owns app-specific structural acceptance.
+ * API calls carry authorization while signed cache requests are isolated from it.
+ * There is no arbitrary API proxy or general retry/sleep loop. A linked payload
+ * may reacquire its envelope once within the same bounded call after expiry or
+ * cache 403/404; retained searches instead expire without snapshot replacement.
+ *
+ * Each GatewayCall has an operation-local signal, fetch/byte/deadline accounting
+ * and pending-request map. Shared fetches track consumers so cancellation must not
+ * abort work another consumer still needs. Oversize sources fail before projection;
+ * reducing a tool page cannot repair an oversized chunk.
+ *
+ * Search handles stay internal and contain no model-facing signed URL. Manifests,
+ * chunks and cursor replay share one RetentionBudget; account invalidation advances
+ * generation and retires retained state. Expired or rejected cache snapshots are
+ * never silently restarted or mixed with replacement search results.
+ */
 import {
   CarApi,
   Configuration,

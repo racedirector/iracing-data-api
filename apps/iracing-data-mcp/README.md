@@ -112,19 +112,11 @@ No team or unbounded all-driver search is exposed.
 
 ## Continuation, limits and recovery
 
-Cursors are opaque server-side state bound to tool, filters, account generation,
-page size and offset. Successful replay, including concurrent replay, returns the
-same page and next token. Failed/canceled search pages do not advance the offset.
-Expiry is five minutes or an earlier known safe upstream expiry; pages never
-extend it. Restart, authorization loss or owner invalidation discards cursors.
-Chunk 403/404 expires search state; the app never silently restarts or mixes snapshots.
-
-One shared owner caps all collection/search tokens at 32 and retained serialized
-manifests/chunks/snapshots/replay at 32 MiB. Gateway calls cap eight fetches, 16 MiB
-decoded bytes and 30 seconds; individual responses cap 8 MiB with a ten-second
-fetch timeout. Network concurrency is two, tool-call admission eight. Oversize
-sources fail before projection; smaller pages cannot repair an oversized chunk.
-These are limits, not latency guarantees.
+Continue with the returned cursor alone. Restart or authorization loss invalidates
+continuations; expired queries must start again. A filtered search can return an
+empty page with a continuation. See the owning [collection](src/tools/collections.ts)
+and [search](src/tools/search.ts) modules for retention/replay contracts and
+[gateway policy](src/gateway/policy.ts) for resource bounds.
 
 Errors return `isError:true`, safe JSON text and
 `structuredContent.error` with fixed `code`, `message`, `retryable`, generated
@@ -151,26 +143,20 @@ environment dumps, bearer headers, cookies or signed cache URLs for support.
 
 Stop before re-login, logout, permission repair, import or credential replacement;
 see [tested recovery commands](local-container.md#stop-repair-restart-logout).
-Shutdown drains HTTP before closing the credential owner. Uncertain submitted
-refresh grants invalidate account state and attempt credential removal. If cleanup
-cannot be confirmed, exit is nonzero: keep stopped and re-login before restarting.
-Forced SIGKILL/power loss can prevent durable quarantine; it also requires stopped
-re-login. Do not configure automatic restart after uncertain cleanup or restore a
-consumed refresh token from backup.
+For uncertain rotation or failed shutdown cleanup, keep stopped and re-login before
+restart. Never restore consumed refresh-token backups; follow the container guide.
+The [session owner](src/session.ts) documents quarantine and shutdown semantics.
 
 ## Security and supported deployment
 
-Compose publishes only `127.0.0.1:3000`, with a non-root mapped UID/GID, read-only
-root filesystem, bounded tmpfs, dropped capabilities and no Docker socket. An
-owned 0700 directory and 0600 credential/secret files are checked, not bypassed.
-Exact Host/Origin allowlists reduce DNS rebinding risk; local processes can still
-access this unauthenticated MCP boundary. This threat model does not defend against
-malicious same-user processes. iRacing tokens are never MCP bearer credentials.
+Use the provided [Compose configuration](compose.yaml) and operator guide. Keep the
+published port loopback-only and run exactly one credential owner. Multiple
+refreshing owners and hot credential replacement are unsupported. Local processes
+can access this unauthenticated boundary; it does not defend against malicious
+same-user processes. Treat upstream names/text as untrusted data.
 
-LAN/public exposure, multiple refreshing owners, hot credential replacement,
-container browser callbacks and hosted tenancy are unsupported. Exactly one owner
-is an operator responsibility, **not an implemented process lock**. Treat returned
-upstream names/text as untrusted data, never instructions.
+See [production configuration](src/production.ts), [HTTP security](src/http.ts)
+and [upstream policy](src/gateway/policy.ts) for the enforced boundaries.
 
 Local packaging and 22 Docker recovery acceptance groups passed on macOS arm64
 with Docker 29.5.2, a linux/arm64 runtime and Node 24.21.0. The same 22 groups
@@ -198,15 +184,9 @@ live upstream evidence is separate and opt-in, following
 not establish live completeness. Follow [scoped guidance](AGENTS.md) and the
 [composition/lifetime record](architecture.md) before changing ownership.
 
-Tool names, strict inputs, outputs, errors, ordering, position/date/week conventions
-and continuation semantics are application API. A new tool or optional output
-field can be additive when existing consumers tolerate it; strict-client consumers
-still need compatibility review. Renaming/removing a tool/field, requiring an
-optional argument, changing position basis, completeness or retryability is
-breaking and needs explicit migration examples and contract tests. Private
-version `0.0.0` supplies no published stable-version guarantee. npm packages remain
-private; images use local git-SHA tags. Independent app publication/release policy
-requires a later decision; no npm or image publication is included here.
+Application compatibility is owned by [tool contracts](src/tools/contracts.ts)
+and [registration/projection](src/tools/identity-content.ts). This is a private app;
+independent publication/release policy requires a separate decision.
 
 Rollout stops/drains the current owner, builds the reviewed SHA image, preserves
 currently valid credential ownership/modes, then starts exactly one owner. Rollback
