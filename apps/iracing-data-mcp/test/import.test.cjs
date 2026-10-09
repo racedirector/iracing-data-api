@@ -6,8 +6,11 @@ const path = require("node:path");
 
 test("stdin credential import validates and durably writes a secure token document", async (t) => {
   const oauth = require("@iracing-data/oauth-client");
-  const { importCredentialsJson } = await import("../dist/import-credentials.js");
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-import-json-"));
+  const { importCredentialsJson } =
+    await import("../dist/import-credentials.js");
+  const directory = await fs.mkdtemp(
+    path.join(os.tmpdir(), "mcp-import-json-"),
+  );
 
   t.after(() => fs.rm(directory, { force: true, recursive: true }));
   await fs.chmod(directory, 0o700);
@@ -30,7 +33,9 @@ test("stdin credential import validates and durably writes a secure token docume
 test("stdin client-secret import writes only a secure file in the owned data directory", async (t) => {
   const { importClientSecret } = await import("../dist/import-credentials.js");
   const { readProductionSecret } = await import("../dist/production.js");
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-import-secret-"));
+  const directory = await fs.mkdtemp(
+    path.join(os.tmpdir(), "mcp-import-secret-"),
+  );
 
   t.after(() => fs.rm(directory, { force: true, recursive: true }));
   await fs.chmod(directory, 0o700);
