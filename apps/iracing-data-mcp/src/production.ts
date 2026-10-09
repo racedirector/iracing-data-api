@@ -14,6 +14,7 @@
  * Termination handlers drain HTTP before closing authorization; executable startup
  * and shutdown diagnostics must not expose configuration values or raw errors.
  */
+import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
@@ -231,6 +232,7 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
     services,
     allowedHosts: config.allowedHosts,
     allowedOrigins: config.allowedOrigins,
+    sessionIdGenerator: randomUUID,
   });
 
   try {
