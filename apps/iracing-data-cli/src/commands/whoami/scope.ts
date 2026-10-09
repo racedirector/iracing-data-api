@@ -1,4 +1,9 @@
-import { OAuthProfileResponseSchema } from "@iracing-data/oauth-client";
+import {
+  OAuthApiClient,
+  OAuthApiContractError,
+  OAuthApiHttpError,
+  type OAuthProfileApi,
+} from "@iracing-data/oauth-client";
 import {
   resolveAccessToken,
   type CredentialOptions,
@@ -21,72 +26,55 @@ export interface WhoamiScopeDependencies {
 }
 
 /**
- * Bind a bearer token without its Bearer prefix to the OAuth profile endpoint.
- * Requests are deferred to getProfile; the endpoint requires iracing.profile.
+ * Project the typed OAuth API into the narrow identity capability and translate
+ * its safe failures into CLI diagnostics. The generated client owns the request.
  */
-export function createFetchIdentityClient(
+export function createOAuthIdentityClient(
   accessToken: string,
-  fetcher: typeof fetch = fetch,
+  api: OAuthProfileApi = new OAuthApiClient({ accessToken }),
 ): IdentityClient {
   return {
-    /**
-     * Fetch and validate the profile, returning only customer ID and name.
-     * Each call rejects redirects and supplies a 30-second abort signal.
-     * Request, JSON decoding, and schema failures become fixed errors;
-     * unsuccessful HTTP statuses and non-JSON content types also reject.
-     * Errors omit response bodies and original exception messages. Success
-     * does not establish Data API access.
-     */
     async getProfile(): Promise<WhoamiProfile> {
-      let response: Response;
+      let profile;
       try {
-        response = await fetcher(
-          "https://oauth.iracing.com/oauth2/iracing/profile",
-          {
-            headers: {
-              Accept: "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-            redirect: "error",
-            signal: AbortSignal.timeout(30000),
-          },
-        );
-      } catch {
-        throw new Error(
-          "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
-        );
+        profile = await api.getProfile();
+      } catch (error) {
+        if (error instanceof OAuthApiHttpError) {
+          throw new Error(
+            `Identity request failed: HTTP ${error.response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
+          );
+        }
+
+        if (error instanceof OAuthApiContractError) {
+          if (error.kind === "transport") {
+            throw new Error(
+              "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
+            );
+          }
+          if (error.kind === "not_json") {
+            throw new Error(
+              "Identity response was not JSON. No response body logged.",
+            );
+          }
+          throw new Error(
+            "Identity response did not match the expected profile. No response body logged.",
+          );
+        }
+
+        throw error;
       }
 
-      if (!response.ok) {
-        throw new Error(
-          `Identity request failed: HTTP ${response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
-        );
-      }
-
-      if (!response.headers.get("content-type")?.includes("application/json")) {
-        throw new Error(
-          "Identity response was not JSON. No response body logged.",
-        );
-      }
-
-      try {
-        const profile = OAuthProfileResponseSchema.parse(await response.json());
-        return {
-          iracing_cust_id: profile.iracing_cust_id,
-          iracing_name: profile.iracing_name,
-        };
-      } catch {
-        throw new Error(
-          "Identity response did not match the expected profile. No response body logged.",
-        );
-      }
+      return {
+        iracing_cust_id: profile.iracing_cust_id,
+        iracing_name: profile.iracing_name,
+      };
     },
   };
 }
 
 const defaultDependencies: WhoamiScopeDependencies = {
   resolveAccessToken,
-  createIdentityClient: createFetchIdentityClient,
+  createIdentityClient: createOAuthIdentityClient,
   writeStdout(value) {
     process.stdout.write(value);
   },

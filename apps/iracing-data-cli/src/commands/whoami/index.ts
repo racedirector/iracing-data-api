@@ -14,7 +14,7 @@ export interface CreateWhoamiCommandOptions {
 }
 
 /**
- * Build a whoami command with credential resolution, Fetch, and stdout defaults,
+ * Build a whoami command with credential resolution, OAuth API, and stdout defaults,
  * or supplied dependencies. I/O begins when its action runs.
  */
 export function createWhoamiCommand({

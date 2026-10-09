@@ -92,6 +92,13 @@
       "owner": "oauth"
     },
     {
+      "path": "packages/oauth/client/generated",
+      "name": "@iracing-data/oauth-client-fetch",
+      "ecosystem": "npm",
+      "kind": "generated-public-client",
+      "owner": "codegen"
+    },
+    {
       "path": "packages/oauth/schema",
       "name": "@iracing-data/oauth-schema",
       "ecosystem": "npm",

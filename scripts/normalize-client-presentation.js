@@ -74,6 +74,6 @@ if (
   normalizeClientPresentation(
     client,
     process.argv[3] || path.join(root, "packages/api/client", client || ""),
-    path.join(scriptDirectory, "client-presentation"),
+    process.argv[4] || path.join(scriptDirectory, "client-presentation"),
   );
 }

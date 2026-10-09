@@ -22,6 +22,7 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
+    "@iracing-data/oauth-client-fetch": "workspace:*",
     "@iracing-data/oauth-schema": "workspace:*",
     "jose": "^6.2.2",
     "oauth4webapi": "^3.8.8",

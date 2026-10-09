@@ -3,8 +3,8 @@
  *
  * Build both schema-to-OpenAPI dependency closures before serializing JSON/YAML into
  * a temporary tree, then run the pinned Data API Fetch/Axios/Rust wrappers using its
- * iracing.json. Current main has no OAuth SDK generation edge. The surfaces below
- * are generated output boundaries, not a duplicate workspace/publication inventory.
+ * iracing.json and the OAuth Fetch wrapper using oauth.json. The surfaces below are
+ * generated output boundaries, not a duplicate workspace/publication inventory.
  *
  * Compare bytes and complete file sets, including removed/stale files. Normal mode
  * fails without replacing local artifacts; --write uses the same pipeline to replace
@@ -30,6 +30,7 @@ export const surfaces = [
   "packages/api/client/fetch",
   "packages/api/client/axios",
   "crates/iracing-data-api-client",
+  "packages/oauth/client/generated",
 ];
 const ignoredNames = new Set([
   "node_modules",
@@ -88,6 +89,15 @@ function command(executable, args, env = {}) {
     );
 }
 
+function copyGeneratorInputs(surface, destination, names) {
+  fs.mkdirSync(destination, { recursive: true });
+  for (const name of names) {
+    const source = path.join(root, surface, name);
+    if (fs.existsSync(source))
+      fs.copyFileSync(source, path.join(destination, name));
+  }
+}
+
 export function checkGenerated({ update = false } = {}) {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "iracing-codegen-"));
   try {
@@ -120,19 +130,12 @@ export function checkGenerated({ update = false } = {}) {
       ["rust", surfaces[3]],
     ]) {
       const destination = path.join(temporary, surface);
-      fs.mkdirSync(destination, { recursive: true });
-      // Generator ignore files and Rust build/release settings are authored inputs.
-      // npm version is passed separately so generators cannot reset release intent.
-      for (const name of [
+      copyGeneratorInputs(surface, destination, [
         ".openapi-generator-ignore",
         ...(client === "rust"
           ? ["Cargo.toml", ".gitignore", ".travis.yml"]
           : []),
-      ]) {
-        const source = path.join(root, surface, name);
-        if (fs.existsSync(source))
-          fs.copyFileSync(source, path.join(destination, name));
-      }
+      ]);
       command(
         "sh",
         [path.join(root, "scripts", `openapi-generator-${client}.sh`)],
@@ -142,6 +145,21 @@ export function checkGenerated({ update = false } = {}) {
         },
       );
     }
+
+    const oauthSurface = surfaces[4];
+    const oauthDestination = path.join(temporary, oauthSurface);
+    copyGeneratorInputs(oauthSurface, oauthDestination, [
+      ".openapi-generator-ignore",
+    ]);
+    command(
+      "sh",
+      [path.join(root, "scripts", "openapi-generator-oauth-fetch.sh")],
+      {
+        OPENAPI_DOC: path.join(specs, "oauth.json"),
+        OUTPUT_PACKAGE: oauthDestination,
+      },
+    );
+
     const changes = surfaces.flatMap((surface) =>
       diffTrees(path.join(root, surface), path.join(temporary, surface)).map(
         (name) => `${surface}/${name}`,

@@ -18,6 +18,9 @@ const report = (...files) => analyzeImpact(files, workspaces);
 test("API contract edits affect both specs, SDKs, consumers and release ordering", () => {
   const impact = report("packages/api/schema/src/car.ts");
   assert.equal(impact.generatedClients.length, 3);
+  assert.ok(
+    !impact.generatedClients.includes("@iracing-data/oauth-client-fetch"),
+  );
   assert.deepEqual(impact.derivedArtifacts, [
     "openapi/iracing.json",
     "openapi/iracing.yaml",
@@ -31,13 +34,22 @@ test("API contract edits affect both specs, SDKs, consumers and release ordering
       impact.releaseOrder.indexOf("@iracing-data/api-client-fetch"),
   );
 });
-test("OAuth changes follow manifest dependents without regenerating Data SDKs", () => {
+test("OAuth changes regenerate the OAuth client and follow manifest dependents", () => {
   const impact = report("packages/oauth/schema/src/token.ts");
-  assert.deepEqual(impact.generatedClients, []);
+  assert.deepEqual(impact.generatedClients, [
+    "@iracing-data/oauth-client-fetch",
+  ]);
   assert.ok(impact.authoredPackages.includes("@iracing-data/oauth-client"));
+  assert.ok(
+    impact.generationCommands.includes("pnpm codegen:client:oauth:fetch"),
+  );
   assert.ok(impact.verificationCommands.includes("pnpm verify:examples"));
   assert.ok(
     impact.releaseOrder.indexOf("@iracing-data/oauth-schema") <
+      impact.releaseOrder.indexOf("@iracing-data/oauth-client"),
+  );
+  assert.ok(
+    impact.releaseOrder.indexOf("@iracing-data/oauth-client-fetch") <
       impact.releaseOrder.indexOf("@iracing-data/oauth-client"),
   );
   assert.deepEqual(impact.derivedArtifacts, [
@@ -56,18 +68,31 @@ test("runtime, example, documentation and global tooling scopes remain distinct"
     [],
   );
   const global = report("pnpm-lock.yaml");
-  assert.equal(global.managedReleaseCandidates.length, 6);
+  assert.equal(global.managedReleaseCandidates.length, 7);
   assert.ok(global.verificationCommands.includes("pnpm verify"));
 });
 test("generator inputs, presentation and checked-in generated edits surface verification", () => {
-  assert.equal(report("openapitools.json").generatedClients.length, 3);
+  assert.equal(report("openapitools.json").generatedClients.length, 4);
   assert.equal(
     report("scripts/client-presentation/fetch.json").generatedClients.length,
     3,
   );
+  assert.deepEqual(
+    report("scripts/oauth-client-presentation/fetch.json").generatedClients,
+    ["@iracing-data/oauth-client-fetch"],
+  );
+  assert.deepEqual(
+    report("scripts/openapi-generator-oauth-fetch.sh").generatedClients,
+    ["@iracing-data/oauth-client-fetch"],
+  );
   assert.ok(
     report(
       "packages/api/client/fetch/runtime.ts",
+    ).verificationCommands.includes("pnpm verify:generated"),
+  );
+  assert.ok(
+    report(
+      "packages/oauth/client/generated/src/runtime.ts",
     ).verificationCommands.includes("pnpm verify:generated"),
   );
   assert.ok(

@@ -112,61 +112,91 @@ test("whoami scope resolves credentials and binds output", async () => {
   assert.deepEqual(JSON.parse(stdout), PROFILE);
 });
 
-test("whoami transport adapter owns the fixed profile request and projects safe output", async () => {
-  const { createFetchIdentityClient } = await loadScope();
+test("whoami identity adapter consumes a typed profile API and projects safe output", async () => {
+  const { createOAuthIdentityClient } = await loadScope();
   let calls = 0;
-  const profile = await createFetchIdentityClient(
-    "synthetic",
-    async (url, options) => {
+  const client = createOAuthIdentityClient("synthetic", {
+    async getProfile() {
       calls++;
-      assert.equal(url, "https://oauth.iracing.com/oauth2/iracing/profile");
-      assert.equal(options.headers.Authorization, "Bearer synthetic");
-      assert.equal(options.redirect, "error");
-      assert.ok(options.signal);
-      return Response.json({
-        ...PROFILE,
-        access_token: "do-not-print",
-      });
+      return { ...PROFILE, access_token: "do-not-print" };
     },
-  ).getProfile();
-
+  });
+  assert.deepEqual(await client.getProfile(), PROFILE);
   assert.equal(calls, 1);
-  assert.deepEqual(profile, PROFILE);
 });
 
-test("whoami transport adapter preserves actionable status failures", async () => {
-  const { createFetchIdentityClient } = await loadScope();
-  await assert.rejects(
-    createFetchIdentityClient(
-      "synthetic",
-      async () => new Response("private", { status: 403 }),
-    ).getProfile(),
+test("default whoami scope delegates the profile request to the generated OAuth client", async (t) => {
+  const { createWhoamiCommandScopeFactory } = await loadScope();
+  const original = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = original;
+  });
+  let calls = 0;
+  globalThis.fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, "https://oauth.iracing.com/oauth2/iracing/profile");
+    assert.equal(
+      new Headers(options.headers).get("authorization"),
+      "Bearer synthetic",
+    );
+    assert.equal(options.redirect, "error");
+    assert.ok(options.signal);
+    return Response.json({ ...PROFILE, access_token: "do-not-print" });
+  };
+  const scope = await createWhoamiCommandScopeFactory(diagnostics)({
+    accessToken: "synthetic",
+  });
+  assert.deepEqual(await scope.identity.getProfile(), PROFILE);
+  assert.equal(calls, 1);
+});
+
+for (const [label, fetchApi, expected] of [
+  [
+    "HTTP",
+    async () => new Response("private", { status: 403 }),
     /HTTP 403.*iracing.profile.*auth login/,
-  );
-});
-
-test("whoami transport adapter does not expose untrusted errors or response bodies", async () => {
-  const { createFetchIdentityClient } = await loadScope();
-  await assert.rejects(
-    createFetchIdentityClient("synthetic", async () => {
-      throw new Error("private failure");
-    }).getProfile(),
+  ],
+  [
+    "transport",
+    async () => {
+      throw new Error("private transport detail");
+    },
     /network, timeout, or redirect/,
-  );
-  await assert.rejects(
-    createFetchIdentityClient("synthetic", async () =>
-      Response.json({ access_token: "private" }),
-    ).getProfile(),
-    /did not match/,
-  );
-  await assert.rejects(
-    createFetchIdentityClient(
-      "synthetic",
-      async () =>
-        new Response("private", {
-          headers: { "content-type": "text/html" },
-        }),
-    ).getProfile(),
+  ],
+  [
+    "content type",
+    async () =>
+      new Response(JSON.stringify(PROFILE), {
+        headers: { "content-type": "text/html" },
+      }),
     /not JSON/,
-  );
-});
+  ],
+  [
+    "invalid JSON",
+    async () =>
+      new Response("private body", {
+        headers: { "content-type": "application/json" },
+      }),
+    /did not match the expected profile/,
+  ],
+  [
+    "contract",
+    async () =>
+      Response.json({ iracing_cust_id: "private", iracing_name: "Example" }),
+    /did not match the expected profile/,
+  ],
+]) {
+  test(`real OAuth adapter preserves safe whoami diagnostics: ${label}`, async () => {
+    const { createOAuthIdentityClient } = await loadScope();
+    const { OAuthApiClient } = await import("@iracing-data/oauth-client");
+    const client = createOAuthIdentityClient(
+      "synthetic",
+      new OAuthApiClient({ accessToken: "synthetic", fetchApi }),
+    );
+    await assert.rejects(client.getProfile(), (error) => {
+      assert.match(error.message, expected);
+      assert.doesNotMatch(error.message, /private/);
+      return true;
+    });
+  });
+}

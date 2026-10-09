@@ -134,7 +134,7 @@ pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.j
 
 Authenticated commands accept `--credentials <path>` for a JSON or YAML token file containing `access_token`. Credential precedence is explicit `--credentials`, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the shared `.iracing-data/credentials.json`. A selected invalid credential file fails rather than silently using another token. Environment tokens must omit the `Bearer ` prefix. `docs` requires `iracing.auth`, so the dedicated auth-only MCP credential is sufficient when selected explicitly.
 
-`docs` makes exactly one request to `https://members-ng.iracing.com/data/doc`; endpoint links are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. See [capture implementation](src/commands/docs.ts) for the current evidence boundary and schema-validation distinction.
+`docs` makes exactly one request to `https://members-ng.iracing.com/data/doc`; endpoint links are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. See [capture implementation](src/commands/docs/index.ts) for the current evidence boundary and schema-validation distinction.
 
 `--snapshot` adds provenance and a content hash for offline comparison. Choose fresh ignored paths and JSON snapshots for compatibility audits. Network requests refuse redirects and time out after 30 seconds. HTTP 401/403 reports an action to check token expiry, `iracing.auth` scope and account access, then obtain a new token with `auth login`. No tokens or response bodies appear in errors.
 
@@ -201,6 +201,6 @@ Offline unit tests cover OAuth lifecycle, scope selection, callback behavior, an
 
 - [Browser/callback flow](src/authenticate.ts) and [login policy](src/commands/auth/login.ts).
 - [Credential precedence](src/credentials.ts) and [output/durability integration](src/token-output.ts).
-- [Documentation capture](src/commands/docs.ts) and [profile check](src/commands/whoami.ts).
+- [Documentation capture](src/commands/docs.ts) and [profile check](src/commands/whoami/index.ts).
 - [Browser launcher](src/browser.ts) and [diagnostic sink](src/diagnostics.ts).
 - Shared [OAuth lifecycle](../../packages/oauth/client/src/client.ts) and [durable store](../../packages/oauth/client/src/storage/token-document-store.ts).

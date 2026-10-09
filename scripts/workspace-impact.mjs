@@ -9,8 +9,9 @@
  *
  * Explicit generation edges supplement manifest dependencies: Data API schema or
  * mappings affect both OpenAPI formats and all Data API SDKs; OAuth contract edits
- * affect OAuth OpenAPI without a Data API SDK edge. Generator/presentation inputs
- * conservatively affect Data API SDKs. Global npm/toolchain/CI changes affect all
+ * affect OAuth OpenAPI and its generated Fetch client without a Data API SDK edge.
+ * Generator/presentation inputs affect the relevant branch; shared inputs affect
+ * every generated client. Global npm/toolchain/CI changes affect all
  * workspaces; Cargo configuration affects Cargo members. Propagate every internal
  * manifest dependency category to a fixed point, then order selected public,
  * managed candidates dependency-first (including the schema-to-SDK release edge).
@@ -125,9 +126,21 @@ export function analyzeImpact(
   const add = (entry) => {
     if (entry) affected.add(entry.name);
   };
-  const apiClients = workspaces.filter(
+  const generatedClients = workspaces.filter(
     (entry) => entry.kind === "generated-public-client",
   );
+  const oauthClients = generatedClients.filter(
+    (entry) => entry.path === "packages/oauth/client/generated",
+  );
+  const apiClients = generatedClients.filter(
+    (entry) => !oauthClients.includes(entry),
+  );
+  const markGenerated = (entries) => {
+    for (const entry of entries) {
+      add(entry);
+      generated.add(entry.name);
+    }
+  };
   let api = false;
   let oauth = false;
   const global = changedFiles.some((file) =>
@@ -155,15 +168,27 @@ export function analyzeImpact(
       /^(packages\/oauth\/schema\/|packages\/helpers\/oauth-schema-to-openapi\/|openapi\/oauth\.)/.test(
         file,
       );
+
     if (
-      /^scripts\/(openapi-generator|normalize-|client-presentation|generated\.|check-generated)/.test(
+      file === "openapitools.json" ||
+      /^scripts\/(normalize-client-presentation|generated\.|check-generated)/.test(
         file,
-      ) ||
-      file === "openapitools.json"
+      )
     ) {
-      // Planning conservatively includes all SDKs. Release notes can use the
-      // individual template's owner; shared generator/normalizer changes still
-      // affect every SDK. Resolve ownership from the current workspace paths.
+      markGenerated(generatedClients);
+      commands.add("pnpm codegen");
+    } else if (
+      /^scripts\/(openapi-generator-oauth-fetch|oauth-client-presentation\/)/.test(
+        file,
+      )
+    ) {
+      markGenerated(oauthClients);
+      commands.add("pnpm codegen:client:oauth:fetch");
+    } else if (
+      /^scripts\/(openapi-generator-(axios|fetch|rust)|client-presentation\/)/.test(
+        file,
+      )
+    ) {
       const template =
         /^scripts\/client-presentation\/([^/.]+)\.(md|json)$/.exec(file);
       const templateOwners =
@@ -174,11 +199,8 @@ export function analyzeImpact(
                 : path.posix.basename(entry.path) === template[1],
             )
           : [];
-      for (const entry of templateOwners.length ? templateOwners : apiClients) {
-        add(entry);
-        generated.add(entry.name);
-      }
-      commands.add("pnpm codegen");
+      markGenerated(templateOwners.length ? templateOwners : apiClients);
+      commands.add("pnpm codegen:client:api");
     }
   }
   // Release presentation omits global-only maintenance; normal planning remains
@@ -195,22 +217,21 @@ export function analyzeImpact(
   if (api) {
     derived.add("openapi/iracing.json");
     derived.add("openapi/iracing.yaml");
-    for (const entry of apiClients) {
-      add(entry);
-      generated.add(entry.name);
-    }
+    markGenerated(apiClients);
     commands.add("pnpm codegen");
   }
   if (oauth) {
     derived.add("openapi/oauth.json");
     derived.add("openapi/oauth.yaml");
+    markGenerated(oauthClients);
     commands.add(
       "pnpm --filter '@iracing-data/oauth-schema-to-openapi...' build",
     );
     commands.add("pnpm codegen:openapi:oauth");
     commands.add("pnpm codegen:openapi:oauth:yaml");
+    commands.add("pnpm codegen:client:oauth:fetch");
   }
-  for (const entry of apiClients)
+  for (const entry of generatedClients)
     if (direct.has(entry.name)) generated.add(entry.name);
   let previous;
   do {
@@ -242,6 +263,7 @@ export function analyzeImpact(
   const releasable = impacted.filter(
     (entry) => entry.managed && publicKinds.has(entry.kind),
   );
+  const apiClientNames = new Set(apiClients.map((entry) => entry.name));
   return {
     changedFiles,
     globalToolingImpact: global,
@@ -271,7 +293,7 @@ export function analyzeImpact(
       releasable.map((entry) => ({
         ...entry,
         dependencies:
-          api && entry.kind === "generated-public-client"
+          api && apiClientNames.has(entry.name)
             ? [...entry.dependencies, "@iracing-data/api-schema"]
             : entry.dependencies,
       })),

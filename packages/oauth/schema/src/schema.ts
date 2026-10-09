@@ -28,10 +28,14 @@ const EpochSecondsSchema = z.int().nonnegative().brand<"EpochSeconds">();
 
 const IpAddressSchema = z.union([z.ipv4(), z.ipv6()]);
 
-const CommaSeparatedSessionIdsSchema = z.codec(z.string(), z.array(z.uuid()), {
-  decode: (value) => value.split(","),
-  encode: (value) => value.join(","),
-});
+const CommaSeparatedSessionIdsSchema = z.codec(
+  z.string(),
+  z.array(z.string()),
+  {
+    decode: (value) => value.split(","),
+    encode: (value) => value.join(","),
+  },
+);
 
 export const OAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
@@ -377,7 +381,7 @@ export const OAuthSessionSchema = z.object({
   last_ip: IpAddressSchema.nullable(),
   last_continent: z.string().nullable(),
   last_country: z.string().nullable(),
-  last_subdivisions: z.string().nullable(),
+  last_subdivisions: z.string().array().nullable(),
   last_city: z.string().nullable(),
   last_user_agent_header: z.string().nullable(),
   last_user_agent_operating_system: z.string().nullable(),

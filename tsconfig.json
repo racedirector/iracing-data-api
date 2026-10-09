@@ -35,6 +35,9 @@
       "path": "./packages/helpers/oauth-schema-to-openapi"
     },
     {
+      "path": "./packages/oauth/client/generated"
+    },
+    {
       "path": "./packages/oauth/client"
     },
     {

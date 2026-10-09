@@ -79,6 +79,16 @@ jobs:
           cache: pnpm
       - name: Install frozen dependencies
         run: pnpm install --frozen-lockfile
+      - name: Configure Docker Hub cache
+        run: |
+          sudo mkdir -p /etc/docker
+          if [ ! -f /etc/docker/daemon.json ]; then
+            printf '{}\n' | sudo tee /etc/docker/daemon.json > /dev/null
+          fi
+          sudo jq '."registry-mirrors" = (["https://mirror.gcr.io"] + ((."registry-mirrors" // []) - ["https://mirror.gcr.io"]))' /etc/docker/daemon.json > "$RUNNER_TEMP/docker-daemon.json"
+          sudo cp "$RUNNER_TEMP/docker-daemon.json" /etc/docker/daemon.json
+          sudo systemctl restart docker
+          docker info --format '{{json .RegistryConfig.Mirrors}}'
       - name: Verify Docker prerequisites
         run: docker version
       - name: Verify offline Docker persistence and recovery

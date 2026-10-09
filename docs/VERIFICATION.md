@@ -30,6 +30,8 @@ pnpm verify:docker
 
 This additional contract requires a running Linux-container Docker daemon, frozen dependencies, repository Node/pnpm versions, space for image/layer inspection and a POSIX host user with nonzero UID/GID. Linux CI provides Docker; macOS requires Docker Desktop. First builds may download public images and locked npm dependencies.
 
+CI configures the Docker daemon to use [Google’s public Docker Hub cache](https://docs.cloud.google.com/artifact-registry/docs/pull-cached-dockerhub-images) before the build to avoid shared-runner anonymous pull limits. The production Dockerfile retains its pinned image digest, and existing daemon settings are preserved. Cache misses fall back to Docker Hub, so a base-image pull failure still blocks Docker verification; it is not a passing recovery result.
+
 The [recovery harness](../apps/iracing-data-mcp/test/docker/recovery.mjs) owns synthetic production-image, persistence, quarantine, shutdown and stopped-importer scenarios. The [Docker CI job](../.github/workflows/ci.yml) runs the same command. Follow the [local container guide](../apps/iracing-data-mcp/local-container.md) for credential ownership and stopped recovery commands.
 
 Record actual Docker, Node, image and host architecture for each run. Claim platform evidence only for executed builds. Windows ACL semantics, native desktop UI and live upstream authorization require separate evidence. After forced termination or cleanup failure, keep the service stopped and re-login before restart as described in the container guide.

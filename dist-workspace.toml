@@ -9,6 +9,7 @@
 members = [
     "cargo:./crates/iracing-data-api-client/",
     "npm:./packages/oauth/schema/",
+    "npm:./packages/oauth/client/generated/",
     "npm:./packages/oauth/client/",
     "npm:./packages/api/schema/",
     "npm:./packages/api/client/fetch/",

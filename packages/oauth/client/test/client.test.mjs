@@ -587,3 +587,45 @@ test("malformed stored access_token fails before network and allows corrected se
   sessionStore.set("session", valid);
   assert.deepEqual(await client.restoreSessionForId("session"), valid);
 });
+
+test("password-limited exchange preserves configured token path and query parameters", async () => {
+  const endpoint =
+    "https://auth.example/custom/exchange?tenant=a%2Bb&tenant=second";
+  const { client } = setup({
+    tokenUrl: endpoint,
+    username: "fixture",
+    password: "fixture",
+    clientSecret: "fixture",
+  });
+  const issued = token();
+  mockFetch(async (url, options) => {
+    assert.equal(String(url), endpoint);
+    assert.equal(
+      new URLSearchParams(options.body).get("grant_type"),
+      "password_limited",
+    );
+    return json(issued);
+  });
+  assert.deepEqual(await client.passwordLimitedAuthorization(), issued);
+});
+
+test("callback profile lookup preserves configured profile path and query parameters", async () => {
+  const endpoint =
+    "https://auth.example/custom/profile?tenant=a%2Bb&tenant=second";
+  const { client, sessionStore } = setup({ userInfoUrl: endpoint });
+  const { state } = await client.authorize();
+  const issued = token();
+  let calls = 0;
+  mockFetch(async (url, options) => {
+    if (++calls === 1) return json(issued);
+    assert.equal(String(url), endpoint);
+    assert.equal(
+      new Headers(options.headers).get("authorization"),
+      `Bearer ${issued.access_token}`,
+    );
+    return json({ iracing_cust_id: 42, iracing_name: "Example" });
+  });
+  await client.callback(new URLSearchParams({ state, code: "fixture-code" }));
+  assert.equal(calls, 2);
+  assert.deepEqual(sessionStore.get("42"), issued);
+});

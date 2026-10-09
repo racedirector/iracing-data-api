@@ -1,8 +1,10 @@
 /**
  * Authored reusable OAuth lifecycle service over oauth4webapi and stores.
  *
- * Current main owns request composition here; OAuth OpenAPI does not generate this
- * runtime. State/PKCE creation and callback validation consume stored state before
+ * OAuth OpenAPI generates the wire client, not this lifecycle runtime. Generated
+ * operations own password-grant and profile requests; oauth4webapi retains protocol
+ * exchange and processing. State/PKCE creation and callback validation consume
+ * stored state before
  * token exchange to prevent replay. An explicit callback session key skips profile
  * lookup; without one, profile access supplies the customer-ID storage key.
  *
@@ -29,9 +31,9 @@ import {
   OAuthTokenResponseSchema,
   OAuthTokenResponse,
   OAuthPasswordLimitedGrantParametersSchema,
-  OAuthProfileResponseSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
+import { OAuthApiClient, type OAuthApiClientFactory } from "./api-client";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
 import {
@@ -65,6 +67,10 @@ export type OAuthClientOptions = {
   // Stores
   stateStore: StateStore;
   sessionStore: SessionStore;
+
+  // Low-level iRacing OAuth API dependency. The default uses the generated
+  // wire client while tests or applications may inject a compatible boundary.
+  createOAuthApi?: OAuthApiClientFactory;
 };
 
 /**
@@ -77,6 +83,7 @@ export class OAuthClient {
   private readonly clientMetadata: IRacingOAuthClientMetadata;
   private readonly stateStore: StateStore;
   private readonly sessionStore: SessionStore;
+  private readonly createOAuthApi: OAuthApiClientFactory;
   private readonly sessionRefreshes = new Map<
     string,
     Promise<OAuthTokenResponse>
@@ -89,7 +96,7 @@ export class OAuthClient {
   /**
    * Creates an OAuth client configured for the iRacing authorization servers.
    *
-   * @param options - Client metadata and storage backends used by the client.
+   * @param options - Client metadata, storage backends, and low-level API composition used by the client.
    * @throws {Error} If the client metadata does not match the expected schema.
    */
   constructor(options: OAuthClientOptions) {
@@ -99,6 +106,9 @@ export class OAuthClient {
       IRacingOAuthClientMetadataSchema.parse(clientMetadata);
     this.stateStore = stateStore;
     this.sessionStore = sessionStore;
+    this.createOAuthApi =
+      options.createOAuthApi ??
+      ((apiOptions) => new OAuthApiClient(apiOptions));
 
     this.authorizationServer = {
       issuer: this.clientMetadata.issuer,
@@ -200,21 +210,15 @@ export class OAuthClient {
         scope: scopes.join(" "),
       });
 
-    const requestParams = new URLSearchParams(requestParameters);
+    // The generated OAuth API client owns token-endpoint wire mechanics. The
+    // protocol library still processes the response so OAuth response
+    // semantics remain centralized in oauth4webapi.
+    const response = await this.createOAuthApi({
+      // Endpoint overrides are routing policy; the generated operation still
+      // owns headers, form serialization, and request construction.
+      fetchApi: (_input, init) => fetch(this.clientMetadata.tokenUrl, init),
+    }).exchangeTokenRaw(requestParameters);
 
-    /**
-     * !!!: Manually send the request to the token endpoint because `oauth4webapi` doesn't expose
-     * a public token request endpoint function.
-     */
-    const response = await fetch(this.clientMetadata.tokenUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-      },
-      body: requestParams,
-    });
-
-    // Check the response as if it were any other oauth4webapi request for sanity.
     const result = await oauth.processAuthorizationCodeResponse(
       this.authorizationServer,
       this.authorizationClient,
@@ -306,17 +310,13 @@ export class OAuthClient {
     }
 
     /**
-     * Without an application-owned session key, fetch the configured user profile
-     * so the iRacing customer ID can be used for session caching.
+     * Without an application-owned session key, use the maintained OAuth API
+     * client to fetch the user profile and cache by iRacing customer ID.
      */
-    const profileResponse = await oauth.protectedResourceRequest(
-      token.access_token,
-      "GET",
-      new URL(this.clientMetadata.userInfoUrl),
-    );
-
-    const profileJson = await profileResponse.json();
-    const profile = await OAuthProfileResponseSchema.parseAsync(profileJson);
+    const profile = await this.createOAuthApi({
+      accessToken: token.access_token,
+      fetchApi: (_input, init) => fetch(this.clientMetadata.userInfoUrl, init),
+    }).getProfile();
 
     await this.storeSession(profile.iracing_cust_id.toString(), token);
 
