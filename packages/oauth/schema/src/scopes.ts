@@ -1,3 +1,13 @@
+/**
+ * Shared OAuth scope representation, separate from application scope policy.
+ *
+ * schema.ts owns allowed individual scope literals. This module owns a nonempty
+ * validated list and its whitespace-string codec; encoding preserves list order.
+ * The wire string schema and decoded list have different acceptance boundaries.
+ * A consumer must not infer that every string is a supported application scope set;
+ * CLI login and MCP enforce their own narrower resource/profile requirements.
+ * Do not copy their default scope selection into this reusable representation.
+ */
 import { z } from "zod";
 import { OAuthScopesSchema, OAuthScopesStringSchema } from "./schema";
 

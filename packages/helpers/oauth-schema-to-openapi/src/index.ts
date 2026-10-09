@@ -1,3 +1,19 @@
+/**
+ * Authored OAuth endpoint/document mapping over maintained wire schemas.
+ *
+ * The schema package owns shapes/literals/descriptions; this module owns paths,
+ * operation IDs, placement/content types, headers, security and response mapping.
+ * Their combination is the maintained contract, not upstream compatibility evidence.
+ * Preserve stable operation/schema IDs and investigate official evidence for changes.
+ *
+ * Import exports one in-memory document without logging or filesystem mutation.
+ * cli.ts owns JSON/YAML serialization and writes from that same document. Build
+ * this helper's dependencies first so codegen reads current compiled schemas.
+ * Current main has no OAuth generated-wire workspace: the runtime client is authored
+ * and Data API SDK generation reads iracing.json only. Reconcile any delivered wire
+ * client architecture before adding a new generation edge; never infer it from an
+ * unmerged PR. Generated OpenAPI output must not be hand-edited.
+ */
 import {
   OAuthErrorResponseSchema,
   OAuthAuthorizeParametersSchema,

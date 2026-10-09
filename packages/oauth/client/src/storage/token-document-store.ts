@@ -1,3 +1,28 @@
+/**
+ * Secure bare OAuthTokenResponse document and single-key durable SessionStore.
+ *
+ * The on-disk document is compatible with CLI JSON credential output, not a generic
+ * key/value envelope. Missing documents return undefined; corrupt, unsafe, oversized
+ * or unreadable state fails distinctly. Validate full token shape and a bounded
+ * serialized size. On POSIX the credential directory must be current-user-owned
+ * 0700, and the document a regular non-symlink current-user-owned 0600 file.
+ * Windows APIs do not establish equivalent ownership/mode security; host ACLs apply.
+ *
+ * Writes use an exclusive same-directory temporary file, file fsync, link or rename
+ * publication, and parent-directory fsync. Required directory durability is default;
+ * best-effort is an explicit portability choice, not Linux crash-durability evidence.
+ * A failure after rename may have published replacement bytes: never assume rollback
+ * to the previous refresh token is safe. Removal also syncs directory state.
+ *
+ * The store accepts one configured key, loads once and serializes local mutations.
+ * Publish in-memory state only after successful durable mutation; load/mutation
+ * failure quarantines this instance so later operations cannot reuse stale state.
+ * Repair requires a new instance after underlying credential state is repaired.
+ * There is no distributed/process lock, file watch, replica coordination or hot
+ * replacement. One owner per directory is an operational prerequisite. Backups of
+ * consumed refresh tokens are not recovery credentials. Error causes/paths are
+ * internal diagnostics data, not safe outward messages.
+ */
 import { randomUUID } from "node:crypto";
 import {
   chmod,
