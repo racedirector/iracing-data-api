@@ -1,6 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
-import { Diagnostics } from "../../diagnostics.js";
-import { createLoginCommand } from "./login.js";
+import { createLoginCommand } from "./login/index.js";
+import type { Diagnostics } from "../../diagnostics.js";
 
 interface CreateAuthCommandOptions {
   diagnostics: Diagnostics;

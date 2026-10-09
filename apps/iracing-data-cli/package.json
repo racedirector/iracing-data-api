@@ -14,6 +14,7 @@
     "test": "pnpm build && node --test test/*.test.cjs"
   },
   "dependencies": {
+    "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "commander": "^15.0.0",
     "yaml": "^2.9.1"

@@ -1,127 +1,161 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const load = () => import("../dist/commands/whoami.js");
-const loadOAuth = () => import("@iracing-data/oauth-client");
 
-test("checks active credentials through the OAuth API dependency", async () => {
-  const { whoami } = await load();
-  let calls = 0;
-  const result = await whoami(
-    { accessToken: "synthetic" },
-    {
-      createOAuthApi(accessToken) {
-        assert.equal(accessToken, "synthetic");
+const diagnostics = { info() {}, warn() {}, error() {} };
+const PROFILE = { iracing_cust_id: 42, iracing_name: "Example User" };
+const loadCommand = () => import("../dist/commands/whoami/command.js");
+const loadScope = () => import("../dist/commands/whoami/scope.js");
+
+test("whoami module owns scope composition", async () => {
+  const { createWhoamiCommand } =
+    await import("../dist/commands/whoami/index.js");
+  let stdout = "";
+  let token;
+  const command = createWhoamiCommand({
+    diagnostics,
+    dependencies: {
+      async resolveAccessToken(options) {
+        assert.equal(options.credentials, "alternate.json");
+        return "override";
+      },
+      createIdentityClient(accessToken) {
+        token = accessToken;
         return {
           async getProfile() {
-            calls++;
-            return {
-              iracing_cust_id: 42,
-              iracing_name: "Example User",
-              access_token: "do-not-print",
-            };
+            return PROFILE;
           },
         };
       },
+      writeStdout(value) {
+        stdout += value;
+      },
     },
-  );
-
-  assert.equal(calls, 1);
-  assert.deepEqual(result, {
-    iracing_cust_id: 42,
-    iracing_name: "Example User",
   });
+
+  await command.parseAsync(["--credentials", "alternate.json"], {
+    from: "user",
+  });
+
+  assert.equal(token, "override");
+  assert.deepEqual(JSON.parse(stdout), PROFILE);
 });
 
-test("uses credential overrides and reports actionable auth failures", async () => {
-  const { whoami } = await load();
-  const { OAuthApiHttpError } = await loadOAuth();
-
-  await assert.rejects(
-    whoami(
-      {
-        credentials: "alternate.json",
-        accessToken: "environment",
-        readCredentials: async () => '{"access_token":"override"}',
-      },
-      {
-        createOAuthApi(accessToken) {
-          assert.equal(accessToken, "override");
-          return {
-            async getProfile() {
-              throw new OAuthApiHttpError(
-                new Response("private failure", { status: 403 }),
-              );
-            },
-          };
+test("whoami command resolves one invocation scope and executes the command body", async () => {
+  const { createWhoamiCommand } = await loadCommand();
+  const events = [];
+  const command = createWhoamiCommand({
+    async createScope(options) {
+      events.push("scope");
+      assert.equal(options.credentials, "alternate.json");
+      return {
+        identity: {
+          async getProfile() {
+            events.push("profile");
+            return PROFILE;
+          },
         },
-      },
-    ),
-    /HTTP 403.*iracing.profile.*auth login/,
-  );
+        output: {
+          write(profile) {
+            events.push("output");
+            assert.deepEqual(profile, PROFILE);
+          },
+        },
+        diagnostics: {
+          ...diagnostics,
+          info(message) {
+            events.push(message);
+          },
+        },
+      };
+    },
+  });
+
+  await command.parseAsync(["--credentials", "alternate.json"], {
+    from: "user",
+  });
+
+  assert.deepEqual(events, [
+    "scope",
+    "profile",
+    "output",
+    "iRacing identity verified.",
+  ]);
 });
 
-test("does not log untrusted errors or response bodies", async () => {
-  const { whoami } = await load();
-  const { OAuthApiContractError } = await loadOAuth();
-
-  await assert.rejects(
-    whoami(
-      { accessToken: "synthetic" },
-      {
-        createOAuthApi() {
-          return {
-            async getProfile() {
-              throw new OAuthApiContractError(
-                "OAuth API request failed before a response was received: Error",
-                "transport",
-              );
-            },
-          };
+test("whoami scope resolves credentials and binds output", async () => {
+  const { createWhoamiCommandScopeFactory } = await loadScope();
+  let token;
+  let stdout = "";
+  const createScope = createWhoamiCommandScopeFactory(diagnostics, {
+    async resolveAccessToken(options) {
+      assert.equal(options.credentials, "alternate.json");
+      return "override";
+    },
+    createIdentityClient(accessToken) {
+      token = accessToken;
+      return {
+        async getProfile() {
+          return PROFILE;
         },
-      },
-    ),
-    /network, timeout, or redirect/,
-  );
+      };
+    },
+    writeStdout(value) {
+      stdout += value;
+    },
+  });
 
-  await assert.rejects(
-    whoami(
-      { accessToken: "synthetic" },
-      {
-        createOAuthApi() {
-          return {
-            async getProfile() {
-              throw new OAuthApiContractError(
-                "OAuth API response did not match the maintained contract.",
-              );
-            },
-          };
-        },
-      },
-    ),
-    /did not match/,
-  );
+  const scope = await createScope({ credentials: "alternate.json" });
+  const profile = await scope.identity.getProfile();
+  scope.output.write(profile);
 
-  await assert.rejects(
-    whoami(
-      { accessToken: "synthetic" },
-      {
-        createOAuthApi() {
-          return {
-            async getProfile() {
-              throw new OAuthApiContractError(
-                "OAuth API response was not JSON.",
-                "not_json",
-              );
-            },
-          };
-        },
-      },
-    ),
-    /not JSON/,
-  );
+  assert.equal(token, "override");
+  assert.deepEqual(JSON.parse(stdout), PROFILE);
+});
+
+test("whoami identity adapter consumes a typed profile API and projects safe output", async () => {
+  const { createOAuthIdentityClient } = await loadScope();
+  let calls = 0;
+  const client = createOAuthIdentityClient("synthetic", {
+    async getProfile() {
+      calls++;
+      return { ...PROFILE, access_token: "do-not-print" };
+    },
+  });
+  assert.deepEqual(await client.getProfile(), PROFILE);
+  assert.equal(calls, 1);
+});
+
+test("default whoami scope delegates the profile request to the generated OAuth client", async (t) => {
+  const { createWhoamiCommandScopeFactory } = await loadScope();
+  const original = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = original;
+  });
+  let calls = 0;
+  globalThis.fetch = async (url, options) => {
+    calls++;
+    assert.equal(url, "https://oauth.iracing.com/oauth2/iracing/profile");
+    assert.equal(
+      new Headers(options.headers).get("authorization"),
+      "Bearer synthetic",
+    );
+    assert.equal(options.redirect, "error");
+    assert.ok(options.signal);
+    return Response.json({ ...PROFILE, access_token: "do-not-print" });
+  };
+  const scope = await createWhoamiCommandScopeFactory(diagnostics)({
+    accessToken: "synthetic",
+  });
+  assert.deepEqual(await scope.identity.getProfile(), PROFILE);
+  assert.equal(calls, 1);
 });
 
 for (const [label, fetchApi, expected] of [
+  [
+    "HTTP",
+    async () => new Response("private", { status: 403 }),
+    /HTTP 403.*iracing.profile.*auth login/,
+  ],
   [
     "transport",
     async () => {
@@ -132,7 +166,7 @@ for (const [label, fetchApi, expected] of [
   [
     "content type",
     async () =>
-      new Response('{"iracing_cust_id":42,"iracing_name":"Example"}', {
+      new Response(JSON.stringify(PROFILE), {
         headers: { "content-type": "text/html" },
       }),
     /not JSON/,
@@ -153,21 +187,16 @@ for (const [label, fetchApi, expected] of [
   ],
 ]) {
   test(`real OAuth adapter preserves safe whoami diagnostics: ${label}`, async () => {
-    const { whoami } = await load();
-    const { OAuthApiClient } = await loadOAuth();
-    await assert.rejects(
-      whoami(
-        { accessToken: "synthetic" },
-        {
-          createOAuthApi: (accessToken) =>
-            new OAuthApiClient({ accessToken, fetchApi }),
-        },
-      ),
-      (error) => {
-        assert.match(error.message, expected);
-        assert.doesNotMatch(error.message, /private/);
-        return true;
-      },
+    const { createOAuthIdentityClient } = await loadScope();
+    const { OAuthApiClient } = await import("@iracing-data/oauth-client");
+    const client = createOAuthIdentityClient(
+      "synthetic",
+      new OAuthApiClient({ accessToken: "synthetic", fetchApi }),
     );
+    await assert.rejects(client.getProfile(), (error) => {
+      assert.match(error.message, expected);
+      assert.doesNotMatch(error.message, /private/);
+      return true;
+    });
   });
 }
