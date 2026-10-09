@@ -70,8 +70,8 @@ function mapDocumentationError(error: unknown): Error {
  *
  * This is intentionally command-scoped manual composition: resolve invocation
  * credentials and output policy once, construct the generated client once, and expose
- * only the capabilities the command implementation requires. A future DI framework
- * can replace this factory without changing `runDocsCommand()`.
+ * only the capabilities the command handler requires. A future DI framework can
+ * replace this factory without changing the command module's public registration API.
  */
 export function createDocsCommandScopeFactory(
   diagnostics: Diagnostics,
