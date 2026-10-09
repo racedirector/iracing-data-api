@@ -1,3 +1,21 @@
+/**
+ * Authenticated Data API documentation capture command.
+ *
+ * Resolve output format and a single selected access token before capture. The
+ * current private CLI imports the root evidence script by URL; that existing bridge
+ * owns fixed-source single-fetch, timeout, redirect rejection, normalization/redaction
+ * and provenance. It is not a reusable generated-client transport boundary. When
+ * capture ownership is replaced, retire this bridge and document its actual owner
+ * rather than preserving the root abstraction as a permanent architectural API.
+ *
+ * Capture once, without following method links or validating evidence against a
+ * potentially stale maintained response schema. --snapshot returns the normalized
+ * content/provenance/hash envelope; normal mode returns content only. File output
+ * uses token-output.ts's generic private writer and leaves stdout empty; normal
+ * stdout is only documentation data. HTTP 401/403 adds token/scope/account recovery
+ * advice without exposing tokens or response bodies. Offline structural comparison
+ * is separate and cannot infer complete runtime response compatibility.
+ */
 import { Command } from "@commander-js/extra-typings";
 import { resolveAccessToken, type CredentialOptions } from "../credentials.js";
 import {

@@ -1,3 +1,9 @@
+/**
+ * CLI diagnostic channel. Default output is stderr; stdout belongs to command
+ * data. This small sink does not sanitize arbitrary exception strings: command
+ * boundaries must choose safe text and never pass raw token/response/error dumps.
+ * Authorization URLs may be printed for explicit manual browser completion.
+ */
 export type Diagnostics = {
   info(message: string): void;
   warn(message: string): void;

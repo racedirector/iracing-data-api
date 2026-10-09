@@ -1,3 +1,24 @@
+/**
+ * CLI serialization/output policy over shared OAuth persistence primitives.
+ *
+ * Explicit format wins; otherwise .yaml/.yml select YAML and all other paths select
+ * JSON. Login chooses a destination so successful login stdout stays empty; generic
+ * writers can emit serialized data to stdout when no destination is supplied.
+ * Alternate destinations refuse replacement without force; shared login destinations
+ * normally request overwrite. Relative destinations resolve against the selected cwd.
+ *
+ * JSON token output validates and delegates to the OAuth token-document writer in
+ * packages/oauth/client/src/storage/token-document-store.ts. It owns secure path,
+ * size, atomic publication and required directory-fsync semantics. The CLI explicitly
+ * chooses best-effort directory durability on Windows, where host ACLs replace POSIX
+ * mode guarantees. Do not copy the durable-store implementation into this module.
+ *
+ * YAML tokens and documentation use the generic writer: exclusive same-directory
+ * temporary file, file sync and link/rename publication with cleanup. That writer
+ * does not provide the JSON token store's full validation or parent-directory sync
+ * contract. All token documents contain secrets; raw causes must not be logged by
+ * command diagnostics. Output is data, not a diagnostic channel.
+ */
 import path from "node:path";
 import {
   oauthTokenDocumentFileSystem,
