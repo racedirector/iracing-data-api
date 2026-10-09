@@ -1,3 +1,18 @@
+/**
+ * Lazy race-history continuation over one validated upstream manifest.
+ *
+ * Search binds one customer, forced race event type, range and local track filters.
+ * Manifest/file/row order is retained; subsession_id order is a proxy, not a promised
+ * chronological sort. source_total counts manifest rows before local filtering;
+ * complete means fully scanned snapshot, not complete historical account coverage.
+ *
+ * A page scans at most four distinct chunks; an empty filtered page can still have
+ * a next cursor. Immutable offsets and cached/pending replay provide deterministic
+ * concurrent retries; failed/canceled pages do not advance. Expiry/generation and
+ * cache 403/404 discard the snapshot without silent restart or cross-snapshot mixing.
+ * Gateway manifests/chunks and cursor/replay reservations share account caps. Results
+ * do not establish driver finishes; selected race details are separate bounded calls.
+ */
 import { randomBytes } from "node:crypto";
 import { z } from "zod";
 import { parse } from "../gateway/parsers.js";

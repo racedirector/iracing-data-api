@@ -1,3 +1,13 @@
+/**
+ * Application acceptance boundary for upstream Data API/cache payloads.
+ *
+ * Maintained public schemas are reused where applicable; app-local schemas narrow
+ * only the payloads this gateway projects. Envelope, manifest and parameter-echo
+ * validation prevents contradictory counts or query identity from being treated as
+ * a coherent snapshot. Optional echoes may be absent. Structural fixture success
+ * is not evidence of complete live upstream response coverage. Parsing failures
+ * are projected as fixed DATA_RESOLUTION_FAILED errors, never raw Zod input.
+ */
 import {
   APIResponseSchema,
   ConstantsResponseSchema,

@@ -124,9 +124,8 @@ docker run --rm --network none --read-only --user "$IRACING_MCP_UID:$IRACING_MCP
   "iracing-data-mcp:$IRACING_MCP_IMAGE_TAG" dist/import-main.js /import/credentials.json
 ```
 
-The narrow helper validates the existing shared wire document/ownership and uses
-the shared atomic durable writer; it constructs no OAuth client and cannot
-refresh. The stopped acknowledgement is an operator prerequisite, not a lock.
+See [the stopped importer](src/import-credentials.ts) for validation and shared
+durable-writer ownership. The stopped acknowledgement is an operator prerequisite, not a lock.
 After successful import, remove the host staging credential while stopped so it
 cannot become a second refreshing owner. Replace Compose's data `volumes` entry
 with `type: volume`, `source: iracing-data-mcp`, the same target, and add top-level
@@ -177,15 +176,8 @@ review and refresh it with dependency updates. Corepack in the build stage uses
 the exact pnpm version/integrity in the root `packageManager`; the runtime removes
 package-manager binaries and ships app dist with production dependencies only.
 
-Shutdown also closes the process credential owner after bounded HTTP drain. If a
-refresh grant was submitted but its replacement was not durably committed, the
-owner records a safe `shutdown` / `TOKEN_REFRESH_FAILED` diagnostic, invalidates
-retained account data and removes the uncertain credential before production
-exit. Late grant results cannot restore ready state; publications already underway
-are checked after completion and removal is attempted when the owner is terminal.
-Failed cleanup requires stopped re-login. A clean completed rotation is retained;
-a structured nonconsuming OAuth transient rejection also preserves the old
-credential. Repeat shutdown signals share one owner cleanup.
+The [HTTP boundary](src/http.ts) and [session owner](src/session.ts) document drain,
+rotation quarantine and late-result handling. Operator recovery follows below.
 
 If credential deletion cannot be confirmed, shutdown exits **nonzero** and tells
 you to keep the service stopped and repair/re-login before restarting. Do not

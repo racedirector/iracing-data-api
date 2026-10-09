@@ -1,3 +1,8 @@
+/**
+ * Executable startup boundary. Production owns configuration and lifetimes;
+ * this entry point projects startup failure to fixed remediation text and nonzero
+ * exit status. Raw configuration, filesystem and credential exceptions stay private.
+ */
 import { startProduction } from "./production.js";
 
 void startProduction().catch(() => {

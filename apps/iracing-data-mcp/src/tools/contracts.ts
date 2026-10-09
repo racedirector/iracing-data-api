@@ -1,3 +1,14 @@
+/**
+ * Authored MCP input/projection contracts, distinct from public wire schemas.
+ *
+ * Strict inputs reject unknown keys, numeric strings and cursor/filter mixtures.
+ * Projection schemas allowlist returned fields and normalize unavailable optional
+ * values to null. These declarations own page/input bounds, calendar/date/week and
+ * position conventions; generated Data API models remain upstream wire ownership.
+ * Changing required inputs, ordering/basis, completeness or retryability requires
+ * explicit application compatibility review and fixture migration. Tool version
+ * 0.0.0 is private and supplies no published stable-version guarantee.
+ */
 import { z } from "zod";
 
 export const Id = z.number().int().positive().max(Number.MAX_SAFE_INTEGER);

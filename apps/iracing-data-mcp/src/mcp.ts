@@ -1,3 +1,12 @@
+/**
+ * Request-scoped MCP server factory over process-scoped services.
+ *
+ * Explicit registrar collections bind the current tools to injected shared owners.
+ * A fresh SDK server borrows OAuth/gateway capabilities; it does not own credential
+ * restoration, cursor lifetime or process shutdown. identity-content.ts currently
+ * owns the common execution wrapper and gateway-keyed cursor WeakMaps. Keep
+ * registration explicit and preserve the existing tool protocol during extraction.
+ */
 import {
   McpServer,
   ProtocolError,
