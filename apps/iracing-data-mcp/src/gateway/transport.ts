@@ -1,3 +1,14 @@
+/**
+ * Transport mechanism for the gateway's fixed upstream policy.
+ *
+ * DNS is resolved for each request, every answer is vetted and the first address
+ * is pinned for the socket while TLS validates the original hostname. There is
+ * no proxy/environment agent, cookie jar, redirect following or connection reuse.
+ * The gateway chooses authorization headers; cache downloads must remain isolated
+ * from API bearer headers. Decoding precedes gateway byte accounting, so compressed
+ * payloads cannot bypass decoded-size limits. This transport deliberately leaves
+ * URL/status/time/size policy to its caller and propagates abort/body errors.
+ */
 import { lookup } from "node:dns/promises";
 import { request } from "node:https";
 import { isIP } from "node:net";

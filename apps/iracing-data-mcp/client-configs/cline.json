@@ -1,0 +1,10 @@
+{
+  "mcpServers": {
+    "iracing-data": {
+      "type": "streamableHttp",
+      "url": "http://127.0.0.1:3000/mcp",
+      "disabled": false,
+      "autoApprove": []
+    }
+  }
+}

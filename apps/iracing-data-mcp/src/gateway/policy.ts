@@ -1,3 +1,17 @@
+/**
+ * Upstream security policy and bounds, shared by gateway resolution.
+ *
+ * Only the maintained HTTPS API origin and explicit cache hosts are permitted.
+ * Cache paths reject traversal/ambiguous encoding before URL normalization can
+ * hide it; chunk filenames must resolve within a validated cache directory.
+ * DNS addresses must be publicly routed. transport.ts pins the vetted address
+ * while preserving original-host TLS verification, preventing a second resolution
+ * from bypassing policy. Redirects and unsafe links must fail, never widen access.
+ *
+ * The declarations below are the canonical resource limits. Limits bound work and
+ * retention, not latency guarantees. Signed cache URLs and upstream credentials
+ * are internal data and must never enter tool output or diagnostics.
+ */
 import { BlockList, isIP } from "node:net";
 import { ApplicationFailure } from "../diagnostics/errors.js";
 

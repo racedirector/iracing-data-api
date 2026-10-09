@@ -1,3 +1,12 @@
+/**
+ * Safe stderr diagnostics by projection, rather than string scrubbing.
+ *
+ * Only declared enum/numeric fields survive; arbitrary messages, paths, names,
+ * headers, tokens, bodies and URLs do not. Read own data properties without invoking
+ * getters or toJSON on exceptions. Fixed failure envelopes and application request
+ * IDs correlate support reports without disclosing upstream data. Logging is not
+ * a token/output channel; stdout belongs to protocol or command results.
+ */
 import { z } from "zod";
 import {
   ApplicationErrorCodeSchema,

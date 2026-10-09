@@ -1,3 +1,14 @@
+/**
+ * Opaque continuation over retained projected collections.
+ *
+ * Snapshots bind tool/filter identity, account generation, initial limit and offset.
+ * TTL is fixed at creation or earlier known upstream expiry; paging cannot extend
+ * it. Successful replay returns the same page/token, including concurrent replay.
+ * Only projected rows are retained; source_total is the post-filter collection size.
+ * Generation changes/restart invalidate cursors. Shared retention includes snapshots
+ * and cached replay results, and completeResult counts both JSON text and structured
+ * copies toward the serialized result cap. Capacity failure is not partial success.
+ */
 import { randomBytes } from "node:crypto";
 import { ApplicationFailure } from "../diagnostics/errors.js";
 import { RetentionBudget } from "../retention.js";

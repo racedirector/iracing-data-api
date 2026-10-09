@@ -59,6 +59,8 @@ Build the contract matrix described in the audit method. Compare the live contra
 4. tests and fixtures; and
 5. package docs and examples.
 
+For implementation invariants, descend directly to [client lifecycle/processing](../../../packages/oauth/client/src/client.ts), [durable storage](../../../packages/oauth/client/src/storage/token-document-store.ts), [wire schemas](../../../packages/oauth/schema/src/schema.ts) and [OpenAPI mapping](../../../packages/helpers/oauth-schema-to-openapi/src/index.ts). Audit these owners; do not copy their architecture into a skill or treat the captured book as an implementation specification.
+
 Do not equate matching names with compatibility. Test conditional requirements, casing, URL/form encoding, absent versus `null`, forward-compatible server values, rotation/reuse, and information preserved in errors. Inspect third-party boundary helpers when they may normalize or validate data before repository code sees it. Distinguish the raw wire contract from normalized dependency output, request acceptance from response acceptance, and decoded-JWT convenience APIs from core token handling.
 
 For each discrepancy, explicitly assign ownership to **schema package**, **client package**, **both**, or **tests/docs only**. A documented feature outside the library's apparent responsibility is not automatically a bug.

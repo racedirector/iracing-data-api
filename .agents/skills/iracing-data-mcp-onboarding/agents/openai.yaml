@@ -1,0 +1,4 @@
+interface:
+  display_name: "iRacing Data MCP Onboarding"
+  short_description: "Set up, authenticate, verify, and connect the local MCP"
+  default_prompt: "Use $iracing-data-mcp-onboarding to inspect this checkout and host, prepare the local development environment, guide me through the required OAuth/browser steps without exposing secrets, start the MCP through the canonical local workflow, verify it, and help connect my MCP client."

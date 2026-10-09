@@ -1,3 +1,19 @@
+/**
+ * CLI login option and credential-lifecycle policy.
+ *
+ * Only ordered iracing.auth or iracing.auth iracing.profile scope selections are
+ * accepted; the latter is default. Scope mechanics belong to shared OAuth schemas,
+ * browser/callback lifecycle to authenticate.ts. Explicit output or credentials
+ * wins over the scope-specific default and they are mutually exclusive. Auth-only
+ * login chooses the MCP document; normal login chooses the general CLI document.
+ * Default shared output must remain JSON; explicit destinations can select YAML.
+ *
+ * Shared credentials are updated on subsequent logins, while alternate --output
+ * requires --force for replacement. Persistence completes before success diagnostics;
+ * login never emits tokens to stdout. Separate paths prevent accidental shared refresh
+ * ownership but do not enforce a cross-process lock: stop MCP before replacing its
+ * credentials and never copy an already rotating grant into independent owners.
+ */
 import { Command } from "@commander-js/extra-typings";
 import {
   OAuthScopeListCodec,

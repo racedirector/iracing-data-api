@@ -4,7 +4,11 @@ Inherits [root guidance](../AGENTS.md). JSON and YAML here are derived artifacts
 
 ## Canonical inputs
 
-Zod schemas supply shapes and inferred types. The corresponding helper's `src` supplies authored paths, operation IDs, response mappings, security, and document metadata. Both inputs matter: the schema alone is not the entire OpenAPI contract. Correct the owning input and preserve stable public operation IDs unless the change intentionally breaks generated client APIs.
+Inspect the [Data API document owner](../packages/helpers/api-schema-to-openapi/src/index.ts)
+or [OAuth document owner](../packages/helpers/oauth-schema-to-openapi/src/index.ts) and their
+imported schemas. Those inputs own shapes, endpoint mapping and description provenance.
+Preserve public operation IDs deliberately. [Freshness orchestration](../scripts/check-generated.mjs)
+owns generation ordering and replacement boundaries.
 
 ## Regeneration from the repository root
 

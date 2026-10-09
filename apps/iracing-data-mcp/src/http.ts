@@ -1,3 +1,23 @@
+/**
+ * HTTP and Streamable HTTP boundary for the local application.
+ *
+ * One listener shares application admission state and McpServices. Each accepted
+ * MCP POST constructs a fresh SDK server/transport; request finalization closes
+ * both, including disconnect and deadline paths. Request abort signals and call
+ * budgets must remain local to the operation, never captured by process owners.
+ *
+ * Host and optional Origin are checked against exact allowlists before MCP work.
+ * Uploads are bounded before parsing or SDK construction; protocol failures use
+ * fixed text. Tool admission, deadlines and drain limits are declared below.
+ * Health/initialize/listing remain available without valid upstream credentials;
+ * liveness does not establish account access. This unauthenticated loopback MCP
+ * boundary assumes trusted local users and cannot protect against a malicious
+ * same-user process. iRacing tokens are not MCP bearer credentials.
+ *
+ * Shutdown stops admission, drains or cancels bounded HTTP work, then invokes the
+ * credential owner's shutdown hook. Cleanup failure must remain observable as a
+ * nonzero production exit; forced termination cannot guarantee durable quarantine.
+ */
 import { createServer, type IncomingMessage } from "node:http";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {

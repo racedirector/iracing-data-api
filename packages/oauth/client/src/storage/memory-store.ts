@@ -1,3 +1,12 @@
+/**
+ * Process-local generic map for state/session injection and offline fixtures.
+ *
+ * Values are kept by reference until mutation or process loss; there is no durable
+ * publication, expiry enforcement, token validation or cross-owner coordination.
+ * OAuthClient owns state consumption and same-instance refresh single-flight. This
+ * store does not provide an external lock or security boundary by implementing the
+ * same interface as durable stores.
+ */
 import type { GetOptions, Key, SimpleStore, Value } from "./index";
 
 /**

@@ -1,3 +1,24 @@
+/**
+ * Canonical fail-fast local/CI verification plan; focused entrypoints select the
+ * same subsystem plans rather than implementing weaker parallel contracts.
+ *
+ * Workspace policy selects builds by classification and pnpm builds dependency
+ * closures. Tests run only where declared; examples compile without live grants.
+ * Repository checks establish topology, tooling regressions and authored style.
+ * Generated checks regenerate temporarily, compare freshness, then build SDKs
+ * before offline wire tests. Rust uses pinned, locked all-feature workspace
+ * checks; clippy reports the configured warning policy without inventing a stricter
+ * generator policy. Frozen pnpm installation remains the caller's prerequisite.
+ *
+ * Plans execute in order and preserve a failing command's exit status. Missing
+ * tools fail; no subsystem silently skips. Credentials, accounts and running
+ * services are unnecessary. Synthetic protocol fixtures demonstrate local
+ * behavior, not current upstream compatibility or JWT signature validity.
+ * Docker recovery is a separate explicit service-dependent contract in CI;
+ * its harness owns image/persistence coverage, not this service-free runner.
+ * verify.test.mjs guards plan composition and schema/wire-test separation.
+ */
+
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -31,6 +52,7 @@ export function verificationPlan(subsystem, policy) {
         pnpm("repo: verification tests", "test:verification"),
         pnpm("repo: upstream contract tests", "test:upstream"),
         pnpm("repo: impact tests", "test:impact"),
+        pnpm("repo: release presentation tests", "test:release"),
         pnpm("repo: dependency automation tests", "test:dependencies"),
         pnpm("repo: agent regression fixtures", "check:agent-regressions"),
         pnpm(

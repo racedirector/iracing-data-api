@@ -1,10 +1,29 @@
 services:
+  mcp-init:
+    image: iracing-data-mcp:${IRACING_MCP_IMAGE_TAG:-local}
+    user: "0:0"
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - iracing-data-mcp:/var/lib/iracing-data-mcp
+    entrypoint: ["sh", "-c"]
+    command:
+      - >-
+        chown 0:0 /var/lib/iracing-data-mcp &&
+        chmod 700 /var/lib/iracing-data-mcp &&
+        chown 1000:1000 /var/lib/iracing-data-mcp
+
   mcp:
-    image: iracing-data-mcp:${IRACING_MCP_IMAGE_TAG:?Set the local git SHA image tag}
+    image: iracing-data-mcp:${IRACING_MCP_IMAGE_TAG:-local}
     build:
       context: ../..
       dockerfile: apps/iracing-data-mcp/Dockerfile
-    user: "${IRACING_MCP_UID:?Set your nonzero host UID}:${IRACING_MCP_GID:?Set your nonzero host GID}"
+    depends_on:
+      mcp-init:
+        condition: service_completed_successfully
     read_only: true
     tmpfs:
       - /tmp:rw,noexec,nosuid,nodev,size=16m,mode=1777
@@ -12,15 +31,38 @@ services:
     security_opt: [no-new-privileges:true]
     ports: ["127.0.0.1:3000:3000"]
     volumes:
-      - type: bind
-        source: ${IRACING_MCP_DATA_DIR:?Set an absolute owned 0700 credential directory}
-        target: /var/lib/iracing-data-mcp
-        bind:
-          create_host_path: false
+      - iracing-data-mcp:/var/lib/iracing-data-mcp
     environment:
       IRACING_MCP_CLIENT_SECRET_FILE: ${IRACING_MCP_CLIENT_SECRET_FILE:-}
-      IRACING_MCP_CLIENT_ID: ${IRACING_MCP_CLIENT_ID:?Set the same client ID used by host login}
+      IRACING_MCP_CLIENT_ID: ${IRACING_AUTH_CLIENT:?Set IRACING_AUTH_CLIENT in the root .env}
       IRACING_MCP_ALLOWED_HOSTS: ${IRACING_MCP_ALLOWED_HOSTS:-127.0.0.1:3000,localhost:3000}
       IRACING_MCP_ALLOWED_ORIGINS: ${IRACING_MCP_ALLOWED_ORIGINS:-http://127.0.0.1:3000,http://localhost:3000}
-      IRACING_MCP_LISTEN_HOST: 0.0.0.0
     stop_grace_period: 15s
+
+  mcp-import:
+    image: iracing-data-mcp:${IRACING_MCP_IMAGE_TAG:-local}
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - iracing-data-mcp:/var/lib/iracing-data-mcp
+    environment:
+      IRACING_MCP_OWNER_STOPPED: "yes"
+    entrypoint: ["node", "dist/import-main.js", "--credentials-stdin"]
+
+  mcp-secret-import:
+    image: iracing-data-mcp:${IRACING_MCP_IMAGE_TAG:-local}
+    network_mode: none
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - iracing-data-mcp:/var/lib/iracing-data-mcp
+    environment:
+      IRACING_MCP_OWNER_STOPPED: "yes"
+    entrypoint: ["node", "dist/import-main.js", "--client-secret-stdin"]
+
+volumes:
+  iracing-data-mcp:
+    name: iracing-data-mcp

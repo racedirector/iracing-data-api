@@ -4,7 +4,11 @@ Inherits [root guidance](../../AGENTS.md). Generated SDKs have [additional guida
 
 ## Authored ownership
 
-`schema/src` owns Zod request/response schemas, inferred types, and exports. Preserve wire field names, coercion, optionality, nullability, and validation semantics deliberately; compare upstream evidence before changing a public contract. Reuse existing shared primitives and inspect tests and exports when changing schemas.
+Inspect [primitives](schema/src/schema/primitives.ts), [parameters](schema/src/schema/parameters.ts),
+[responses](schema/src/schema/responses.ts), and the authored [document mapping](../helpers/api-schema-to-openapi/src/index.ts).
+Their module documentation owns composition, wire interpretation and generated-description provenance.
+Require official evidence and deliberate public compatibility review for contract changes.
+Use existing tests/exports; never patch derived artifacts.
 
 ## Validation and downstream updates
 

@@ -1,3 +1,14 @@
+/**
+ * Authored OpenAPI document and CLI serialization contract. JSON, .yaml and .yml
+ * output must parse to the same in-memory document; explicit --format overrides
+ * the filename. The library exposes that document/default export without owning
+ * filesystem output. Execute the built CLI into disposable temporary destinations
+ * and clean them after each test, never replacing checked-in contracts.
+ * Unique operation IDs, resolvable local references and representative protocol
+ * mappings guard repository consistency, not live upstream compatibility. The
+ * assertions own the surviving format guarantees.
+ */
+
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";

@@ -7,18 +7,13 @@ description: Prepare, version, tag, publish, preview, or recover stable and prer
 
 Use this repository's package-specific, tag-triggered release flow. Do not substitute a generic monorepo release process. Read [root guidance](../../../AGENTS.md), applicable scoped guidance, and [workspace policy](../../../docs/WORKSPACE-POLICY.md) for canonical ownership and source/generated boundaries.
 
-## Release contract
+## Release authorities
 
-- Use `pnpm`; the root `package.json` pins pnpm 12.4.2.
-- Discover managed npm targets from the `npm:` members of `dist-workspace.toml` and resolve their manifests dynamically. Use `workspace-policy.json` for classification; do not keep a package inventory in this skill.
-- Run `pnpm check:topology --release <package-name>` for each selected target. This executable gate owns membership/publication-policy validation; a scoped name alone does not make a package releasable.
-- Every managed package owns its version in its own `package.json`. Never use the root version or synchronize unrelated versions.
-- Normal publication is performed by `.github/workflows/release.yml`, not locally. A pushed tag named `<full-package-name>@<version>` triggers it. There is no leading `v`.
-- The workflow installs with `pnpm install --frozen-lockfile`, requires the tag version to equal the selected package's manifest version, builds `pnpm --filter "<package>..." --fail-if-no-match build`, and publishes only that package with public access.
-- A version containing `-` is published under npm dist-tag `next`; a stable version is published under `latest`. The workflow does not infer `alpha`, `beta`, or `rc` differently.
-- npm authentication is GitHub Actions trusted publishing/OIDC in the `npm` environment (`id-token: write`, empty token variables). Do not request a local npm login for the normal path.
-- After a successful tag-triggered publish, the workflow creates a GitHub Release titled with the tag and generated notes. It does not pass `--prerelease`, so even npm prereleases are not marked as GitHub prereleases.
-- `workflow_dispatch` is an operational fallback. It accepts an explicit package and either `latest` or `next`, skips tag/package-version matching, and does not create a GitHub Release. Do not use it for a normal release.
+Read the pinned package manager from [package.json](../../../package.json), managed npm targets from [dist-workspace.toml](../../../dist-workspace.toml), classifications from [workspace-policy.json](../../../workspace-policy.json), and selected versions/scripts/dependencies from their manifests. Do not keep another inventory or synchronize independent versions.
+
+[release.yml](../../../.github/workflows/release.yml) owns tag parsing, version guards, build/publication, OIDC and GitHub Release behavior. [Releasing](../../../docs/RELEASING.md) owns operational prerequisites and recovery. Inspect both before acting; a workflow file cannot establish external registry trusted-publisher settings or successful provenance.
+
+Run `pnpm check:topology --release <package-name>` for each selected target. This gate determines public npm eligibility, not publication authorization or registry/version readiness. Use the normal tag-triggered path; dispatch/local publishing are diagnosed operational fallbacks under explicit authorization.
 
 ## Interpret the request
 

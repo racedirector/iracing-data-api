@@ -57,26 +57,10 @@ session under the iRacing customer ID, so that flow requires profile access. If
 you already have a refresh token and want to force a refresh manually, call
 `client.refresh(refreshToken)`.
 
-`restoreSessionForId()` treats the stored `refresh_token` as an opaque OAuth
-grant credential. It does not decode the refresh token or require JWT structure;
-when an expired access token needs renewal, the authorization server decides
-whether the refresh credential is expired, revoked, malformed, or otherwise
-invalid. The JWT convenience helpers in `dist/utils.js`, including
-`isRefreshTokenExpired()` and `isRefreshTokenValid()`, intentionally retain their
-JWT-only behavior and are not used to gate session restoration.
-
-Concurrent `restoreSessionForId()` calls for the same expired session share one
-refresh operation within an `OAuthClient` instance. The operation completes only
-after the merged session, including the rotated refresh token and retained fields,
-has been persisted. Failed operations are cleared so later calls can retry;
-different session IDs refresh independently. Coordination does not extend across
-client instances or processes. `refresh()` returns the token endpoint response
-without storing it or coordinating other calls.
-
-Pass any {@link SimpleStore} implementation as the state and session store to
-control how the client tracks authorization state and OAuth tokens. See
-`packages/oauth/client/src/storage/memory-store.ts` for a default in-memory
-implementation.
+Use the injected stores to choose persistence. See the [lifecycle owner](src/client.ts)
+for opaque refresh, rotation and same-instance concurrency contracts. JWT convenience
+helpers are separate from refresh restoration. Direct `refresh()` does not persist
+its returned token.
 
 ## Durable single-document token storage
 
@@ -94,54 +78,22 @@ const sessionStore = new OAuthTokenDocumentSessionStore({
 });
 ```
 
-The store rejects all keys except the configured key, validates the OAuth token
-document, serializes mutations within one process, and publishes in-memory state
-only after the durable mutation succeeds. A load or persistence failure
-quarantines that store instance so it cannot fall back to stale credentials.
-Create a new instance only after the underlying credential state has been
-repaired or replaced.
+Use one configured session key and one process per credential directory. Stop before
+repair/replacement and never restore a consumed refresh-token backup. POSIX callers
+must provide an owned `0700` directory and `0600` document. Windows requires host
+ACLs and an explicit portability decision for directory durability.
 
-`readOAuthTokenDocument()` distinguishes a missing document (`undefined`) from
-corrupt, unreadable, unsafe, or oversized state. `writeOAuthTokenDocument()`
-uses a same-directory exclusive temporary file, fsyncs it, atomically publishes
-it, and fsyncs the parent directory. On POSIX it requires current-user ownership,
-mode `0700` for the credential directory, mode `0600` for the document, regular
-files only, no symlinks, and a 64 KiB maximum document size.
-
-Directory fsync is required by default. `durability: "best-effort"` is an
-explicit portability escape hatch for platforms/filesystems that cannot sync a
-directory; callers that require Docker/Linux crash durability should keep the
-default. Windows does not provide POSIX ownership/mode guarantees through these
-Node APIs, so callers must rely on host/container ACLs and use best-effort
-directory durability where required.
-
-This store is intentionally process-local. It does not implement distributed
-locking, multiple writers, replicas, file watching, or hot credential
-replacement. One process should own one credential directory at a time. Treat
-OAuth credential files as secrets rather than backups; a backup containing an
-older refresh token is generally unusable after token rotation.
-
-The generic `DiskStore` remains a key/value utility with its historical behavior;
-it is not upgraded or implicitly substituted by the token-document store.
-Its failure warnings omit file paths, stored values, and raw errors to protect
-credentials. A load failure starts with an empty store; check the configured
-file's permissions and JSON format. A persistence failure throws the original
-error to the caller; check that the directory exists and the file is writable,
-and avoid logging the raw error because it can contain sensitive data.
+Read the [token-document owner](src/storage/token-document-store.ts) for validation,
+atomic publication, quarantine and durability contracts before selecting a store.
+[DiskStore](src/storage/disk-store.ts) is a generic key/value utility with weaker
+guarantees; [InMemoryStore](src/storage/memory-store.ts) has no persistence.
+Failures can retain sensitive causes: use safe application diagnostics.
 
 See [`examples/oauth-example`](../../../examples/oauth-example) for a more complete walkthrough.
 
-## Related @iracing-data packages
+## Related packages
 
-Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iracing-data/api-client-fetch) for general iRacing Data API usage.
-
-- [OAuth client](https://www.npmjs.com/package/@iracing-data/oauth-client): authentication and token refresh.
-- [Axios client](https://www.npmjs.com/package/@iracing-data/api-client-axios): use your existing Axios stack.
-- [API schemas](https://www.npmjs.com/package/@iracing-data/api-schema): runtime validation and TypeScript types.
-- [OAuth schemas](https://www.npmjs.com/package/@iracing-data/oauth-schema): OAuth request and response validation.
-- [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
-
-See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+See the [repository package chooser](https://github.com/racedirector/iracing-data-api#which-package-should-i-use) and [runnable examples](https://github.com/racedirector/iracing-data-api/tree/main/examples#readme).
 
 ## Schema naming compatibility
 
@@ -161,3 +113,11 @@ preserves the response and request ID.
 including custom paths and query parameters, while delegating request
 serialization to the generated operations. Authorization-code and refresh
 requests continue to use `oauth4webapi` for protocol processing.
+
+## Implementation navigation
+
+[Lifecycle](src/client.ts), [scope representation](../schema/src/scopes.ts),
+[wire schemas](../schema/src/schema.ts), [error interpretation](src/errors/oauth.ts),
+and [JWT/protocol utilities](src/utils.ts) own the detailed contracts.
+The [OAuth document mapping](../../helpers/oauth-schema-to-openapi/src/index.ts)
+explains current authored/generated ownership.

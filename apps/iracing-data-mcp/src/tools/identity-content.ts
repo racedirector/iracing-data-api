@@ -1,3 +1,23 @@
+/**
+ * Current eight-tool registration and domain orchestration owner.
+ *
+ * The local register wrapper advertises strict schemas while performing validation
+ * inside the safe error boundary, since SDK validation can expose rejected values.
+ * It creates request context, forwards cancellation, acquires one bounded gateway
+ * call and normalizes errors/results. Domain handlers own projection, filtering,
+ * ordering and absent-data semantics; generated endpoint methods own wire mapping.
+ *
+ * Collection and search owners are retained in gateway-keyed WeakMaps below, not
+ * created per MCP request. They share gateway generation and retention. This is the
+ * current lifetime model, not an explicit app-factory cursor capability graph.
+ *
+ * Race team totals must never become driver outcomes: customer filters select
+ * nested driver rows with their own fields. Empty matches prove neither participation
+ * nor nonparticipation. Recent positions preserve upstream sentinels; race-result
+ * positions use the contracts.ts one-based projection. Names/text are untrusted
+ * upstream data. Tool/API compatibility includes strict input, nullability, ordering,
+ * position/date/week basis, completeness and error retryability, not only names.
+ */
 import {
   GetCarResponseSchema,
   GetTrackResponseSchema,

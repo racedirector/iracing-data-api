@@ -1,3 +1,25 @@
+/**
+ * Process/account owner for local durable authorization and gateway composition.
+ *
+ * This module specializes the reusable OAuthClient and token-document store for
+ * one stopped-login credential lifecycle. Shared protocol/PKCE/refresh mechanics
+ * live in packages/oauth/client/src/client.ts; secure filesystem mutations live
+ * in that package's storage/token-document-store.ts. Loading and health do not
+ * refresh. Token acquisition restores one configured session, requiring a refresh
+ * credential and iracing.auth, without profile lookup or JWKS requests.
+ *
+ * The app's rotationPending interval covers grant submission through durable
+ * replacement. Only explicit nonconsuming transient rejection is safe to retry;
+ * unknown consumption or failed publication quarantines the owner and invalidates
+ * account state. Old refresh credentials must never be restored as rollback.
+ * Shutdown makes the owner terminal, rejects late publication of ready state and
+ * attempts removal of uncertain credentials, including publication already in
+ * flight. Failure to confirm removal requires stopped re-login before restart.
+ *
+ * One process owns the file by operator discipline, not a process lock. There is
+ * no hot credential reload. Repair/re-login creates a new owner after stopping.
+ * The generated Data API configuration and gateway share this fixed owner.
+ */
 import { Configuration } from "@iracing-data/api-client-fetch";
 import {
   OAuthClient,

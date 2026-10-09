@@ -2,10 +2,13 @@
 
 Generate OpenAPI definitions for the iRacing OAuth 2.0 API from Zod schemas.
 
-## Installation
+## Repository setup
+
+This is private workspace tooling. From the repository root:
 
 ```bash
-pnpm add -D @iracing-data/oauth-schema-to-openapi
+pnpm install --frozen-lockfile
+pnpm --filter '@iracing-data/oauth-schema-to-openapi...' build
 ```
 
 ## Usage
@@ -46,14 +49,12 @@ write it themselves, or invoke the CLI with the existing output/format options.
 Filesystem errors are reported by the CLI; correct the output path or directory
 permissions and rerun the command.
 
-## Related @iracing-data packages
+## Related packages
 
-Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iracing-data/api-client-fetch) for general iRacing Data API usage.
+See the [repository package chooser](https://github.com/racedirector/iracing-data-api#which-package-should-i-use) and [runnable examples](https://github.com/racedirector/iracing-data-api/tree/main/examples#readme).
 
-- [OAuth client](https://www.npmjs.com/package/@iracing-data/oauth-client): authentication and token refresh.
-- [Axios client](https://www.npmjs.com/package/@iracing-data/api-client-axios): use your existing Axios stack.
-- [API schemas](https://www.npmjs.com/package/@iracing-data/api-schema): runtime validation and TypeScript types.
-- [OAuth schemas](https://www.npmjs.com/package/@iracing-data/oauth-schema): OAuth request and response validation.
-- [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
+## Source navigation
 
-See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+[Document mapping](src/index.ts) owns endpoint and generated-description provenance;
+[CLI](src/cli.ts) owns serialization/filesystem output. The authored runtime
+[lifecycle](../../oauth/client/src/client.ts) owns OAuth processing and sessions.

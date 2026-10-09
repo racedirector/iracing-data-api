@@ -1,3 +1,17 @@
+/**
+ * Narrow profile check, separate from Data API access verification.
+ *
+ * Current main owns this raw Fetch call here: one fixed OAuth profile URL, bearer
+ * header, redirect rejection and bounded timeout, followed by maintained profile
+ * schema validation. Future generated-wire adapters must preserve the public command
+ * projection and diagnostics rather than changing them incidentally.
+ *
+ * Only customer ID/name are printed. iracing.profile is required; MCP auth-only
+ * credentials cannot satisfy this command and should keep a separate lifecycle.
+ * Profile success does not establish Data API entitlement or /data/doc access.
+ * Network failure is not evidence of token expiry. All failure text is fixed or
+ * status-only; response bodies and credentials must not appear in errors.
+ */
 import { Command } from "@commander-js/extra-typings";
 import {
   OAuthApiClient,

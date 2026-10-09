@@ -1,3 +1,27 @@
+/**
+ * Read-only change and release planning over the current workspace graph.
+ *
+ * Compare the supplied base's merge-base with HEAD against the working tree,
+ * including non-ignored untracked files. Missing history is an error, not an empty
+ * report. Load identities/classifications from workspace policy, dependencies and
+ * versions from manifests, and managed publication membership from dist config.
+ * The longest matching workspace path owns a direct change.
+ *
+ * Explicit generation edges supplement manifest dependencies: Data API schema or
+ * mappings affect both OpenAPI formats and all Data API SDKs; OAuth contract edits
+ * affect OAuth OpenAPI and its generated Fetch client without a Data API SDK edge.
+ * Generator/presentation inputs affect the relevant branch; shared inputs affect
+ * every generated client. Global npm/toolchain/CI changes affect all
+ * workspaces; Cargo configuration affects Cargo members. Propagate every internal
+ * manifest dependency category to a fixed point, then order selected public,
+ * managed candidates dependency-first (including the schema-to-SDK release edge).
+ * Cycles fail instead of suggesting an unsafe order.
+ *
+ * A candidate is a review input, not a version bump, validation result or release
+ * authorization. Commands are suggestions; this module neither generates nor
+ * publishes. Update workspace-impact.test.mjs when adding a generation edge.
+ */
+
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
@@ -88,7 +112,11 @@ export function releaseOrder(entries) {
   return result;
 }
 
-export function analyzeImpact(files, workspaces) {
+export function analyzeImpact(
+  files,
+  workspaces,
+  { includeGlobal = true, precisePresentation = false } = {},
+) {
   const changedFiles = sorted(files);
   const direct = new Set();
   const affected = new Set();
@@ -161,11 +189,23 @@ export function analyzeImpact(files, workspaces) {
         file,
       )
     ) {
-      markGenerated(apiClients);
+      const template =
+        /^scripts\/client-presentation\/([^/.]+)\.(md|json)$/.exec(file);
+      const templateOwners =
+        precisePresentation && template
+          ? apiClients.filter((entry) =>
+              entry.ecosystem === "cargo"
+                ? template[1] === "rust"
+                : path.posix.basename(entry.path) === template[1],
+            )
+          : [];
+      markGenerated(templateOwners.length ? templateOwners : apiClients);
       commands.add("pnpm codegen:client:api");
     }
   }
-  if (global) for (const entry of workspaces) add(entry);
+  // Release presentation omits global-only maintenance; normal planning remains
+  // conservative and includes every workspace affected by toolchain/CI changes.
+  if (global && includeGlobal) for (const entry of workspaces) add(entry);
   if (
     changedFiles.some((file) => /^(Cargo\.(toml|lock)|\.cargo\/)/.test(file))
   ) {

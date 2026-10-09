@@ -1,5 +1,15 @@
 #!/usr/bin/env node
 
+/**
+ * OAuth OpenAPI filesystem and serialization owner.
+ *
+ * Serialize the shared in-memory document from index.ts. Explicit format wins over
+ * .yaml/.yml inference; other filenames default to JSON. Create the output directory,
+ * replace the requested file and report filesystem failures through CLI rejection.
+ * Importing the library itself does not write or log. Build the dependency closure
+ * before invocation; isolated freshness uses temporary destinations. These build
+ * artifacts do not use OAuth credential-store durability or secret handling.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { Command, Option } from "@commander-js/extra-typings";

@@ -1,3 +1,13 @@
+/**
+ * Generic historical JSON key/value storage, not secure OAuth document storage.
+ *
+ * Load once and rewrite the whole mapping after mutations. Failed load warns with
+ * fixed text and starts empty; failed persistence warns safely but throws its raw
+ * cause. Mutation changes memory before writing and does not quarantine on failure.
+ * There is no atomic/fsync, permission, token validation or single-owner guarantee
+ * here. Use token-document-store.ts when durable credential publication is required;
+ * do not silently substitute semantics. Callers must not log raw retained errors.
+ */
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import type { GetOptions, Key, SimpleStore, Value } from "./index";
 

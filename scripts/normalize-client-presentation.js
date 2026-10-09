@@ -1,3 +1,17 @@
+/**
+ * Authored public presentation overlay for generated Fetch/Axios packages.
+ *
+ * client-presentation/{fetch,axios}.json owns only allowlisted metadata; matching
+ * Markdown owns the README introduction. Preserve generated endpoint/model sections
+ * from their known heading and replace the development footer consistently. Missing
+ * headings or unknown metadata fields fail rather than guessing a boundary.
+ *
+ * Versions, dependencies, scripts and entry points are reviewed manifest/generator
+ * intent, not presentation fields. A presentation-only edit can invoke this module
+ * and scoped formatting without rebuilding OpenAPI/SDKs. Isolated freshness tests
+ * still verify the overlay against generation. Do not insert architecture comments
+ * into the templates: they would become consumer-visible generated output.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

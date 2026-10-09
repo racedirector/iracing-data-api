@@ -1,3 +1,30 @@
+/**
+ * Authored reusable OAuth lifecycle service over oauth4webapi and stores.
+ *
+ * Current main owns request composition here; OAuth OpenAPI does not generate this
+ * runtime. State/PKCE creation and callback validation consume stored state before
+ * token exchange to prevent replay. An explicit callback session key skips profile
+ * lookup; without one, profile access supplies the customer-ID storage key.
+ *
+ * Dependency-processed token responses normalize bearer casing before public schema
+ * parsing. That boundary must not rewrite raw wire acceptance merely to accommodate
+ * a dependency. Store interfaces own persistence and failures; the token-document
+ * store supplies durable single-document behavior, while generic memory/disk stores
+ * have weaker, different guarantees.
+ *
+ * Expired-session restoration treats refresh_token as opaque and delegates validity
+ * to the authorization server. Concurrent restoration of one ID within this instance
+ * shares one promise through response merge and persistence; different IDs remain
+ * independent. Re-read storage before consuming a grant so delayed readers do not
+ * refresh the previous credential. Omitted response fields retain stored values;
+ * rotated refresh tokens replace them only after persistence completes.
+ *
+ * Failures clear the single-flight entry, not authorization uncertainty. Applications
+ * must decide safe retry/quarantine from grant-consumption evidence; this generic
+ * client supplies no cross-instance/process lock or automatic durable quarantine.
+ * refresh() alone neither stores nor coordinates tokens. JWT convenience helpers
+ * remain separate from opaque-refresh restoration. Never log retained raw errors.
+ */
 import {
   OAuthTokenResponseSchema,
   OAuthTokenResponse,
@@ -48,8 +75,7 @@ export type OAuthClientOptions = {
  * The `OAuthClient` is responsible for coordinating access and refresh tokens
  * against the iRacing authorization servers.
  *
- * TODO: Implement a token store mechanism so clients can store the tokens where they want
- * instead of handling responses directly.
+ * StateStore and SessionStore are injected; their durability belongs to each store.
  */
 export class OAuthClient {
   private readonly clientMetadata: IRacingOAuthClientMetadata;

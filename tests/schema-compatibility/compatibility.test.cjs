@@ -1,3 +1,21 @@
+/**
+ * Additive symbol-migration compatibility contract against frozen evidence.
+ *
+ * exports.json was captured from pre-migration revision
+ * fd8402c57c49f98c4cf3fe16022bd63424159532, not discovered from migrated code.
+ * It is the historical public package/module inventory, including the callback
+ * spelling exception. Never regenerate it from current exports: doing so could
+ * make deleted aliases disappear from the test instead of failing compatibility.
+ * Any intentional removal needs a separately reviewed breaking-contract decision.
+ *
+ * After dependency builds, require value identity at root/module/client exports,
+ * replacement-specific deprecation declarations, exhaustive type-fixture coverage,
+ * equal input/output/literal/brand types, and canonical names in maintained
+ * consumers. The historical-alias source boundary allows compatibility exports
+ * without blessing new consumers of them. These are offline package guarantees,
+ * not evidence of current upstream response behavior or generated SDK renaming.
+ */
+
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");

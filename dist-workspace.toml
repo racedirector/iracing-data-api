@@ -1,5 +1,8 @@
 # dist-workspace.toml
-# Declares the npm and cargo packages managed by dist (cargo-dist).
+# Declares managed release membership, independently of npm/Cargo workspace
+# inclusion and ownership classification. Each member manifest owns its version.
+# Membership does not add a publishing workflow: release.yml handles npm, while
+# the Rust library follows the explicit Cargo/dist procedure.
 # See: https://axodotdev.github.io/cargo-dist/book/quickstart/javascript.html
 
 [workspace]

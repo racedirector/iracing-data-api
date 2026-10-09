@@ -1,3 +1,21 @@
+/**
+ * Authored OAuth wire contract and decoded-token structural schemas.
+ *
+ * Request/response fields, literal values, headers and metadata here are public
+ * schema acceptance, not a transcription of dependency-normalized runtime objects.
+ * oauth4webapi validates and lowercases token_type; the authored client restores
+ * the public Bearer representation after processing rather than broadening this
+ * wire schema. Refresh credentials are opaque strings, distinct from JWT convenience
+ * validation. Inspect official evidence before changing a public protocol shape.
+ *
+ * scopes.ts owns collection/codec representation over the scope vocabulary here;
+ * applications choose their own least-privilege policy. The helper under packages/
+ * helpers/oauth-schema-to-openapi owns endpoint/method/content-type mappings and
+ * constructs OpenAPI from these shapes. Current main's OAuth runtime is authored,
+ * not generated from that document. Metadata descriptions feed generated contract
+ * prose; source comments do not. Historical aliases retain canonical identity,
+ * including the misspelled callback export, without changing parsing or wire keys.
+ */
 import { z } from "zod";
 
 /**

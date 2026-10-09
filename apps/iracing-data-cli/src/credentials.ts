@@ -1,3 +1,18 @@
+/**
+ * Read-only access-token resolution for authenticated CLI commands.
+ *
+ * Explicit --credentials overrides an injected/environment access token. Otherwise
+ * an injected token takes precedence over IRACING_ACCESS_TOKEN, then the repository
+ * default file is used only when no token is selected. A selected unreadable/invalid
+ * file fails; it never silently falls through to a different identity. JSON/YAML
+ * parsing here extracts access_token only, not a durable OAuth session or refresh
+ * operation. Reject empty tokens, CR/LF and an existing Bearer prefix.
+ *
+ * Default paths are repository-relative with equal source/dist depth. login.ts
+ * selects a separate auth-only MCP document so independent refreshing consumers do
+ * not share one rotating credential. Callers selecting that document must observe
+ * stopped-owner discipline; resolution does not lock or watch the file.
+ */
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";

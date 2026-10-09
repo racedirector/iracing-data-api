@@ -51,15 +51,14 @@ A useful result record is:
 
 ## Maintaining fixtures
 
-`scenarios.json` stores prompts, starting file inputs, canonical references, and
-concise expected-action rubrics. It does not store a parallel package inventory,
-version list, or command matrix. Resolve classifications, scripts, release
-membership, and dependency order from current policy/manifests/tooling during each
-run. References must be real repository files. Update a scenario when canonical
-policy intentionally changes; do not relax a rubric merely to accept a bad answer.
+Edit [scenario inputs and rubrics](scenarios.json) when canonical policy intentionally changes;
+do not relax a rubric merely to accept a bad answer. Inspect the
+[validator and prompt renderer](../scripts/agent-regressions.mjs) and its
+[failure-case tests](../scripts/agent-regressions.test.mjs) for fixture mechanics.
+Evaluators own semantic agreement with current guidance. Review both when moving files or changing policy.
+Resolve classifications, scripts, release membership and dependency order from current policy,
+manifests and tooling during each run.
 
-The validator checks references and structural integrity; evaluators check semantic
-agreement with current guidance. Review both when moving files or changing policy.
 See [root guidance](../AGENTS.md), [verification](../docs/VERIFICATION.md),
 [workspace policy](../docs/WORKSPACE-POLICY.md), and
-[impact planning](../docs/CHANGE-IMPACT.md) for the authoritative procedures.
+[impact planning](../docs/CHANGE-IMPACT.md) for the procedures.

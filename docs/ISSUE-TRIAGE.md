@@ -14,7 +14,7 @@ Every ordinary implementation issue should have exactly one native GitHub Issue 
 | `Feature`  | New externally consumable capability or materially new public behavior.                                                    |
 | `Task`     | Bounded engineering, maintenance, refactoring, documentation, release, packaging, migration, testing, or operational work. |
 
-GitHub provides `Bug`, `Feature`, and `Task` as the default organization issue types. Public issue forms set these types directly through the form's top-level `type:` metadata.
+Read the public [bug](../.github/ISSUE_TEMPLATE/bug_report.yml), [feature](../.github/ISSUE_TEMPLATE/feature_request.yml) and [task](../.github/ISSUE_TEMPLATE/task_request.yml) forms for configured types and defaults. Their configuration owns form behavior; this guide owns human classification decisions.
 
 ### Planning types
 
@@ -36,11 +36,9 @@ The repository also uses two planning concepts:
 - Use `Epic` only when the issue coordinates multiple independently reviewable children.
 - Do not recreate Issue Type with `type:*` labels.
 
-### Existing-issue backfill
+### Existing-issue reconciliation
 
-The temporary `type:*` labels from the initial backlog-normalization pass have been removed from the active backlog.
-
-Existing issues should be backfilled to the equivalent native GitHub Issue Type. The current repository automation surface can manage labels but does not expose Issue Type assignment, so that one-time migration must use an Issue Type-capable GitHub API/UI/CLI path. New issues created from the repository forms are typed correctly automatically.
+Inspect live organization issue types and repository labels before backfilling metadata. Use a type-capable GitHub API/UI/CLI path to assign the equivalent native type; tool availability is not a reason to recreate `type:*` labels. Preserve existing issue relationships and verify assignments afterward.
 
 ## Area labels
 
@@ -103,7 +101,7 @@ Do not add labels such as `status:ready`, `status:in-progress`, or `status:done`
 
 Use this exact palette for existing taxonomy labels. Priority carries the strongest
 visual hierarchy: critical red, urgent orange/red, planned amber, then quiet pale
-blue. The ready-to-close status uses completion green. Area colors keep the proposed
+blue. The ready-to-close status uses completion green. Area colors keep distinct
 hue families but use lighter, muted shades so ownership does not compete with
 urgency; documentation uses teal to distinguish it from the two API/auth blues.
 Release green is deliberately lighter than completion green.
@@ -140,6 +138,10 @@ priorities, statuses, areas, or native Issue Types, or reintroduce `type:*` labe
 ## Contribution labels
 
 Labels such as `good first issue` and `help wanted` are separate from Issue Type, area, priority, and status. Apply them only when the issue is genuinely bounded, unblocked, and documented well enough for an external contributor to complete without hidden maintainer context.
+
+Use `good first issue` for work approachable by a newcomer; use `help wanted` for a bounded request that may need specific experience or an environment maintainers cannot readily exercise. Neither label is a quota. A curated list may be empty when the backlog has no suitable work.
+
+Before applying either label, give the issue a clear problem, acceptance criteria, owning source, and locally reproducible validation, and link [contributor setup and verification](../CONTRIBUTING.md). Recheck contribution labels during triage and whenever scope, dependencies, ownership, or implementation status changes. Remove them when work becomes blocked, needs an unresolved maintainer decision, has an active implementation PR, or is no longer available to an external contributor. Keep priority and native issue relationships accurate; do not create speculative tasks to populate the list.
 
 ## Issue creation and triage workflow
 

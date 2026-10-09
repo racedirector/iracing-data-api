@@ -1,3 +1,12 @@
+/**
+ * Failure normalization between OAuth, generated Fetch and app boundaries.
+ *
+ * Map known types and explicit context evidence without reading response bodies,
+ * matching messages, recursively walking causes or attempting refresh. Session
+ * rotation/consumption evidence belongs to the session owner; HTTP status alone
+ * cannot establish safe retry. Protocol failures use their own fixed projection.
+ * Unknown failures fall back to safe app errors rather than exposing raw causes.
+ */
 import {
   FetchError,
   RequiredError,
@@ -22,7 +31,7 @@ export interface MappingContext {
   /** Only set when the gateway has confirmed account entitlement denial. */
   readonly upstreamAuthorization?: "account_entitlement";
 
-  /** Set by the future session owner from lifecycle evidence, never an error message. */
+  /** Set by the session owner from lifecycle evidence, never an error message. */
   readonly refreshOutcome?:
     "safe_to_retry" | "rotation_uncertain" | "persistence_failed";
 }
