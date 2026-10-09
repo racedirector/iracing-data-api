@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import fs from "node:fs/promises";
 import test from "node:test";
+import { fileURLToPath } from "node:url";
 import {
   capture,
   diff,
@@ -13,10 +14,6 @@ import {
   validateSnapshot,
 } from "./upstream-contract.mjs";
 
-const oauth = await fs.readFile(
-  new URL("./fixtures/upstream-contract/oauth.html", import.meta.url),
-  "utf8",
-);
 const data = await fs.readFile(
   new URL("./fixtures/upstream-contract/data.json", import.meta.url),
   "utf8",
@@ -42,22 +39,8 @@ test("JSON key order and formatting are equivalent; arrays preserve order", () =
   assert.equal(diff(before, make("data", JSON.stringify(value))).changed, true);
 });
 
-test("HTML shell, attributes, comments, entities and prose formatting do not drift", () => {
-  const before = oauth.replace("Use ", "Use &amp; ");
-  const after = before
-    .replace("&amp;", "&#38;")
-    .replace("Use ", "Use\n  ")
-    .replace('id="fixture"', 'id="changed" class="theme"')
-    .replace("Fixture navigation", "new nav")
-    .replace("<p>", "<!-- build -->\n<p>");
-  assert.deepEqual(normalize("oauth", before), normalize("oauth", after));
-});
-
 test("timestamps and capture mode do not affect content comparison", () => {
-  for (const [kind, input] of [
-    ["oauth", oauth],
-    ["data", data],
-  ]) {
+  for (const [kind, input] of [["data", data]]) {
     const before = make(kind, input);
     const after = make(kind, input, {
       mode: "live",
@@ -69,7 +52,7 @@ test("timestamps and capture mode do not affect content comparison", () => {
   }
 });
 
-test("material endpoint, parameter, link, prose, code and table changes are reviewable", () => {
+test("material Data API endpoint and parameter changes are reviewable", () => {
   const value = JSON.parse(data);
   value.car.get.parameters.car_ids.required = true;
   value.car.new = { link: `${sources.data}/new`, parameters: {} };
@@ -83,18 +66,6 @@ test("material endpoint, parameter, link, prose, code and table changes are revi
     ),
   );
   assert.ok(result.changes.some((change) => change.operation === "added"));
-  for (const [old, next] of [
-    ["Workflow", "Updated"],
-    ["data_api_workflow.html", "tokens_overview.html"],
-    ["scope=iracing.auth", "scope=iracing.profile"],
-    [">yes<", ">no<"],
-  ]) {
-    assert.equal(
-      diff(make("oauth", oauth), make("oauth", oauth.replace(old, next)))
-        .changed,
-      true,
-    );
-  }
 });
 
 test("malformed documents, auth errors and invalid provenance fail closed", () => {
@@ -107,19 +78,12 @@ test("malformed documents, auth errors and invalid provenance fail closed", () =
     '{"car":{"get":{}}}',
   ])
     assert.throws(() => make("data", input));
-  for (const input of [
-    "",
-    "<main>iRacing",
-    "<html>login</html>",
-    "<main>iRacing</main><main>other</main>",
-  ])
-    assert.throws(() => make("oauth", input));
   assert.throws(() => make("other", data));
   assert.throws(() => make("data", data, { capturedAt: "bad" }));
   assert.throws(() => make("data", data, { mode: "authenticated" }));
 });
 
-test("corrupt hash, source, version and cross-source comparisons fail", () => {
+test("corrupt Data API hash, source and version fail", () => {
   const before = make("data", data);
   for (const mutate of [
     (v) => {
@@ -136,7 +100,6 @@ test("corrupt hash, source, version and cross-source comparisons fail", () => {
     mutate(copy);
     assert.throws(() => validateSnapshot(copy));
   }
-  assert.throws(() => diff(before, make("oauth", oauth)));
 });
 
 test("credentials are removed from content, keys, hashes' inputs and diffs", () => {
@@ -157,7 +120,6 @@ test("credentials are removed from content, keys, hashes' inputs and diffs", () 
     "exact-secret",
   ])
     assert.ok(!output.includes(secret));
-  assert.ok(!serialize(make("oauth", oauth)).includes("fixture-token"));
   assert.equal(redact("provided-token", ["provided-token"]), "[REDACTED]");
 });
 
@@ -269,8 +231,8 @@ test("CLI diff reports equivalent content and drift with distinct exit codes", a
       [
         "scripts/upstream-contract.mjs",
         "diff",
-        files[0].pathname,
-        files[1].pathname,
+        fileURLToPath(files[0]),
+        fileURLToPath(files[1]),
         name,
       ],
       { encoding: "utf8" },
@@ -283,4 +245,46 @@ test("CLI diff reports equivalent content and drift with distinct exit codes", a
     ),
   );
   assert.equal(run(names[3]).status, 2);
+});
+
+test("OAuth evidence is rejected by every retained entry point before network or writes", async () => {
+  assert.deepEqual(Object.keys(sources), ["data"]);
+  assert.throws(
+    () => normalize("oauth", "<main>iRacing</main>"),
+    /Unknown upstream kind/,
+  );
+  assert.throws(
+    () => snapshot("oauth", "<main>iRacing</main>"),
+    /Unknown upstream kind/,
+  );
+  const retired = structuredClone(make("data", data));
+  retired.kind = "oauth";
+  assert.throws(() => validateSnapshot(retired), /Invalid or corrupt snapshot/);
+  assert.throws(() => diff(retired, retired), /Invalid or corrupt snapshot/);
+  await assert.rejects(
+    capture("oauth", { fetcher: () => assert.fail("must not fetch") }),
+    /Unknown upstream kind/,
+  );
+  for (const args of [
+    ["capture", "oauth", "retired-oauth.json"],
+    [
+      "fixture",
+      "oauth",
+      "scripts/fixtures/upstream-contract/data.json",
+      "retired-oauth.json",
+    ],
+  ]) {
+    const result = spawnSync(
+      process.execPath,
+      ["scripts/upstream-contract.mjs", ...args],
+      { encoding: "utf8" },
+    );
+    assert.equal(result.status, 1);
+    assert.equal(result.stdout, "");
+  }
+  await assert.rejects(
+    fs.access(
+      new URL("../.upstream-contract/retired-oauth.json", import.meta.url),
+    ),
+  );
 });
