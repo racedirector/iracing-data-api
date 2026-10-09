@@ -2,6 +2,10 @@
 
 `pnpm upstream:contract` captures upstream evidence without updating maintained schemas, OpenAPI, or clients. `pnpm test:upstream` runs offline regressions in `pnpm verify:repo` and full CI. Capturing evidence is separate from deciding whether repository behavior should change.
 
+## Capture ownership
+
+The [CLI docs command](../apps/iracing-data-cli/src/commands/docs.ts) records the current root-script bridge. Capture/evidence ownership is under active replacement in [#384](https://github.com/racedirector/iracing-data-api/issues/384); the commands below remain current procedures, not a permanent runtime architecture. Replacement-owner documentation in #400 must follow that delivered implementation. Existing normalization details below remain available until a replacement exists.
+
 ## Sources and normalization
 
 OAuth capture fetches the official complete [print view](https://oauth.iracing.com/oauth2/book/print.html). Its `main` contains the book's chapters; review the current navigation and coverage when auditing, since the upstream publication format can change. HTML5 parsing decodes entities; normalization retains element structure, links, image descriptions, table spans, prose, and code. It excludes shell navigation, comments, scripts, styling attributes, and prose whitespace differences. Code whitespace and array order remain significant. This is deterministic structural evidence, not a semantic compatibility verdict: layout changes may still require interpretation.
@@ -22,7 +26,7 @@ pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.j
 
 Reuse existing credentials before starting login. Login updates ignored `.iracing-data/credentials.json`; `docs` uses an explicit `--credentials` file, then `IRACING_ACCESS_TOKEN`, then that default file. Snapshot mode calls the same fixed-source capture/normalizer below and records live provenance. Use unique ignored JSON destinations, do not pass `--force` for audit snapshots, and fetch only once. See [CLI instructions](../apps/iracing-data-cli/README.md).
 
-Build the schema/generator dependencies and compare that snapshot offline with `node -r ts-node/register scripts/audit-data-docs.cjs <snapshot.json>`. Exit 2 means structural review candidates, not a complete semantic verdict; ranges, conditional notes, unknown fields and runtime serialization still need review. Its offline tests run in `pnpm test:upstream`.
+Build the schema/generator dependencies and compare that snapshot offline with `node -r ts-node/register scripts/audit-data-docs.cjs <snapshot.json>`. Read [the audit module](../scripts/audit-data-docs.cjs) for structural comparison mechanics, output and limits. Interpret candidates with the [semantic review procedure](../.agents/skills/iracing-data-api-compatibility-audit/references/live-workflow.md#semantic-review-remains-necessary). Its offline tests run in `pnpm test:upstream`.
 
 ## Manual capture
 

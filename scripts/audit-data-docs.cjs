@@ -1,3 +1,32 @@
+/**
+ * Offline structural Data API documentation comparison, separate from capture.
+ *
+ * audit() accepts a documentation map, the authored OpenAPI document and its
+ * documentation schema. Record schema parse success/issues but compare original
+ * evidence, so maintained-schema stripping cannot hide unknown upstream fields.
+ * Match links to local GET paths, including constrained path templates; resolve
+ * local component references and union type families. Compare query names,
+ * requiredness and primitive families, treating integer as a numeric refinement
+ * and CSV strings as intentional representations of upstream `numbers`.
+ * Arrays are serialization-review candidates, not automatically incorrect.
+ *
+ * Rows retain evidence pointers and coverage; findings include missing/extra
+ * parameters and unmatched/local-only paths. No candidates means only structural
+ * agreement. Enums/ranges, conditional prose, nullability/coercion, unknown-field
+ * preservation and actual generated serialization need semantic review. /data/doc
+ * cannot establish complete endpoint response payloads or live success/errors;
+ * a local-only path is unverified, not proof of upstream removal. This is not a
+ * method audit: local GET selection is an implementation assumption to review.
+ *
+ * The CLI adapter validates an existing Data snapshot, loads authored schema and
+ * mapping sources (build their dependencies first), prints provenance/hash plus
+ * the report, and exits 0 for agreement, 2 for candidates/schema rejection or 1
+ * for failure. It makes no network requests and writes no files. Failures expose
+ * no raw input/error; review evidence/report content before sharing. Its current
+ * snapshot-validator dependency is transitional capture tooling, not a permanent
+ * application transport boundary. audit-data-docs.test.cjs guards comparison.
+ */
+
 const fs = require("node:fs");
 const path = require("node:path");
 const root = path.resolve(__dirname, "..");
