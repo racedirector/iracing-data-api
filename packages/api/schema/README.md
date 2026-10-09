@@ -52,17 +52,9 @@ These corrections require migrating code that assumes documentation parameters a
 pnpm --filter @iracing-data/api-schema test
 ```
 
-## Related @iracing-data packages
+## Related packages
 
-Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iracing-data/api-client-fetch) for general iRacing Data API usage.
-
-- [OAuth client](https://www.npmjs.com/package/@iracing-data/oauth-client): authentication and token refresh.
-- [Axios client](https://www.npmjs.com/package/@iracing-data/api-client-axios): use your existing Axios stack.
-- [API schemas](https://www.npmjs.com/package/@iracing-data/api-schema): runtime validation and TypeScript types.
-- [OAuth schemas](https://www.npmjs.com/package/@iracing-data/oauth-schema): OAuth request and response validation.
-- [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
-
-See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+See the [repository package chooser](https://github.com/racedirector/iracing-data-api#which-package-should-i-use) and [runnable examples](https://github.com/racedirector/iracing-data-api/tree/main/examples#readme).
 
 ## Schema naming compatibility
 

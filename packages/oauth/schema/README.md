@@ -22,17 +22,9 @@ const parsed = OAuthAuthorizeParametersSchema.parse({
 
 Review [src/schema.ts](src/schema.ts) for the full list of exported schemas that describe request parameters, headers, error responses, and the decoded JWT access token shape used by the OAuth flow.
 
-## Related @iracing-data packages
+## Related packages
 
-Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iracing-data/api-client-fetch) for general iRacing Data API usage.
-
-- [OAuth client](https://www.npmjs.com/package/@iracing-data/oauth-client): authentication and token refresh.
-- [Axios client](https://www.npmjs.com/package/@iracing-data/api-client-axios): use your existing Axios stack.
-- [API schemas](https://www.npmjs.com/package/@iracing-data/api-schema): runtime validation and TypeScript types.
-- [OAuth schemas](https://www.npmjs.com/package/@iracing-data/oauth-schema): OAuth request and response validation.
-- [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
-
-See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+See the [repository package chooser](https://github.com/racedirector/iracing-data-api#which-package-should-i-use) and [runnable examples](https://github.com/racedirector/iracing-data-api/tree/main/examples#readme).
 
 ## Schema naming compatibility
 

@@ -6,27 +6,23 @@ Applies throughout the repository; read the nearest scoped `AGENTS.md` before ed
 
 Use `workspace-policy.json` for package classifications and ownership areas, `pnpm-workspace.yaml` for npm membership, and `Cargo.toml` for Cargo membership. Discover package names, versions, dependencies, and scripts from their manifests rather than maintaining another inventory. See [workspace policy](docs/WORKSPACE-POLICY.md) for the maintenance procedure.
 
-- `public-release-target`: authored public schema or runtime package.
-- `generated-public-client`: public SDK derived from the Data API OpenAPI contract.
-- `internal-tool`: private CLI or OpenAPI build tooling.
-- `example`: private consumer demonstrating public packages.
-- `repository-root`: private orchestration workspace.
-
 Public packages are independently versioned. `dist-workspace.toml` defines the managed release set; classification alone does not create a publishing workflow. Follow [release instructions](docs/RELEASING.md), including package-specific version bumps and dependency order. A guidance-only change does not require a package version bump.
 
 ## Canonical source and derived artifacts
 
-| Authored source                                                                                                                                  | Derived surface                                                              | Regeneration / ownership guidance                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| Data API Zod schemas in `packages/api/schema/src` plus endpoint, response, and document mappings in `packages/helpers/api-schema-to-openapi/src` | `openapi/iracing.json` and `openapi/iracing.yaml`                            | [API guidance](packages/api/AGENTS.md), [OpenAPI guidance](openapi/AGENTS.md)                                |
-| OAuth Zod schemas in `packages/oauth/schema/src` plus mappings in `packages/helpers/oauth-schema-to-openapi/src`                                 | `openapi/oauth.json` and `openapi/oauth.yaml`                                | [OAuth guidance](packages/oauth/AGENTS.md), [OpenAPI guidance](openapi/AGENTS.md)                            |
-| `openapi/iracing.json`, `openapitools.json`, generation/post-processing scripts                                                                  | Fetch, Axios, and Rust source, endpoint/model docs, generator support files  | [TypeScript clients](packages/api/client/AGENTS.md), [Rust client](crates/iracing-data-api-client/AGENTS.md) |
-| `scripts/client-presentation` templates and `scripts/normalize-client-presentation.js`                                                           | Fetch/Axios and Rust manifest presentation metadata and README introductions | [TypeScript clients](packages/api/client/AGENTS.md), [Rust client](crates/iracing-data-api-client/AGENTS.md) |
-| Authored TypeScript and compiler configuration                                                                                                   | `dist/` and TypeScript build caches                                          | Package `build` script; do not hand-edit build output                                                        |
+Inspect the owning module and descend through its scoped guide:
+
+| Work                        | Implementation owner                                                                                                                                                                   | Scoped guidance                                                                                       |
+| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Data API contracts          | [schema composition](packages/api/schema/src/schema/responses.ts), [document mapping](packages/helpers/api-schema-to-openapi/src/index.ts)                                             | [API](packages/api/AGENTS.md), [helpers](packages/helpers/AGENTS.md), [OpenAPI](openapi/AGENTS.md)    |
+| OAuth contracts/runtime     | [wire schemas](packages/oauth/schema/src/index.ts), [client](packages/oauth/client/src/index.ts), [document mapping](packages/helpers/oauth-schema-to-openapi/src/index.ts)            | [OAuth](packages/oauth/AGENTS.md)                                                                     |
+| SDK generation/presentation | [freshness orchestrator](scripts/check-generated.mjs), [presentation normalizer](scripts/normalize-client-presentation.js), [Rust normalizer](scripts/normalize-rust-presentation.mjs) | [TypeScript clients](packages/api/client/AGENTS.md), [Rust](crates/iracing-data-api-client/AGENTS.md) |
+| Local applications          | [MCP composition](apps/iracing-data-mcp/src/services.ts), [CLI authentication](apps/iracing-data-cli/src/authenticate.ts)                                                              | [MCP](apps/iracing-data-mcp/AGENTS.md)                                                                |
+| Workspace/check policy      | [topology](scripts/check-topology.js), [impact](scripts/workspace-impact.mjs), [verification](scripts/verify.mjs)                                                                      | [maintenance](docs/WORKSPACE-POLICY.md), [verification procedure](docs/VERIFICATION.md)               |
 
 The OAuth client is **authored runtime code**, not a generated client. OAuth OpenAPI does not feed the current Data API SDK generation scripts.
 
-Do not patch generated source, OpenAPI output, generated documentation, or generator bookkeeping by hand. Fix the schema, mapping, generator configuration, post-processing, or presentation template that owns the change, then regenerate the affected branch. Package release versions are authored decisions even inside generated manifests: inspect regeneration for overwritten versions or configuration and retain the reviewed release intent. Scoped `AGENTS.md` files are authored guidance, not generator output.
+Do not patch generated source, OpenAPI output, generated documentation, generator bookkeeping, `dist/`, or TypeScript build caches by hand. Fix the schema, mapping, generator configuration, post-processing, or presentation template that owns the change, then regenerate the affected branch. Package release versions are authored decisions even inside generated manifests: inspect regeneration for overwritten versions or configuration and retain the reviewed release intent. Scoped `AGENTS.md` files are authored guidance, not generator output.
 
 ## Commands and verification
 
@@ -41,7 +37,7 @@ pnpm verify
 
 For change and release planning, run `pnpm impact --base <ref>`; see [change impact](docs/CHANGE-IMPACT.md). Treat release candidates as review inputs, not automatic version bumps or publishing authorization.
 
-For scoped work, read the package's scripts and use `pnpm --filter <package-name> <script>`. Build dependencies with `pnpm --filter '<package-name>...' build`. Do not invent a test script for packages that lack one. `pnpm test` runs declared workspace tests; it does not run `test:topology`. For documentation-only edits, run `pnpm exec prettier --check <edited-markdown-paths>` and `git diff --check`; no codegen is needed.
+For scoped work, read the package's scripts and use `pnpm --filter <package-name> <script>`. Build dependencies with `pnpm --filter '<package-name>...' build`. Do not invent a test script for packages that lack one. `pnpm test` runs declared workspace tests; it does not run `test:topology`. For documentation-only edits, run `pnpm exec prettier --check <edited-markdown-paths>` and `git diff --check`; no codegen is needed unless authored presentation templates changed; use their scoped normalizer/formatting procedure.
 
 When schemas or OpenAPI mappings change, build the relevant generator with dependencies before invoking codegen; then regenerate the affected JSON/YAML pair and downstream clients. Exact commands are in scoped guidance. `pnpm codegen` runs both OpenAPI branches and all Data API SDK generators; use it only when the whole graph is affected. Review generated diffs and build affected consumers. For TypeScript changes also run lint/style and applicable tests. Do not wrap imports in `try/catch`.
 

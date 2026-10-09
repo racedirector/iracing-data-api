@@ -23,7 +23,7 @@ pnpm --filter @iracing-data/api-client-fetch build
 pnpm --filter @iracing-data/api-client-axios build
 ```
 
-Scripts invoke the pinned OpenAPI Generator and TypeScript post-processing, then normalize presentation and apply the explicit generated Prettier configuration. npm versions are passed from current authored manifests, including in isolated generation. Java is required by OpenAPI Generator. Contract changes shared by clients require both commands and the [Rust regeneration](../../../crates/iracing-data-api-client/AGENTS.md).
+The linked wrappers own generator options, post-processing and manifest version preservation. Java is required by OpenAPI Generator. Contract changes shared by clients require both commands and the [Rust regeneration](../../../crates/iracing-data-api-client/AGENTS.md).
 
 For presentation-only changes, avoid full generation:
 

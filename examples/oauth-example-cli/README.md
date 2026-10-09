@@ -29,3 +29,7 @@ pnpm --filter iracing-oauth-example-cli start -- --callback-port 4040 --credenti
 3. Press Enter in the CLI prompt to open your browser.
 4. Complete sign-in in the browser and return to the CLI.
 5. Find credentials in `credentials.json`.
+
+## Source navigation
+
+See the [runnable browser-flow example](src/index.ts) for the implementation.

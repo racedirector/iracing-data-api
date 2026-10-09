@@ -42,3 +42,7 @@ pnpm --filter iracing-password-limited-oauth start
 
 `pnpm --filter iracing-password-limited-oauth test` checks constants output with
 synthetic responses, including empty arrays. No login or credentials are needed.
+
+## Source navigation
+
+See the [runnable download example](src/index.ts) for the implementation.

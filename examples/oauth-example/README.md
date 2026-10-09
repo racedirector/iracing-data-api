@@ -21,3 +21,7 @@ pnpm --filter iracing-oauth-example dev
 ```
 
 3. Open `http://127.0.0.1:3000` and use the Login link.
+
+## Source navigation
+
+See the [login, callback and logout example](src/routes/oauth.ts) for the implementation.
