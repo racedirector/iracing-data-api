@@ -1,3 +1,16 @@
+/**
+ * Offline fixture validator and evaluator-prompt renderer, not a model runner.
+ * Inputs and canonical references must resolve to files inside this checkout;
+ * realpath containment rejects symlink escapes as well as lexical traversal.
+ * Scenario IDs and rubric criteria are nonempty/unique, with required canonical
+ * policy references. Structural validation cannot judge an agent answer or prove
+ * semantic agreement with current implementation; that remains the evaluator's job.
+ *
+ * renderPrompt exposes only the task and starting inputs, withholding the rubric
+ * so fresh conversations are not primed with expected answers. This CLI validates,
+ * lists or renders fixtures; it never calls a model, accesses credentials or
+ * publishes. Failure-case tests own the validator's executable contract.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

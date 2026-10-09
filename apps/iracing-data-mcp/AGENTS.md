@@ -1,6 +1,6 @@
 # iracing-data-mcp guidance
 
-Inherits [root guidance](../../AGENTS.md). This workspace is a private `internal-tool` owned by the `api` area in [`workspace-policy.json`](../../workspace-policy.json); it is not an npm release target.
+Inherits [root guidance](../../AGENTS.md). Inspect [`workspace-policy.json`](../../workspace-policy.json) and this workspace manifest for ownership and publication eligibility.
 
 The app is an agent-facing adapter over the maintained Data API and OAuth packages. Follow [Data API guidance](../../packages/api/AGENTS.md), [generated client guidance](../../packages/api/client/AGENTS.md), and [OAuth guidance](../../packages/oauth/AGENTS.md) for their owned surfaces. Do not duplicate or hand-edit generated Data API contracts in this app. App-local Zod schemas are appropriate only for MCP-specific narrowing, projection, or composition.
 
