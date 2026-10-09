@@ -1,22 +1,17 @@
 /**
- * Authenticated Data API documentation capture command.
+ * Fetch the authenticated Data API documentation through the generated client.
  *
- * Resolve output format and a single selected access token before capture. The
- * current private CLI imports the root evidence script by URL; that existing bridge
- * owns fixed-source single-fetch, timeout, redirect rejection, normalization/redaction
- * and provenance. It is not a reusable generated-client transport boundary. When
- * capture ownership is replaced, retire this bridge and document its actual owner
- * rather than preserving the root abstraction as a permanent architectural API.
+ * The generated Data API client owns the modeled `/data/doc` wire contract:
+ * endpoint paths, bearer-wire authentication, request serialization, transport,
+ * and response models. The CLI owns credential selection, client composition,
+ * command behavior, diagnostics, and output persistence.
  *
- * Capture once, without following method links or validating evidence against a
- * potentially stale maintained response schema. --snapshot returns the normalized
- * content/provenance/hash envelope; normal mode returns content only. File output
- * uses token-output.ts's generic private writer and leaves stdout empty; normal
- * stdout is only documentation data. HTTP 401/403 adds token/scope/account recovery
- * advice without exposing tokens or response bodies. Offline structural comparison
- * is separate and cannot infer complete runtime response compatibility.
+ * Keep the command dependent on the narrow `DocumentationApi` interface below so
+ * tests can inject a typed fake. Repository-root scripts are build/audit tooling,
+ * not application runtime dependencies or service-client abstractions.
  */
 import { Command } from "@commander-js/extra-typings";
+import type { IracingServiceMethodDocs } from "@iracing-data/api-client-fetch";
 import { resolveAccessToken, type CredentialOptions } from "../credentials.js";
 import {
   resolveTokenFormat,
@@ -25,38 +20,63 @@ import {
 } from "../token-output.js";
 import type { Diagnostics } from "../diagnostics.js";
 
-type DocsOptions = TokenOutputOptions &
-  CredentialOptions & {
-    snapshot?: boolean;
-    fetcher?: typeof fetch;
-  };
+export type DataApiDocumentation = Record<
+  string,
+  Record<string, IracingServiceMethodDocs>
+>;
 
-export async function fetchDocs(options: DocsOptions = {}) {
-  resolveTokenFormat(options.output, options.format);
-  const token = await resolveAccessToken(options);
-  // This private repository CLI shares fixed-source capture, timeout, redaction
-  // and provenance with the upstream evidence tool instead of duplicating them.
-  const toolingUrl = new URL(
-    "../../../../scripts/upstream-contract.mjs",
-    import.meta.url,
-  );
-  const { capture } = await import(toolingUrl.href);
-  let snapshot;
-  try {
-    snapshot = await capture("data", { token, fetcher: options.fetcher });
-  } catch (error) {
-    const message =
-      error instanceof Error ? error.message : "Documentation request failed";
-    if (/HTTP 401|HTTP 403/.test(message))
-      throw new Error(
-        `${message}. Check token expiry, iracing.auth scope and account access; obtain a new token with auth login.`,
-      );
-    throw new Error(message);
-  }
-  return options.snapshot ? snapshot : snapshot.content;
+export interface DocumentationApi {
+  getDocs(): Promise<DataApiDocumentation>;
 }
 
-export function createDocsCommand(diagnostics: Diagnostics) {
+export interface DocsDependencies {
+  createDocumentationApi(accessToken: string): DocumentationApi;
+}
+
+type DocsOptions = TokenOutputOptions & CredentialOptions;
+
+function responseStatus(error: unknown): number | undefined {
+  if (!(error instanceof Error) || error.name !== "ResponseError") return undefined;
+  const response = (error as Error & { response?: unknown }).response;
+  if (!response || typeof response !== "object" || !("status" in response))
+    return undefined;
+  const { status } = response as { status?: unknown };
+  return typeof status === "number" ? status : undefined;
+}
+
+function documentationRequestError(error: unknown): Error {
+  const status = responseStatus(error);
+  if (status === 401 || status === 403)
+    return new Error(
+      `Data API documentation request failed with HTTP ${status}. Check token expiry, iracing.auth scope and account access; obtain a new token with auth login.`,
+    );
+  if (status !== undefined)
+    return new Error(
+      `Data API documentation request failed with HTTP ${status}. Try again; if the failure persists, check iRacing service availability.`,
+    );
+  return new Error(
+    "Data API documentation request failed. Check network connectivity and try again.",
+  );
+}
+
+export async function fetchDocs(
+  options: DocsOptions,
+  dependencies: DocsDependencies,
+): Promise<DataApiDocumentation> {
+  resolveTokenFormat(options.output, options.format);
+  const token = await resolveAccessToken(options);
+  const api = dependencies.createDocumentationApi(token);
+  try {
+    return await api.getDocs();
+  } catch (error) {
+    throw documentationRequestError(error);
+  }
+}
+
+export function createDocsCommand({
+  diagnostics,
+  ...dependencies
+}: DocsDependencies & { diagnostics: Diagnostics }) {
   return new Command("docs")
     .description("Fetch the complete authenticated Data API documentation once")
     .option(
@@ -68,17 +88,13 @@ export function createDocsCommand(diagnostics: Diagnostics) {
       "Read access_token from an auth login JSON or YAML file",
     )
     .option("--format <json|yaml>", "Documentation serialization format")
-    .option(
-      "--snapshot",
-      "Include normalized evidence hash and live capture provenance",
-    )
     .option("--force", "Replace an existing output file")
     .action(async (options) => {
-      const docs = await fetchDocs(options);
+      const docs = await fetchDocs(options, dependencies);
       await writeDocumentOutput(docs, {
         ...options,
         outputLabel: "Documentation",
       });
-      diagnostics.info("Data API documentation captured.");
+      diagnostics.info("Data API documentation fetched.");
     });
 }
