@@ -36,6 +36,11 @@ export interface DocsCommandDependencies {
   createScope: CreateDocsCommandScope;
 }
 
+/**
+ * Build the docs command, resolving a fresh scope when its async action runs.
+ * The action fetches documentation once and writes it through that scope;
+ * scope creation, retrieval, and output failures reject `parseAsync()`.
+ */
 export function createDocsCommand({ createScope }: DocsCommandDependencies) {
   return new Command("docs")
     .description("Fetch the complete authenticated Data API documentation once")

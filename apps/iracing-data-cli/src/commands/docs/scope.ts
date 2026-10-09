@@ -30,12 +30,17 @@ export interface DocsScopeDependencies {
 
 const defaultDependencies: DocsScopeDependencies = {
   resolveAccessToken,
+  /** Create a documentation client using a token without the Bearer prefix. */
   createDocumentationClient(accessToken) {
     return new DocApi(new Configuration({ accessToken }));
   },
   writeDocumentOutput,
 };
 
+/**
+ * Read a numeric response status from an Error named ResponseError, returning
+ * undefined for other error shapes.
+ */
 function responseStatus(error: unknown): number | undefined {
   if (!(error instanceof Error) || error.name !== "ResponseError")
     return undefined;
@@ -46,6 +51,11 @@ function responseStatus(error: unknown): number | undefined {
   return typeof status === "number" ? status : undefined;
 }
 
+/**
+ * Return a new error with authentication advice for HTTP 401/403, service advice
+ * for other recognized statuses, or network advice otherwise. Original messages
+ * and response bodies are omitted, including for non-HTTP failures.
+ */
 function mapDocumentationError(error: unknown): Error {
   const status = responseStatus(error);
 
@@ -67,12 +77,16 @@ function mapDocumentationError(error: unknown): Error {
 }
 
 /**
- * Create the per-invocation dependency scope for `iracing-data docs`.
+ * Return a factory that creates a dependency scope per `iracing-data docs` invocation.
  *
  * This is intentionally command-scoped manual composition: resolve invocation
  * credentials and output policy once, construct the generated client once, and expose
  * only the capabilities the command handler requires. A future DI framework can
  * replace this factory without changing the command module's public registration API.
+ *
+ * The returned factory rejects unsupported formats before resolving credentials.
+ * Credential resolution and client construction failures propagate unchanged;
+ * documentation retrieval and output are deferred to the returned capabilities.
  */
 export function createDocsCommandScopeFactory(
   diagnostics: Diagnostics,
@@ -85,6 +99,10 @@ export function createDocsCommandScopeFactory(
 
     return {
       docs: {
+        /**
+         * Retrieve documentation on each call, replacing request or decoding
+         * failures with recovery advice from mapDocumentationError.
+         */
         async get(): Promise<DataApiDocumentation> {
           try {
             return await api.getDocs();
@@ -94,6 +112,11 @@ export function createDocsCommandScopeFactory(
         },
       },
       output: {
+        /**
+         * Write documentation using the invocation's output options, propagating
+         * writer failures. The default writer emits JSON or YAML to stdout or a
+         * private file and refuses to replace an existing file without force.
+         */
         async write(document) {
           await dependencies.writeDocumentOutput(document, {
             ...options,
