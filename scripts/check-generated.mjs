@@ -3,8 +3,8 @@
  *
  * Build both schema-to-OpenAPI dependency closures before serializing JSON/YAML into
  * a temporary tree, then run the pinned Data API Fetch/Axios/Rust wrappers using its
- * iracing.json. Current main has no OAuth SDK generation edge. The surfaces below
- * are generated output boundaries, not a duplicate workspace/publication inventory.
+ * iracing.json and the OAuth Fetch wrapper using oauth.json. The surfaces below are
+ * generated output boundaries, not a duplicate workspace/publication inventory.
  *
  * Compare bytes and complete file sets, including removed/stale files. Normal mode
  * fails without replacing local artifacts; --write uses the same pipeline to replace

@@ -10,7 +10,7 @@ export TS_POST_PROCESS_FILE="$SCRIPT_DIR/openapi-generator-ts-post-process.sh"
 export OPENAPI_DOC="${OPENAPI_DOC:-$ROOT_DIR/openapi/oauth.json}"
 export OUTPUT_PACKAGE="${OUTPUT_PACKAGE:-$ROOT_DIR/packages/oauth/client/generated}"
 
-PACKAGE_VERSION="$(node "$SCRIPT_DIR/read-package-version.mjs" "$ROOT_DIR/packages/oauth/client/package.json")"
+PACKAGE_VERSION="$(node "$SCRIPT_DIR/read-package-version.mjs" "$ROOT_DIR/packages/oauth/client/generated/package.json")"
 
 "$OPENAPI_GENERATOR" generate \
   --enable-post-process-file \

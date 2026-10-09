@@ -17,8 +17,8 @@
  * never fix contracts by editing specs, SDKs or generated docs. Direct constants,
  * documentation and search-manifest responses differ from generic cache-link success.
  * CSV query metadata preserves typed array inputs with one HTTP query value.
- * OAuth mapping is a separate helper/contract branch; current main has no OAuth SDK
- * generation edge. Freshness is checked by scripts/check-generated.mjs, not by import.
+ * OAuth mapping and wire generation are a separate helper/contract branch.
+ * Freshness is checked by scripts/check-generated.mjs, not by import.
  */
 import {
   APIResponseSchema,

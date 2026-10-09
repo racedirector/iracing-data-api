@@ -1,8 +1,10 @@
 /**
  * Authored reusable OAuth lifecycle service over oauth4webapi and stores.
  *
- * Current main owns request composition here; OAuth OpenAPI does not generate this
- * runtime. State/PKCE creation and callback validation consume stored state before
+ * OAuth OpenAPI generates the wire client, not this lifecycle runtime. Generated
+ * operations own password-grant and profile requests; oauth4webapi retains protocol
+ * exchange and processing. State/PKCE creation and callback validation consume
+ * stored state before
  * token exchange to prevent replay. An explicit callback session key skips profile
  * lookup; without one, profile access supplies the customer-ID storage key.
  *

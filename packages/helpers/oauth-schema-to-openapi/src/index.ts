@@ -9,10 +9,10 @@
  * Import exports one in-memory document without logging or filesystem mutation.
  * cli.ts owns JSON/YAML serialization and writes from that same document. Build
  * this helper's dependencies first so codegen reads current compiled schemas.
- * Current main has no OAuth generated-wire workspace: the runtime client is authored
- * and Data API SDK generation reads iracing.json only. Reconcile any delivered wire
- * client architecture before adding a new generation edge; never infer it from an
- * unmerged PR. Generated OpenAPI output must not be hand-edited.
+ * OAuth wire generation reads oauth.json into @iracing-data/oauth-client-fetch.
+ * The authored OAuthApiClient adapter validates responses and applies request policy;
+ * OAuthClient retains protocol/session orchestration. Data API SDKs read iracing.json.
+ * Generated OpenAPI and wire output must not be hand-edited.
  */
 import {
   OAuthErrorResponseSchema,
