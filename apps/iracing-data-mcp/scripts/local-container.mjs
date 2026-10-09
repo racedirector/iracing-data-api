@@ -36,6 +36,7 @@ const containerSecretFile = "/var/lib/iracing-data-mcp/client-secret";
 
 function dockerEnvironment() {
   const environment = { ...process.env };
+
   const clientSecret = process.env.IRACING_AUTH_SECRET?.trim();
 
   delete environment.IRACING_AUTH_SECRET;
