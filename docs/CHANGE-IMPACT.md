@@ -14,25 +14,11 @@ reference fails rather than silently reporting no impact. In CI, fetch sufficien
 history for the merge-base. JSON output from `node scripts/workspace-impact.mjs`
 is suitable for automation without pnpm's command banner.
 
-Workspace identities and publication classifications come from
-`workspace-policy.json`; dependencies and versions come from current npm/Cargo
-manifests. Managed release candidates are intersected with `dist-workspace.toml`.
+Read the report's direct changes, dependents, derived artifacts, generated clients,
+verification commands and managed release candidates as review inputs. The
+[current graph and propagation rationale](../scripts/workspace-impact.mjs) and
+[regression tests](../scripts/workspace-impact.test.mjs) own these computations.
 Run `pnpm check:topology` before trusting a report after topology edits.
-
-The report separates direct changes, authored packages, internal dependents,
-derived OpenAPI artifacts, generated SDKs, release candidates, generation commands
-and verification commands. Data API schema/mapping changes propagate through
-OpenAPI to all three SDKs and their manifest dependents. OAuth schema/mapping
-changes propagate to OAuth OpenAPI and manifest dependents, without treating the
-Data API SDKs as OAuth generator output. Generator/presentation inputs conservatively
-flag all Data API SDKs. Root dependency/toolchain/CI changes conservatively affect
-all workspaces. Cargo configuration/lock changes affect Cargo workspaces.
-
-Generation edges are repository-owned behavior in `scripts/workspace-impact.mjs`;
-update its regression tests when introducing a new pipeline. All internal manifest
-dependency categories participate in impact and release ordering. Data API schema
-releases precede affected generated SDK releases even though SDK manifests do not
-import the schema package. Cycles fail explicitly.
 
 ## Release readiness
 

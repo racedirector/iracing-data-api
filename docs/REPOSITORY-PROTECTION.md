@@ -1,8 +1,6 @@
 # Repository protection and recovery
 
-The active [main-branch ruleset](https://github.com/racedirector/iracing-data-api/rules/3770622) targets `refs/heads/main`. It prevents deletion and non-fast-forward updates, requires linear history, and requires the single `Verify` check from GitHub Actions (app ID `15368`). That job runs `pnpm verify`; strict status checking requires changes to be current with main before merging.
-
-The active [release-tags ruleset](https://github.com/racedirector/iracing-data-api/rules/24421863) restricts updates and deletion of `refs/tags/@iracing-data/*@*`, matching the release workflow. Creation remains allowed for normal package releases. Other tag namespaces are outside this policy.
+Inspect the live [main ruleset](https://github.com/racedirector/iracing-data-api/rules/3770622) and [release-tag ruleset](https://github.com/racedirector/iracing-data-api/rules/24421863) for current selectors, required checks and bypass actors. [CI](../.github/workflows/ci.yml) owns verification execution; [the release workflow](../.github/workflows/release.yml) owns release triggers. Live GitHub configuration is authoritative for enforcement.
 
 Both rulesets retain an explicit organization administrator bypass (`OrganizationAdmin`, `always`). Routine changes should use a PR with a passing `Verify` result. Bypass is reserved for a documented incident, such as repairing a verification workflow that cannot validate its own repair or correcting a mistaken release tag. Record the reason, affected commit/tag, validation performed, and recovery outcome in the issue or PR. Do not disable a ruleset or remove the required check as a routine workaround.
 
