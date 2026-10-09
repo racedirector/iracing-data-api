@@ -1,8 +1,9 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { mkdtemp, writeFile, readFile, rm, stat } = require("node:fs/promises");
+const { mkdtemp, readFile, rm, stat, writeFile } = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
+
 const DOCS = {
   car: {
     get: {
@@ -11,157 +12,258 @@ const DOCS = {
     },
   },
 };
-const load = () => import("../dist/commands/docs.js");
 
-function dependencies(assertToken, getDocs = async () => DOCS) {
+const diagnostics = { info() {}, warn() {}, error() {} };
+const loadCommand = () => import("../dist/commands/docs.js");
+const loadScope = () => import("../dist/commands/docs-scope.js");
+
+function scopeDependencies({
+  accessToken = "synthetic",
+  getDocs = async () => DOCS,
+  writeOutput = async () => {},
+  onOptions,
+  onToken,
+} = {}) {
   return {
-    createDocumentationApi(accessToken) {
-      assertToken?.(accessToken);
+    async resolveAccessToken(options) {
+      onOptions?.(options);
+      return accessToken;
+    },
+    createDocumentationClient(token) {
+      onToken?.(token);
       return { getDocs };
     },
+    writeDocumentOutput: writeOutput,
   };
 }
 
-test("fetches docs once through the injected typed client", async () => {
-  const { fetchDocs } = await load();
+test("command factory resolves one invocation scope and hands it to the implementation", async () => {
+  const { createDocsCommand } = await loadCommand();
+  let scopes = 0;
+  let gets = 0;
+  let writes = 0;
+  const command = createDocsCommand({
+    async createScope(options) {
+      scopes++;
+      assert.equal(options.credentials, "credentials.json");
+      return {
+        docs: {
+          async get() {
+            gets++;
+            return DOCS;
+          },
+        },
+        output: {
+          async write(document) {
+            writes++;
+            assert.deepEqual(document, DOCS);
+          },
+        },
+        diagnostics,
+      };
+    },
+  });
+
+  await command.parseAsync(["--credentials", "credentials.json"], {
+    from: "user",
+  });
+
+  assert.equal(scopes, 1);
+  assert.equal(gets, 1);
+  assert.equal(writes, 1);
+});
+
+test("implementation body only orchestrates resolved docs, output, and diagnostics", async () => {
+  const { runDocsCommand } = await loadCommand();
+  const events = [];
+
+  await runDocsCommand({
+    docs: {
+      async get() {
+        events.push("get");
+        return DOCS;
+      },
+    },
+    output: {
+      async write(document) {
+        events.push("write");
+        assert.deepEqual(document, DOCS);
+      },
+    },
+    diagnostics: {
+      ...diagnostics,
+      info(message) {
+        events.push(message);
+      },
+    },
+  });
+
+  assert.deepEqual(events, ["get", "write", "Data API documentation fetched."]);
+});
+
+test("scope resolves credentials and constructs the generated client once", async () => {
+  const { createDocsCommandScopeFactory } = await loadScope();
+  let clients = 0;
   let calls = 0;
-  const result = await fetchDocs(
-    { accessToken: "synthetic" },
-    dependencies(
-      (token) => assert.equal(token, "synthetic"),
-      async () => {
+  const createScope = createDocsCommandScopeFactory(
+    diagnostics,
+    scopeDependencies({
+      accessToken: "resolved-token",
+      onToken(token) {
+        clients++;
+        assert.equal(token, "resolved-token");
+      },
+      async getDocs() {
         calls++;
         return DOCS;
       },
-    ),
+    }),
   );
+
+  const scope = await createScope({ credentials: "credentials.json" });
+  assert.equal(clients, 1);
+  assert.deepEqual(await scope.docs.get(), DOCS);
   assert.equal(calls, 1);
-  assert.deepEqual(result, DOCS);
 });
 
-test("reads JSON and YAML credential files with explicit precedence", async (t) => {
-  const { fetchDocs } = await load();
-  const dir = await mkdtemp(path.join(os.tmpdir(), "iracing-docs-"));
-  t.after(() => rm(dir, { recursive: true, force: true }));
-  for (const [name, contents] of [
-    ["token.json", '{"access_token":"from-file"}'],
-    ["token.yaml", "access_token: from-file\n"],
-  ]) {
-    const file = path.join(dir, name);
-    await writeFile(file, contents, { mode: 0o600 });
-    await fetchDocs(
-      { credentials: file, accessToken: "other" },
-      dependencies((token) => assert.equal(token, "from-file")),
-    );
-  }
-});
-
-test("rejects missing credentials and invalid formats before client creation", async () => {
-  const { fetchDocs } = await load();
-  const neverCreate = {
-    createDocumentationApi() {
-      assert.fail("must not create client");
+test("scope validates output format before resolving credentials", async () => {
+  const { createDocsCommandScopeFactory } = await loadScope();
+  const createScope = createDocsCommandScopeFactory(diagnostics, {
+    async resolveAccessToken() {
+      assert.fail("credentials must not be resolved");
     },
-  };
+    createDocumentationClient() {
+      assert.fail("client must not be created");
+    },
+    async writeDocumentOutput() {
+      assert.fail("output must not be written");
+    },
+  });
+
   await assert.rejects(
-    fetchDocs({ accessToken: " " }, neverCreate),
-    /Set IRACING_ACCESS_TOKEN/,
-  );
-  await assert.rejects(
-    fetchDocs({ accessToken: "Bearer synthetic" }, neverCreate),
-    /without a Bearer prefix/,
-  );
-  await assert.rejects(
-    fetchDocs({ accessToken: "synthetic", format: "toml" }, neverCreate),
+    createScope({ format: "toml" }),
     /Unsupported output format/,
   );
-  await assert.rejects(
-    fetchDocs({ credentials: "/nonexistent/credentials.json" }, neverCreate),
-    /Unable to read credentials/,
-  );
 });
 
-test("maps generated client HTTP failures without exposing response content", async () => {
-  const { fetchDocs } = await load();
+test("scope maps generated client failures without exposing upstream content", async () => {
+  const { createDocsCommandScopeFactory } = await loadScope();
   const responseError = (status) => {
     const error = new Error("upstream secret body");
     error.name = "ResponseError";
     error.response = new Response("secret", { status });
     return error;
   };
-  await assert.rejects(
-    fetchDocs(
-      { accessToken: "synthetic" },
-      dependencies(undefined, async () => {
-        throw responseError(401);
+
+  for (const [error, expected] of [
+    [responseError(401), /HTTP 401.*Check token expiry/],
+    [responseError(500), /HTTP 500.*service availability/],
+    [new Error("synthetic secret"), /network connectivity/],
+  ]) {
+    const createScope = createDocsCommandScopeFactory(
+      diagnostics,
+      scopeDependencies({
+        async getDocs() {
+          throw error;
+        },
       }),
-    ),
-    /HTTP 401.*Check token expiry/,
-  );
-  await assert.rejects(
-    fetchDocs(
-      { accessToken: "synthetic" },
-      dependencies(undefined, async () => {
-        throw responseError(500);
-      }),
-    ),
-    /HTTP 500.*service availability/,
-  );
-  await assert.rejects(
-    fetchDocs(
-      { accessToken: "synthetic" },
-      dependencies(undefined, async () => {
-        throw new Error("synthetic secret");
-      }),
-    ),
-    /network connectivity/,
-  );
+    );
+    const scope = await createScope({});
+    await assert.rejects(scope.docs.get(), expected);
+  }
 });
 
-test("docs command file output is private and refuses replacement", async (t) => {
-  const { createProgram } = await import("../dist/program.js");
+test("scope owns documentation output policy", async (t) => {
+  const { createDocsCommand } = await loadCommand();
+  const { createDocsCommandScopeFactory } = await loadScope();
+  const { writeDocumentOutput } = await import("../dist/token-output.js");
   const dir = await mkdtemp(path.join(os.tmpdir(), "iracing-docs-output-"));
   t.after(() => rm(dir, { recursive: true, force: true }));
   const output = path.join(dir, "docs.json");
-  const diagnostics = { info() {}, warn() {}, error() {} };
-  const program = () => createProgram(diagnostics, dependencies());
-  await program().parseAsync(["docs", `--output=${output}`], { from: "user" });
+
+  const createScope = createDocsCommandScopeFactory(
+    diagnostics,
+    scopeDependencies({ writeOutput: writeDocumentOutput }),
+  );
+  const command = () => createDocsCommand({ createScope });
+
+  await command().parseAsync([`--output=${output}`], { from: "user" });
   assert.deepEqual(JSON.parse(await readFile(output, "utf8")), DOCS);
   if (process.platform !== "win32")
     assert.equal((await stat(output)).mode & 0o777, 0o600);
   await assert.rejects(
-    program().parseAsync(["docs", "--output", output], { from: "user" }),
+    command().parseAsync(["--output", output], { from: "user" }),
     /already exists/,
   );
 });
 
 test("snapshot option is retired", async () => {
-  const { createProgram } = await import("../dist/program.js");
-  const diagnostics = { info() {}, warn() {}, error() {} };
+  const { createDocsCommand } = await loadCommand();
   await assert.rejects(
-    createProgram(diagnostics, dependencies()).parseAsync(
-      ["docs", "--snapshot"],
-      { from: "user" },
-    ),
+    createDocsCommand({
+      async createScope() {
+        assert.fail("scope must not be created");
+      },
+    }).parseAsync(["--snapshot"], { from: "user" }),
     /unknown option '--snapshot'/,
   );
 });
 
-test("uses the repository credential file when no environment token exists", async (t) => {
-  const { fetchDocs } = await load();
-  const { defaultCredentialsPath } = await import("../dist/credentials.js");
+test("scope can resolve the repository credential file through the existing credential owner", async (t) => {
+  const { createDocsCommandScopeFactory } = await loadScope();
+  const { resolveAccessToken, defaultCredentialsPath } = await import(
+    "../dist/credentials.js"
+  );
   const saved = process.env.IRACING_ACCESS_TOKEN;
   delete process.env.IRACING_ACCESS_TOKEN;
   t.after(() => {
-    if (saved !== undefined) process.env.IRACING_ACCESS_TOKEN = saved;
+    if (saved === undefined) delete process.env.IRACING_ACCESS_TOKEN;
+    else process.env.IRACING_ACCESS_TOKEN = saved;
   });
-  await fetchDocs(
-    {
-      readCredentials: async (file) => {
-        assert.equal(file, defaultCredentialsPath);
-        return '{"access_token":"default-file"}';
-      },
+
+  let token;
+  const createScope = createDocsCommandScopeFactory(diagnostics, {
+    resolveAccessToken,
+    createDocumentationClient(accessToken) {
+      token = accessToken;
+      return { async getDocs() { return DOCS; } };
     },
-    dependencies((token) => assert.equal(token, "default-file")),
-  );
+    async writeDocumentOutput() {},
+  });
+
+  const scope = await createScope({
+    readCredentials: async (file) => {
+      assert.equal(file, defaultCredentialsPath);
+      return '{"access_token":"default-file"}';
+    },
+  });
+  await scope.docs.get();
+  assert.equal(token, "default-file");
+});
+
+test("scope honors explicit JSON and YAML credential files", async (t) => {
+  const { createDocsCommandScopeFactory } = await loadScope();
+  const { resolveAccessToken } = await import("../dist/credentials.js");
+  const dir = await mkdtemp(path.join(os.tmpdir(), "iracing-docs-"));
+  t.after(() => rm(dir, { recursive: true, force: true }));
+
+  for (const [name, contents] of [
+    ["token.json", '{"access_token":"from-file"}'],
+    ["token.yaml", "access_token: from-file\n"],
+  ]) {
+    const file = path.join(dir, name);
+    await writeFile(file, contents, { mode: 0o600 });
+    let token;
+    const createScope = createDocsCommandScopeFactory(diagnostics, {
+      resolveAccessToken,
+      createDocumentationClient(accessToken) {
+        token = accessToken;
+        return { async getDocs() { return DOCS; } };
+      },
+      async writeDocumentOutput() {},
+    });
+    const scope = await createScope({ credentials: file, accessToken: "other" });
+    await scope.docs.get();
+    assert.equal(token, "from-file");
+  }
 });
