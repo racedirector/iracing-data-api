@@ -1,3 +1,19 @@
+/**
+ * Authored shared Data API wire primitives and parameter conversions.
+ *
+ * Reuse these values rather than duplicating literals/coercion across endpoint
+ * schemas. Zod metadata IDs and descriptions are contract inputs to the authored
+ * OpenAPI helper and then generated SDK/model documentation; TypeScript comments
+ * are contributor architecture and do not change generated descriptions.
+ *
+ * Coercion is deliberate per primitive: boolean queries accept native booleans and
+ * only exact true/false strings, avoiding JavaScript truthiness; ID/number coercion
+ * and enum acceptance must remain compatible with callers. Metadata overrides must
+ * represent actual wire shape, not dependency convenience values. A codec can have
+ * different input/output types, so inspect both before altering OpenAPI projection.
+ * Historical IRacing exports below alias canonical values/types; renaming source
+ * symbols alone must not rename stable metadata IDs or downstream public SDKs.
+ */
 import { z } from "zod";
 
 export const AccessTokenSchema = z.jwt().meta({

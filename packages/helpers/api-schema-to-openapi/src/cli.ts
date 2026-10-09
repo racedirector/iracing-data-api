@@ -1,5 +1,19 @@
 #!/usr/bin/env node
 
+/**
+ * Filesystem/serialization owner for the authored Data API OpenAPI document.
+ *
+ * Import ./index for an in-memory document; importing that library does not write.
+ * Explicit format overrides extension inference; .yaml/.yml choose YAML and other
+ * names choose JSON. Both serialize the same document, not independently assembled
+ * contracts. The command creates the output directory, replaces the selected file
+ * and reports filesystem failures through normal CLI rejection. These are build
+ * artifacts, not secret token documents or atomic credential persistence.
+ *
+ * Invoke only after dependency-aware build. scripts/check-generated.mjs uses fresh
+ * temporary destinations for deterministic byte/file comparison; reviewed --write
+ * mode intentionally replaces generator-owned output. Do not hand-edit output.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { Command, Option } from "@commander-js/extra-typings";

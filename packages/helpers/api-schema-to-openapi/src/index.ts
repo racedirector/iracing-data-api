@@ -1,3 +1,25 @@
+/**
+ * Authored Data API schema-to-OpenAPI document mapping.
+ *
+ * Zod schemas own accepted shapes; this module owns endpoint paths, operation IDs,
+ * request placement, response/content-type/security mappings and document metadata.
+ * Both are canonical inputs. Stable operation IDs and schema metadata IDs influence
+ * generated public API/model naming and must not change incidentally during cleanup.
+ * Schema metadata descriptions plus operation/response prose here are the authored
+ * provenance of generated endpoint/model documentation.
+ *
+ * The exported document is constructed in memory on import without filesystem writes
+ * or logging. cli.ts alone selects serialization and destination. JSON and YAML are
+ * representations of this same document. Build this helper's dependency closure before
+ * invoking its CLI so generation reads current compiled schemas/mappings.
+ *
+ * openapi/iracing.json then feeds the pinned Fetch/Axios/Rust generator wrappers;
+ * never fix contracts by editing specs, SDKs or generated docs. Direct constants,
+ * documentation and search-manifest responses differ from generic cache-link success.
+ * CSV query metadata preserves typed array inputs with one HTTP query value.
+ * OAuth mapping is a separate helper/contract branch; current main has no OAuth SDK
+ * generation edge. Freshness is checked by scripts/check-generated.mjs, not by import.
+ */
 import {
   APIResponseSchema,
   ConstantsResponseSchema,

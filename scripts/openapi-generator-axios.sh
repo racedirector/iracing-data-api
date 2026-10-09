@@ -1,5 +1,12 @@
 #!/usr/bin/env sh
 
+# Authored wrapper for the pinned Data API axios generator.
+# Input is iracing.json; output source/docs/bookkeeping remain generator-owned.
+# Read release version from the reviewed manifest, disable generation timestamps,
+# apply language post-processing and authored presentation, then format output.
+# OPENAPI_DOC/OUTPUT_PACKAGE let freshness checks generate into an isolated tree.
+# Fix schema/mapping or wrapper/post-processing inputs, never generated output.
+
 set -eu
 
 SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
