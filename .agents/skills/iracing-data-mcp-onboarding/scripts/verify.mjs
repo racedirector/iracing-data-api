@@ -39,7 +39,9 @@ process.stdout.write(JSON.stringify({
 `;
 
 function failure(reason, detail) {
-  console.error(JSON.stringify({ version: 1, ok: false, reason, detail }, null, 2));
+  console.error(
+    JSON.stringify({ version: 1, ok: false, reason, detail }, null, 2),
+  );
   process.exitCode = 1;
 }
 
@@ -91,7 +93,10 @@ if (!existsSync(envFile)) {
 
     runtime = JSON.parse(output);
   } catch {
-    failure("runtime_probe_failed", "the MCP container is not available for inspection");
+    failure(
+      "runtime_probe_failed",
+      "the MCP container is not available for inspection",
+    );
   }
 
   if (runtime) {

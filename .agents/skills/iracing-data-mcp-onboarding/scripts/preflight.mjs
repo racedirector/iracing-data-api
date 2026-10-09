@@ -71,10 +71,15 @@ function check(id, status, detail) {
 }
 
 const packageJson = JSON.parse(readFileSync(packageFile, "utf8"));
-const expectedNode = readFileSync(path.join(repositoryRoot, ".nvmrc"), "utf8").trim();
+const expectedNode = readFileSync(
+  path.join(repositoryRoot, ".nvmrc"),
+  "utf8",
+).trim();
 const expectedNodeMajor = expectedNode.split(".")[0];
 const currentNodeMajor = process.versions.node.split(".")[0];
-const expectedPnpm = /^pnpm@([^+]+)/.exec(packageJson.packageManager ?? "")?.[1];
+const expectedPnpm = /^pnpm@([^+]+)/.exec(
+  packageJson.packageManager ?? "",
+)?.[1];
 const pnpmExecutable = process.platform === "win32" ? "pnpm.cmd" : "pnpm";
 const pnpm = runCommand(pnpmExecutable, ["--version"]);
 const dockerCli = runCommand("docker", ["--version"]);
@@ -92,7 +97,9 @@ const expectedRedirect = exampleEnv.get("IRACING_AUTH_REDIRECT_URI");
 const redirectMatches =
   configured(expectedRedirect) &&
   env.get("IRACING_AUTH_REDIRECT_URI") === expectedRedirect;
-const dependenciesInstalled = existsSync(path.join(repositoryRoot, "node_modules"));
+const dependenciesInstalled = existsSync(
+  path.join(repositoryRoot, "node_modules"),
+);
 const stagingCredentialsPresent = existsSync(stagingCredentialFile);
 const volume = dockerDaemon.ok
   ? runCommand("docker", [
@@ -152,7 +159,9 @@ const checks = [
   check(
     "docker_daemon",
     dockerDaemon.ok ? "pass" : "fail",
-    dockerDaemon.ok ? `server ${dockerDaemon.output}` : "Docker daemon is not reachable",
+    dockerDaemon.ok
+      ? `server ${dockerDaemon.output}`
+      : "Docker daemon is not reachable",
   ),
   check(
     "env_file",
@@ -176,7 +185,9 @@ const checks = [
   check(
     "dependencies",
     dependenciesInstalled ? "pass" : "fail",
-    dependenciesInstalled ? "node_modules exists" : "run pnpm install --frozen-lockfile",
+    dependenciesInstalled
+      ? "node_modules exists"
+      : "run pnpm install --frozen-lockfile",
   ),
   check(
     "staging_credentials",
@@ -208,8 +219,10 @@ const actions = [];
 if (!envExists) actions.push("prepare_env");
 if (envExists && (!clientConfigured || !redirectMatches))
   actions.push("configure_oauth_locally");
-if (currentNodeMajor !== expectedNodeMajor) actions.push("activate_repository_node");
-if (!pnpm.ok || pnpm.output !== expectedPnpm) actions.push("activate_pinned_pnpm");
+if (currentNodeMajor !== expectedNodeMajor)
+  actions.push("activate_repository_node");
+if (!pnpm.ok || pnpm.output !== expectedPnpm)
+  actions.push("activate_pinned_pnpm");
 if (!dockerDaemon.ok) actions.push("start_docker");
 if (!dependenciesInstalled) actions.push("install_dependencies");
 if (stagingCredentialsPresent) actions.push("review_staging_credentials");
@@ -220,7 +233,8 @@ console.info(
       version: 1,
       platform: process.platform,
       architecture: process.arch,
-      revision: runCommand("git", ["rev-parse", "--short", "HEAD"]).output ?? null,
+      revision:
+        runCommand("git", ["rev-parse", "--short", "HEAD"]).output ?? null,
       ready_for_login: readyForLogin,
       checks,
       observations: {
