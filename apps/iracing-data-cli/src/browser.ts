@@ -1,3 +1,12 @@
+/**
+ * Platform browser-launch adapter for the authorization URL.
+ *
+ * Choose the host opener and detach after spawn so browser lifetime does not hold
+ * CLI completion. Successful spawn does not prove the page opened or authorization
+ * succeeded; authenticate.ts owns fallback/manual instructions and callback outcome.
+ * The URL carries authorization state, not issued tokens. Never use this helper as
+ * an arbitrary command or token-output channel.
+ */
 import { spawn } from "node:child_process";
 
 export async function openUrlInBrowser(url: string): Promise<void> {

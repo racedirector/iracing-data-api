@@ -1,3 +1,20 @@
+/**
+ * CLI browser-flow and callback-listener owner.
+ *
+ * Bind the registered HTTP IPv4/IPv6 loopback host/path before opening authorization.
+ * For a registered port-0 URI, replace only the port after listen; otherwise retain
+ * the registered URI exactly for authorization and token exchange. Local config
+ * cannot register a redirect URI upstream. One matching callback claims the flow;
+ * wrong paths return 404 and subsequent callbacks return 409. Success, error,
+ * callback timeout and SIGINT/SIGTERM all leave through listener/timer cleanup.
+ *
+ * The reusable OAuthClient owns PKCE/state consumption and protocol processing.
+ * This CLI uses an explicit session key with in-memory stores, avoiding profile
+ * lookup for auth-only scopes; login.ts subsequently persists the returned token.
+ * Browser opener failure prints the authorization URL for manual completion, not
+ * token values. Callback failure uses fixed HTML/diagnostics instead of raw causes.
+ * A timeout/cancellation closes local work; it does not revoke upstream grants.
+ */
 import { createServer, type Server } from "node:http";
 import {
   InMemoryStore,

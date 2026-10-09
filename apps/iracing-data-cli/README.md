@@ -1,6 +1,6 @@
 # iracing-data CLI
 
-`apps/iracing-data-cli` is this repository's private Commander-based `iracing-data` CLI. `iracing-data auth login` obtains iRacing OAuth tokens with the browser Authorization Code flow; `iracing-data docs` fetches authenticated Data API documentation, and `iracing-data whoami` checks the active profile. This is private repository tooling and reuses the root upstream capture implementation.
+`apps/iracing-data-cli` is this repository's private Commander-based `iracing-data` CLI. `iracing-data auth login` obtains iRacing OAuth tokens with the browser Authorization Code flow; `iracing-data docs` fetches authenticated Data API documentation, and `iracing-data whoami` checks the active profile. This is private repository tooling.
 
 ## Configure an iRacing OAuth client
 
@@ -24,13 +24,11 @@ Default requested scopes: iracing.auth iracing.profile
 
 The default login requests both `iracing.auth` and `iracing.profile`. `iracing-data auth login --scope iracing.auth` is the least-privilege bootstrap for `iracing-data-mcp`; it requests only Data API authorization and intentionally does not grant profile access.
 
-By default, the CLI binds `127.0.0.1` on an ephemeral runtime port before opening the authorization page. This works only if the client has the `:0` URI above registered. Set `IRACING_AUTH_REDIRECT_URI` to the HTTP loopback URI actually registered for your client to use a different path or a fixed port. For example, if `http://127.0.0.1:3000/callback` is registered:
-
-```dotenv
-IRACING_AUTH_REDIRECT_URI=http://127.0.0.1:3000/callback
-```
-
-The CLI listens on that host, port, and path and sends the same URI in both authorization and token requests. For a registered native-app URI with port `0`, only the port is replaced at runtime. IPv4 `127.0.0.1` and IPv6 `[::1]` loopback addresses are supported. See [iRacing's redirect URI rules](https://oauth.iracing.com/oauth2/book/redirect_uris_overview.html). Hosted HTTPS callbacks require a web application and cannot be received by this local CLI.
+Register the default HTTP loopback callback above, or set
+`IRACING_AUTH_REDIRECT_URI` to a different HTTP IPv4/IPv6 loopback URI already
+registered for your client. Use port `0` only for a registered native-app URI.
+Hosted HTTPS callbacks need a web application. See the [callback owner](src/authenticate.ts)
+for listener, redirect and cleanup behavior, and [iRacing redirect URI rules](https://oauth.iracing.com/oauth2/book/redirect_uris_overview.html).
 
 If the authorization page rejects the URL, verify the client ID and registered callback URI with iRacing; changing the local configuration does not register a URI. If a fixed callback port is occupied, stop its listener or configure another URI already registered for the client. Public clients are not issued a secret; confidential clients may be issued one. If iRacing issued a client secret, the token exchange must use it.
 
@@ -105,9 +103,11 @@ By default, `auth login` atomically updates `.iracing-data/credentials.json` at 
 
 Successful stdout is empty; diagnostics go to stderr. Subsequent logins replace the selected shared file so authenticated consumers can read the current token. `--credentials <path>` chooses another credential file to update. `--output <path>` retains the previous alternate-file behavior: it refuses replacement unless `--force` is supplied. Explicit destinations override the scope-specific default. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
 
-JSON credential writes use the shared `@iracing-data/oauth-client` token-document primitive. It validates the complete `OAuthTokenResponse` document, writes an exclusive same-directory temporary file, fsyncs it, atomically publishes it, and syncs the parent directory where the platform supports that durability contract. On POSIX, existing credential directories must be owned by the current user with mode `0700`; credential files must be regular current-user-owned files with mode `0600`. Symlinks, nonregular files, unsafe modes/ownership, oversized documents, and corrupt state are rejected. New credential directories and files are created with `0700`/`0600`. Windows does not provide equivalent POSIX ownership/mode guarantees through Node; the CLI uses explicit best-effort directory durability there and relies on normal host ACLs.
-
-YAML output remains supported for explicit alternate CLI destinations and uses the existing generic document writer. The shared MCP credential artifact is JSON; do not use YAML as the Docker session document.
+JSON writes use the shared [OAuth token-document implementation](../../packages/oauth/client/src/storage/token-document-store.ts).
+On POSIX keep credential directories owned with mode `0700` and files `0600`;
+Windows depends on host ACLs and explicit best-effort directory durability.
+Use JSON for MCP credentials. YAML is supported for explicit alternate CLI output.
+See [output policy](src/token-output.ts) for validation and durability differences.
 
 The complete response can contain both `access_token` and `refresh_token`. Treat every output document as a secret. Delete test credential files when they are no longer needed. Token values are never accepted as CLI flags and are not included in successful diagnostics.
 
@@ -134,9 +134,9 @@ pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.j
 
 Authenticated commands accept `--credentials <path>` for a JSON or YAML token file containing `access_token`. Credential precedence is explicit `--credentials`, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the shared `.iracing-data/credentials.json`. A selected invalid credential file fails rather than silently using another token. Environment tokens must omit the `Bearer ` prefix. `docs` requires `iracing.auth`, so the dedicated auth-only MCP credential is sufficient when selected explicitly.
 
-`docs` makes exactly one request to `https://members-ng.iracing.com/data/doc`; endpoint links are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. It preserves unknown documentation fields while sorting keys and redacting credentials through the existing upstream normalizer. It does not validate evidence using the maintained response schema, which may itself be out of date.
+`docs` makes exactly one request to `https://members-ng.iracing.com/data/doc`; endpoint links are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. See [capture implementation](src/commands/docs.ts) for the current evidence boundary and schema-validation distinction.
 
-`--snapshot` adds the upstream evidence envelope: fixed source URL, live capture time, normalizer version and content hash. Choose fresh ignored paths and JSON snapshots for compatibility audits. Network requests refuse redirects and time out after 30 seconds. HTTP 401/403 reports an action to check token expiry, `iracing.auth` scope and account access, then obtain a new token with `auth login`. No tokens or response bodies appear in errors.
+`--snapshot` adds provenance and a content hash for offline comparison. Choose fresh ignored paths and JSON snapshots for compatibility audits. Network requests refuse redirects and time out after 30 seconds. HTTP 401/403 reports an action to check token expiry, `iracing.auth` scope and account access, then obtain a new token with `auth login`. No tokens or response bodies appear in errors.
 
 After capturing once, compare offline against the current authored schemas and OpenAPI mappings:
 
@@ -196,3 +196,11 @@ Use a real registered OAuth client and do the following without copying token va
 13. Remove the temporary credential directory and any test `.env` files when finished.
 
 Offline unit tests cover OAuth lifecycle, scope selection, callback behavior, and output mechanics with synthetic tokens. The live procedure above validates only the external iRacing integration and should never be converted into credential-bearing CI.
+
+## Implementation navigation
+
+- [Browser/callback flow](src/authenticate.ts) and [login policy](src/commands/auth/login.ts).
+- [Credential precedence](src/credentials.ts) and [output/durability integration](src/token-output.ts).
+- [Documentation capture](src/commands/docs.ts) and [profile check](src/commands/whoami.ts).
+- [Browser launcher](src/browser.ts) and [diagnostic sink](src/diagnostics.ts).
+- Shared [OAuth lifecycle](../../packages/oauth/client/src/client.ts) and [durable store](../../packages/oauth/client/src/storage/token-document-store.ts).
