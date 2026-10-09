@@ -1,3 +1,11 @@
+/**
+ * Exhaustive compile-time witnesses for the frozen export inventory. Compare both
+ * names through built package/module declarations and client re-exports, including
+ * Zod input/output, literals and brands. compatibility.test.cjs checks that every
+ * historical entry appears here, preventing a partial fixture from silently passing.
+ * Keep exports.json/behavior.json frozen; this witness is not a baseline generator.
+ */
+
 import type { z } from "../../packages/oauth/schema/node_modules/zod";
 type Equal<A, B> =
   (<T>() => T extends A ? 1 : 2) extends <T>() => T extends B ? 1 : 2

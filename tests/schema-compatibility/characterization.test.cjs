@@ -1,3 +1,15 @@
+/**
+ * Frozen pre-migration behavior, complementing declaration/type compatibility.
+ * exports.json identifies historical symbols and behavior.json records metadata
+ * and literal values from fd8402c57c49f98c4cf3fe16022bd63424159532. Preserve both
+ * independently of current code; regenerating them after a change hides regressions.
+ * Representative parse/error/codec cases and exhaustive metadata/literal checks
+ * guard the additive rename's promise: aliases do not alter coercion, wire keys,
+ * brands/literals, metadata IDs or error behavior. Fixtures establish repository
+ * history, not authenticated upstream compatibility. Update only through a reviewed
+ * compatibility decision with independent historical evidence.
+ */
+
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
 const { z } = require("../../packages/oauth/schema/node_modules/zod");
