@@ -93,6 +93,10 @@ pnpm codegen:client
 
 For full dependency-aware regeneration and stale-file cleanup, run `pnpm codegen`. Run `pnpm verify:generated` to regenerate all four OpenAPI specs and three clients in isolation and compare their committed output without changing local artifacts. Java 17 and the pinned Rust toolchain are required. See [verification](docs/VERIFICATION.md).
 
+## Contributing
+
+Follow [CONTRIBUTING.md](CONTRIBUTING.md) for checkout setup, source ownership, verification, and the pull request workflow. Report vulnerabilities privately using [SECURITY.md](SECURITY.md).
+
 ## Releasing
 
 Published packages live under the `@iracing-data` scope on npm. Releases are automated via GitHub Actions and driven by a git tag. See [docs/RELEASING.md](docs/RELEASING.md) for step-by-step instructions.
