@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "iracing-data": "node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js",
+    "mcp:local": "node --env-file-if-exists=.env apps/iracing-data-mcp/scripts/local-container.mjs",
     "codegen": "node scripts/check-generated.mjs --write",
     "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",

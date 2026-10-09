@@ -3,10 +3,11 @@
  *
  * Configuration and secure directory/secret checks precede owner construction.
  * Only a secret file beside the credential document is accepted; environment
- * secret values are rejected. The container's mapped non-root UID/GID and exact
+ * secret values are rejected. The container's fixed non-root UID/GID and exact
  * loopback Host/Origin configuration are enforced here; compose.yaml owns host
- * port publication and container isolation. The internal listen address may be
- * 0.0.0.0 for Docker while the published boundary remains loopback.
+ * port publication, Docker-managed storage, and container isolation. The internal
+ * listen address may be 0.0.0.0 for Docker while the published boundary remains
+ * loopback.
  *
  * Typed factories compose session, gateway and HTTP lifetimes once. Missing or
  * corrupt credentials can leave health/initialize available for stopped recovery.
@@ -233,15 +234,11 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
 
   try {
     await app.listen(3000, config.listenHost);
-    installTerminationHandlers(app, (exitCode) => {
-      // HTTP has drained and the owner has removed uncertain credentials. A grant
-      // socket may never settle; flush safe diagnostics and end the production process.
-      process.stderr.write("", () => process.exit(exitCode));
-    });
-
+    installTerminationHandlers(app, services);
     return app;
   } catch {
-    await app.shutdown();
+    await app.shutdown().catch(() => undefined);
+    await services.close().catch(() => undefined);
     throw configurationError();
   }
 }
