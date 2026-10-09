@@ -1,3 +1,19 @@
+/**
+ * Authored maintained response acceptance and inferred public types.
+ *
+ * Distinguish direct payloads from expiring cache-link envelopes: APIResponseSchema
+ * is a link/expires contract, constants are direct arrays of unspecified objects,
+ * and results search is a direct manifest. Convenient linked payload schemas are
+ * non-exhaustive; do not present them as proof of full upstream response coverage.
+ * The OpenAPI helper owns endpoint-to-response mapping, not this export inventory.
+ *
+ * Documentation methods may omit parameters; note is a string or string array.
+ * Descriptions/IDs in Zod metadata feed the authored OpenAPI document and generated
+ * endpoint/model docs. Comments explain ownership without modifying those outputs.
+ * Changing wire acceptance requires upstream evidence, public compatibility review
+ * and tests; do not infer upstream drift from a generated type or stale overview.
+ * Historical aliases below retain canonical value/type identity and metadata IDs.
+ */
 import { z } from "zod";
 import { BooleanParameterSchema } from "./primitives";
 

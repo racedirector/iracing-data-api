@@ -1,3 +1,9 @@
+# The same service-free verification runner is the required local/main contract.
+# Full history lets dependency impact use the PR's exact base SHA against the
+# checked-out merge revision. Its artifact informs review, never release selection.
+# Read-only permissions and frozen installation keep verification non-publishing.
+# Docker recovery is separate because it requires a daemon and POSIX host identity;
+# the production-image harness owns its synthetic persistence/failure evidence.
 name: CI
 
 on:

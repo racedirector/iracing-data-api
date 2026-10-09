@@ -2,10 +2,13 @@
 
 Generate OpenAPI JSON or YAML for the iRacing Data API from maintained Zod schemas.
 
-## Installation
+## Repository setup
+
+This is private workspace tooling. From the repository root:
 
 ```bash
-pnpm add -D @iracing-data/api-schema-to-openapi
+pnpm install --frozen-lockfile
+pnpm --filter '@iracing-data/api-schema-to-openapi...' build
 ```
 
 ## Usage
@@ -57,3 +60,10 @@ Start with [@iracing-data/api-client-fetch](https://www.npmjs.com/package/@iraci
 - [API OpenAPI generator](https://www.npmjs.com/package/@iracing-data/api-schema-to-openapi) and [OAuth OpenAPI generator](https://www.npmjs.com/package/@iracing-data/oauth-schema-to-openapi): generate specifications from schemas.
 
 See the [repository and examples](https://github.com/racedirector/iracing-data-api) for the complete package family.
+
+## Implementation navigation
+
+The [document owner](src/index.ts) explains schema/mapping and generated-description
+provenance. The [CLI](src/cli.ts) owns file writing and JSON/YAML serialization.
+[Freshness orchestration](../../../scripts/check-generated.mjs) owns build/generation
+ordering and safe replacement. Generated output must not be hand-edited.

@@ -1,3 +1,21 @@
+/**
+ * Workspace ownership and publication-policy enforcement.
+ *
+ * Discover manifests independently of configured membership so an omitted package
+ * cannot escape policy. workspace-policy.json supplies classification/ownership;
+ * pnpm-workspace.yaml and Cargo.toml supply membership, manifests supply names and
+ * dependencies, and dist-workspace.toml supplies managed release membership.
+ * Classification identifies authored public packages, generated public SDKs,
+ * private tools/examples and the private root; it does not create a publishing
+ * workflow. Public runtime dependencies must themselves be public.
+ *
+ * Validate coverage, metadata, membership, local dependencies and TypeScript
+ * references together; accumulate actionable errors, fail on malformed inputs,
+ * and never repair configuration. The optional release selector is an additional
+ * public npm eligibility check, not authorization to publish. Mutation tests in
+ * check-topology.test.js define executable regressions for these invariants.
+ */
+
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
