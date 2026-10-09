@@ -127,8 +127,24 @@ gh run watch <run-id> --exit-status
 Once the workflow completes:
 
 - Check the package on [npmjs.com](https://www.npmjs.com/org/iracing-data).
-- Confirm the GitHub Release was created with generated notes.
+- Confirm the GitHub Release identifies the package/version, includes package-specific changes and the installation command, and marks prereleases correctly.
 - Do a quick smoke test: `npm install @iracing-data/oauth-client@0.1.0`.
+
+## Package-specific GitHub Releases
+
+After tag-triggered npm publication succeeds, the workflow creates a GitHub Release with the package name and exact version, an exact-version installation command, and package-relevant changes. Manual workflow dispatch continues to publish without creating a GitHub Release.
+
+Release notes use the canonical [change-impact graph](CHANGE-IMPACT.md): package changes, internal dependency changes, and owned generation/presentation changes are included; global-only CI/toolchain maintenance is omitted. Previous-release selection uses the highest lower SemVer same-package tag reachable from the release commit, with a lexical tag tie-break for versions that differ only by build metadata. Commit history follows the first parent, including merged changes. A first release covers reachable package history.
+
+SemVer prereleases are published to `next` and marked as GitHub prereleases, without becoming the latest GitHub Release. A hyphen in build metadata alone does not make a version a prerelease. Stable releases use `latest` on npm.
+
+To inspect notes, check out the exact release tag with full Git history, install frozen dependencies, then run the helper with the actual version:
+
+```bash
+node scripts/release-notes.mjs '@iracing-data/oauth-client@<version>'
+```
+
+`pnpm test:release` validates filtering, previous-release selection, SemVer classification, and workflow integration. The notes helper does not change versions, create tags, publish packages, or modify the registry.
 
 ## Releasing multiple packages
 
@@ -201,11 +217,35 @@ dist init --yes
 
 The workspace members are declared in [`dist-workspace.toml`](../dist-workspace.toml).
 
-For the Rust library crate (`crates/iracing-data-api-client`), use an explicit tag when planning or releasing with `dist`:
+For the Rust library crate, use its own reviewed Cargo version when planning with `dist`, for example:
 
 ```bash
-dist plan --tag=iracing-data-api-client-v0.0.1
+dist plan --tag=iracing-data-api-client-v0.1.0
 ```
+
+## Rust crate releases
+
+`iracing-data-api-client` is an independently versioned public library. Its version lives in `crates/iracing-data-api-client/Cargo.toml`; the npm workflow does not publish it. Managed release membership and `dist plan` do not authorize or perform Cargo publication.
+
+1. Review the crate's changes since its previous package release, select its version independently of npm packages, and merge the version and presentation changes through a PR. Edit presentation in `scripts/client-presentation/rust.json` and `rust.md`, then apply `node scripts/normalize-rust-presentation.mjs`; do not hand-edit generated metadata or the README introduction.
+2. On the intended mainline release commit, run `pnpm verify` and inspect the Cargo package before publication:
+
+   ```bash
+   cargo package -p iracing-data-api-client --locked --list
+   cargo publish -p iracing-data-api-client --locked --dry-run
+   ```
+
+   Confirm the archive contains the maintained README and examples, has MIT license metadata and the correct repository/homepage/documentation links, and builds independently of the checkout. A dry run does not publish the crate.
+
+3. An authorized maintainer with crates.io ownership and credentials publishes the reviewed version explicitly:
+
+   ```bash
+   cargo publish -p iracing-data-api-client --locked
+   ```
+
+4. Verify that exact version on [crates.io](https://crates.io/crates/iracing-data-api-client) and [docs.rs](https://docs.rs/iracing-data-api-client), including metadata, README, documentation, and installation with a TLS feature. Record the source commit and publication evidence in a package-specific GitHub Release using `iracing-data-api-client-v<version>`; create the tag only for the reviewed release commit. SemVer prereleases must be marked as GitHub prereleases. Cargo versions have no npm `latest`/`next` dist-tags.
+
+If ownership, credentials, or release approval is unavailable, record the exact external action still required. Prepared source and a successful dry run do not establish published package state.
 
 ## Verify package presentation and provenance
 

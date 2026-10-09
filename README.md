@@ -15,6 +15,8 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 
 For bounded read-only agent queries, use the private [local Data API MCP](apps/iracing-data-mcp/README.md). Its [Docker setup and credential recovery](apps/iracing-data-mcp/local-container.md) use host CLI auth-only login and a loopback Streamable HTTP connection. It is separate from public npm package releases.
 
+The [client connection guide](apps/iracing-data-mcp/clients.md) covers checked-in configurations for common AI clients, Ollama-backed OpenCode, and ChatGPT private tunnels. Any capable agent can follow the [repository onboarding skill](.agents/skills/iracing-data-mcp-onboarding/SKILL.md).
+
 ## First Data API call
 
 With an existing bearer token, follow the [Fetch-first quickstart](examples/data-api-first-call/README.md): install `@iracing-data/api-client-fetch`, set `IRACING_ACCESS_TOKEN`, call `DocApi.getDocs()`. The runnable example prints the whole Data API documentation JSON and reports HTTP failures. [Token acquisition and refresh](packages/oauth/client/README.md) are a separate step.
@@ -50,6 +52,7 @@ Discover workspace scripts from their manifests; use `pnpm --filter <package>` f
 - [Workspace maintenance](docs/WORKSPACE-POLICY.md) and [change/release impact planning](docs/CHANGE-IMPACT.md)
 - [Issue triage](docs/ISSUE-TRIAGE.md), [release procedure](docs/RELEASING.md), and [repository protection/recovery](docs/REPOSITORY-PROTECTION.md)
 - [OpenAPI generation commands](openapi/AGENTS.md), [TypeScript client commands](packages/api/client/AGENTS.md), and [Rust client commands](crates/iracing-data-api-client/AGENTS.md)
+- [Contributing workflow](CONTRIBUTING.md) and [security policy](SECURITY.md)
 
 For implementation details, go directly to the [Data API document builder](packages/helpers/api-schema-to-openapi/src/index.ts),
 [OAuth client](packages/oauth/client/src/index.ts), [MCP composition](apps/iracing-data-mcp/src/services.ts),

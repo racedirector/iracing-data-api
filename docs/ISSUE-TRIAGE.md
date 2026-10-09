@@ -139,6 +139,10 @@ priorities, statuses, areas, or native Issue Types, or reintroduce `type:*` labe
 
 Labels such as `good first issue` and `help wanted` are separate from Issue Type, area, priority, and status. Apply them only when the issue is genuinely bounded, unblocked, and documented well enough for an external contributor to complete without hidden maintainer context.
 
+Use `good first issue` for work approachable by a newcomer; use `help wanted` for a bounded request that may need specific experience or an environment maintainers cannot readily exercise. Neither label is a quota. A curated list may be empty when the backlog has no suitable work.
+
+Before applying either label, give the issue a clear problem, acceptance criteria, owning source, and locally reproducible validation, and link [contributor setup and verification](../CONTRIBUTING.md). Recheck contribution labels during triage and whenever scope, dependencies, ownership, or implementation status changes. Remove them when work becomes blocked, needs an unresolved maintainer decision, has an active implementation PR, or is no longer available to an external contributor. Keep priority and native issue relationships accurate; do not create speculative tasks to populate the list.
+
 ## Issue creation and triage workflow
 
 When an issue is created or reviewed:
