@@ -14,17 +14,16 @@ Login requests `iracing.auth` and uses the same registered client ID as the
 container. The host CLI owns browser authorization; the container has no browser
 OAuth routes. Auth-only credentials cannot use the CLI's profile-based `whoami`.
 
-After starting the container, connect Codex on the same machine:
+After starting the container, follow the [client connection guide](clients.md).
+The checkout includes project configs for Claude Code, VS Code/Copilot, Cursor,
+Gemini CLI, Codex, and OpenCode, plus a Cline merge template. Ollama can provide
+OpenCode's local model. ChatGPT web uses the documented private-tunnel workflow.
 
-```sh
-codex mcp add iracing-data --url http://127.0.0.1:3000/mcp
-```
-
-This syntax was checked against installed Codex CLI 0.160.0. Automated tests use
-the official MCP client over local Streamable HTTP with synthetic data; native
-desktop UI and live iRacing access were not exercised by those tests. Registration
-alone does not establish valid iRacing authorization. Other local clients must
-support Streamable HTTP at this URL. The supported protocol versions are
+Automated tests validate client config invariants and use the official MCP client
+over local Streamable HTTP with synthetic data; they do not establish every
+client's native UI or live iRacing behavior. Registration alone does not establish
+valid iRacing authorization. Other local clients must support Streamable HTTP at
+`http://127.0.0.1:3000/mcp`. The supported protocol versions are
 `2025-11-25`, `2025-06-18` and `2025-03-26`; stdio is unsupported.
 
 `GET /healthz`, initialization and tool listing remain available when credentials

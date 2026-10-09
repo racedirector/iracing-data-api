@@ -51,6 +51,9 @@ function dockerEnvironment() {
 function run(executable, args, options = {}) {
   return new Promise((resolve, reject) => {
     const child = spawn(executable, args, {
+      // Windows batch launchers require a command interpreter. These arguments
+      // are repository-owned literals, never credential or user input.
+      shell: process.platform === "win32" && executable === "pnpm.cmd",
       cwd: repositoryRoot,
       env: options.env ?? process.env,
       stdio: [
