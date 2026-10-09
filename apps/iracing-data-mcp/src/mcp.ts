@@ -1,11 +1,13 @@
 /**
- * Request-scoped MCP server factory over process-scoped services.
+ * MCP server factory over process-scoped services.
  *
  * Explicit registrar collections bind the current tools to injected shared owners.
- * A fresh SDK server borrows OAuth/gateway capabilities; it does not own credential
- * restoration, cursor lifetime or process shutdown. identity-content.ts currently
- * owns the common execution wrapper and gateway-keyed cursor WeakMaps. Keep
- * registration explicit and preserve the existing tool protocol during extraction.
+ * A fresh SDK server is created for one logical MCP session, or for one isolated
+ * exchange when the HTTP boundary is explicitly composed statelessly. It borrows
+ * OAuth/gateway capabilities; it does not own credential restoration, cursor
+ * lifetime or process shutdown. identity-content.ts currently owns the common
+ * execution wrapper and gateway-keyed cursor WeakMaps. Keep registration explicit
+ * and preserve the existing tool protocol during extraction.
  */
 import {
   McpServer,
@@ -17,10 +19,10 @@ import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
 /**
- * Registers MCP tools on a request-scoped server using the application's shared services.
+ * Registers MCP tools on one session/exchange server using shared application services.
  *
  * Registrars should only bind protocol handlers; long-lived OAuth and Data API state belongs
- * to {@link McpServices} so it can be reused across request-scoped server instances.
+ * to {@link McpServices} so it can be reused across MCP sessions and HTTP requests.
  */
 export type McpToolRegistrar = (
   server: McpServer,
@@ -32,10 +34,10 @@ const toolRegistrars: readonly McpToolRegistrar[] = [
 ];
 
 /**
- * Registers the app-owned tool surface on one request-scoped MCP server.
+ * Registers the app-owned tool surface on one MCP session/exchange server.
  *
  * Tool slices add registrars here; transports and shared services remain outside
- * this function so server instances can stay request scoped.
+ * this function so server instances follow the verified transport/session lifetime.
  */
 export function registerMcpTools(
   server: McpServer,
@@ -46,12 +48,12 @@ export function registerMcpTools(
   }
 }
 
-/** Inputs required to construct one request-scoped MCP server instance. */
+/** Inputs required to construct one MCP session/exchange server instance. */
 export interface CreateMcpServerOptions {
   /** Stable application identity advertised during MCP initialization. */
   readonly config: McpApplicationConfig;
 
-  /** Long-lived dependencies shared by request-scoped MCP server instances. */
+  /** Long-lived dependencies shared by all MCP server instances. */
   readonly services: McpServices;
   readonly registerTools?: McpToolRegistrar;
 }
