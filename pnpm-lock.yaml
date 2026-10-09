@@ -232,6 +232,9 @@ importers:
 
   apps/iracing-data-cli:
     dependencies:
+      '@iracing-data/api-client-fetch':
+        specifier: workspace:*
+        version: link:../../packages/api/client/fetch
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
@@ -899,10 +902,6 @@ packages:
 
   '@modelcontextprotocol/client@2.3.1':
     resolution: {integrity: sha512-mIGZXpHsjnZ6lD+gD/WCMpR5k8yVQQ8nNFH1N0Srf7AvnwTUMYD6pvTY8ng2+He5FfV7YMZLmrjL7cLa/cc3dQ==}
-    engines: {node: '>=20'}
-
-  '@modelcontextprotocol/core@2.3.0':
-    resolution: {integrity: sha512-09BHFaNVBe5pB2AhzCfLj0cqmsKLERvZQ4FblzP90UMGLaXVqdZPByFjURwsUYCmxonUW2yAwgTTvle+8O2/8w==}
     engines: {node: '>=20'}
 
   '@modelcontextprotocol/core@2.3.1':
@@ -3352,10 +3351,6 @@ snapshots:
       eventsource-parser: 3.1.1
       jose: 6.2.12
       pkce-challenge: 5.0.1
-      zod: 4.6.5
-
-  '@modelcontextprotocol/core@2.3.0':
-    dependencies:
       zod: 4.6.5
 
   '@modelcontextprotocol/core@2.3.1':
