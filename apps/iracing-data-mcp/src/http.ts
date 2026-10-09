@@ -193,6 +193,7 @@ interface ResolvedMcpRequest {
   readonly requestId?: JsonRpcId;
 }
 
+/** Returns a string or numeric ID, or undefined, without validating the RPC message. */
 function jsonRpcId(body: unknown): JsonRpcId | undefined {
   if (!body || typeof body !== "object" || !("id" in body)) {
     return undefined;
@@ -203,12 +204,21 @@ function jsonRpcId(body: unknown): JsonRpcId | undefined {
   return typeof id === "string" || typeof id === "number" ? id : undefined;
 }
 
+/** Returns a nonempty string session header verbatim, or undefined otherwise. */
 function requestSessionId(req: IncomingMessage): string | undefined {
   const value = req.headers["mcp-session-id"];
 
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
+/**
+ * Adds tool admission, deadlines, and error sanitization to a connected transport.
+ * Shared admission rejects calls with RATE_LIMITED while stopping or at capacity;
+ * the tool deadline sends INTERNAL_ERROR and then cancels the bound HTTP request.
+ * Request aborts cancel the corresponding SDK operation and release its admission
+ * without closing the session. Replies also release admission; unrecognized tool
+ * errors become INTERNAL_ERROR, and protocol errors retain only their code.
+ */
 function installTransportLifecycle(
   session: McpSession,
   admission: Admission,
@@ -377,6 +387,12 @@ function installTransportLifecycle(
   };
 }
 
+/**
+ * Removes the session from the registry, releases and cancels its active tools,
+ * clears request bindings, and closes its SDK server and transport.
+ * Repeated calls await the same cleanup attempt, including any rejection;
+ * SDK close failures propagate without retrying cleanup.
+ */
 async function closeMcpSession(
   session: McpSession,
   sessions: Map<string, McpSession>,
@@ -399,6 +415,13 @@ async function closeMcpSession(
   return session.closing;
 }
 
+/**
+ * Creates and connects an SDK server/transport using the shared services.
+ * Stateful sessions enter the registry on protocol initialization and are removed
+ * and closed on protocol termination; stateless instances belong to one exchange.
+ * Returns the connected session with admission and cancellation handling installed.
+ * Construction, tool registration, and connection errors propagate.
+ */
 async function createMcpSession(
   options: HttpApplicationOptions,
   admission: Admission,
@@ -451,6 +474,15 @@ async function createMcpSession(
   return session;
 }
 
+/**
+ * Reads at most 64 KiB of JSON and selects an existing session by header, or
+ * creates one when no session ID is supplied. Returns the parsed body, optional
+ * RPC ID, and whether the caller must close a stateless session after the request.
+ * Invalid JSON or batches receive 400, unknown sessions receive 404, and shutdown
+ * after body reading receives 503 if the response is still available; these paths
+ * return undefined. Body read/abort errors and session creation errors propagate,
+ * including RequestBodyTooLargeError when the byte limit is exceeded.
+ */
 async function resolvePostRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -526,6 +558,11 @@ async function resolvePostRequest(
   };
 }
 
+/**
+ * Resolves GET/DELETE to an existing session without closing it.
+ * Replies with 400 for a missing session header or 404 for an unknown session,
+ * returning undefined in either case.
+ */
 function resolveSessionRequest(
   req: IncomingMessage,
   reply: Reply,
@@ -550,6 +587,13 @@ function resolveSessionRequest(
   return { session, closeAfterRequest: false };
 }
 
+/**
+ * Forwards an HTTP exchange to its session with request and controller cancellation.
+ * SDK HTTP errors retain their status but receive a fixed body and content type.
+ * The adapter converts request conversion/handling failures to 413 or 500 responses;
+ * failures escaping the adapter propagate. Resolves when forwarding finishes or
+ * the controller emits an abort, without closing the session here.
+ */
 async function forwardMcpRequest(
   req: IncomingMessage,
   res: ServerResponse,
@@ -820,6 +864,8 @@ export function createHttpApplication(options: HttpApplicationOptions) {
     get admittedTools() {
       return admission.admitted;
     },
+
+    /** Counts initialized sessions still registered, excluding stateless exchanges. */
     get activeSessions() {
       return sessions.size;
     },
@@ -835,6 +881,13 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         });
       });
     },
+
+    /**
+     * Stops admission and drains HTTP work, canceling remaining requests and
+     * connections after 10 seconds. Closes registered MCP sessions before invoking
+     * the authorization owner's shutdown hook. Returns the same promise on repeat
+     * calls; cleanup failures reject it, and session close failure skips the hook.
+     */
     shutdown() {
       if (shutdownPromise) {
         return shutdownPromise;

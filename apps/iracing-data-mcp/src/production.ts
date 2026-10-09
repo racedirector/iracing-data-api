@@ -201,13 +201,15 @@ export async function readProductionSecret(file: string) {
 }
 
 /**
- * Composes one session/gateway owner and returns the HTTP application listening
- * on 0.0.0.0:3000, with SIGTERM/SIGINT shutdown handlers installed.
+ * Composes one session/gateway owner and returns the HTTP application with logical
+ * MCP sessions enabled and SIGTERM/SIGINT shutdown handlers installed. Listens on
+ * port 3000 at IRACING_MCP_LISTEN_HOST, defaulting to 127.0.0.1.
  * Validates configuration and local file permissions before composing services.
  * Missing or invalid stored credentials allow startup in authorization_required.
  * Configuration and file checks reject with a configuration error; service
  * construction errors propagate. Listen or signal-handler setup failures shut
- * down the application and reject with a configuration error.
+ * down the application and reject with a configuration error unless shutdown
+ * itself rejects, in which case its error propagates.
  */
 export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const config = parseProductionConfig(env);
