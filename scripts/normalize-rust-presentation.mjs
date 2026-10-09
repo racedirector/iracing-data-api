@@ -1,3 +1,14 @@
+/**
+ * Authored presentation overlay for the generated Rust crate.
+ *
+ * client-presentation/rust.json and rust.md own allowlisted public metadata and the
+ * README introduction. Expand version from the reviewed Cargo manifest and retain
+ * the generated endpoint/model documentation from its known heading. Cargo build,
+ * dependency/version settings are authored intent; presentation must not reset them.
+ * Workspace lint inheritance is applied deliberately. Unknown metadata or missing
+ * heading fails closed. Generator wrappers own source regeneration/formatting and
+ * check-generated.mjs protects ignored authored examples/guidance during replacement.
+ */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";

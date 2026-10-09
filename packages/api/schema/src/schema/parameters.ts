@@ -1,3 +1,19 @@
+/**
+ * Authored endpoint path/query/body acceptance over shared primitives.
+ *
+ * Each schema owns wire field names, optionality and coercion; omission preserves
+ * the upstream default rather than inventing a local one. The OpenAPI helper owns
+ * which schema is bound to an endpoint and how query arrays serialize. Spectator
+ * filters remain typed nonempty arrays here; helper parameter metadata declares
+ * form style with explode:false so generated clients send one CSV value. Do not
+ * change validation to a string merely to match serialized HTTP syntax.
+ *
+ * Field descriptions are authored Zod metadata consumed by generated docs. Official
+ * /data/doc evidence informs parameters but does not establish full response shapes.
+ * Ranges, enums, conditional requirements and serializer behavior need evidence and
+ * separate review; generation cannot supply it. Canonical and historical aliases
+ * share validation identity and inferred types without runtime migration warnings.
+ */
 import { z } from "zod";
 import {
   CategorySchema,

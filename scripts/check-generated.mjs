@@ -1,3 +1,23 @@
+/**
+ * Deterministic authored-input to generated-artifact freshness orchestration.
+ *
+ * Build both schema-to-OpenAPI dependency closures before serializing JSON/YAML into
+ * a temporary tree, then run the pinned Data API Fetch/Axios/Rust wrappers using its
+ * iracing.json. Current main has no OAuth SDK generation edge. The surfaces below
+ * are generated output boundaries, not a duplicate workspace/publication inventory.
+ *
+ * Compare bytes and complete file sets, including removed/stale files. Normal mode
+ * fails without replacing local artifacts; --write uses the same pipeline to replace
+ * only generated-owned files. Preserve AGENTS, examples, build output and explicitly
+ * ignored generator files. Reject symlinks so comparisons cannot escape ownership.
+ *
+ * Versions are read from authored manifests and passed to generators; Rust build,
+ * dependency/release settings and generator-ignore inputs seed temporary output.
+ * Presentation overlays/normalizers are authored inputs, not hand-edited generated
+ * README content. A successful comparison proves reproducibility of maintained
+ * inputs, not upstream compatibility. Missing tools/download/command failures fail
+ * explicitly and temporary artifacts are removed in finally cleanup.
+ */
 import { spawnSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";

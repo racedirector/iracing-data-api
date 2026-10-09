@@ -4,9 +4,13 @@ Inherits [root guidance](../../../AGENTS.md). Applies to both client subtrees; d
 
 ## Ownership
 
-Client source, models, endpoint docs, and generator support files are derived from `openapi/iracing.json`. Fix contract problems in API schemas or the authored OpenAPI mappings first, following [OpenAPI guidance](../../../openapi/AGENTS.md). Fix generator behavior in `scripts/openapi-generator-*.sh`, `scripts/openapi-generator-ts-post-process.sh`, or `openapitools.json` rather than patching output.
-
-README introductions and presentation metadata are authored in `scripts/client-presentation/{fetch,axios}.{md,json}` and applied by `scripts/normalize-client-presentation.js`. Generated endpoint/model documentation remains generator-owned. Manifest versions remain independent release decisions; normalization preserves generator-owned versions, scripts, dependencies, and entrypoints. Review those fields after generation and retain intended release/configuration changes explicitly.
+Inspect [generation/freshness ownership](../../../scripts/check-generated.mjs),
+[Fetch](../../../scripts/openapi-generator-fetch.sh)/[Axios](../../../scripts/openapi-generator-axios.sh)
+wrappers, and the [presentation normalizer](../../../scripts/normalize-client-presentation.js).
+Source, models, endpoint docs and generator bookkeeping are derived; do not hand-edit them.
+Contract changes belong to [schema/mapping owners](../../helpers/api-schema-to-openapi/src/index.ts).
+Presentation inputs are `scripts/client-presentation/{fetch,axios}.{md,json}`.
+Release versions remain authored decisions: inspect regeneration and retain reviewed intent.
 
 ## Regeneration and validation
 
@@ -25,7 +29,7 @@ For presentation-only changes, avoid full generation:
 
 ```bash
 pnpm exec node scripts/normalize-client-presentation.js fetch
-pnpm exec prettier --write packages/api/client/fetch/package.json packages/api/client/fetch/README.md
+pnpm exec prettier --write --config scripts/generated.prettier.json --ignore-path scripts/generated.prettierignore packages/api/client/fetch/package.json packages/api/client/fetch/README.md
 ```
 
 Substitute `axios` for the other client. Run `pnpm verify:generated` for isolated freshness validation. Inspect generated diffs for unrelated churn or stale files; do not delete authored guidance when cleaning generator output. Report exact commands. These packages have build/prepare scripts but no declared test scripts.
