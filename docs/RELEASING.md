@@ -201,11 +201,35 @@ dist init --yes
 
 The workspace members are declared in [`dist-workspace.toml`](../dist-workspace.toml).
 
-For the Rust library crate (`crates/iracing-data-api-client`), use an explicit tag when planning or releasing with `dist`:
+For the Rust library crate, use its own reviewed Cargo version when planning with `dist`, for example:
 
 ```bash
-dist plan --tag=iracing-data-api-client-v0.0.1
+dist plan --tag=iracing-data-api-client-v0.1.0
 ```
+
+## Rust crate releases
+
+`iracing-data-api-client` is an independently versioned public library. Its version lives in `crates/iracing-data-api-client/Cargo.toml`; the npm workflow does not publish it. Managed release membership and `dist plan` do not authorize or perform Cargo publication.
+
+1. Review the crate's changes since its previous package release, select its version independently of npm packages, and merge the version and presentation changes through a PR. Edit presentation in `scripts/client-presentation/rust.json` and `rust.md`, then apply `node scripts/normalize-rust-presentation.mjs`; do not hand-edit generated metadata or the README introduction.
+2. On the intended mainline release commit, run `pnpm verify` and inspect the Cargo package before publication:
+
+   ```bash
+   cargo package -p iracing-data-api-client --locked --list
+   cargo publish -p iracing-data-api-client --locked --dry-run
+   ```
+
+   Confirm the archive contains the maintained README and examples, has MIT license metadata and the correct repository/homepage/documentation links, and builds independently of the checkout. A dry run does not publish the crate.
+
+3. An authorized maintainer with crates.io ownership and credentials publishes the reviewed version explicitly:
+
+   ```bash
+   cargo publish -p iracing-data-api-client --locked
+   ```
+
+4. Verify that exact version on [crates.io](https://crates.io/crates/iracing-data-api-client) and [docs.rs](https://docs.rs/iracing-data-api-client), including metadata, README, documentation, and installation with a TLS feature. Record the source commit and publication evidence in a package-specific GitHub Release using `iracing-data-api-client-v<version>`; create the tag only for the reviewed release commit. SemVer prereleases must be marked as GitHub prereleases. Cargo versions have no npm `latest`/`next` dist-tags.
+
+If ownership, credentials, or release approval is unavailable, record the exact external action still required. Prepared source and a successful dry run do not establish published package state.
 
 ## Verify package presentation and provenance
 
