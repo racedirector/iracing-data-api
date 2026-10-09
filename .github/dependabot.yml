@@ -1,3 +1,9 @@
+# Dependency-update review policy lives here; groups never imply auto-merge.
+# The root lockfile is shared by nested manifests, so overlapping scans duplicate
+# proposals. Sensitive protocol/toolchain patches and majors stay individually
+# reviewable; grouping version updates does not ignore security fixes.
+# Service support for the pinned pnpm version must be established from update
+# logs: local frozen installation cannot prove hosted updater compatibility.
 version: 2
 updates:
   # One pnpm lockfile/workspace: do not add overlapping package directories.

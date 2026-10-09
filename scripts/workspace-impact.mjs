@@ -1,3 +1,26 @@
+/**
+ * Read-only change and release planning over the current workspace graph.
+ *
+ * Compare the supplied base's merge-base with HEAD against the working tree,
+ * including non-ignored untracked files. Missing history is an error, not an empty
+ * report. Load identities/classifications from workspace policy, dependencies and
+ * versions from manifests, and managed publication membership from dist config.
+ * The longest matching workspace path owns a direct change.
+ *
+ * Explicit generation edges supplement manifest dependencies: Data API schema or
+ * mappings affect both OpenAPI formats and all Data API SDKs; OAuth contract edits
+ * affect OAuth OpenAPI without a Data API SDK edge. Generator/presentation inputs
+ * conservatively affect Data API SDKs. Global npm/toolchain/CI changes affect all
+ * workspaces; Cargo configuration affects Cargo members. Propagate every internal
+ * manifest dependency category to a fixed point, then order selected public,
+ * managed candidates dependency-first (including the schema-to-SDK release edge).
+ * Cycles fail instead of suggesting an unsafe order.
+ *
+ * A candidate is a review input, not a version bump, validation result or release
+ * authorization. Commands are suggestions; this module neither generates nor
+ * publishes. Update workspace-impact.test.mjs when adding a generation edge.
+ */
+
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
