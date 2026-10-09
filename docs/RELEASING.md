@@ -2,21 +2,11 @@
 
 This document describes the end-to-end process for publishing `@iracing-data` packages to npm — from finishing a feature through to a live release on the registry.
 
-## Published packages
+## Select release targets
 
-Each public package is versioned and released independently. [`workspace-policy.json`](../workspace-policy.json) classifies every workspace; the public subset must match `dist-workspace.toml`. Both OpenAPI generators are private internal tools, and examples and the repository root are also private. See [workspace policy](WORKSPACE-POLICY.md).
+Public packages are independently versioned. Read [classification](../workspace-policy.json), [managed release membership](../dist-workspace.toml), current package manifests and [topology enforcement](../scripts/check-topology.js). A private tool is not a release target; publication requires a separate reviewed policy/workflow decision. For an ineligible target, report downstream impact as review context without preparing versions or tags.
 
-The release workflow runs `pnpm check:topology --release <package-name>` before building or publishing, rejecting internal or unknown targets.
-
-| Package                          | Path                        | Current version    |
-| -------------------------------- | --------------------------- | ------------------ |
-| `@iracing-data/oauth-schema`     | `packages/oauth/schema`     | see `package.json` |
-| `@iracing-data/oauth-client`     | `packages/oauth/client`     | see `package.json` |
-| `@iracing-data/api-schema`       | `packages/api/schema`       | see `package.json` |
-| `@iracing-data/api-client-fetch` | `packages/api/client/fetch` | see `package.json` |
-| `@iracing-data/api-client-axios` | `packages/api/client/axios` | see `package.json` |
-
-The workspace is declared in [`dist-workspace.toml`](../dist-workspace.toml) following the [cargo-dist JavaScript quickstart](https://axodotdev.github.io/cargo-dist/book/quickstart/javascript.html).
+[release.yml](../.github/workflows/release.yml) owns automated npm publication, validation and trusted-publishing mechanics. This procedure supplies maintainer decisions and recovery steps.
 
 ## Tag format
 
@@ -34,15 +24,7 @@ Examples:
 @iracing-data/api-schema@0.0.1
 ```
 
-Pushing a tag matching this pattern triggers the [release workflow](../.github/workflows/release.yml), which:
-
-1. Parses the package name from the tag.
-2. Verifies the tag version matches the `version` field in that package's `package.json`.
-3. Builds the package and any workspace dependencies.
-4. Publishes the package to npm.
-5. Creates a GitHub Release with auto-generated notes.
-
-Pre-release versions (anything containing a `-`, e.g. `0.1.0-alpha.0`) are automatically published under the `next` dist-tag so they do not become the default install. Stable versions are published to `latest`.
+Pushing a matching tag triggers [release.yml](../.github/workflows/release.yml). Inspect its guards and output before using fallback paths. Prerelease tags select `next`; stable tags select `latest`. Confirm the resulting dist-tag after publication.
 
 ## Prerequisites
 
@@ -57,9 +39,9 @@ Pre-release versions (anything containing a `-`, e.g. `0.1.0-alpha.0`) are autom
 Work on a feature branch, following the normal development workflow.
 
 ```bash
-git checkout -b feature/my-change
+git checkout -b codex/my-change
 # ... make changes ...
-git push -u origin feature/my-change
+git push -u origin codex/my-change
 ```
 
 ### 2. Decide which packages need a release
@@ -71,8 +53,8 @@ Release each package independently. Only tag a package when that package has a u
 To compare a package with its latest release tag:
 
 ```bash
-git diff --name-status "@iracing-data/oauth-client@0.0.1-alpha.7"..HEAD -- packages/oauth/client
-git diff --name-status "@iracing-data/oauth-schema@0.0.1-alpha.3"..HEAD -- packages/oauth/schema/src
+git tag --merged HEAD --list "<package>@*" --sort=-version:refname
+git diff --name-status "<package>@<latest-version>"..HEAD -- <package-path>
 ```
 
 If a client package changed but its schema package did not, release only the client. If both changed, release the schema first, then the client.
@@ -109,11 +91,11 @@ Open a pull request against `main`, address feedback, and merge once approved.
 Run the narrowest checks for the package before tagging. At minimum, run the package build. If the package has tests, run them too.
 
 ```bash
+pnpm --filter '@iracing-data/oauth-client...' build
 pnpm --filter @iracing-data/oauth-client test
-pnpm --filter @iracing-data/oauth-client build
 ```
 
-The release workflow runs `pnpm --filter "<package>..." build`, which builds the package and its workspace dependencies. CI on `main` is responsible for the broader lint/test suite.
+Confirm the canonical verification result for the intended mainline release commit. Read the [workflow](../.github/workflows/release.yml) for its narrower publication gates; it does not replace pre-release verification.
 
 ### 6. Create and push the release tag
 
@@ -240,7 +222,5 @@ pnpm view @iracing-data/api-client-fetch@0.0.1 dist.attestations --json
 Check the provenance link on that version's npm page and verify that it identifies this repository, the `release.yml` workflow, and the intended release commit. Record the version and workflow run in the release notes. Missing attestations or an unexpected source must be investigated before marking stable-release verification complete. A successful build or `id-token: write` alone does not prove provenance.
 
 Auditing and deprecating older packages in the npm scope is a separate maintenance task: confirm ownership and migration paths before changing registry deprecation messages.
-
-On 2026-09-19, the public attestation for `@iracing-data/oauth-schema@0.0.1` identified this repository, `.github/workflows/release.yml`, tag `@iracing-data/oauth-schema@0.0.1`, and commit `5225abf7a62e6dc7108693743ea4025ce48b8ce8` ([release run](https://github.com/racedirector/iracing-data-api/actions/runs/35360484040)). The other seven workspace packages did not yet have a stable `0.0.1` version on npm; repeat the check when each is published. This observation does not verify private npm trusted publisher settings.
 
 See [repository protection and recovery](REPOSITORY-PROTECTION.md) for release-tag protections and exceptional maintainer bypass.
