@@ -235,12 +235,15 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
 
   try {
     await app.listen(3000, config.listenHost);
-    installTerminationHandlers(app, services);
+    installTerminationHandlers(app, (exitCode) => {
+      // HTTP has drained and the owner has removed uncertain credentials. A grant
+      // socket may never settle; flush safe diagnostics and end the production process.
+      process.stderr.write("", () => process.exit(exitCode));
+    });
 
     return app;
   } catch {
-    await app.shutdown().catch(() => undefined);
-    await services.close().catch(() => undefined);
+    await app.shutdown();
     throw configurationError();
   }
 }
