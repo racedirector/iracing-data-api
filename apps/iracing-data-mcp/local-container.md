@@ -22,6 +22,8 @@ IRACING_AUTH_REDIRECT_URI=http://127.0.0.1:0/oauth/iracing/callback
 
 If your client has no secret, leave `IRACING_AUTH_SECRET` empty. Normal local setup does **not** require host UID/GID values, a host MCP data-directory path, or manual `chmod`/`chown` commands.
 
+Use the HTTP loopback callback registered with iRacing. The example's port `0` requests an available local port; an explicitly registered fixed port such as `http://127.0.0.1:3000/oauth/iracing/callback` is also supported. Login stops the MCP before binding the callback port.
+
 The same `IRACING_AUTH_CLIENT` is used by host login and mapped by Compose to the MCP container's `IRACING_MCP_CLIENT_ID`. The image tag defaults to `local`.
 
 Do **not** add a Compose service-level `env_file: ../../.env`. That would inject the whole root `.env`, including `IRACING_AUTH_SECRET`, into the MCP container. The MCP intentionally rejects inline secrets. The host helper removes `IRACING_AUTH_SECRET` from Docker's environment and, when a secret exists, transfers it over stdin into a `0600` file inside the Docker-managed volume.
@@ -116,13 +118,16 @@ Compose publishes only `127.0.0.1:3000`, uses a read-only root filesystem, a sma
 
 ## Connect a local MCP client
 
-After the service starts:
+After the service starts, open the repository in your client and follow the
+[client connection guide](clients.md). It lists the checked-in project
+configurations, remaining trust/activation steps, Ollama-backed OpenCode setup,
+and the optional ChatGPT private-tunnel reference.
 
-```sh
-codex mcp add iracing-data --url http://127.0.0.1:3000/mcp
-```
-
-Use no MCP bearer token or MCP OAuth login. iRacing authorization belongs to the credential document in the Docker-managed volume. See the [tool guide](README.md) for the available tools and workflows.
+Use no MCP bearer token or MCP OAuth login. iRacing authorization belongs to the
+credential document in the Docker-managed volume. All local clients share the
+same container rather than copying credentials or starting another owner. Keep
+the server loopback-only, including when using a private tunnel. See the
+[tool guide](README.md) for available tools and workflows.
 
 ## Reauthentication and recovery
 

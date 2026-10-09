@@ -9,7 +9,6 @@ const repositoryRoot = path.resolve(
 );
 
 const envFile = path.join(repositoryRoot, ".env");
-const envExampleFile = path.join(repositoryRoot, ".env.example");
 const packageFile = path.join(repositoryRoot, "package.json");
 const stagingCredentialFile = path.join(
   repositoryRoot,
@@ -23,6 +22,7 @@ function runCommand(executable, args) {
     return {
       ok: true,
       output: execFileSync(executable, args, {
+        shell: process.platform === "win32" && executable === "pnpm.cmd",
         cwd: repositoryRoot,
         encoding: "utf8",
         stdio: ["ignore", "pipe", "pipe"],
@@ -90,13 +90,20 @@ const dockerDaemon = dockerCli.ok
   ? runCommand("docker", ["version", "--format", "{{.Server.Version}}"])
   : { ok: false, reason: "docker_unavailable" };
 const env = parseEnv(envFile);
-const exampleEnv = parseEnv(envExampleFile);
 const envExists = existsSync(envFile);
 const clientConfigured = configured(env.get("IRACING_AUTH_CLIENT"));
-const expectedRedirect = exampleEnv.get("IRACING_AUTH_REDIRECT_URI");
-const redirectMatches =
-  configured(expectedRedirect) &&
-  env.get("IRACING_AUTH_REDIRECT_URI") === expectedRedirect;
+let redirectMatches = false;
+try {
+  const redirect = new URL(env.get("IRACING_AUTH_REDIRECT_URI"));
+  redirectMatches =
+    redirect.protocol === "http:" &&
+    ["127.0.0.1", "[::1]"].includes(redirect.hostname) &&
+    !redirect.username &&
+    !redirect.password &&
+    !env.get("IRACING_AUTH_REDIRECT_URI").includes("#");
+} catch {
+  // Missing or invalid URI is reported below without exposing configuration.
+}
 const dependenciesInstalled = existsSync(
   path.join(repositoryRoot, "node_modules"),
 );
@@ -179,8 +186,8 @@ const checks = [
     "oauth_redirect",
     redirectMatches ? "pass" : "fail",
     redirectMatches
-      ? "IRACING_AUTH_REDIRECT_URI matches .env.example"
-      : "IRACING_AUTH_REDIRECT_URI does not match .env.example",
+      ? "IRACING_AUTH_REDIRECT_URI is a valid HTTP loopback URI; confirm iRacing registration"
+      : "IRACING_AUTH_REDIRECT_URI must be a valid HTTP loopback URI registered with iRacing",
   ),
   check(
     "dependencies",

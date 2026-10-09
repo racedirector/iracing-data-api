@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "iracing-data": {
+      "httpUrl": "http://127.0.0.1:3000/mcp",
+      "timeout": 10000,
+      "trust": false
+    }
+  }
+}
