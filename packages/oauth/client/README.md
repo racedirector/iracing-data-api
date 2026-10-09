@@ -146,3 +146,18 @@ See the [repository and examples](https://github.com/racedirector/iracing-data-a
 ## Schema naming compatibility
 
 Canonical schema exports omit the leading `IRacing` and retain `OAuth` where present. All historical schema names remain as deprecated aliases with identical values and equivalent types, including OAuth-client re-exports. See the [complete migration map and compatibility policy](../../../docs/SCHEMA-MIGRATION.md).
+
+## Low-level OAuth API
+
+`OAuthApiClient` adapts the generated `@iracing-data/oauth-client-fetch` wire client.
+It validates profile, session, and token JSON against the maintained schemas
+and rejects successful responses with a non-JSON content type.
+`OAuthApiContractError.kind` distinguishes `transport`, `not_json`,
+`invalid_json`, and `contract` failures without exposing response bodies or
+untrusted transport messages. HTTP failures use `OAuthApiHttpError`, which
+preserves the response and request ID.
+
+`OAuthClient` retains full configured `tokenUrl` and `userInfoUrl` overrides,
+including custom paths and query parameters, while delegating request
+serialization to the generated operations. Authorization-code and refresh
+requests continue to use `oauth4webapi` for protocol processing.

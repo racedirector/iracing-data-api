@@ -131,3 +131,89 @@ test("HTTP errors expose status and request id without consuming the body", asyn
     return true;
   });
 });
+
+for (const [kind, fetchApi] of [
+  [
+    "transport",
+    async () => {
+      throw new Error("private transport detail");
+    },
+  ],
+  [
+    "not_json",
+    async () =>
+      new Response('{"iracing_cust_id":42,"iracing_name":"Example"}', {
+        headers: { "content-type": "text/html" },
+      }),
+  ],
+  [
+    "invalid_json",
+    async () =>
+      new Response("private invalid body", {
+        headers: { "content-type": "application/json" },
+      }),
+  ],
+  [
+    "contract",
+    async () =>
+      Response.json({
+        iracing_cust_id: "private invalid id",
+        iracing_name: "Example",
+      }),
+  ],
+]) {
+  test(`profile and session failures expose safe typed kinds: ${kind}`, async () => {
+    const { OAuthApiContractError } = await import("../dist/index.js");
+    const client = new OAuthApiClient({ accessToken: "synthetic", fetchApi });
+    for (const operation of [
+      () => client.getProfile(),
+      () => client.getSessions(),
+    ]) {
+      await assert.rejects(operation(), (error) => {
+        assert.ok(error instanceof OAuthApiContractError);
+        assert.equal(error.kind, kind);
+        assert.doesNotMatch(error.message, /private/);
+        return true;
+      });
+    }
+  });
+}
+
+test("session response preserves opaque IDs, nullable fields, and subdivision arrays", async () => {
+  const session = {
+    session_id: "opaque-session",
+    client_id: "fixture",
+    client_name: "Example",
+    client_developer_name: null,
+    client_developer_url: null,
+    client_developer_email: null,
+    scope: null,
+    scope_descriptions: null,
+    auth_time: 1,
+    last_activity: 2,
+    session_expiration: 3,
+    current_session: true,
+    impersonated: false,
+    impersonation_note: null,
+    first_ip: "192.0.2.1",
+    first_continent: null,
+    first_country: null,
+    first_subdivisions: ["Massachusetts"],
+    first_city: null,
+    first_user_agent_header: null,
+    first_user_agent_operating_system: null,
+    first_user_agent_browser: null,
+    last_ip: null,
+    last_continent: null,
+    last_country: null,
+    last_subdivisions: ["Massachusetts"],
+    last_city: null,
+    last_user_agent_header: null,
+    last_user_agent_operating_system: null,
+    last_user_agent_browser: null,
+  };
+  const client = new OAuthApiClient({
+    fetchApi: async () => Response.json({ sessions: [session] }),
+  });
+  assert.deepEqual(await client.getSessions(), { sessions: [session] });
+});

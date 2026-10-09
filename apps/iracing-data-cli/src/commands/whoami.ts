@@ -35,12 +35,12 @@ export async function whoami(
     }
 
     if (error instanceof OAuthApiContractError) {
-      if (error.message.includes("before a response was received")) {
+      if (error.kind === "transport") {
         throw new Error(
           "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
         );
       }
-      if (error.message.includes("not JSON")) {
+      if (error.kind === "not_json") {
         throw new Error(
           "Identity response was not JSON. No response body logged.",
         );

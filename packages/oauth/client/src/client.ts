@@ -31,20 +31,6 @@ function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
   });
 }
 
-function oauthApiBasePath(endpointUrl: string, endpointPath: string) {
-  const url = new URL(endpointUrl);
-  if (!url.pathname.endsWith(endpointPath)) {
-    throw new Error(
-      `OAuth endpoint ${url.pathname} does not match maintained path ${endpointPath}.`,
-    );
-  }
-
-  url.pathname = url.pathname.slice(0, -endpointPath.length) || "/";
-  url.search = "";
-  url.hash = "";
-  return url.toString().replace(/\/$/, "");
-}
-
 export type OAuthClientOptions = {
   // Config
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
@@ -200,7 +186,9 @@ export class OAuthClient {
     // protocol library still processes the response so OAuth response
     // semantics remain centralized in oauth4webapi.
     const response = await this.createOAuthApi({
-      basePath: oauthApiBasePath(this.clientMetadata.tokenUrl, "/token"),
+      // Endpoint overrides are routing policy; the generated operation still
+      // owns headers, form serialization, and request construction.
+      fetchApi: (_input, init) => fetch(this.clientMetadata.tokenUrl, init),
     }).exchangeTokenRaw(requestParameters);
 
     const result = await oauth.processAuthorizationCodeResponse(
@@ -299,10 +287,7 @@ export class OAuthClient {
      */
     const profile = await this.createOAuthApi({
       accessToken: token.access_token,
-      basePath: oauthApiBasePath(
-        this.clientMetadata.userInfoUrl,
-        "/iracing/profile",
-      ),
+      fetchApi: (_input, init) => fetch(this.clientMetadata.userInfoUrl, init),
     }).getProfile();
 
     await this.storeSession(profile.iracing_cust_id.toString(), token);

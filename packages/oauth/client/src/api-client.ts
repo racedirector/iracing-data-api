@@ -36,7 +36,11 @@ export class OAuthApiHttpError extends Error {
 }
 
 export class OAuthApiContractError extends Error {
-  constructor(message: string) {
+  constructor(
+    message: string,
+    readonly kind:
+      "transport" | "not_json" | "invalid_json" | "contract" = "contract",
+  ) {
     super(message);
     this.name = "OAuthApiContractError";
   }
@@ -104,7 +108,11 @@ export class OAuthApiClient {
 
   async getProfile(): Promise<OAuthProfileResponse> {
     try {
-      return OAuthProfileResponseSchema.parse(await this.api.getProfile());
+      const response = await this.api.getProfileRaw();
+      return await this.parseJson(
+        response.raw,
+        OAuthProfileResponseSchema.parse,
+      );
     } catch (error) {
       throw this.normalizeError(error);
     }
@@ -112,7 +120,8 @@ export class OAuthApiClient {
 
   async getSessions(): Promise<OAuthSessions> {
     try {
-      return OAuthSessionsSchema.parse(await this.api.getSessions());
+      const response = await this.api.getSessionsRaw();
+      return await this.parseJson(response.raw, OAuthSessionsSchema.parse);
     } catch (error) {
       throw this.normalizeError(error);
     }
@@ -165,6 +174,12 @@ export class OAuthApiClient {
 
   private contractError(error: unknown) {
     if (error instanceof OAuthApiContractError) return error;
+    if (error instanceof Error && error.name === "FetchError") {
+      return new OAuthApiContractError(
+        "OAuth API request failed before a response was received.",
+        "transport",
+      );
+    }
     const reason = error instanceof Error ? error.name : "unknown error";
     return new OAuthApiContractError(
       `OAuth API request or response did not match the maintained contract: ${reason}.`,
@@ -176,7 +191,10 @@ export class OAuthApiClient {
     parse: (value: unknown) => T,
   ): Promise<T> {
     if (!response.headers.get("content-type")?.includes("application/json")) {
-      throw new OAuthApiContractError("OAuth API response was not JSON.");
+      throw new OAuthApiContractError(
+        "OAuth API response was not JSON.",
+        "not_json",
+      );
     }
 
     let value: unknown;
@@ -185,6 +203,7 @@ export class OAuthApiClient {
     } catch {
       throw new OAuthApiContractError(
         "OAuth API response contained invalid JSON.",
+        "invalid_json",
       );
     }
 

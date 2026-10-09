@@ -73,6 +73,7 @@ test("does not log untrusted errors or response bodies", async () => {
             async getProfile() {
               throw new OAuthApiContractError(
                 "OAuth API request failed before a response was received: Error",
+                "transport",
               );
             },
           };
@@ -109,6 +110,7 @@ test("does not log untrusted errors or response bodies", async () => {
             async getProfile() {
               throw new OAuthApiContractError(
                 "OAuth API response was not JSON.",
+                "not_json",
               );
             },
           };
@@ -118,3 +120,54 @@ test("does not log untrusted errors or response bodies", async () => {
     /not JSON/,
   );
 });
+
+for (const [label, fetchApi, expected] of [
+  [
+    "transport",
+    async () => {
+      throw new Error("private transport detail");
+    },
+    /network, timeout, or redirect/,
+  ],
+  [
+    "content type",
+    async () =>
+      new Response('{"iracing_cust_id":42,"iracing_name":"Example"}', {
+        headers: { "content-type": "text/html" },
+      }),
+    /not JSON/,
+  ],
+  [
+    "invalid JSON",
+    async () =>
+      new Response("private body", {
+        headers: { "content-type": "application/json" },
+      }),
+    /did not match the expected profile/,
+  ],
+  [
+    "contract",
+    async () =>
+      Response.json({ iracing_cust_id: "private", iracing_name: "Example" }),
+    /did not match the expected profile/,
+  ],
+]) {
+  test(`real OAuth adapter preserves safe whoami diagnostics: ${label}`, async () => {
+    const { whoami } = await load();
+    const { OAuthApiClient } = await loadOAuth();
+    await assert.rejects(
+      whoami(
+        { accessToken: "synthetic" },
+        {
+          createOAuthApi: (accessToken) =>
+            new OAuthApiClient({ accessToken, fetchApi }),
+        },
+      ),
+      (error) => {
+        assert.match(error.message, expected);
+        assert.doesNotMatch(error.message, /private/);
+        return true;
+      },
+    );
+  });
+}
