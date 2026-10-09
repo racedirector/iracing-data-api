@@ -27,11 +27,13 @@ async function runImport() {
 
   if (source === "--credentials-stdin") {
     await importCredentialsJson(await readStdin());
+
     return;
   }
 
   if (source === "--client-secret-stdin") {
     await importClientSecret(await readStdin());
+
     return;
   }
 

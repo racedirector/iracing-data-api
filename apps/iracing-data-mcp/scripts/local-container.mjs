@@ -7,6 +7,7 @@ const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../../..",
 );
+
 const composeArguments = [
   "compose",
   "--env-file",
@@ -14,12 +15,15 @@ const composeArguments = [
   "-f",
   "apps/iracing-data-mcp/compose.yaml",
 ];
+
 const stagingDirectory = path.join(
   repositoryRoot,
   ".iracing-data",
   "iracing-data-mcp",
 );
+
 const credentialsFile = path.join(stagingDirectory, "credentials.json");
+
 const cliFile = path.join(
   repositoryRoot,
   "apps",
@@ -27,6 +31,7 @@ const cliFile = path.join(
   "dist",
   "index.js",
 );
+
 const containerSecretFile = "/var/lib/iracing-data-mcp/client-secret";
 
 function dockerEnvironment() {
@@ -34,6 +39,7 @@ function dockerEnvironment() {
   const clientSecret = process.env.IRACING_AUTH_SECRET?.trim();
 
   delete environment.IRACING_AUTH_SECRET;
+
   environment.IRACING_MCP_CLIENT_SECRET_FILE = clientSecret
     ? containerSecretFile
     : "";
@@ -46,7 +52,11 @@ function run(executable, args, options = {}) {
     const child = spawn(executable, args, {
       cwd: repositoryRoot,
       env: options.env ?? process.env,
-      stdio: [options.input === undefined ? "inherit" : "pipe", "inherit", "inherit"],
+      stdio: [
+        options.input === undefined ? "inherit" : "pipe",
+        "inherit",
+        "inherit",
+      ],
     });
 
     if (options.input !== undefined) {
@@ -57,6 +67,7 @@ function run(executable, args, options = {}) {
     child.on("exit", (code, signal) => {
       if (code === 0 || options.allowFailure) {
         resolve();
+
         return;
       }
 
@@ -98,7 +109,10 @@ async function waitForHealth() {
       if (response.ok) {
         const health = await response.json();
 
-        console.log(`MCP is live (${health.auth_state ?? "unknown auth state"}).`);
+        console.info(
+          `MCP is live (${health.auth_state ?? "unknown auth state"}).`,
+        );
+
         return;
       }
     } catch (error) {
@@ -179,9 +193,7 @@ async function main() {
       await status();
       break;
     default:
-      console.error(
-        "Usage: pnpm mcp:local <login|up|stop|reset|status>",
-      );
+      console.error("Usage: pnpm mcp:local <login|up|stop|reset|status>");
       process.exitCode = 2;
   }
 }

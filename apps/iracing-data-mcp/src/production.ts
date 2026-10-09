@@ -212,6 +212,7 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const config = parseProductionConfig(env);
 
   await checkProductionDirectory(path.dirname(MCP_CREDENTIAL_FILE));
+
   const clientSecret = config.secretFile
     ? await readProductionSecret(config.secretFile)
     : undefined;
@@ -235,6 +236,7 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   try {
     await app.listen(3000, config.listenHost);
     installTerminationHandlers(app, services);
+
     return app;
   } catch {
     await app.shutdown().catch(() => undefined);

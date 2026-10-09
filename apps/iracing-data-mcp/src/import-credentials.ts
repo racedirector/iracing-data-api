@@ -98,16 +98,19 @@ export async function importClientSecret(
   const directory = path.dirname(destination);
 
   await checkProductionDirectory(directory);
+
   const temporary = path.join(
     directory,
     `.${path.basename(destination)}.${process.pid}.${randomUUID()}.tmp`,
   );
+
   let temporaryExists = false;
 
   try {
     const handle = await open(temporary, "wx", 0o600);
 
     temporaryExists = true;
+
     try {
       await handle.writeFile(value, { encoding: "utf8" });
       await handle.sync();
