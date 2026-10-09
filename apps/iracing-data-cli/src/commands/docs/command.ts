@@ -36,16 +36,6 @@ export interface DocsCommandDependencies {
   createScope: CreateDocsCommandScope;
 }
 
-export async function runDocsCommand({
-  docs,
-  output,
-  diagnostics,
-}: DocsCommandScope): Promise<void> {
-  const document = await docs.get();
-  await output.write(document);
-  diagnostics.info("Data API documentation fetched.");
-}
-
 export function createDocsCommand({ createScope }: DocsCommandDependencies) {
   return new Command("docs")
     .description("Fetch the complete authenticated Data API documentation once")
@@ -60,7 +50,9 @@ export function createDocsCommand({ createScope }: DocsCommandDependencies) {
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
     .action(async (options) => {
-      const scope = await createScope(options);
-      await runDocsCommand(scope);
+      const { docs, output, diagnostics } = await createScope(options);
+      const document = await docs.get();
+      await output.write(document);
+      diagnostics.info("Data API documentation fetched.");
     });
 }
