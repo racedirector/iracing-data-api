@@ -3,23 +3,33 @@ import {
   createDocsCommand as createCommand,
   type DocsCommandDependencies,
 } from "./command.js";
-import { createDocsCommandScopeFactory } from "./scope.js";
+import {
+  createDocsCommandScopeFactory,
+  type DocsScopeDependencies,
+} from "./scope.js";
 
 export interface CreateDocsCommandOptions {
   diagnostics: Diagnostics;
+  dependencies?: DocsScopeDependencies;
 }
 
 /**
- * Public registration boundary for the docs command.
+ * Public registration boundary for the docs command module.
  *
- * Consumers register the command as a module and do not need to know that its
- * invocation scope is composed separately. The module owns that wiring so a future
- * DI container can replace the scope mechanics without changing registration sites.
+ * Consumers register one command and do not need to know that command execution uses
+ * a separately composed invocation scope. Injectable scope dependencies are exposed
+ * here for tests and future application composition while production registrations
+ * can use the module defaults.
  */
-export function createDocsCommand({ diagnostics }: CreateDocsCommandOptions) {
-  const dependencies: DocsCommandDependencies = {
-    createScope: createDocsCommandScopeFactory(diagnostics),
+export function createDocsCommand({
+  diagnostics,
+  dependencies,
+}: CreateDocsCommandOptions) {
+  const commandDependencies: DocsCommandDependencies = {
+    createScope: createDocsCommandScopeFactory(diagnostics, dependencies),
   };
 
-  return createCommand(dependencies);
+  return createCommand(commandDependencies);
 }
+
+export type { DocsScopeDependencies } from "./scope.js";
