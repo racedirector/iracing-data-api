@@ -31,7 +31,7 @@ pnpm run iracing-data docs --credentials .upstream-contract/credentials.json --s
 
 `auth login` updates `.iracing-data/credentials.json` by default; `--credentials` selects another file to update. Browser authorization can require the user's interaction. Use existing credentials first; do not start repeated logins or refresh automatically. A live capture request authorizes ignored evidence writes and this credential handoff when needed, but does not authorize tracked contract changes. A failed or expired token is an authentication limitation, not an empty docs baseline. HTTP 401/403 requires checking expiry, scope and account access, then obtaining a new token if needed.
 
-Choose unique evidence basenames instead of replacing prior snapshots. Use JSON with `--snapshot` for the audit; ordinary `docs --output ...` emits the complete normalized docs map, like the first-call example's documentation request, without the snapshot envelope. Snapshot output records live provenance using the existing fixed-source capture/normalizer, hash and redaction implementation. It fetches `/data/doc` once, refuses redirects, and times out after 30 seconds. Do not fetch endpoint links to retrieve the docs. Do not rerun the first-call example after capture: reuse the same evidence throughout the audit. Verify evidence and credential paths are ignored before writing; never print credentials, raw error bodies or tokens.
+Choose unique evidence basenames instead of replacing prior snapshots. Use JSON with `--snapshot` for the audit; ordinary `docs --output ...` emits the complete normalized docs map, like the first-call example's documentation request, without the snapshot envelope. Inspect [the CLI capture command](../../../../apps/iracing-data-cli/src/commands/docs.ts) for current capture ownership and [evidence procedures](../../../../docs/UPSTREAM-CONTRACT.md) for modes, provenance and safe output. Do not fetch endpoint links or rerun the first-call example after capture: reuse one snapshot throughout the audit. Verify evidence and credential paths are ignored before writing; never print credentials, raw errors or tokens.
 
 ## Deterministic comparison
 
@@ -40,9 +40,7 @@ node -r ts-node/register scripts/audit-data-docs.cjs .upstream-contract/data-cur
 pnpm test:upstream
 ```
 
-The comparison makes no network requests and writes no files. It validates the snapshot, parses its content with current `ServicesDocsResponseSchema`, and uses the authored generator source plus current built schema dependencies to compare paths, query parameter names, requiredness and type families. It reports endpoint/parameter coverage, JSON Pointer evidence, unmatched/local-only paths, documentation parsing failures, and array serialization review candidates. Exit 0 means no structural candidates, 2 means reviewable discrepancies, and 1 means the audit failed. A fixture remains fixture evidence; zero candidates never establishes full compatibility.
-
-Optional report redirection belongs under ignored `.upstream-contract/`; use a private umask and a fresh path. The helper deliberately does not derive correctness from committed OpenAPI or client types. Build dependencies first to avoid stale workspace imports. Do not run codegen for an audit.
+[audit-data-docs.cjs](../../../../scripts/audit-data-docs.cjs) owns comparison inputs, route/reference matching, candidate classification, coverage, exit codes and structural limits. Read its module documentation and [offline tests](../../../../scripts/audit-data-docs.test.cjs) before interpreting results. Build dependencies first; do not run write-mode codegen for verification. Redirect a report only to a fresh ignored path with private permissions. Fixture evidence and zero candidates do not establish live compatibility.
 
 ## Semantic review remains necessary
 
