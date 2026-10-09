@@ -14,8 +14,8 @@ const DOCS = {
 };
 
 const diagnostics = { info() {}, warn() {}, error() {} };
-const loadCommand = () => import("../dist/commands/docs.js");
-const loadScope = () => import("../dist/commands/docs-scope.js");
+const loadCommand = () => import("../dist/commands/docs/command.js");
+const loadScope = () => import("../dist/commands/docs/scope.js");
 
 function scopeDependencies({
   accessToken = "synthetic",
