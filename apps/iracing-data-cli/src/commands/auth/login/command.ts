@@ -43,6 +43,11 @@ export interface LoginCommandDependencies {
 const INVALID_SCOPE_MESSAGE =
   "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.";
 
+/**
+ * Parse scope arguments, defaulting to auth and profile when omitted.
+ * Accept only `iracing.auth` alone or followed by `iracing.profile`, in that
+ * order. Throw an Error for empty, malformed, or unsupported selections.
+ */
 export function resolveLoginScopes(
   values: string[] | undefined,
 ): OAuthScopeList {
@@ -62,6 +67,12 @@ export function resolveLoginScopes(
   return scopes;
 }
 
+/**
+ * Build the login command. Its action validates scope and destination options,
+ * resolves one scope, then authenticates and persists the returned token.
+ * Conflicting destinations, invalid scopes, and scope, authentication, or
+ * persistence failures reject `parseAsync()`.
+ */
 export function createLoginCommand({ createScope }: LoginCommandDependencies) {
   return new Command("login")
     .description("Authenticate with iRacing using browser OAuth")

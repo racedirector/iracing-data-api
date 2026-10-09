@@ -25,6 +25,16 @@ const defaultDependencies: LoginScopeDependencies = {
   environment: process.env,
 };
 
+/**
+ * Return a factory that binds authentication and persistence to a validated
+ * login invocation. Output takes precedence over credentials; otherwise an
+ * auth-only scope selects the MCP credential file and auth/profile selects
+ * the general CLI file.
+ *
+ * The returned factory rejects unsupported formats and explicit YAML for a
+ * default destination before authentication. Authentication and file writes
+ * are deferred to the returned capabilities, which propagate dependency errors.
+ */
 export function createLoginCommandScopeFactory(
   diagnostics: Diagnostics,
   dependencies: LoginScopeDependencies = defaultDependencies,
@@ -49,6 +59,12 @@ export function createLoginCommandScopeFactory(
 
     return {
       authentication: {
+        /**
+         * Authenticate using the current supplied environment and invocation's
+         * callback timeout in seconds. The default flow may open a browser and
+         * rejects configuration, callback, timeout, and cancellation failures;
+         * browser-opening failure permits manual completion.
+         */
         authenticate() {
           return dependencies.authenticate({
             clientId: dependencies.environment.IRACING_AUTH_CLIENT ?? "",
@@ -65,6 +81,10 @@ export function createLoginCommandScopeFactory(
       },
       credentials: {
         destination,
+        /**
+         * Persist the token, propagating writer failures. Unless force is set,
+         * allow replacement for credential destinations but protect --output.
+         */
         write(token) {
           return dependencies.writeOutput(token, {
             output: destination,

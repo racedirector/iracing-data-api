@@ -27,6 +27,10 @@ export interface WhoamiCommandDependencies {
   createScope: CreateWhoamiCommandScope;
 }
 
+/**
+ * Build the whoami command, resolving one scope when its action runs to fetch
+ * and write the profile. Scope, retrieval, and output failures reject `parseAsync()`.
+ */
 export function createWhoamiCommand({
   createScope,
 }: WhoamiCommandDependencies) {

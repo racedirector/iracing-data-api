@@ -13,6 +13,10 @@ export interface CreateWhoamiCommandOptions {
   dependencies?: WhoamiScopeDependencies;
 }
 
+/**
+ * Build a whoami command with credential resolution, Fetch, and stdout defaults,
+ * or supplied dependencies. I/O begins when its action runs.
+ */
 export function createWhoamiCommand({
   diagnostics,
   dependencies,

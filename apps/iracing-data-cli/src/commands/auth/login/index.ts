@@ -13,6 +13,10 @@ export interface CreateLoginCommandOptions {
   dependencies?: LoginScopeDependencies;
 }
 
+/**
+ * Build a login command with browser OAuth, process environment, and token-file
+ * persistence defaults, or supplied dependencies. I/O begins when its action runs.
+ */
 export function createLoginCommand({
   diagnostics,
   dependencies,

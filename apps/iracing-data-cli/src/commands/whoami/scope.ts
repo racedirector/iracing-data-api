@@ -20,11 +20,23 @@ export interface WhoamiScopeDependencies {
   writeStdout(value: string): void;
 }
 
+/**
+ * Bind a bearer token without its Bearer prefix to the OAuth profile endpoint.
+ * Requests are deferred to getProfile; the endpoint requires iracing.profile.
+ */
 export function createFetchIdentityClient(
   accessToken: string,
   fetcher: typeof fetch = fetch,
 ): IdentityClient {
   return {
+    /**
+     * Fetch and validate the profile, returning only customer ID and name.
+     * Each call rejects redirects and supplies a 30-second abort signal.
+     * Request, JSON decoding, and schema failures become fixed errors;
+     * unsuccessful HTTP statuses and non-JSON content types also reject.
+     * Errors omit response bodies and original exception messages. Success
+     * does not establish Data API access.
+     */
     async getProfile(): Promise<WhoamiProfile> {
       let response: Response;
       try {
@@ -80,6 +92,13 @@ const defaultDependencies: WhoamiScopeDependencies = {
   },
 };
 
+/**
+ * Return a factory that resolves credentials and binds an identity client per
+ * invocation, propagating resolution and construction failures. The default
+ * resolver prioritizes an explicit credential file over injected/environment
+ * tokens, then uses the default file when no token is selected.
+ * Profile retrieval and output are deferred to the returned capabilities.
+ */
 export function createWhoamiCommandScopeFactory(
   diagnostics: Diagnostics,
   dependencies: WhoamiScopeDependencies = defaultDependencies,
@@ -91,6 +110,7 @@ export function createWhoamiCommandScopeFactory(
     return {
       identity,
       output: {
+        /** Write indented JSON with a trailing newline, propagating writer errors. */
         write(profile) {
           dependencies.writeStdout(`${JSON.stringify(profile, null, 2)}\n`);
         },
