@@ -17,7 +17,7 @@
     "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "@modelcontextprotocol/node": "2.1.1",
-    "@modelcontextprotocol/server": "2.3.0",
+    "@modelcontextprotocol/server": "2.3.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
