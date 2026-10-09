@@ -177,21 +177,28 @@ test("scope owns documentation output policy", async (t) => {
 
 test("snapshot option is retired", async () => {
   const { createDocsCommand } = await loadCommand();
+  const command = createDocsCommand({
+    async createScope() {
+      assert.fail("scope must not be created");
+    },
+  });
+  command.configureOutput({ writeErr() {} });
+  command.exitOverride();
+
   await assert.rejects(
-    createDocsCommand({
-      async createScope() {
-        assert.fail("scope must not be created");
-      },
-    }).parseAsync(["--snapshot"], { from: "user" }),
-    /unknown option '--snapshot'/,
+    command.parseAsync(["--snapshot"], { from: "user" }),
+    (error) => {
+      assert.equal(error.code, "commander.unknownOption");
+      assert.match(error.message, /unknown option '--snapshot'/);
+      return true;
+    },
   );
 });
 
 test("scope can resolve the repository credential file through the existing credential owner", async (t) => {
   const { createDocsCommandScopeFactory } = await loadScope();
-  const { resolveAccessToken, defaultCredentialsPath } = await import(
-    "../dist/credentials.js"
-  );
+  const { resolveAccessToken, defaultCredentialsPath } =
+    await import("../dist/credentials.js");
   const saved = process.env.IRACING_ACCESS_TOKEN;
   delete process.env.IRACING_ACCESS_TOKEN;
   t.after(() => {
@@ -204,7 +211,11 @@ test("scope can resolve the repository credential file through the existing cred
     resolveAccessToken,
     createDocumentationClient(accessToken) {
       token = accessToken;
-      return { async getDocs() { return DOCS; } };
+      return {
+        async getDocs() {
+          return DOCS;
+        },
+      };
     },
     async writeDocumentOutput() {},
   });
@@ -236,7 +247,11 @@ test("scope honors explicit JSON and YAML credential files", async (t) => {
       resolveAccessToken,
       createDocumentationClient(accessToken) {
         token = accessToken;
-        return { async getDocs() { return DOCS; } };
+        return {
+          async getDocs() {
+            return DOCS;
+          },
+        };
       },
       async writeDocumentOutput() {},
     });
