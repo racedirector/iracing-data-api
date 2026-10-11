@@ -34,7 +34,7 @@ Compose port remotely, relax allowed-host checks, or add MCP OAuth to this app.
 If private tunnel access is unavailable, report that concrete blocker and offer
 the already-supported local clients; do not weaken the service boundary.
 
-## Install and configure the tunnel client
+## Install and inspect the tunnel client
 
 Use the official download linked by Platform, or
 [`openai/tunnel-client` latest release](https://github.com/openai/tunnel-client/releases/latest).
@@ -43,11 +43,22 @@ Select the host OS/architecture and verify its archive against the release's
 for example `.iracing-data/tunnel-client/`. Do not commit downloaded binaries,
 profiles with account-specific metadata, logs, or keys.
 
-Run `tunnel-client help quickstart`, `tunnel-client init --help`, and
-`tunnel-client runtimes connect --help` from the installed version. Commands below
-are patterns: replace `<tunnel-id>` and paths using verified local values. On
-PowerShell invoke an executable path with `&`; on POSIX use the executable path
-directly. Use argument arrays or proper shell quoting for paths containing spaces.
+**Do not assume subcommands from this document exist in an installed binary.**
+`tunnel-client` is versioned independently of this repository. Before giving or
+running setup commands, inspect the installed binary:
+
+```text
+tunnel-client --version
+tunnel-client help quickstart
+tunnel-client init --help
+tunnel-client doctor --help
+tunnel-client run --help
+```
+
+Treat those commands as the required baseline. If the installed binary's help
+contradicts this reference, its actual help plus the current official OpenAI guide
+are authoritative. Upgrade the binary only when the user wants or needs behavior
+that their installed version does not provide; never invent a missing command.
 
 The daemon requires a **runtime** Platform API key whose principal has Tunnels
 Read + Use. Creating/managing a tunnel additionally requires Read + Manage.
@@ -61,35 +72,60 @@ If the user authorizes copying an already-created browser key, use a private
 transfer directly to the local file; if that cannot be done safely, ask them to
 save it themselves. Close the reveal dialog once the key has been saved.
 
-Create a native HTTP profile without app OAuth:
+## Baseline profile workflow
+
+For an HTTP MCP server that does not advertise MCP OAuth metadata, current
+`tunnel-client` releases expose the `sample_mcp_remote_no_auth` profile sample.
+Confirm the sample exists with the installed binary before using it. Then create a
+profile whose target is the existing loopback MCP endpoint:
 
 ```text
 tunnel-client init --sample sample_mcp_remote_no_auth --profile iracing-data --profile-dir <absolute-profile-directory> --tunnel-id <tunnel-id> --mcp-server-url http://127.0.0.1:3000/mcp --control-plane-api-key-ref file:<absolute-runtime-key-file> --health-listen-addr 127.0.0.1:0
 ```
 
-For a long-lived local process, use the client's managed runtime supervision:
+Validate exactly that profile before starting it:
 
 ```text
-tunnel-client runtimes connect --alias iracing-data --profile iracing-data --profile-dir <absolute-profile-directory> --tunnel-id <tunnel-id> --mcp-server-url http://127.0.0.1:3000/mcp --runtime-api-key file:<absolute-runtime-key-file>
-tunnel-client runtimes status iracing-data --json
+tunnel-client doctor --profile iracing-data --profile-dir <absolute-profile-directory> --explain
 ```
 
-Reuse an existing alias/profile when it points to this same tunnel/server. Do not
-overwrite a different runtime. A foreground `run` is appropriate only when the
-user explicitly wants a terminal-attached process. Do not substitute `nohup`,
-`disown`, or an unmanaged hidden process for the client's supervisor.
+Then run it with the command reported by `doctor`/`init`; for current releases this
+is normally:
 
-Inspect status fields `process_running`, `healthy`, and `ready`; all must be true
-before claiming readiness. Summarize those fields rather than dumping profiles or
-full runtime logs. If readiness fails, use `doctor --profile iracing-data
---profile-dir <absolute-profile-directory> --explain` and bounded, redacted
-diagnostics. Distinguish API-key permissions, workspace association, tunnel
-connectivity, and local MCP reachability. Do not restart iRacing login to repair a
-tunnel-only failure. A managed process is not proof of reboot auto-start.
+```text
+tunnel-client run --profile iracing-data --profile-dir <absolute-profile-directory>
+```
+
+A foreground `run` is the portable baseline and is appropriate for proving the
+connection. Keep the process running while ChatGPT uses the tunnel. If the user
+needs a long-lived supervised runtime, inspect the installed binary for a supported
+runtime-management surface rather than substituting `nohup`, `disown`, or an
+unmanaged hidden process.
+
+## Optional managed-runtime workflow
+
+Some newer `tunnel-client` versions expose `tunnel-client runtimes ...` commands.
+They are **optional version-specific conveniences**, not prerequisites for this
+repository's MCP server. Only use them after this succeeds:
+
+```text
+tunnel-client runtimes --help
+```
+
+For versions that advertise `runtimes connect`, inspect its help and pass only
+flags supported by that installed version. Current v0.0.16, for example, supports
+an alias plus existing tunnel/profile/URL/runtime-key inputs and provides
+`runtimes status <alias>` for inspection. Do not copy a command line from this
+reference into a binary whose help does not expose the same flags.
+
+For failures, use `doctor --profile iracing-data --profile-dir
+<absolute-profile-directory> --explain` and bounded, redacted diagnostics.
+Distinguish API-key permissions, workspace association, tunnel connectivity, and
+local MCP reachability. Do not restart iRacing login to repair a tunnel-only failure.
 
 ## Register and verify in ChatGPT
 
-With the runtime ready, return to **Add custom MCP server**:
+With the tunnel runtime ready, return to **Add custom MCP server**:
 
 1. Set a name such as **iRacing Data** and a short read-only description.
 2. Select **Tunnel** and enter the verified tunnel ID.
@@ -103,7 +139,7 @@ With the runtime ready, return to **Add custom MCP server**:
    screenshot if the host supports it.
 
 In a normal ChatGPT conversation the user can select `@iRacing Data`. Docker, the
-MCP container, and the tunnel runtime must remain running on the host. Local
+MCP container, and the tunnel process must remain running on the host. Local
 OpenCode/Cursor/etc. clients continue to use the direct loopback URL independently.
 
 If the user defers testing, stop after readiness, tool discovery, and visible
