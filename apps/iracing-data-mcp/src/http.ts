@@ -36,7 +36,6 @@ import {
   type AuthInfo,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
-import type { McpAuthorizationBoundary } from "./authorization.js";
 import {
   ApplicationFailure,
   ErrorEnvelopeSchema,
@@ -48,6 +47,7 @@ import {
   healthDiagnostics,
 } from "./diagnostics/logging.js";
 import { createMcpServer, type McpToolRegistrar } from "./mcp.js";
+import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
@@ -173,13 +173,16 @@ function webRequest(req: IncomingMessage, baseUrl: URL) {
 /** Writes a web-standard Response to Node without exposing body/header values to logs. */
 async function writeWebResponse(res: ServerResponse, response: Response) {
   const headers: Record<string, string> = {};
+
   response.headers.forEach((value, name) => {
     headers[name] = value;
   });
 
   res.writeHead(response.status, headers);
+
   if (response.body === null) {
     res.end();
+
     return;
   }
 
@@ -778,14 +781,17 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
       if (metadataResponse) {
         logger.log("info", context, { status: metadataResponse.status });
+
         void writeWebResponse(res, metadataResponse).catch((error) => {
           logger.failure(context, error);
+
           if (!res.headersSent) {
             reply(500, "Request failed.");
           } else {
             res.destroy();
           }
         });
+
         return;
       }
     }
@@ -853,7 +859,9 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
           if (authorization instanceof Response) {
             logger.log("info", context, { status: authorization.status });
+
             await writeWebResponse(res, authorization);
+
             return;
           }
 
@@ -901,6 +909,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           error instanceof Error && error.name === "RequestBodyTooLargeError";
 
         logger.log("error", context, { status: oversized ? 413 : 500 });
+
         if (!res.headersSent && !res.destroyed) {
           reply(
             oversized ? 413 : 500,
