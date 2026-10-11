@@ -7,7 +7,10 @@ import {
 import { DEFAULT_SCOPES } from "../../../authenticate.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
-/** Raw Commander values accepted by the login leaf before scope and timeout normalization. */
+/** Authentication methods supported by the login command. */
+export type LoginMethod = "browser" | "password-limited";
+
+/** Raw Commander values accepted by the login leaf before method, scope, and timeout normalization. */
 export type LoginOptions = {
   output?: string;
   credentials?: string;
@@ -16,13 +19,15 @@ export type LoginOptions = {
   force?: boolean;
   open: boolean;
   timeoutSeconds: string;
+  method: string;
 };
 
 /**
- * Normalized login request passed into the invocation scope after repeated scope options have
- * been canonicalized.
+ * Normalized login request passed into the invocation scope after method and repeated scope
+ * options have been canonicalized.
  */
-export type LoginInvocation = Omit<LoginOptions, "scope"> & {
+export type LoginInvocation = Omit<LoginOptions, "method" | "scope"> & {
+  method: LoginMethod;
   scopes: OAuthScopeList;
 };
 
@@ -56,6 +61,17 @@ export interface LoginCommandDependencies {
 
 const INVALID_SCOPE_MESSAGE =
   "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.";
+const INVALID_METHOD_MESSAGE =
+  "--method must be either 'browser' or 'password-limited'.";
+
+/**
+ * Parse the requested authentication method, preserving browser authorization as the default.
+ */
+export function resolveLoginMethod(value: string | undefined): LoginMethod {
+  const method = value ?? "browser";
+  if (method === "browser" || method === "password-limited") return method;
+  throw new Error(INVALID_METHOD_MESSAGE);
+}
 
 /**
  * Parse scope arguments, defaulting to auth and profile when omitted.
@@ -82,14 +98,19 @@ export function resolveLoginScopes(
 }
 
 /**
- * Build the login command. Its action validates scope and destination options,
+ * Build the login command. Its action validates method, scope, and destination options,
  * resolves one scope, then authenticates and persists the returned token.
- * Conflicting destinations, invalid scopes, and scope, authentication, or
+ * Conflicting destinations, invalid methods or scopes, and scope, authentication, or
  * persistence failures reject `parseAsync()`.
  */
 export function createLoginCommand({ createScope }: LoginCommandDependencies) {
   return new Command("login")
-    .description("Authenticate with iRacing using browser OAuth")
+    .description("Authenticate with iRacing OAuth")
+    .option(
+      "--method <browser|password-limited>",
+      "Authentication method",
+      "browser",
+    )
     .option(
       "-o, --output <path>",
       "Write tokens to an alternate file (protected unless --force)",
@@ -115,9 +136,11 @@ export function createLoginCommand({ createScope }: LoginCommandDependencies) {
         throw new Error("Use either --output or --credentials, not both.");
       }
 
+      const method = resolveLoginMethod(options.method);
       const scopes = resolveLoginScopes(options.scope);
       const { authentication, credentials, diagnostics } = await createScope({
         ...options,
+        method,
         scopes,
       });
       const token = await authentication.authenticate();
