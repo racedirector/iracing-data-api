@@ -28,7 +28,8 @@ const httpsUrl = z
     ) {
       context.addIssue({
         code: "custom",
-        message: "Expected an HTTPS URL without credentials, query, or fragment.",
+        message:
+          "Expected an HTTPS URL without credentials, query, or fragment.",
       });
 
       return z.NEVER;
@@ -74,7 +75,8 @@ export const McpRemoteAuthorizationConfigSchema = z
       context.addIssue({
         code: "custom",
         path: ["audience"],
-        message: "The MCP token audience must equal the advertised MCP resource URL.",
+        message:
+          "The MCP token audience must equal the advertised MCP resource URL.",
       });
     }
 
@@ -101,6 +103,7 @@ export function parseMcpRemoteAuthorizationConfig(
 
 function claimString(payload: Record<string, unknown>, name: string) {
   const value = payload[name];
+
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
@@ -127,6 +130,7 @@ export function createMcpJwtVerifier(
           typeof payload.scope === "string"
             ? payload.scope.split(" ").filter(Boolean)
             : [];
+
         const clientId =
           claimString(payload, "client_id") ??
           claimString(payload, "azp") ??
@@ -144,7 +148,10 @@ export function createMcpJwtVerifier(
           resource: new URL(config.resourceUrl),
         };
       } catch {
-        throw new OAuthError(OAuthErrorCode.InvalidToken, "Invalid access token");
+        throw new OAuthError(
+          OAuthErrorCode.InvalidToken,
+          "Invalid access token",
+        );
       }
     },
   };
@@ -173,13 +180,17 @@ export function createMcpAuthorizationBoundary(
   verifier: OAuthTokenVerifier = createMcpJwtVerifier(config),
 ): McpAuthorizationBoundary {
   const resourceUrl = new URL(config.resourceUrl);
+
   const metadataUrl = getOAuthProtectedResourceMetadataUrl(resourceUrl);
+
   const metadataPath = new URL(metadataUrl).pathname;
+
   const metadata = Object.freeze({
     resource: config.resourceUrl,
     authorization_servers: Object.freeze([config.issuer]),
     scopes_supported: Object.freeze([...config.requiredScopes]),
   });
+
   const authorize = requireBearerAuth({
     verifier,
     requiredScopes: [...config.requiredScopes],
@@ -215,6 +226,7 @@ export function createMcpAuthorizationBoundary(
       }
 
       const response = Response.json(metadata, { headers });
+
       return request.method === "HEAD"
         ? new Response(null, { status: 200, headers: response.headers })
         : response;
