@@ -80,7 +80,9 @@ async function readUsername(): Promise<string> {
       signal: controller.signal,
     });
     if (!username.trim()) {
-      throw new Error("Username is required for password-limited authentication.");
+      throw new Error(
+        "Username is required for password-limited authentication.",
+      );
     }
     return username.trim();
   } catch (error) {
@@ -112,7 +114,8 @@ async function readHiddenPassword(): Promise<string> {
   try {
     await new Promise<void>((resolve, reject) => {
       const onData = (chunk: Buffer | string) => {
-        const input = typeof chunk === "string" ? chunk : chunk.toString("utf8");
+        const input =
+          typeof chunk === "string" ? chunk : chunk.toString("utf8");
         for (const character of input) {
           if (character === "\u0003" || character === "\u0004") {
             cleanup();
@@ -141,7 +144,9 @@ async function readHiddenPassword(): Promise<string> {
   }
 
   if (!password) {
-    throw new Error("Password is required for password-limited authentication.");
+    throw new Error(
+      "Password is required for password-limited authentication.",
+    );
   }
   return password;
 }
