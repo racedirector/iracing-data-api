@@ -142,7 +142,8 @@ export function createLoginCommandScopeFactory(
             );
           }
 
-          const username = dependencies.environment.IRACING_AUTH_USERNAME?.trim();
+          const username =
+            dependencies.environment.IRACING_AUTH_USERNAME?.trim();
           const password = dependencies.environment.IRACING_AUTH_PASSWORD;
           if (!username) {
             throw new Error(
