@@ -3,7 +3,6 @@ const test = require("node:test");
 
 const diagnostics = { info() {}, warn() {}, error() {} };
 const payload = { series: [{ series_id: 1, logo: "/img/series/1.png" }] };
-
 const loadScope = () => import("../dist/commands/assets/series/scope.js");
 
 function dependencies(overrides = {}) {
@@ -39,7 +38,9 @@ function responseError(status) {
 }
 
 test("assets help exposes series", async () => {
-  const { createAssetsCommand } = await import("../dist/commands/assets/index.js");
+  const { createAssetsCommand } = await import(
+    "../dist/commands/assets/index.js"
+  );
   const command = createAssetsCommand({ diagnostics });
   assert.match(command.helpInformation(), /\bseries\b/);
 });
@@ -58,7 +59,10 @@ test("series scope calls generated operation and shared materializer exactly onc
         return {
           async getSeriesAssets() {
             apiCalls++;
-            return { link, expires: new Date("2030-01-01T00:00:00.000Z") };
+            return {
+              link,
+              expires: new Date("2030-01-01T00:00:00.000Z"),
+            };
           },
         };
       },
@@ -84,13 +88,14 @@ test("series scope calls generated operation and shared materializer exactly onc
 
 test("series generated-client failures are normalized without leaking sensitive text", async () => {
   const { createSeriesAssetsCommandScopeFactory } = await loadScope();
-
-  for (const [error, expected] of [
+  const cases = [
     [responseError(401), /HTTP 401.*auth login/],
     [responseError(429), /HTTP 429.*retry later/],
     [responseError(503), /HTTP 503.*maintenance/],
     [new Error("synthetic-series-token"), /network connectivity/],
-  ]) {
+  ];
+
+  for (const [error, expected] of cases) {
     const createScope = createSeriesAssetsCommandScopeFactory(
       diagnostics,
       dependencies({
