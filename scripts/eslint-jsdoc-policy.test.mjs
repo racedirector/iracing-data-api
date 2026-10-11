@@ -10,7 +10,9 @@ const authoredFixture = "apps/iracing-data-cli/src/__jsdoc-policy-fixture__.ts";
 
 async function jsdocMessages(source, filePath = authoredFixture) {
   const [result] = await eslint.lintText(source, { filePath });
-  return result.messages.filter((message) => message.ruleId?.startsWith("jsdoc/"));
+  return result.messages.filter((message) =>
+    message.ruleId?.startsWith("jsdoc/"),
+  );
 }
 
 async function expectRule(source, ruleId, filePath) {
@@ -73,15 +75,18 @@ internalHelper();
   assert.deepEqual(messages, []);
 });
 
-test("schema-inferred aliases remain owned by their source schema", async () => {
-  const messages = await jsdocMessages(`
+test("direct schema projections remain owned by their source schema", async () => {
+  for (const projection of ["infer", "input"]) {
+    const messages = await jsdocMessages(`
 declare namespace z {
   type infer<T> = T;
+  type input<T> = T;
 }
 declare const ExampleSchema: { value: string };
-export type Example = z.infer<typeof ExampleSchema>;
+export type Example = z.${projection}<typeof ExampleSchema>;
 `);
-  assert.deepEqual(messages, []);
+    assert.deepEqual(messages, []);
+  }
 });
 
 test("generated, test and example exports are outside authored API coverage", async (t) => {
