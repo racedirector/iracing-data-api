@@ -3,7 +3,8 @@ const test = require("node:test");
 
 const diagnostics = { info() {}, warn() {}, error() {} };
 const payload = { series: [{ series_id: 1, logo: "/img/series/1.png" }] };
-const loadScope = () => import("../dist/commands/assets/series/scope.js");
+const loadScope = () =>
+  import("../dist/commands/assets/series/scope.js");
 
 function dependencies(overrides = {}) {
   return {
@@ -39,7 +40,7 @@ function responseError(status) {
 
 test("assets help exposes series", async () => {
   const { createAssetsCommand } = await import(
-    "../dist/commands/assets/index.js"
+    "../dist/commands/assets/index.js",
   );
   const command = createAssetsCommand({ diagnostics });
   assert.match(command.helpInformation(), /\bseries\b/);
