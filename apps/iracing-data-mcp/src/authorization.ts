@@ -34,7 +34,10 @@ const httpsUrl = z
       return z.NEVER;
     }
 
-    return url.href;
+    // OAuth issuer/resource identifiers are exact strings. Validate URL structure
+    // without normalizing the operator-supplied identifier (for example by adding
+    // a trailing slash) before issuer/audience comparisons.
+    return value;
   });
 
 const scope = z
