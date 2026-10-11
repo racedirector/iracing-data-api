@@ -77,6 +77,10 @@ import {
 } from "./policy.js";
 import { createGatewayTransport, type GatewayTransport } from "./transport.js";
 
+/**
+ * Composition options for the Data API gateway, including authorization state, transport,
+ * clock, and diagnostic seams.
+ */
 export interface GatewayOptions {
   readonly configuration: Configuration;
   readonly authorizationState?: () => string;
@@ -1034,6 +1038,11 @@ export class DataApiGateway {
     };
   }
 }
+
+/**
+ * Per-call gateway facade that exposes validated Data API operations while keeping transport
+ * details and returned-link handling inside the gateway.
+ */
 export interface GatewayCall {
   /** Earliest safe cursor expiry of this call, including the 30-second link margin. */
   readonly expiresAt: number;

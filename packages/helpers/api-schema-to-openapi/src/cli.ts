@@ -32,6 +32,10 @@ function resolveFormat(
   return /\.ya?ml$/i.test(fileName) ? "yaml" : "json";
 }
 
+/**
+ * Serializes the canonical authored Data API document to the requested build-artifact path,
+ * replacing only that selected output file.
+ */
 export async function generateOpenAPISpec({
   outputDir = __dirname,
   fileName = "openapi.json",

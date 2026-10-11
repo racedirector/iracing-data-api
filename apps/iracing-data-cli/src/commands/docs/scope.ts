@@ -19,6 +19,10 @@ interface DocumentationClient {
   getDocs(): Promise<DataApiDocumentation>;
 }
 
+/**
+ * Injected service, credential, output, and environment seams used to build one docs-command
+ * invocation scope.
+ */
 export interface DocsScopeDependencies {
   resolveAccessToken(options: CredentialOptions): Promise<string>;
   createDocumentationClient(accessToken: string): DocumentationClient;

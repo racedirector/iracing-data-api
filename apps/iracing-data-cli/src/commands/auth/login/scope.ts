@@ -7,12 +7,20 @@ import { resolveTokenFormat, writeTokenOutput } from "../../../token-output.js";
 import type { CreateLoginCommandScope, LoginInvocation } from "./command.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
+/**
+ * Environment variables consumed by login composition; unrelated process environment values
+ * are intentionally outside this boundary.
+ */
 export interface LoginEnvironment {
   IRACING_AUTH_CLIENT?: string;
   IRACING_AUTH_SECRET?: string;
   IRACING_AUTH_REDIRECT_URI?: string;
 }
 
+/**
+ * Injectable browser-authentication, output, and environment seams used to construct an
+ * isolated login invocation scope.
+ */
 export interface LoginScopeDependencies {
   authenticate: typeof authenticateWithBrowser;
   writeOutput: typeof writeTokenOutput;

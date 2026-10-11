@@ -11,6 +11,10 @@
  */
 import { AuthorizationResponseError, ResponseBodyError } from "oauth4webapi";
 
+/**
+ * Authorization-callback failure that retains callback evidence for trusted callers while
+ * preserving the original cause when available.
+ */
 export class OAuthCallbackError extends Error {
   static from(err: unknown, params: URLSearchParams, state?: string) {
     if (err instanceof OAuthCallbackError) return err;
@@ -63,6 +67,10 @@ export class OAuthCallbackError extends Error {
   }
 }
 
+/**
+ * Refresh failure that carries explicit provider/recovery evidence so callers never classify
+ * refresh behavior from message text.
+ */
 export class OAuthRefreshError extends Error {
   static from(err: ResponseBodyError) {
     return new OAuthRefreshError(
@@ -116,6 +124,10 @@ export class OAuthRefreshError extends Error {
   }
 }
 
+/**
+ * Local access-token claim validation failure used when decoded authorization evidence
+ * violates the configured client contract.
+ */
 export class OAuthClaimsError extends Error {
   static tokenExpired() {
     return new OAuthClaimsError("Access token has expired.");

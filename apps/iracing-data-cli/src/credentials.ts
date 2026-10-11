@@ -28,11 +28,19 @@ export const defaultMcpCredentialsPath = fileURLToPath(
   ),
 );
 
+/**
+ * Credential-selection policy for CLI commands, including explicit token/file overrides and
+ * injectable filesystem access.
+ */
 export type CredentialOptions = {
   credentials?: string;
   accessToken?: string;
   readCredentials?: (path: string) => Promise<string>;
 };
+/**
+ * Resolves one access token according to CLI precedence and validates the selected credential
+ * document before returning it.
+ */
 export async function resolveAccessToken(
   options: CredentialOptions = {},
 ): Promise<string> {

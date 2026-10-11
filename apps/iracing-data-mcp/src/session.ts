@@ -39,9 +39,18 @@ import type { McpServices } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
 export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";
+
+/**
+ * MCP session authorization states used to distinguish usable credentials from refresh and
+ * reauthorization requirements.
+ */
 export type AuthorizationState =
   "ready" | "authorization_required" | "configuration_error";
 
+/**
+ * Host-provided composition inputs for MCP session services, including credential persistence
+ * and diagnostic seams.
+ */
 export interface SessionCompositionOptions {
   readonly clientMetadata: OAuthClientOptions["clientMetadata"];
   readonly credentialFile?: string;

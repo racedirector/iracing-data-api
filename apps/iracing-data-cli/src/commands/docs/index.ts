@@ -8,6 +8,10 @@ import {
 } from "./scope.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
+/**
+ * Composition inputs used to bind the docs command to shared diagnostics and scope
+ * dependencies.
+ */
 export interface CreateDocsCommandOptions {
   diagnostics: Diagnostics;
   dependencies?: DocsScopeDependencies;

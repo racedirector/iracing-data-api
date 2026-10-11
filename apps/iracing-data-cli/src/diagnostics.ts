@@ -10,6 +10,10 @@ export type Diagnostics = {
   error(message: string): void;
 };
 
+/**
+ * Creates the CLI diagnostic sink over a single writer, keeping user output separate while
+ * preserving level semantics.
+ */
 export function createDiagnostics(
   write: (message: string) => void = (message) =>
     process.stderr.write(`${message}\n`),

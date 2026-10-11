@@ -19,6 +19,11 @@ export const COLLECTION_LIMITS = Object.freeze({
   resultBytes: 64 * 1024,
   ttlMs: 300_000,
 });
+
+/**
+ * Raises the stable cursor-expiration protocol failure used for expired or evicted collection
+ * state.
+ */
 export function collectionExpired(): never {
   throw new ApplicationFailure("CURSOR_EXPIRED", {
     reason: "expired_or_evicted",
@@ -29,6 +34,11 @@ function capacity(): never {
   throw new ApplicationFailure("RESPONSE_LIMIT_EXCEEDED");
 }
 
+/**
+ * Builds a successful MCP tool result with the original value as structuredContent and a JSON
+ * text serialization that may omit unsupported values. Both projections are jointly constrained
+ * by the response-size policy.
+ */
 export function completeResult(value: Record<string, unknown>) {
   const result = {
     content: [{ type: "text" as const, text: JSON.stringify(value) }],

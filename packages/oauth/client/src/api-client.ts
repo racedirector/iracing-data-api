@@ -15,9 +15,17 @@ import {
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-schema";
 
+/**
+ * Lazy or eager bearer-token provider accepted by the authored OAuth API facade and generated
+ * client configuration.
+ */
 export type OAuthAccessTokenProvider =
   string | Promise<string> | (() => string | Promise<string>);
 
+/**
+ * Transport and endpoint policy used to construct the authored OAuth API facade without
+ * coupling callers to the generated client.
+ */
 export interface OAuthApiClientOptions {
   accessToken?: OAuthAccessTokenProvider;
   basePath?: string;
@@ -25,6 +33,10 @@ export interface OAuthApiClientOptions {
   requestTimeoutMs?: number;
 }
 
+/**
+ * HTTP failure that retains the upstream response for protocol handling while exposing a
+ * stable status-based error classification.
+ */
 export class OAuthApiHttpError extends Error {
   readonly requestId?: string;
 
@@ -35,6 +47,10 @@ export class OAuthApiHttpError extends Error {
   }
 }
 
+/**
+ * OAuth API decoding failure that distinguishes transport, non-JSON, malformed JSON, and
+ * schema-contract violations.
+ */
 export class OAuthApiContractError extends Error {
   constructor(
     message: string,
@@ -217,11 +233,23 @@ export class OAuthApiClient {
   }
 }
 
+/**
+ * Minimal profile capability exposed to consumers that only need authenticated identity
+ * lookup.
+ */
 export type OAuthProfileApi = Pick<OAuthApiClient, "getProfile">;
+/**
+ * Protocol-facing OAuth capabilities consumed by the higher-level lifecycle client for token
+ * exchange and profile validation.
+ */
 export type OAuthProtocolApi = Pick<
   OAuthApiClient,
   "exchangeTokenRaw" | "getProfile"
 >;
+/**
+ * Factory seam for constructing the protocol facade from endpoint, transport, and access-token
+ * policy.
+ */
 export type OAuthApiClientFactory = (
   options: OAuthApiClientOptions,
 ) => OAuthProtocolApi;

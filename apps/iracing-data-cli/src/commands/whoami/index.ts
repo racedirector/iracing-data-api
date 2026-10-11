@@ -8,6 +8,10 @@ import {
 } from "./scope.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
+/**
+ * Composition inputs used to bind the whoami command to shared diagnostics and scope
+ * dependencies.
+ */
 export interface CreateWhoamiCommandOptions {
   diagnostics: Diagnostics;
   dependencies?: WhoamiScopeDependencies;

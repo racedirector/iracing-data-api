@@ -8,6 +8,10 @@ import {
 } from "./scope.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
+/**
+ * Composition inputs used to bind the login command to shared diagnostics and its
+ * per-invocation dependencies.
+ */
 export interface CreateLoginCommandOptions {
   diagnostics: Diagnostics;
   dependencies?: LoginScopeDependencies;

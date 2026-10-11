@@ -9,6 +9,10 @@
  */
 import { spawn } from "node:child_process";
 
+/**
+ * Selects the platform-native URL opener without spawning it, keeping platform policy
+ * independently testable.
+ */
 export function browserLaunchCommand(platform: NodeJS.Platform, url: string) {
   if (platform === "darwin") {
     return { command: "open", args: [url] };
@@ -24,6 +28,10 @@ export function browserLaunchCommand(platform: NodeJS.Platform, url: string) {
   return { command: "xdg-open", args: [url] };
 }
 
+/**
+ * Starts the platform URL opener detached from the CLI; spawn success only means the browser
+ * handoff was accepted, not that OAuth completed.
+ */
 export async function openUrlInBrowser(url: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const { command, args } = browserLaunchCommand(process.platform, url);

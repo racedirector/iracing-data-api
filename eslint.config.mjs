@@ -3,7 +3,52 @@ import tseslint from "@typescript-eslint/eslint-plugin";
 import parser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
+import jsdoc from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
+
+const authoredTypeScriptJSDocExclusions = [
+  // Test and example exports are executable verification or usage samples, not maintained API contracts.
+  "**/*.test.ts",
+  "**/*.spec.ts",
+  "**/__tests__/**",
+  "**/test/**",
+  "**/tests/**",
+  "**/fixtures/**",
+  "**/__fixtures__/**",
+  "examples/**",
+  "apps/**/examples/**",
+  "packages/**/examples/**",
+
+  // Build, vendor, generated, and derived sources keep their existing owners instead of gaining hand-authored JSDoc.
+  "apps/**/dist/**",
+  "packages/**/dist/**",
+  "apps/**/vendor/**",
+  "packages/**/vendor/**",
+  "packages/**/generated/**",
+  "packages/api/client/**",
+  "packages/telemetry/client/**",
+];
+
+// Direct Zod type projections inherit their contract from the owning authored schema.
+// Ordinary authored aliases remain covered, including wrappers that add local semantics.
+const authoredTypeAliasContext =
+  "TSTypeAliasDeclaration:not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='infer']):not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='input'])";
+
+const documentedExportContexts = [
+  "ExportNamedDeclaration:has(> FunctionDeclaration)",
+  "ExportNamedDeclaration:has(> ClassDeclaration)",
+  "ExportNamedDeclaration:has(> TSInterfaceDeclaration)",
+  "ExportNamedDeclaration:has(> TSEnumDeclaration)",
+  `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
+  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ArrowFunctionExpression)",
+  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > FunctionExpression)",
+  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ClassExpression)",
+  "ExportDefaultDeclaration:has(> FunctionDeclaration)",
+  "ExportDefaultDeclaration:has(> ClassDeclaration)",
+  "ExportDefaultDeclaration:has(> ArrowFunctionExpression)",
+  "ExportDefaultDeclaration:has(> FunctionExpression)",
+  "ExportDefaultDeclaration:has(> ClassExpression)",
+];
 
 export default [
   {
@@ -14,9 +59,6 @@ export default [
       "openapi/**",
       "iracing-proto/**",
       "packages/**/generated/**",
-      "packages/**/src/**/schema.ts",
-      "packages/**/src/**/telemetry.ts",
-      "packages/**/src/**/session.ts",
       "packages/api/client/**",
       "packages/telemetry/client/**",
     ],
@@ -113,6 +155,65 @@ export default [
           destructuredArrayIgnorePattern: "^_",
           varsIgnorePattern: "^_",
           ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+  {
+    files: ["apps/**/*.ts", "packages/**/*.ts"],
+    ignores: authoredTypeScriptJSDocExclusions,
+    plugins: {
+      jsdoc,
+    },
+    settings: {
+      jsdoc: {
+        mode: "typescript",
+      },
+    },
+    rules: {
+      "jsdoc/require-jsdoc": [
+        "error",
+        {
+          enableFixer: false,
+          publicOnly: {
+            cjs: false,
+            esm: true,
+            window: false,
+          },
+          require: {
+            ArrowFunctionExpression: true,
+            ClassDeclaration: true,
+            ClassExpression: true,
+            FunctionDeclaration: true,
+            FunctionExpression: true,
+            MethodDefinition: false,
+          },
+          contexts: [
+            "TSEnumDeclaration",
+            "TSInterfaceDeclaration",
+            authoredTypeAliasContext,
+          ],
+        },
+      ],
+      "jsdoc/require-description": [
+        "error",
+        {
+          contexts: documentedExportContexts,
+          descriptionStyle: "body",
+          exemptedBy: ["inheritdoc", "deprecated"],
+        },
+      ],
+      "jsdoc/match-description": [
+        "error",
+        {
+          contexts: documentedExportContexts,
+          mainDescription: {
+            match:
+              "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu",
+            message:
+              "Exported API JSDoc must describe the contract rather than use an empty or placeholder description.",
+          },
+          nonemptyTags: false,
         },
       ],
     },
