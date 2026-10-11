@@ -1,10 +1,10 @@
 # Live Data API compatibility workflow
 
-A compatibility audit must start from current authoritative upstream information when access is available. Retrieve the Data API documentation once for the audit run through the repository CLI/generated-client boundary, then perform deterministic structural and semantic review against the current working tree.
+Use this procedure for a current authenticated Data API audit. Read root/scoped guidance and the current CLI help/documentation first. The CLI is private repository tooling; do not infer a published installation path.
 
 ## Build the concrete owners
 
-From the repository root:
+Build the CLI and authored schema/generator dependencies from the repository root:
 
 ```bash
 pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-openapi...' build
@@ -12,32 +12,33 @@ pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-opena
 
 Use the repository Node/pnpm versions and frozen dependencies. This does not require write-mode code generation.
 
-## Retrieve current documentation and compare it
+## Retrieve current documentation
 
-With credentials available through the normal CLI precedence, stream the current documentation directly into the comparator:
+Resolve credentials without displaying values. Explicit `--credentials <path>` wins, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the repository's ignored `.iracing-data/credentials.json`. `iracing-data docs` uses the generated Fetch `DocApi`; it owns the modeled `/data/doc` request and does not fetch endpoint links returned by that response.
+
+For verification-only work that does not need to inspect the raw document separately, stream the current documentation directly into the comparator:
 
 ```bash
 node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs \
   | node -r ts-node/register scripts/audit-data-docs.cjs -
 ```
 
-To select another ignored credential file, add `--credentials <path>` to `docs`.
+Use `--credentials <path>` on `docs` when another ignored credential file is required. A selected invalid credential file must fail rather than silently falling back. Network failure is not proof that login is required; HTTP 401/403 requires checking expiry, scope, and account access before obtaining a new token.
 
-If inspection of the raw current document is necessary during the same audit run, use a private system-temporary directory rather than a repository evidence convention:
+For compatibility maintenance, or when semantic review needs the plain current response, keep one private temporary copy for the duration of the run:
 
 ```bash
 tmp_dir="$(mktemp -d)"
 chmod 700 "$tmp_dir"
 node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs --output "$tmp_dir/data-docs.json"
 node -r ts-node/register scripts/audit-data-docs.cjs "$tmp_dir/data-docs.json"
-rm -rf "$tmp_dir"
 ```
 
-The temporary file is a convenience for that run, not durable upstream truth. Retrieve current documentation again on a later audit rather than reusing it as authority.
+That file is an ephemeral input for the current run, not current authority for a later audit. Do not create a repository capture directory, durable normalized evidence format, hash history, or generic diff store. Retrieve authoritative documentation again on a later audit. Never print credentials, raw token values, or token-bearing errors.
 
-`iracing-data docs` uses the generated Fetch `DocApi`; it does not fetch endpoint links from the returned documentation. The structural comparator performs no network access and writes no files. Exit 0 means no structural candidates, 2 means reviewable discrepancies/schema rejection, and 1 means audit execution failure.
+If current authenticated documentation cannot be retrieved, stop the current-contract claim and report **Unable to verify part of the contract** for the unavailable surface. Fixtures and earlier audit output may explain/test mechanics but cannot replace live authority.
 
-## Deterministic regression checks
+## Deterministic structural comparison
 
 ```bash
 pnpm test:compatibility-audits
@@ -45,18 +46,31 @@ pnpm check:service-client-boundary
 pnpm test:service-client-boundary
 ```
 
-These checks establish repository mechanics and ownership rules only. They do not establish current live compatibility.
+[`audit-data-docs.cjs`](../../../../scripts/audit-data-docs.cjs) performs no network access and writes no files. It compares the plain current documentation map with maintained schema/OpenAPI ownership, reports route/reference/parameter candidates, and exits 0 for structural agreement, 2 for reviewable discrepancies/schema rejection, or 1 for execution failure. These service-free tests establish repository mechanics only; they do not establish current live compatibility.
 
 ## Semantic review remains necessary
 
-For every current structural candidate, inspect the maintained schema, endpoint mapping/OpenAPI, generated clients, runtime consumers and tests. Review upstream notes, enum/range constraints, conditional requirements, coercion and wire serialization separately. `/data/doc` does not define complete endpoint response payloads.
+Follow every candidate to the authored schema/mapping and actual consumers. Inspect all covered parameters' enums/ranges and prose rules even when types match. A numeric type comparison cannot detect a calendar year constrained to quarter literals. Resolve path templates and schema references before calling a route or type missing. Upstream `numbers` often means comma-separated numbers; CSV string schemas can be correct, while array schemas require checking OpenAPI style/explode and actual client encoding. Conditional requiredness in notes is distinct from the `required` flag.
 
-Do not infer historical drift merely because current upstream documentation and repository code differ. Report a confirmed upstream change only when independent historical evidence establishes both states.
+Check optional/missing documentation fields and unknown-field stripping separately: successful parsing can still discard endpoint notes. Documentation parsing failures do not prove the generated Fetch client rejects the same wire document; inspect the boundary. Local-only paths are unverified capabilities, not proof of upstream removal. `/data/doc` does not establish full endpoint response schemas, live endpoint success, or errors; label these gaps rather than requesting arbitrary endpoints during the documentation audit.
 
-Application resolution of opaque signed/cache/chunk URLs returned by a typed Data API response is not a modeled-service bypass. Review that behavior under the application owner's host/path validation, expiry, caching, coalescing and retention policy.
+Application resolution of opaque signed/cache/chunk URLs returned by a typed Data API response is not a modeled-service bypass. Review that behavior under the application owner's host/path validation, expiry, caching, coalescing, retention, and materialization policy.
 
-## Repair ordering when requested
+Produce the [report contract](report-contract.md). Use the current official source URL, retrieval time, relevant JSON pointer/section, and current repository file/symbol for findings. State current mismatches without claiming historical drift. For verification-only requests, leave fixes and regeneration as recommendations. For requested compatibility maintenance, continue through the repair phase below.
 
-For modeled endpoints, fix maintained schema/endpoint mapping first, regenerate OpenAPI/clients through the existing pipeline, then update runtime consumers/tests as required. Do not introduce a handwritten HTTP fallback when the generated client is incomplete; fix the maintained generation path.
+## Repair and regenerate
 
-For application-owned returned links, keep changes with the concrete application owner. Do not move that resolution into a generic repository evidence/transport layer.
+For compatibility maintenance, fix supported mismatches in authored schemas/mappings and add deterministic regression tests. Do not turn every structural candidate into a patch. Unsupported new endpoints, uncertain response shapes, and ambiguous requirements need further current authoritative evidence; leave them explicit when they cannot be resolved within scope. Preserve public operation IDs where only the wire path is wrong. Characterize existing behavior before behavior-changing refactors.
+
+After shared Data API contract changes, build the generator, generate both OpenAPI formats, then regenerate the Data API clients through the existing ownership path:
+
+```bash
+pnpm --filter '@iracing-data/api-schema-to-openapi...' build
+pnpm codegen:openapi:api
+pnpm codegen:openapi:api:yaml
+pnpm codegen:client:api
+```
+
+Follow current [OpenAPI guidance](../../../../openapi/AGENTS.md) and downstream scoped guides for consumer builds, tests, freshness, and Rust checks. Runtime-only fixes and generator-specific fixes stay at their authored owner with the scoped generation path. Do not regenerate OAuth solely because CLI authentication was used. Inspect generated diffs and preserve authored manifest versions/settings.
+
+When a private temporary Data API documentation file was created for this run, rerun the comparator against that **same current response** after repository repairs so the before/after result isolates repository changes. Then run applicable lint/style/tests and `pnpm verify`; report actual failures and unavailable toolchains. Use impact tooling for independent release candidates, but do not bump/tag/publish automatically. Remove the temporary documentation file/directory at the end of the run.
