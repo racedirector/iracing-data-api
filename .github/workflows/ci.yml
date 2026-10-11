@@ -25,6 +25,14 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Upload source snapshot
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-448-source
+          path: .
+          retention-days: 1
+          include-hidden-files: false
+
       - name: Setup pnpm
         uses: pnpm/action-setup@v6.1.0
 
@@ -51,6 +59,16 @@ jobs:
         with:
           name: issue-448-lockfile
           path: pnpm-lock.yaml
+          retention-days: 1
+
+      - name: Capture JSDoc lint inventory
+        run: pnpm exec eslint apps packages --format json > "$RUNNER_TEMP/jsdoc-inventory.json" || true
+
+      - name: Upload JSDoc lint inventory
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-448-jsdoc-inventory
+          path: ${{ runner.temp }}/jsdoc-inventory.json
           retention-days: 1
 
       - name: Report dependency change impact
