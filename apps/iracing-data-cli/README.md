@@ -64,7 +64,6 @@ Run from the repository root; the root script loads the root `.env` and forwards
 ```bash
 pnpm run iracing-data auth login
 pnpm run iracing-data auth login --scope iracing.auth
-pnpm run iracing-data auth login --credentials .upstream-contract/credentials.json
 pnpm run iracing-data auth login --output ./credentials.json
 pnpm run iracing-data auth login --output ./credentials.yaml
 ```
@@ -115,7 +114,6 @@ The complete response can contain both `access_token` and `refresh_token`. Treat
 
 ```bash
 pnpm run iracing-data whoami
-pnpm run iracing-data whoami --credentials .upstream-contract/credentials.json
 ```
 
 `whoami` calls the official [profile endpoint](https://oauth.iracing.com/oauth2/book/iracing_profile_endpoint.html) and prints only `iracing_cust_id` and `iracing_name`. It checks authentication without fetching Data API docs. The endpoint requires `iracing.profile`; credentials created with `--scope iracing.auth` are valid for Data API access but intentionally cannot satisfy `whoami`. If a profile check is required, create a separate profile-capable credential with `iracing-data auth login --scope iracing.auth iracing.profile` (or the default login) rather than adding profile scope to the MCP credential lifecycle.
@@ -127,29 +125,26 @@ The same credential precedence and `--credentials` override apply to all authent
 ```bash
 pnpm run iracing-data docs
 pnpm run iracing-data docs --credentials .iracing-data/iracing-data-mcp/credentials.json
-pnpm run iracing-data docs --output .upstream-contract/docs.json
-pnpm run iracing-data docs --credentials .upstream-contract/credentials.json --output .upstream-contract/docs.yaml
-pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.json
+pnpm run iracing-data docs --output /tmp/iracing-data-docs.json
 ```
 
 Authenticated commands accept `--credentials <path>` for a JSON or YAML token file containing `access_token`. Credential precedence is explicit `--credentials`, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the shared `.iracing-data/credentials.json`. A selected invalid credential file fails rather than silently using another token. Environment tokens must omit the `Bearer ` prefix. `docs` requires `iracing.auth`, so the dedicated auth-only MCP credential is sufficient when selected explicitly.
 
-`docs` makes exactly one request to `https://members-ng.iracing.com/data/doc`; endpoint links are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. See [capture implementation](src/commands/docs/index.ts) for the current evidence boundary and schema-validation distinction.
+`docs` uses the generated Fetch `DocApi` and makes exactly one modeled request for Data API documentation; endpoint links returned in that document are not fetched. With no `--output`, stdout contains only documentation JSON. File output leaves stdout empty, uses private atomic writes, and refuses replacement unless `--force` is supplied. JSON/YAML format selection follows the authentication output rules. See the [docs command module](src/commands/docs/) for command-scoped composition and generated-client ownership.
 
-`--snapshot` adds provenance and a content hash for offline comparison. Choose fresh ignored paths and JSON snapshots for compatibility audits. Network requests refuse redirects and time out after 30 seconds. HTTP 401/403 reports an action to check token expiry, `iracing.auth` scope and account access, then obtain a new token with `auth login`. No tokens or response bodies appear in errors.
-
-After capturing once, compare offline against the current authored schemas and OpenAPI mappings:
+For a current compatibility audit, build the comparison dependencies and stream the live documentation directly into the narrow structural comparator:
 
 ```bash
 pnpm --filter '@iracing-data/api-schema-to-openapi...' build
-node -r ts-node/register scripts/audit-data-docs.cjs .upstream-contract/data-current.json
+node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs \
+  | node -r ts-node/register scripts/audit-data-docs.cjs -
 ```
 
-Exit 0 means no structural candidates, 2 means reviewable discrepancies and 1 means failure. Review ranges/enums, notes, conditional requirements and runtime serialization separately; `/data/doc` does not describe complete endpoint response shapes. See [upstream evidence](../../docs/UPSTREAM-CONTRACT.md) and the repository compatibility skill for the report procedure.
+Exit 0 means no structural candidates, 2 means reviewable discrepancies/schema rejection and 1 means audit execution failure. The comparator does not own network transport, persistence, hashes, provenance or historical diffing. Review ranges/enums, notes, conditional requirements and runtime serialization separately; `/data/doc` does not describe complete endpoint response shapes. See [compatibility boundaries](../../docs/UPSTREAM-CONTRACT.md) and the repository compatibility skill for the full report procedure.
 
 ## Use the access token with `data-api-first-call`
 
-The example still accepts `IRACING_ACCESS_TOKEN`. To run it, copy only `access_token` from the ignored credential document into the example's `.env`, without `Bearer `, then follow [its README](../../examples/data-api-first-call/README.md). The CLI does not edit the example's `.env`. For an automated documentation capture, use `iracing-data docs` directly.
+The example still accepts `IRACING_ACCESS_TOKEN`. To run it, copy only `access_token` from the ignored credential document into the example's `.env`, without `Bearer `, then follow [its README](../../examples/data-api-first-call/README.md). The CLI does not edit the example's `.env`. For current Data API documentation, use `iracing-data docs` directly.
 
 ## Manual live-auth validation
 
@@ -192,15 +187,21 @@ Use a real registered OAuth client and do the following without copying token va
     pnpm --filter iracing-data-api-first-call start
     ```
 
-12. Run `pnpm run iracing-data docs --snapshot --output .upstream-contract/data-live-validation.json` from the root. Treat a valid live snapshot as CLI end-to-end acceptance; do not repeat this during a capture-once audit.
-13. Remove the temporary credential directory and any test `.env` files when finished.
+12. From the repository root, retrieve current documentation into the temporary directory and run the comparator against that plain response:
 
-Offline unit tests cover OAuth lifecycle, scope selection, callback behavior, and output mechanics with synthetic tokens. The live procedure above validates only the external iRacing integration and should never be converted into credential-bearing CI.
+    ```bash
+    pnpm run iracing-data docs --output "$tmp_dir/data-docs.json"
+    node -r ts-node/register scripts/audit-data-docs.cjs "$tmp_dir/data-docs.json"
+    ```
+
+13. Remove the temporary credential/document directory and any test `.env` files when finished.
+
+Offline unit tests cover OAuth lifecycle, scope selection, callback behavior, output mechanics, Data API documentation retrieval and compatibility-comparison mechanics with synthetic inputs. The live procedure above validates only the external iRacing integration and should never be converted into credential-bearing CI.
 
 ## Implementation navigation
 
-- [Browser/callback flow](src/authenticate.ts) and [login policy](src/commands/auth/login.ts).
+- [Browser/callback flow](src/authenticate.ts) and [login policy](src/commands/auth/login/).
 - [Credential precedence](src/credentials.ts) and [output/durability integration](src/token-output.ts).
-- [Documentation capture](src/commands/docs.ts) and [profile check](src/commands/whoami/index.ts).
+- [Documentation command](src/commands/docs/) and [profile check](src/commands/whoami/).
 - [Browser launcher](src/browser.ts) and [diagnostic sink](src/diagnostics.ts).
 - Shared [OAuth lifecycle](../../packages/oauth/client/src/client.ts) and [durable store](../../packages/oauth/client/src/storage/token-document-store.ts).

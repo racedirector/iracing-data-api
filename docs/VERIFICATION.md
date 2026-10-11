@@ -11,6 +11,8 @@ pnpm verify
 
 For a failed step, correct its owning source and rerun the focused command: `verify:repo`, `verify:js`, `verify:examples`, `verify:generated` or `verify:rust`. Finish with `pnpm verify`. Report missing tools and skipped checks accurately. Do not patch generated output to bypass checks; [check-generated.mjs](../scripts/check-generated.mjs) owns temporary regeneration and freshness enforcement.
 
+Repository verification also runs the [modeled-service client boundary](../scripts/check-service-client-boundary.mjs). Authored runtime/root tooling may not bypass generated ownership for modeled Data API/OAuth calls, while application-owned resolution of dynamic opaque URLs returned by typed Data API responses remains allowed.
+
 For focused OAuth and OpenAPI coverage, build before declared tests:
 
 ```bash
@@ -18,7 +20,7 @@ pnpm --filter '@iracing-data/oauth-client...' --filter '@iracing-data/api-schema
 pnpm --filter @iracing-data/oauth-client --filter @iracing-data/api-schema-to-openapi --filter @iracing-data/oauth-schema-to-openapi test
 ```
 
-Use [change impact](CHANGE-IMPACT.md) for planning. Guidance, skills, ownership or workflow changes also require the five manual [agent regression scenarios](../agent-regressions/README.md); CI validates fixtures, not model reasoning. Live [upstream capture](UPSTREAM-CONTRACT.md) is opt-in and separate from verification. [Repository protection](REPOSITORY-PROTECTION.md) describes required-check recovery.
+Use [change impact](CHANGE-IMPACT.md) for planning. Guidance, skills, ownership or workflow changes also require the five manual [agent regression scenarios](../agent-regressions/README.md); CI validates fixtures, not model reasoning. Live [compatibility auditing](UPSTREAM-CONTRACT.md) is opt-in and separate from service-free verification. [Repository protection](REPOSITORY-PROTECTION.md) describes required-check recovery.
 
 For coverage details, descend directly to [schema compatibility tests](../tests/schema-compatibility/compatibility.test.cjs), [offline generated wire tests](../tests/data-contract), [OAuth tests](../packages/oauth/client/test) and [MCP tests](../apps/iracing-data-mcp/test). Synthetic fixtures do not establish live authentication or upstream compatibility.
 

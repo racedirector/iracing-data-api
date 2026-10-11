@@ -1,64 +1,47 @@
-# Upstream contract evidence
+# Upstream compatibility boundaries
 
-`pnpm upstream:contract` captures upstream evidence without updating maintained schemas, OpenAPI, or clients. `pnpm test:upstream` runs offline regressions in `pnpm verify:repo` and full CI. Capturing evidence is separate from deciding whether repository behavior should change.
+This repository does **not** maintain a generic upstream evidence runtime, canonical snapshot format, provenance/hash store, or persisted capture directory. Current compatibility work retrieves authoritative upstream information through the concrete owner for that surface and compares it to maintained repository sources.
 
-## Capture ownership
+Tracked fixtures remain valid only as deterministic test inputs. They are never evidence of the current iRacing service contract.
 
-The [CLI docs command](../apps/iracing-data-cli/src/commands/docs.ts) records the current root-script bridge. Capture/evidence ownership is under active replacement in [#384](https://github.com/racedirector/iracing-data-api/issues/384); the commands below remain current procedures, not a permanent runtime architecture. Replacement-owner documentation in #400 must follow that delivered implementation. Existing normalization details below remain available until a replacement exists.
+## Data API documentation
 
-## Sources and normalization
+Modeled Data API calls belong behind generated clients produced from the maintained schema/OpenAPI pipeline. The repository CLI follows that boundary: `iracing-data docs` uses the generated Fetch client to retrieve the authenticated `/data/doc` response once and emits the plain documentation map.
 
-OAuth deterministic capture support has been retired. The [OAuth compatibility-audit skill](../.agents/skills/iracing-oauth-compatibility-audit/SKILL.md) starts at the live [official introduction](https://oauth.iracing.com/oauth2/book/introduction.html), discovers current navigation, and cites the pages actually examined. If live retrieval fails, it reports **Unable to verify part of the protocol** without substituting stored material. Historical notes may establish provenance only. Documentation access is audit-owned and does not change the generated OAuth wire client, authored `OAuthApiClient`, or higher-level `OAuthClient` ownership.
-
-Data capture fetches authenticated `https://members-ng.iracing.com/data/doc`. It requires a nonempty service/endpoint map with endpoint links. Keys are sorted recursively; arrays, types, nullability, parameter rules, descriptions, and unknown fields are retained. It does not coerce types or depend on maintained schemas to accept evidence. `/data/doc` alone does not establish every endpoint's response shape or runtime behavior.
-
-Each retained Data API snapshot has `formatVersion`, `kind`, normalized `content`, a SHA-256 `contentHash` over the exact UTF-8 pretty JSON content plus trailing newline, and `provenance` (fixed official source, UTC capture time, live/fixture mode, normalizer version). Provenance is excluded from comparison. Diff validates snapshot hashes/versions and emits sorted JSON Pointer paths with added/removed/changed values. Different normalizer versions require recapturing both inputs rather than comparing incompatible normalization. Never describe a fixture as a live capture or a changed hash as a required public API change.
-
-## Repository CLI capture
-
-For authenticated Data API audits, build the private CLI and use its shared credential handoff:
+For a current compatibility audit, build the CLI and schema/OpenAPI comparison dependencies, then feed that live response directly to the narrow structural comparator:
 
 ```bash
-pnpm --filter '@iracing-data/cli...' build
-pnpm run iracing-data auth login
-pnpm run iracing-data docs --snapshot --output .upstream-contract/data-current.json
+pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-openapi...' build
+node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs \
+  | node -r ts-node/register scripts/audit-data-docs.cjs -
 ```
 
-Reuse existing credentials before starting login. Login updates ignored `.iracing-data/credentials.json`; `docs` uses an explicit `--credentials` file, then `IRACING_ACCESS_TOKEN`, then that default file. Snapshot mode calls the same fixed-source capture/normalizer below and records live provenance. Use unique ignored JSON destinations, do not pass `--force` for audit snapshots, and fetch only once. See [CLI instructions](../apps/iracing-data-cli/README.md).
+Use `--credentials <path>` on `docs` when the current audit should use a non-default ignored credential file. The comparator accepts `-` for stdin or a path to a plain JSON documentation response. If a temporary file is useful for one audit run, place it in a system temporary directory and remove it afterwards; do not treat it as durable upstream authority.
 
-Build the schema/generator dependencies and compare that snapshot offline with `node -r ts-node/register scripts/audit-data-docs.cjs <snapshot.json>`. Read [the audit module](../scripts/audit-data-docs.cjs) for structural comparison mechanics, output and limits. Interpret candidates with the [semantic review procedure](../.agents/skills/iracing-data-api-compatibility-audit/references/live-workflow.md#semantic-review-remains-necessary). Its offline tests run in `pnpm test:upstream`.
+The comparator is intentionally narrow. It checks the current documentation map against the maintained documentation schema and OpenAPI endpoint/parameter representation. It does not fetch endpoint links, infer response payload contracts that `/data/doc` does not describe, or own transport, caching, credentials, persistence, hashing, provenance, or historical diff infrastructure.
 
-## Manual capture
+See the [Data API compatibility-audit skill](../.agents/skills/iracing-data-api-compatibility-audit/SKILL.md) for the semantic review and reporting procedure.
 
-Install frozen dependencies first. Commands run from the repository root and write only new JSON basenames under ignored `.upstream-contract/`, with private permissions. Existing outputs are never overwritten. Raw bodies, headers, and credentials are never saved or logged. Network capture refuses redirects and times out after 30 seconds.
+## OAuth compatibility
+
+OAuth compatibility audits start from the current official iRacing OAuth documentation and follow its current navigation during the audit. The [OAuth compatibility-audit skill](../.agents/skills/iracing-oauth-compatibility-audit/SKILL.md) owns that workflow. Persisted normalized OAuth-book captures are not current authority.
+
+Modeled OAuth runtime calls remain behind the maintained schema/OpenAPI/generated-client path. Public documentation URLs used by the compatibility skill are documentation evidence, not an application transport bypass.
+
+## Returned opaque Data API links
+
+Generated-client ownership of modeled service calls is distinct from opaque URLs returned in typed Data API responses. Applications may own safe resolution of those returned data-plane URLs, including host/path validation, expiry/TTL handling, caching, request coalescing, retention, and deciding whether to return or materialize a still-valid link.
+
+The repository verification guardrail in [`check-service-client-boundary.mjs`](../scripts/check-service-client-boundary.mjs) enforces this distinction: statically authored modeled service endpoints and root-script transport bypasses are rejected, while dynamic resolution of an opaque returned URL remains valid application behavior.
+
+## Offline verification
+
+Normal `pnpm verify` remains service-free. Compatibility-audit tests validate the comparison and guidance mechanics without claiming live upstream compatibility:
 
 ```bash
-# Supply IRACING_ACCESS_TOKEN through a trusted environment/secret manager.
-pnpm upstream:contract capture data data-current.json
-pnpm upstream:contract diff .upstream-contract/data-previous.json .upstream-contract/data-current.json data-diff.json
+pnpm test:compatibility-audits
+pnpm check:service-client-boundary
+pnpm test:service-client-boundary
 ```
 
-Diff exits 0 for equivalent content, 2 for drift, and 1 for failure. Capture/fixture exits 0 on success and 1 on failure. Failed capture is never an empty or unchanged baseline. Keep the previous artifact available and use unique output names.
-
-For Data API capture, obtain an existing valid OAuth access token with `iracing.auth` scope using the approved registered client's documented [Data API workflow](https://oauth.iracing.com/oauth2/book/data_api_workflow.html). The tool neither logs in nor refreshes tokens. Never put a token in CLI arguments, shell history, fixture files, issue bodies, or commits. In an interactive Bash session with shell tracing disabled, `read -rs IRACING_ACCESS_TOKEN; export IRACING_ACCESS_TOKEN` avoids including its value in history; unset it after capture. HTTP 401/403 requires checking token validity/scope/account access, not treating the response as documentation.
-
-Known supplied token values, Bearer credentials, sensitive query values, and scalar credential fields are redacted before hashing/output. Protocol field names and nested parameter descriptions are retained. Redaction is defense in depth, not a general personal-data classifier: review artifacts before sharing. Do not pass login responses or unrelated account data as fixtures. Only normalized evidence is persisted; raw bytes are deliberately not retained.
-
-## Without credentials / offline fixtures
-
-```bash
-pnpm upstream:contract fixture data scripts/fixtures/upstream-contract/data.json data-fixture.json
-pnpm test:upstream
-```
-
-These small synthetic fixtures validate tooling and are not official contract baselines. A maintainer may use a securely acquired `/data/doc` JSON file offline, but the output still records `fixture` mode because the tool did not authenticate that acquisition. Record acquisition provenance separately; never silently relabel it live. Lack of credentials leaves current Data API compatibility unverified.
-
-## Automation
-
-Run frozen installation and `pnpm test:upstream` without credentials on PRs. An opt-in trusted scheduled/manual workflow can run the same capture commands, download the previous reviewed artifact, diff, and upload only normalized snapshots/diffs using `actions/upload-artifact` with an explicit retention period. Handle exit 2 as reviewable drift; exit 1 is a capture failure and must fail the job. Store tokens in GitHub Actions secrets, limit job permissions to `contents: read`, disable shell tracing, and never expose secrets to fork or untrusted PR code. Data capture needs a maintainer-controlled valid access token; do not assume a scheduled token remains valid or automatically perform a password grant.
-
-Keep prior/current provenance with the artifacts for review, but do not compare capture times. No automated commits, schema rewrites, package publication, or releases are part of this workflow. A scheduled workflow is intentionally not enabled by this change. Consume evidence with compatibility audits and human-controlled implementation PRs.
-
-## Compatibility audits
-
-Use the repository's `iracing-data-api-compatibility-audit` skill for endpoint/parameter and Data API release-impact reviews. Its remaining deterministic evidence tooling is pending cleanup under #438. Use `iracing-oauth-compatibility-audit` for live authentication protocol reviews; OAuth findings cite official pages and repository files/symbols, without snapshot/hash/pointer fields. Both rebuild inventory from canonical policy/current manifests and source and remain read-only by default. Findings separate official facts, current mismatches, and interpretation, and identify authored ownership, downstream consumers, tests, breaking implications, and implementation/release order. Neither skill automatically updates public contracts or historical baselines.
+A passing fixture or policy test establishes repository behavior only. A current upstream compatibility claim requires current authoritative upstream retrieval during that audit run.
