@@ -136,6 +136,10 @@ function projectRaceParticipants(
   });
 }
 
+/**
+ * Registers read-only identity and content tools against the scoped MCP server, keeping Data
+ * API access behind the session gateway.
+ */
 export function registerIdentityContentTools(
   server: McpServer,
   services: McpServices,

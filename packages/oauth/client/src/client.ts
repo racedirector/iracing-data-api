@@ -60,6 +60,10 @@ function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
   });
 }
 
+/**
+ * Composition inputs for the OAuth lifecycle owner, including immutable client metadata,
+ * transient-state storage, session storage, and API construction.
+ */
 export type OAuthClientOptions = {
   // Config
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;

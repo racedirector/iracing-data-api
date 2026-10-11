@@ -19,6 +19,10 @@ interface IdentityClient {
   getProfile(): Promise<WhoamiProfile>;
 }
 
+/**
+ * Injected credential, OAuth identity, environment, and diagnostic seams used to construct one
+ * whoami invocation scope.
+ */
 export interface WhoamiScopeDependencies {
   resolveAccessToken(options: CredentialOptions): Promise<string>;
   createIdentityClient(accessToken: string): IdentityClient;

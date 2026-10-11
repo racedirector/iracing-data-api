@@ -46,6 +46,10 @@ export function maskSecret(secret: string, identifier: string): string {
   return crypto.createHash("sha256").update(combined, "utf8").digest("base64");
 }
 
+/**
+ * Optional audience, issuer, scope, environment, clock, and skew constraints applied by
+ * access-token validation in addition to fixed cryptographic policy.
+ */
 export type AccessTokenValidationOptions = {
   clientId?: string;
   issuer?: string;

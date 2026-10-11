@@ -37,6 +37,10 @@ export const DEFAULT_SCOPES = [
   "iracing.profile",
 ] satisfies OAuthScopeList;
 
+/**
+ * Minimal OAuth lifecycle seam used by browser login so tests and alternate hosts can supply
+ * the protocol owner without reproducing it.
+ */
 export type OAuthClientLike = {
   authorize(): Promise<{ url: URL }>;
   callback(
@@ -45,6 +49,7 @@ export type OAuthClientLike = {
   ): Promise<OAuthTokenResponse>;
 };
 
+/** Client registration inputs used only when browser login must construct its own OAuth client. */
 export type OAuthClientConfig = {
   clientId: string;
   clientSecret?: string;
@@ -52,11 +57,16 @@ export type OAuthClientConfig = {
   scopes: Readonly<OAuthScopeList>;
 };
 
+/** Process-signal seam used to cancel browser login while guaranteeing listener cleanup. */
 export type SignalSource = {
   once(signal: NodeJS.Signals, listener: () => void): unknown;
   off(signal: NodeJS.Signals, listener: () => void): unknown;
 };
 
+/**
+ * Browser-login dependencies and policy knobs; injected seams keep protocol, browser launch,
+ * and cancellation testable.
+ */
 export type BrowserLoginOptions = {
   clientId: string;
   clientSecret?: string;
@@ -78,6 +88,10 @@ function closeServer(server: Server): Promise<void> {
   });
 }
 
+/**
+ * Runs one loopback browser authorization attempt, accepts at most one callback, and always
+ * releases the listener and signal handlers.
+ */
 export async function authenticateWithBrowser(
   options: BrowserLoginOptions,
 ): Promise<OAuthTokenResponse> {

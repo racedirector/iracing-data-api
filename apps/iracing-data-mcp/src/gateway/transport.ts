@@ -17,10 +17,18 @@ import { createBrotliDecompress, createGunzip, createInflate } from "node:zlib";
 import { ApplicationFailure } from "../diagnostics/errors.js";
 import { isPublicAddress, unsafeLink } from "./policy.js";
 
+/**
+ * HTTP transport seam used by the gateway so request execution can be bounded, tested, and
+ * instrumented independently.
+ */
 export type GatewayTransport = (
   url: URL,
   init: RequestInit,
 ) => Promise<Response>;
+/**
+ * DNS-resolution seam used to enforce outbound destination policy before gateway requests are
+ * issued.
+ */
 export type GatewayLookup = (
   hostname: string,
 ) => Promise<readonly { address: string; family: number }[]>;

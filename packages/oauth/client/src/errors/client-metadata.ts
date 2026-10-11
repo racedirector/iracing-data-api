@@ -1,3 +1,7 @@
+/**
+ * Configuration failure raised when required OAuth client metadata is absent or invalid before
+ * protocol work begins.
+ */
 export class ClientMetadataError extends Error {
   static missingRedirectUri() {
     return new ClientMetadataError(
@@ -18,6 +22,10 @@ export class ClientMetadataError extends Error {
   }
 }
 
+/**
+ * Session-store failure indicating that the requested logical session has no persisted token
+ * state.
+ */
 export class SessionNotFoundError extends Error {
   constructor(sessionId: string) {
     super(

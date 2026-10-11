@@ -7,6 +7,7 @@ import {
 import { DEFAULT_SCOPES } from "../../../authenticate.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
+/** Raw Commander values accepted by the login leaf before scope and timeout normalization. */
 export type LoginOptions = {
   output?: string;
   credentials?: string;
@@ -17,10 +18,18 @@ export type LoginOptions = {
   timeoutSeconds: string;
 };
 
+/**
+ * Normalized login request passed into the invocation scope after repeated scope options have
+ * been canonicalized.
+ */
 export type LoginInvocation = Omit<LoginOptions, "scope"> & {
   scopes: OAuthScopeList;
 };
 
+/**
+ * Per-invocation capabilities required to authenticate, persist credentials, and emit
+ * diagnostics without global state.
+ */
 export interface LoginCommandScope {
   authentication: {
     authenticate(): Promise<OAuthTokenResponse>;
@@ -32,10 +41,15 @@ export interface LoginCommandScope {
   diagnostics: Diagnostics;
 }
 
+/** Factory contract that owns construction and cleanup boundaries for one login invocation. */
 export type CreateLoginCommandScope = (
   invocation: LoginInvocation,
 ) => Promise<LoginCommandScope>;
 
+/**
+ * Application-registration dependencies for the login command; runtime work is delegated to an
+ * invocation scope.
+ */
 export interface LoginCommandDependencies {
   createScope: CreateLoginCommandScope;
 }

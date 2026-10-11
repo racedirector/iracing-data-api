@@ -62,6 +62,10 @@ for (const policy of Object.values(errorPolicy)) {
   Object.freeze(policy);
 }
 
+/**
+ * Stable application failure codes that may cross the MCP diagnostic boundary without exposing
+ * implementation details.
+ */
 export type ApplicationErrorCode = keyof typeof errorPolicy;
 const codes = Object.keys(errorPolicy) as [
   ApplicationErrorCode,
@@ -123,9 +127,17 @@ export type ErrorEnvelope = z.infer<typeof ErrorEnvelopeSchema>;
 // Contexts are generated here, never accepted from a client or upstream ID.
 const contexts = new WeakMap<RequestContext, string>();
 
+/**
+ * Opaque request-correlation handle whose identifier is owned internally rather than trusted
+ * from arbitrary object properties.
+ */
 export interface RequestContext {
   readonly request_id: string;
 }
+/**
+ * Creates a fresh immutable correlation context backed by an internally owned request
+ * identifier.
+ */
 export function createRequestContext(): RequestContext {
   const context = Object.freeze({ request_id: randomUUID() });
 
@@ -134,6 +146,10 @@ export function createRequestContext(): RequestContext {
   return context;
 }
 
+/**
+ * Returns the owned identifier for a known request context and refuses to trust
+ * caller-supplied lookalike properties.
+ */
 export function requestId(context: RequestContext): string {
   return contexts.get(context) ?? createRequestContext().request_id;
 }
@@ -231,6 +247,10 @@ export function errorEnvelope(
   });
 }
 
+/**
+ * Projects an unknown failure into the safe MCP tool-error envelope while preserving
+ * intentional protocol failures.
+ */
 export function toolError(error: unknown, context: RequestContext) {
   if (error instanceof ProtocolFailure) {
     throw new ProtocolFailure(error.domain);

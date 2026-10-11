@@ -44,8 +44,16 @@ import type { GetOptions } from "./index";
 
 export const OAUTH_TOKEN_DOCUMENT_MAX_BYTES = 64 * 1024;
 
+/**
+ * Directory-sync policy for credential persistence: required fails when durable publication
+ * cannot be proven, while best-effort tolerates unsupported directory fsync.
+ */
 export type OAuthTokenDocumentDurability = "required" | "best-effort";
 
+/**
+ * Stable failure classifications for secure token-document validation, reading, and
+ * publication.
+ */
 export type OAuthTokenDocumentErrorCode =
   | "invalid_document"
   | "unsafe_path"
@@ -54,6 +62,10 @@ export type OAuthTokenDocumentErrorCode =
   | "durability_unsupported"
   | "store_quarantined";
 
+/**
+ * Token-document failure carrying structured classification and trusted diagnostic context
+ * without changing the public token shape.
+ */
 export class OAuthTokenDocumentError extends Error {
   constructor(
     public readonly code: OAuthTokenDocumentErrorCode,
@@ -65,6 +77,10 @@ export class OAuthTokenDocumentError extends Error {
   }
 }
 
+/**
+ * Injectable filesystem surface used by the secure token-document owner so host behavior and
+ * failure cases can be tested deterministically.
+ */
 export type OAuthTokenDocumentFileSystem = {
   chmod(path: string, mode: number): Promise<void>;
   link(existingPath: string, newPath: string): Promise<void>;
@@ -88,15 +104,21 @@ export const oauthTokenDocumentFileSystem: OAuthTokenDocumentFileSystem = {
   unlink,
 };
 
+/** Read-time filesystem seam for hardened credential loading. */
 export type OAuthTokenDocumentReadOptions = {
   fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
 };
 
+/** Credential-write policy extending secure reads with overwrite and durability controls. */
 export type OAuthTokenDocumentWriteOptions = OAuthTokenDocumentReadOptions & {
   overwrite?: boolean;
   durability?: OAuthTokenDocumentDurability;
 };
 
+/**
+ * Configuration for binding the hardened single-document token store to exactly one logical
+ * OAuth session key.
+ */
 export type OAuthTokenDocumentSessionStoreOptions = {
   filePath: string;
   sessionKey: string;
@@ -294,6 +316,10 @@ function validateTokenDocument(value: unknown): OAuthTokenResponse {
   return token;
 }
 
+/**
+ * Validates token invariants and emits the canonical bounded JSON credential document used for
+ * durable persistence.
+ */
 export function serializeOAuthTokenDocument(token: OAuthTokenResponse): string {
   const normalized = validateTokenDocument(token);
   const serialized = `${JSON.stringify(normalized, null, 2)}\n`;
@@ -327,6 +353,10 @@ async function syncDirectory(
   }
 }
 
+/**
+ * Loads a credential document only after validating parent/file ownership, file type, inode
+ * stability, size, JSON shape, and token invariants.
+ */
 export async function readOAuthTokenDocument(
   filePath: string,
   options: OAuthTokenDocumentReadOptions = {},
@@ -394,6 +424,10 @@ export async function readOAuthTokenDocument(
   }
 }
 
+/**
+ * Publishes credentials through an exclusive temporary file and atomic replacement, enforcing
+ * overwrite and requested durability semantics.
+ */
 export async function writeOAuthTokenDocument(
   filePath: string,
   token: OAuthTokenResponse,
@@ -549,6 +583,10 @@ async function removeOAuthTokenDocument(
   await syncDirectory(fileSystem, parent, durability);
 }
 
+/**
+ * Single-session store that lazily loads hardened token state, serializes mutations, and
+ * quarantines itself after persistence or load failures.
+ */
 export class OAuthTokenDocumentSessionStore implements SessionStore {
   private readonly filePath: string;
   private readonly sessionKey: string;

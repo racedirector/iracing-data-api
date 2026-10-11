@@ -30,10 +30,19 @@ import {
 import { stringify as stringifyYaml } from "yaml";
 import type { FileHandle } from "node:fs/promises";
 
+/** Supported serialized document formats for command output. */
 export type TokenFormat = "json" | "yaml";
+/**
+ * Filesystem capability set shared with the hardened OAuth token-document writer for
+ * injectable host and test I/O.
+ */
 export type TokenOutputFileSystem = OAuthTokenDocumentFileSystem;
 export const tokenOutputFileSystem = oauthTokenDocumentFileSystem;
 
+/**
+ * Destination, serialization, overwrite, and I/O policy shared by token-producing CLI
+ * commands.
+ */
 export type TokenOutputOptions = {
   output?: string;
   format?: string;
@@ -44,6 +53,10 @@ export type TokenOutputOptions = {
   fileSystem?: TokenOutputFileSystem;
 };
 
+/**
+ * Resolves an explicit format first, then infers YAML from the destination extension and
+ * otherwise defaults to JSON.
+ */
 export function resolveTokenFormat(
   output?: string,
   explicit?: string,
@@ -59,6 +72,10 @@ export function resolveTokenFormat(
   return "json";
 }
 
+/**
+ * Serializes non-secret command documents deterministically with a trailing newline for stdout
+ * and file output.
+ */
 export function serializeDocument(token: unknown, format: TokenFormat): string {
   if (format === "json") return `${JSON.stringify(token, null, 2)}\n`;
   const value = stringifyYaml(token);
@@ -173,6 +190,10 @@ async function writeFileOutput(
   }
 }
 
+/**
+ * Writes a generic command document to stdout or through the atomic file-output path without
+ * applying token-secret policy.
+ */
 export async function writeDocumentOutput(
   token: unknown,
   options: TokenOutputOptions = {},
@@ -200,6 +221,10 @@ export async function writeDocumentOutput(
   );
 }
 
+/**
+ * Serializes OAuth credentials, delegating JSON validation and canonicalization to the
+ * hardened token-document owner.
+ */
 export function serializeToken(
   token: OAuthTokenResponse,
   format: TokenFormat,
@@ -270,6 +295,10 @@ async function writeJsonTokenOutput(
   }
 }
 
+/**
+ * Persists OAuth credentials using the hardened JSON token writer when possible, while
+ * preserving explicit alternate-format output behavior.
+ */
 export async function writeTokenOutput(
   token: OAuthTokenResponse,
   options: TokenOutputOptions = {},

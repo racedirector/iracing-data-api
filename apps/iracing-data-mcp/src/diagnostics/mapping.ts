@@ -25,6 +25,10 @@ import {
   type FailureDomain,
 } from "./errors.js";
 
+/**
+ * Explicit domain and authorization evidence used to classify failures without inferring
+ * semantics from exception text.
+ */
 export interface MappingContext {
   readonly domain: FailureDomain;
 

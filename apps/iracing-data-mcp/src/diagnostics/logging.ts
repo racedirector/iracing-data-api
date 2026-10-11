@@ -79,6 +79,10 @@ export function redactDiagnostics(
   return result;
 }
 
+/**
+ * Creates the structured diagnostic logger that redacts payloads before emitting one JSON
+ * record per event.
+ */
 export function createDiagnosticLogger(
   write: (line: string) => void = (line) => {
     process.stderr.write(line);

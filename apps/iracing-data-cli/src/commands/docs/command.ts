@@ -11,13 +11,22 @@ import type { Diagnostics } from "../../diagnostics.js";
 import type { TokenOutputOptions } from "../../token-output.js";
 import type { IracingServiceMethodDocs } from "@iracing-data/api-client-fetch";
 
+/**
+ * Nested service-to-method documentation projection returned by the maintained Data API
+ * documentation owner.
+ */
 export type DataApiDocumentation = Record<
   string,
   Record<string, IracingServiceMethodDocs>
 >;
 
+/** Command options that combine credential resolution with the shared document-output policy. */
 export type DocsOptions = TokenOutputOptions & CredentialOptions;
 
+/**
+ * Per-invocation boundary for retrieving documentation, writing output, and reporting
+ * diagnostics.
+ */
 export interface DocsCommandScope {
   docs: {
     get(): Promise<DataApiDocumentation>;
@@ -28,10 +37,18 @@ export interface DocsCommandScope {
   diagnostics: Diagnostics;
 }
 
+/**
+ * Factory contract for creating an isolated documentation-command scope from normalized
+ * options.
+ */
 export type CreateDocsCommandScope = (
   options: DocsOptions,
 ) => Promise<DocsCommandScope>;
 
+/**
+ * Application-registration dependencies for the docs command; service access remains inside
+ * the invocation scope.
+ */
 export interface DocsCommandDependencies {
   createScope: CreateDocsCommandScope;
 }

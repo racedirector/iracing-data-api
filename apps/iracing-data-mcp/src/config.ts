@@ -6,10 +6,18 @@ export const McpApplicationConfigSchema = z.object({
   version: z.string().trim().min(1).default("0.0.0"),
 });
 
+/**
+ * Frozen application identity configuration consumed by MCP composition after schema
+ * validation and defaulting.
+ */
 export type McpApplicationConfig = Readonly<
   z.infer<typeof McpApplicationConfigSchema>
 >;
 
+/**
+ * Validates and freezes MCP application configuration, mapping invalid startup input to the
+ * repository configuration-failure contract.
+ */
 export function parseMcpApplicationConfig(
   input: unknown = {},
 ): McpApplicationConfig {
