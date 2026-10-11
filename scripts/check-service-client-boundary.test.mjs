@@ -59,6 +59,32 @@ test("rejects application imports from repository-root scripts", (t) => {
   assert.match(checkServiceClientBoundary(root).join("\n"), /must not import/);
 });
 
+for (const source of [
+  'import "../../../scripts/transport.mjs";',
+  "import '../../../scripts/transport.mjs';",
+  'import\n"../../../scripts/transport.mjs";',
+  'import"../../../scripts/transport.mjs";',
+  'require("../../../scripts/transport.mjs");',
+  'import("../../../scripts/transport.mjs");',
+]) {
+  test(`rejects repository-root script import: ${source}`, (t) => {
+    const root = fixture({ "apps/app/src/index.ts": source });
+    t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+    assert.match(
+      checkServiceClientBoundary(root).join("\n"),
+      /must not import/,
+    );
+  });
+}
+
+test("allows side-effect imports from application files and dependencies", (t) => {
+  const root = fixture({
+    "apps/app/src/index.ts": 'import "./setup.mjs";\nimport "dependency";',
+  });
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  assert.deepEqual(checkServiceClientBoundary(root), []);
+});
+
 test("rejects a root-tool transport escape hatch for modeled calls", (t) => {
   const root = fixture({
     "scripts/evidence.mjs":

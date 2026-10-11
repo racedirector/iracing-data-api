@@ -101,7 +101,7 @@ const rawRelativeModeledRequest =
 const obsoleteEvidenceRuntime =
   /(?:scripts\/upstream-contract\.mjs|\.upstream-contract(?:\/|\b)|\bvalidateSnapshot\b)/;
 const importSpecifier =
-  /(?:\bfrom\s*|\brequire\s*\(\s*|\bimport\s*\(\s*)["']([^"']+)["']/g;
+  /(?:\bfrom\s*|\brequire\s*\(\s*|\bimport\s*\(\s*|\bimport\s*)["']([^"']+)["']/g;
 
 function importsRootScript(root, file, source) {
   for (const match of source.matchAll(importSpecifier)) {

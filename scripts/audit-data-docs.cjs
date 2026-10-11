@@ -2,9 +2,9 @@
  * Structural Data API documentation comparison.
  *
  * audit() accepts the current documentation map, the authored OpenAPI document
- * and its documentation schema. Record schema parse success/issues but compare
- * the original upstream response, so maintained-schema stripping cannot hide
- * unknown fields. Match links to local GET paths, including constrained path
+ * and its documentation schema. Report schema issues and stop on rejection;
+ * otherwise compare the original response, so maintained-schema stripping cannot
+ * hide unknown fields. Match links to local GET paths, including constrained path
  * templates; resolve local component references and union type families. Compare
  * query names, requiredness and primitive families, treating integer as a numeric
  * refinement and CSV strings as intentional representations of upstream
@@ -68,6 +68,24 @@ function routeFor(document, pathname) {
 }
 function audit(content, document, docsSchema) {
   const parsed = docsSchema.safeParse(content);
+  const schemaResult = {
+    success: parsed.success,
+    issues: parsed.success
+      ? []
+      : parsed.error.issues.map(({ code, path }) => ({
+          code,
+          evidence: pointer(path),
+        })),
+  };
+  if (!parsed.success)
+    return {
+      coverage: { endpoints: 0, parameters: 0, matchedEndpoints: 0 },
+      docsSchema: schemaResult,
+      findings: [],
+      localOnlyPaths: [],
+      rows: [],
+      limits: "Schema rejection prevents structural comparison.",
+    };
   const findings = [],
     rows = [],
     matched = new Set();
@@ -129,15 +147,7 @@ function audit(content, document, docsSchema) {
       parameters: parameterCount,
       matchedEndpoints: rows.filter((r) => r.route).length,
     },
-    docsSchema: {
-      success: parsed.success,
-      issues: parsed.success
-        ? []
-        : parsed.error.issues.map(({ code, path }) => ({
-            code,
-            evidence: pointer(path),
-          })),
-    },
+    docsSchema: schemaResult,
     findings,
     localOnlyPaths: Object.keys(document.paths).filter(
       (p) =>
