@@ -61,6 +61,38 @@ jobs:
           if git apply --check "$RUNNER_TEMP/issue448-docs.patch" 2>/dev/null; then
             git apply "$RUNNER_TEMP/issue448-docs.patch"
           fi
+          python - <<'PY'
+          from pathlib import Path
+
+          replacements = {
+              "apps/iracing-data-mcp/src/diagnostics/errors.ts": (
+                  "  readonly request_id: string;\n}\n/**\n * Creates",
+                  "  readonly request_id: string;\n}\n\n/**\n * Creates",
+              ),
+              "apps/iracing-data-mcp/src/gateway/gateway.ts": (
+                  "  }\n}\n/**\n * Per-call gateway facade",
+                  "  }\n}\n\n/**\n * Per-call gateway facade",
+              ),
+              "apps/iracing-data-mcp/src/gateway/transport.ts": (
+                  ") => Promise<Response>;\n/**\n * DNS-resolution seam",
+                  ") => Promise<Response>;\n\n/**\n * DNS-resolution seam",
+              ),
+              "apps/iracing-data-mcp/src/session.ts": (
+                  'export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";\n/**\n * MCP session',
+                  'export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";\n\n/**\n * MCP session',
+              ),
+              "apps/iracing-data-mcp/src/tools/collections.ts": (
+                  "  ttlMs: 300_000,\n});\n/**\n * Raises",
+                  "  ttlMs: 300_000,\n});\n\n/**\n * Raises",
+              ),
+          }
+
+          for relative_path, (before, after) in replacements.items():
+              path = Path(relative_path)
+              source = path.read_text()
+              if before in source:
+                  path.write_text(source.replace(before, after, 1))
+          PY
           changed_ts="$(git diff --name-only -- '*.ts')"
           if [ -n "$changed_ts" ]; then
             pnpm exec prettier --write $changed_ts
@@ -70,7 +102,7 @@ jobs:
           if ! git diff --cached --quiet; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git commit -m "docs: document authored TypeScript API contracts"
+            git commit -m "style: align MCP JSDoc spacing"
             git push origin HEAD:issue-448-jsdoc-lint
           fi
 
