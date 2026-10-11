@@ -77,7 +77,7 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: pnpm
-      - name: Install dependencies
+      - name: Install frozen dependencies
         run: pnpm install --frozen-lockfile
       - name: Configure Docker Hub cache
         run: |
