@@ -1,7 +1,12 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { audit, routeFor, resolve } = require("./audit-data-docs.cjs");
-const docsSchema = { safeParse: () => ({ success: true }) };
+const {
+  audit,
+  readDocumentation,
+  routeFor,
+  resolve,
+} = require("./audit-data-docs.cjs");
+const docsSchema = { safeParse: () => ({ success: true, data: {} }) };
 const content = {
   service: {
     get: {
@@ -31,6 +36,16 @@ const document = {
   },
   components: { schemas: { id: { type: "number" } } },
 };
+test("reads a plain current documentation map without an evidence envelope", () => {
+  assert.deepEqual(
+    readDocumentation("-", () => JSON.stringify(content)),
+    content,
+  );
+  assert.throws(
+    () => readDocumentation("-", () => JSON.stringify([content])),
+    /documentation object/,
+  );
+});
 test("resolves numeric refs and recognizes CSV wire strings", () => {
   const result = audit(content, document, docsSchema);
   assert.deepEqual(result.coverage, {
@@ -40,11 +55,19 @@ test("resolves numeric refs and recognizes CSV wire strings", () => {
   });
   assert.deepEqual(result.findings, []);
 });
-test("reports schema rejection, requiredness and array review", () => {
+test("reports requiredness and array review for valid documentation", () => {
   const local = structuredClone(document);
   local.paths["/data/service/get"].get.parameters[0].required = false;
   local.paths["/data/service/get"].get.parameters[1].schema = { type: "array" };
-  const result = audit(content, local, {
+  const result = audit(content, local, docsSchema);
+  assert.equal(result.docsSchema.success, true);
+  assert.deepEqual(
+    result.findings.map((f) => f.kind),
+    ["requiredness", "array-serialization-review"],
+  );
+});
+test("reports schema rejection without comparing invalid nested values", () => {
+  const rejectedSchema = {
     safeParse: () => ({
       success: false,
       error: {
@@ -53,12 +76,27 @@ test("reports schema rejection, requiredness and array review", () => {
         ],
       },
     }),
-  });
-  assert.equal(result.docsSchema.success, false);
-  assert.deepEqual(
-    result.findings.map((f) => f.kind),
-    ["requiredness", "array-serialization-review"],
-  );
+  };
+  for (const invalid of [
+    { service: null },
+    { service: { get: null } },
+    { service: { get: {} } },
+    { service: { get: { ...content.service.get, parameters: { id: null } } } },
+  ]) {
+    const result = audit(invalid, document, rejectedSchema);
+    assert.deepEqual(result.docsSchema, {
+      success: false,
+      issues: [{ code: "invalid_type", evidence: "/service/get/parameters" }],
+    });
+    assert.deepEqual(result.coverage, {
+      endpoints: 0,
+      parameters: 0,
+      matchedEndpoints: 0,
+    });
+    assert.deepEqual(result.findings, []);
+    assert.deepEqual(result.localOnlyPaths, []);
+    assert.deepEqual(result.rows, []);
+  }
 });
 test("matches template paths and checks allowed categories", () => {
   const local = {

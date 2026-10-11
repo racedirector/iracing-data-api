@@ -153,8 +153,5 @@ build/
 # Contains mutation testing data
 **/mutants.out*/
 
-# Private upstream evidence; never a maintained public contract.
-.upstream-contract/
-
 # Repository CLI credentials shared by authenticated consumers.
 .iracing-data/
