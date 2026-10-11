@@ -12,9 +12,8 @@ const remoteConfig = Object.freeze({
 
 async function fixture(t) {
   const api = await import("../dist/index.js");
-  const { OAuthError, OAuthErrorCode } = await import(
-    "@modelcontextprotocol/server"
-  );
+  const { OAuthError, OAuthErrorCode } =
+    await import("@modelcontextprotocol/server");
   const logs = [];
   let seenAuth;
 
