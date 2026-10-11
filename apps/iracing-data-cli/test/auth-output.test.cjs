@@ -16,15 +16,13 @@ async function run(args, options = {}) {
   const command = createLoginCommand({
     diagnostics,
     dependencies: {
-      environment:
-        options.environment ??
-        {
-          IRACING_AUTH_CLIENT: "client-id",
-          IRACING_AUTH_SECRET: "client-secret",
-          IRACING_AUTH_REDIRECT_URI: "http://127.0.0.1/callback",
-          IRACING_AUTH_USERNAME: "fixture+driver@example.com",
-          IRACING_AUTH_PASSWORD: "fixture-password",
-        },
+      environment: options.environment ?? {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_REDIRECT_URI: "http://127.0.0.1/callback",
+        IRACING_AUTH_USERNAME: "fixture+driver@example.com",
+        IRACING_AUTH_PASSWORD: "fixture-password",
+      },
       authenticate: async (authOptions) => {
         browserCalls += 1;
         browserAuthOptions = authOptions;
@@ -111,10 +109,7 @@ test("login updates the stable ignored credential file with auth+profile by defa
 
 test("auth-only login targets the dedicated MCP credential document", async () => {
   const { defaultMcpCredentialsPath } = await import("../dist/credentials.js");
-  const { output, browserAuthOptions } = await run([
-    "--scope",
-    "iracing.auth",
-  ]);
+  const { output, browserAuthOptions } = await run(["--scope", "iracing.auth"]);
   assert.equal(output.output, defaultMcpCredentialsPath);
   assert.match(
     output.output,
@@ -231,7 +226,10 @@ test("password-limited OAuth rejection is redacted and never retried", async () 
   assert.equal(attempts, 1);
   assert.equal(writes, 0);
   assert.ok(rejection instanceof Error);
-  assert.match(rejection.message, /Password-limited OAuth authentication failed/);
+  assert.match(
+    rejection.message,
+    /Password-limited OAuth authentication failed/,
+  );
   assert.equal(rejection.message.includes(username), false);
   assert.equal(rejection.message.includes(password), false);
 });
