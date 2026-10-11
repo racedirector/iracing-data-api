@@ -1,0 +1,43 @@
+name: Issue 438 lockfile refresh
+
+on:
+  push:
+    branches:
+      - issue-438-retire-upstream-contract
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: issue-438-retire-upstream-contract
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+      - name: Remove obsolete parser dependency and refresh lockfile
+        shell: bash
+        run: |
+          node <<'NODE'
+          const fs = require('node:fs');
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          if (packageJson.devDependencies?.parse5) {
+            delete packageJson.devDependencies.parse5;
+            fs.writeFileSync('package.json', `${JSON.stringify(packageJson, null, 2)}\n`);
+          }
+          NODE
+          pnpm install --lockfile-only --ignore-scripts
+          git diff --check
+          if git diff --quiet -- package.json pnpm-lock.yaml; then
+            exit 0
+          fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add package.json pnpm-lock.yaml
+          git commit -m 'Remove obsolete upstream contract parser dependency'
+          git push origin HEAD:issue-438-retire-upstream-contract
