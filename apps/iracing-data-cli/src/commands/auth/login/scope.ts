@@ -1,4 +1,3 @@
-import { createInterface } from "node:readline/promises";
 import {
   InMemoryStore,
   OAuthClient,
@@ -23,6 +22,8 @@ export interface LoginEnvironment {
   IRACING_AUTH_CLIENT?: string;
   IRACING_AUTH_SECRET?: string;
   IRACING_AUTH_REDIRECT_URI?: string;
+  IRACING_AUTH_USERNAME?: string;
+  IRACING_AUTH_PASSWORD?: string;
 }
 
 type PasswordLimitedCredentials = {
@@ -37,8 +38,8 @@ type PasswordLimitedAuthenticationOptions = PasswordLimitedCredentials & {
 };
 
 /**
- * Injectable authentication, secret-input, output, and environment seams used to construct an
- * isolated login invocation scope.
+ * Injectable authentication, output, and environment seams used to construct an isolated login
+ * invocation scope.
  */
 export interface LoginScopeDependencies {
   authenticate: typeof authenticateWithBrowser;
@@ -47,7 +48,6 @@ export interface LoginScopeDependencies {
   authenticatePasswordLimited?: (
     options: PasswordLimitedAuthenticationOptions,
   ) => Promise<OAuthTokenResponse>;
-  readPasswordLimitedCredentials?: () => Promise<PasswordLimitedCredentials>;
 }
 
 const defaultDependencies: LoginScopeDependencies = {
@@ -55,107 +55,6 @@ const defaultDependencies: LoginScopeDependencies = {
   writeOutput: writeTokenOutput,
   environment: process.env,
 };
-
-function requireInteractiveTerminal() {
-  if (!process.stdin.isTTY || !process.stdout.isTTY) {
-    throw new Error(
-      "Password-limited login requires an interactive terminal for credential input.",
-    );
-  }
-}
-
-async function readUsername(): Promise<string> {
-  requireInteractiveTerminal();
-  const terminal = createInterface({
-    input: process.stdin,
-    output: process.stdout,
-    terminal: true,
-  });
-  const controller = new AbortController();
-  const cancel = () => controller.abort();
-  process.once("SIGINT", cancel);
-
-  try {
-    const username = await terminal.question("iRacing username: ", {
-      signal: controller.signal,
-    });
-    if (!username.trim()) {
-      throw new Error(
-        "Username is required for password-limited authentication.",
-      );
-    }
-    return username.trim();
-  } catch (error) {
-    if (controller.signal.aborted) {
-      throw new Error("Authentication cancelled.");
-    }
-    throw error;
-  } finally {
-    process.off("SIGINT", cancel);
-    terminal.close();
-  }
-}
-
-async function readHiddenPassword(): Promise<string> {
-  requireInteractiveTerminal();
-  if (typeof process.stdin.setRawMode !== "function") {
-    throw new Error(
-      "Password-limited login requires terminal support for hidden password input.",
-    );
-  }
-
-  const wasRaw = process.stdin.isRaw;
-  const wasPaused = process.stdin.isPaused();
-  let password = "";
-  process.stdout.write("iRacing password: ");
-  process.stdin.setRawMode(true);
-  process.stdin.resume();
-
-  try {
-    await new Promise<void>((resolve, reject) => {
-      const onData = (chunk: Buffer | string) => {
-        const input =
-          typeof chunk === "string" ? chunk : chunk.toString("utf8");
-        for (const character of input) {
-          if (character === "\u0003" || character === "\u0004") {
-            cleanup();
-            reject(new Error("Authentication cancelled."));
-            return;
-          }
-          if (character === "\r" || character === "\n") {
-            cleanup();
-            resolve();
-            return;
-          }
-          if (character === "\u007f" || character === "\b") {
-            password = password.slice(0, -1);
-            continue;
-          }
-          if (character >= " ") password += character;
-        }
-      };
-      const cleanup = () => process.stdin.off("data", onData);
-      process.stdin.on("data", onData);
-    });
-  } finally {
-    process.stdin.setRawMode(wasRaw);
-    if (wasPaused) process.stdin.pause();
-    process.stdout.write("\n");
-  }
-
-  if (!password) {
-    throw new Error(
-      "Password is required for password-limited authentication.",
-    );
-  }
-  return password;
-}
-
-async function readPasswordLimitedCredentials(): Promise<PasswordLimitedCredentials> {
-  const username = await readUsername();
-  const password = await readHiddenPassword();
-  return { username, password };
-}
 
 async function authenticateWithPasswordLimited(
   options: PasswordLimitedAuthenticationOptions,
@@ -211,8 +110,8 @@ export function createLoginCommandScopeFactory(
       authentication: {
         /**
          * Authenticate using the selected method. Browser login retains its existing callback
-         * behavior. Password-limited login reads credentials only from the interactive secret
-         * input seam and makes exactly one grant attempt.
+         * behavior. Password-limited login reads its acquisition credentials from the scoped
+         * environment only and makes exactly one grant attempt.
          */
         async authenticate() {
           const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
@@ -243,42 +142,35 @@ export function createLoginCommandScopeFactory(
             );
           }
 
-          const readCredentials =
-            dependencies.readPasswordLimitedCredentials ??
-            readPasswordLimitedCredentials;
+          const username = dependencies.environment.IRACING_AUTH_USERNAME?.trim();
+          const password = dependencies.environment.IRACING_AUTH_PASSWORD;
+          if (!username) {
+            throw new Error(
+              "Password-limited authentication requires IRACING_AUTH_USERNAME.",
+            );
+          }
+          if (!password) {
+            throw new Error(
+              "Password-limited authentication requires IRACING_AUTH_PASSWORD.",
+            );
+          }
+
           const authenticate =
             dependencies.authenticatePasswordLimited ??
             authenticateWithPasswordLimited;
-          let supplied: PasswordLimitedCredentials | undefined;
 
           try {
-            supplied = await readCredentials();
-            if (!supplied.username.trim()) {
-              throw new Error(
-                "Username is required for password-limited authentication.",
-              );
-            }
-            if (!supplied.password) {
-              throw new Error(
-                "Password is required for password-limited authentication.",
-              );
-            }
-
-            try {
-              return await authenticate({
-                clientId,
-                clientSecret,
-                scopes: invocation.scopes,
-                username: supplied.username,
-                password: supplied.password,
-              });
-            } catch {
-              throw new Error(
-                "Password-limited OAuth authentication failed. Verify client eligibility, registered user access, credentials, and requested scope before trying again.",
-              );
-            }
-          } finally {
-            supplied = undefined;
+            return await authenticate({
+              clientId,
+              clientSecret,
+              scopes: invocation.scopes,
+              username,
+              password,
+            });
+          } catch {
+            throw new Error(
+              "Password-limited OAuth authentication failed. Verify client eligibility, registered user access, credentials, and requested scope before trying again.",
+            );
           }
         },
       },
