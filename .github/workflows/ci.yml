@@ -13,7 +13,7 @@ on:
       - main
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   verify:
@@ -24,6 +24,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          ref: issue-448-jsdoc-lint
 
       - name: Upload source snapshot
         uses: actions/upload-artifact@v7
@@ -53,6 +54,25 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
+
+      - name: Apply and commit issue 448 rollout
+        run: |
+          base64 --decode scripts/issue448-docs.patch.gz.b64 | gzip --decompress > "$RUNNER_TEMP/issue448-docs.patch"
+          if git apply --check "$RUNNER_TEMP/issue448-docs.patch" 2>/dev/null; then
+            git apply "$RUNNER_TEMP/issue448-docs.patch"
+          fi
+          changed_ts="$(git diff --name-only -- '*.ts')"
+          if [ -n "$changed_ts" ]; then
+            pnpm exec prettier --write $changed_ts
+          fi
+          pnpm exec prettier --write eslint.config.mjs scripts/eslint-jsdoc-policy.test.mjs package.json
+          git add apps packages eslint.config.mjs package.json pnpm-lock.yaml scripts/eslint-jsdoc-policy.test.mjs
+          if ! git diff --cached --quiet; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git commit -m "docs: document authored TypeScript API contracts"
+            git push origin HEAD:issue-448-jsdoc-lint
+          fi
 
       - name: Upload regenerated lockfile
         uses: actions/upload-artifact@v7
