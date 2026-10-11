@@ -66,6 +66,8 @@ const INVALID_METHOD_MESSAGE =
 
 /**
  * Parse the requested authentication method, preserving browser authorization as the default.
+ * Accept only the exact strings `browser` and `password-limited`; an omitted value
+ * selects `browser`. Throw an Error for any other value, including an empty string.
  */
 export function resolveLoginMethod(value: string | undefined): LoginMethod {
   const method = value ?? "browser";

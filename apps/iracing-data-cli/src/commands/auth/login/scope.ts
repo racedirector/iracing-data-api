@@ -56,6 +56,11 @@ const defaultDependencies: LoginScopeDependencies = {
   environment: process.env,
 };
 
+/**
+ * Acquire and return an OAuth token using the password-limited grant, keeping the
+ * username-keyed session in memory only. Client configuration, grant request, and
+ * token validation failures reject unchanged; the invocation handles redaction.
+ */
 async function authenticateWithPasswordLimited(
   options: PasswordLimitedAuthenticationOptions,
 ): Promise<OAuthTokenResponse> {
@@ -82,7 +87,8 @@ async function authenticateWithPasswordLimited(
  *
  * The returned factory rejects unsupported formats and explicit YAML for a
  * default destination before authentication. Authentication and file writes
- * are deferred to the returned capabilities, which propagate dependency errors.
+ * are deferred to the returned capabilities. Browser authentication and writer
+ * errors propagate; password-limited grant failures become a fixed error message.
  */
 export function createLoginCommandScopeFactory(
   diagnostics: Diagnostics,
@@ -109,9 +115,15 @@ export function createLoginCommandScopeFactory(
     return {
       authentication: {
         /**
-         * Authenticate using the selected method. Browser login retains its existing callback
-         * behavior. Password-limited login reads its acquisition credentials from the scoped
-         * environment only and makes exactly one grant attempt.
+         * Return the selected method's OAuth token without writing a credential file.
+         * Browser login uses the invocation's callback timeout in seconds and may open
+         * a browser. Its failures propagate; browser-opening failure allows manual login.
+         *
+         * Password-limited login requires nonempty client ID, client secret, username,
+         * and password from the scoped environment. Trim the username but preserve the
+         * password verbatim. Missing values reject before any grant attempt; otherwise
+         * invoke authentication once, without retrying. Grant failures become a fixed
+         * Error that omits the original cause. Browser options do not apply to this method.
          */
         async authenticate() {
           const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
