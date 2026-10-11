@@ -4,7 +4,8 @@ const path = require("node:path");
 const test = require("node:test");
 
 const root = path.resolve(__dirname, "../../..");
-const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
+const read = (relative) =>
+  fs.readFileSync(path.join(root, relative), "utf8");
 const readJson = (relative) => JSON.parse(read(relative));
 
 test("documented MCP lifecycle command is owned by the root manifest", () => {
@@ -29,26 +30,32 @@ test("documented MCP lifecycle command is owned by the root manifest", () => {
   }
 });
 
-test("ChatGPT tunnel guidance uses baseline commands and gates optional runtimes", () => {
-  const guide = read(
-    ".agents/skills/iracing-data-mcp-onboarding/references/chatgpt.md",
-  );
+test(
+  "ChatGPT tunnel guidance uses baseline commands and gates optional runtimes",
+  () => {
+    const guide = read(
+      ".agents/skills/iracing-data-mcp-onboarding/references/chatgpt.md",
+    );
 
-  for (const command of [
-    "tunnel-client --version",
-    "tunnel-client help quickstart",
-    "tunnel-client init --help",
-    "tunnel-client doctor --help",
-    "tunnel-client run --help",
-  ]) {
-    assert.match(guide, new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
-  }
+    for (const command of [
+      "tunnel-client --version",
+      "tunnel-client help quickstart",
+      "tunnel-client init --help",
+      "tunnel-client doctor --help",
+      "tunnel-client run --help",
+    ]) {
+      assert.match(
+        guide,
+        new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
+      );
+    }
 
-  assert.match(guide, /optional version-specific conveniences/);
-  assert.match(guide, /tunnel-client runtimes --help/);
-  assert.doesNotMatch(
-    guide,
-    /For a long-lived local process, use the client's managed runtime supervision:/,
-  );
-  assert.match(guide, /never invent a missing command/i);
-});
+    assert.match(guide, /optional version-specific conveniences/);
+    assert.match(guide, /tunnel-client runtimes --help/);
+    assert.doesNotMatch(
+      guide,
+      /For a long-lived local process, use the client's managed runtime supervision:/,
+    );
+    assert.match(guide, /never invent a missing command/i);
+  },
+);
