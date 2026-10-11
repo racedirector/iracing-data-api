@@ -105,7 +105,9 @@ test(
     await refreshOwner.shutdownAuthorizationOwner();
 
     global.fetch = () => {
-      throw new Error("restart must consume the rotated credential without a grant");
+      throw new Error(
+        "restart must consume the rotated credential without a grant",
+      );
     };
     const restartedOwner = await api.createMcpServices(options);
     assert.equal(restartedOwner.authorizationState(), "ready");
