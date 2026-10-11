@@ -19,7 +19,9 @@ export function createAssetsCommand({
   diagnostics,
   carDependencies,
 }: CreateAssetsCommandOptions) {
-  const assets = new Command("assets").description("Data API asset metadata commands");
+  const assets = new Command("assets").description(
+    "Data API asset metadata commands",
+  );
   assets.addCommand(
     createCarAssetsCommand({ diagnostics, dependencies: carDependencies }),
   );

@@ -63,7 +63,10 @@ export async function materializeReturnedDataApiLink(
   }
 
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
-  if (!contentType.includes("application/json") && !contentType.includes("+json")) {
+  if (
+    !contentType.includes("application/json") &&
+    !contentType.includes("+json")
+  ) {
     throw new Error(
       "Asset payload response was not JSON. No response body logged.",
     );
