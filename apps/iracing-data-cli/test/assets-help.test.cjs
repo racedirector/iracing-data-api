@@ -9,7 +9,9 @@ test("help exposes the assets group and car leaf", async () => {
 
   assert.match(program.helpInformation(), /\bassets\b/);
 
-  const assets = program.commands.find((command) => command.name() === "assets");
+  const assets = program.commands.find(
+    (command) => command.name() === "assets",
+  );
   assert.ok(assets);
   assert.match(assets.helpInformation(), /\bcar\b/);
 });
