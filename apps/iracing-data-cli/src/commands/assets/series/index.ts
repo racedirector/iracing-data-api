@@ -23,7 +23,10 @@ export function createSeriesAssetsCommand({
   dependencies,
 }: CreateSeriesAssetsCommandOptions) {
   const commandDependencies: SeriesAssetsCommandDependencies = {
-    createScope: createSeriesAssetsCommandScopeFactory(diagnostics, dependencies),
+    createScope: createSeriesAssetsCommandScopeFactory(
+      diagnostics,
+      dependencies,
+    ),
   };
 
   return createCommand(commandDependencies);
