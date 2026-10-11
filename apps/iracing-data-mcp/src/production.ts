@@ -9,16 +9,22 @@
  * listen address may be 0.0.0.0 for Docker while the published boundary remains
  * loopback.
  *
+ * Remote MCP OAuth authorization is explicitly opt-in and fail-closed. It configures
+ * only a resource-server verifier; the authorization server remains external.
  * Typed factories compose session, gateway and HTTP lifetimes once. Missing or
- * corrupt credentials can leave health/initialize available for stopped recovery.
- * Termination handlers drain HTTP before closing authorization; executable startup
- * and shutdown diagnostics must not expose configuration values or raw errors.
+ * corrupt iRacing credentials can leave health/initialize available for stopped
+ * recovery. Termination handlers drain HTTP before closing authorization.
  */
 import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import {
+  createMcpAuthorizationBoundary,
+  parseMcpRemoteAuthorizationConfig,
+  type McpRemoteAuthorizationConfig,
+} from "./authorization.js";
 import { parseMcpApplicationConfig } from "./config.js";
 import { createHttpApplication, installTerminationHandlers } from "./http.js";
 import { createMcpServices, MCP_CREDENTIAL_FILE } from "./session.js";
@@ -26,7 +32,7 @@ import { createMcpServices, MCP_CREDENTIAL_FILE } from "./session.js";
 /** Creates a recovery error without including configuration values or underlying errors. */
 const configurationError = () =>
   new Error(
-    "MCP configuration invalid. Set a client ID, exact Host/Origin lists, and a same-client secret file if required; use a non-root UID/GID and an owned 0700 credential directory with 0600 files. Stop the server before repairing credentials.",
+    "MCP configuration invalid. Check client identity, local Host/Origin policy, secure credential files, and any complete remote OAuth resource-server settings.",
   );
 
 /**
@@ -66,13 +72,49 @@ function exactList(value: string, origin: boolean) {
   return Object.freeze(values);
 }
 
+const remoteAuthorizationKeys = [
+  "IRACING_MCP_RESOURCE_URL",
+  "IRACING_MCP_AUTH_ISSUER",
+  "IRACING_MCP_AUTH_AUDIENCE",
+  "IRACING_MCP_AUTH_JWKS_URL",
+  "IRACING_MCP_AUTH_SCOPES",
+] as const;
+
+/** Returns absent local mode or a complete validated remote OAuth configuration. */
+function parseRemoteAuthorization(
+  env: NodeJS.ProcessEnv,
+): McpRemoteAuthorizationConfig | undefined {
+  const configured = remoteAuthorizationKeys.filter(
+    (key) => env[key] !== undefined,
+  );
+
+  if (configured.length === 0) {
+    return undefined;
+  }
+
+  if (configured.length !== remoteAuthorizationKeys.length) {
+    throw configurationError();
+  }
+
+  try {
+    return parseMcpRemoteAuthorizationConfig({
+      resourceUrl: env.IRACING_MCP_RESOURCE_URL,
+      issuer: env.IRACING_MCP_AUTH_ISSUER,
+      audience: env.IRACING_MCP_AUTH_AUDIENCE,
+      jwksUrl: env.IRACING_MCP_AUTH_JWKS_URL,
+      requiredScopes: env.IRACING_MCP_AUTH_SCOPES!.trim().split(/\s+/),
+    });
+  } catch {
+    throw configurationError();
+  }
+}
+
 /**
  * Returns frozen production settings with a trimmed, 1–512-character client ID.
- * Rejects inline secrets; an optional secret file must be an absolute path beside
- * the credential file, with a different filename. File access is checked later.
- * Host/origin lists use exact localhost or 127.0.0.1 entries, defaulting to port
- * 3000 and HTTP origins; every origin's authority must appear in the host list.
- * Throws a configuration error for invalid settings.
+ * Rejects inline iRacing secrets; an optional secret file must be an absolute path
+ * beside the credential file, with a different filename. Host/origin lists retain
+ * their exact local-only contract. Remote OAuth is absent by default and accepted
+ * only when all resource-server variables are present and valid.
  */
 export function parseProductionConfig(env: NodeJS.ProcessEnv) {
   const clientId = z
@@ -129,6 +171,7 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
     allowedHosts,
     allowedOrigins,
     listenHost,
+    remoteAuthorization: parseRemoteAuthorization(env),
   });
 }
 
@@ -232,6 +275,9 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const app = createHttpApplication({
     config: parseMcpApplicationConfig(),
     services,
+    authorization: config.remoteAuthorization
+      ? createMcpAuthorizationBoundary(config.remoteAuthorization)
+      : undefined,
     allowedHosts: config.allowedHosts,
     allowedOrigins: config.allowedOrigins,
     sessionIdGenerator: randomUUID,
