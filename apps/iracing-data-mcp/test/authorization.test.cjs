@@ -12,7 +12,9 @@ const remoteConfig = Object.freeze({
 
 async function fixture(t) {
   const api = await import("../dist/index.js");
-  const { OAuthError, OAuthErrorCode } = await import("@modelcontextprotocol/server");
+  const { OAuthError, OAuthErrorCode } = await import(
+    "@modelcontextprotocol/server"
+  );
   const logs = [];
   let seenAuth;
 
@@ -183,7 +185,10 @@ test("remote resource-server configuration is strict and fail-closed", async () 
     IRACING_MCP_AUTH_JWKS_URL: remoteConfig.jwksUrl,
     IRACING_MCP_AUTH_SCOPES: "mcp:use",
   };
-  assert.equal(parseProductionConfig(allRemote).remoteAuthorization.resourceUrl, remoteConfig.resourceUrl);
+  assert.equal(
+    parseProductionConfig(allRemote).remoteAuthorization.resourceUrl,
+    remoteConfig.resourceUrl,
+  );
 
   for (const key of [
     "IRACING_MCP_AUTH_ISSUER",
@@ -229,9 +234,14 @@ test("protected MCP requests reject missing, malformed, invalid, expired, wrong-
     /resource_metadata="https:\/\/mcp\.example\/\.well-known\/oauth-protected-resource\/mcp"/,
   );
 
-  const malformed = await request({ headers: { Authorization: "Basic nope" } });
+  const malformed = await request({
+    headers: { Authorization: "Basic nope" },
+  });
   assert.equal(malformed.status, 401);
-  assert.equal((await request({ token: "iracing-style-access-token" })).status, 401);
+  assert.equal(
+    (await request({ token: "iracing-style-access-token" })).status,
+    401,
+  );
   assert.equal((await request({ token: "expired" })).status, 401);
   assert.equal((await request({ token: "wrong-resource" })).status, 401);
 
