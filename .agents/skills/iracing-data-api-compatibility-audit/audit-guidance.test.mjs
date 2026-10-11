@@ -30,7 +30,10 @@ test("Data API audit guidance uses current generated-client retrieval", () => {
   assert.match(skill, /generated Data API client/i);
   assert.match(workflow, /apps\/iracing-data-cli\/dist\/index\.js docs/);
   assert.match(workflow, /scripts\/audit-data-docs\.cjs -/);
-  assert.match(tooling, /does \*\*not\*\* maintain a generic upstream evidence runtime/);
+  assert.match(
+    tooling,
+    /does \*\*not\*\* maintain a generic upstream evidence runtime/,
+  );
 });
 
 test("guidance preserves application ownership of opaque returned links", () => {

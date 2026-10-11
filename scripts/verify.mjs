@@ -49,9 +49,15 @@ export function verificationPlan(subsystem, policy) {
     case "repo":
       return [
         pnpm("repo: topology", "check:topology"),
-        pnpm("repo: modeled-service client boundary", "check:service-client-boundary"),
+        pnpm(
+          "repo: modeled-service client boundary",
+          "check:service-client-boundary",
+        ),
         pnpm("repo: topology tests", "test:topology"),
-        pnpm("repo: modeled-service boundary tests", "test:service-client-boundary"),
+        pnpm(
+          "repo: modeled-service boundary tests",
+          "test:service-client-boundary",
+        ),
         pnpm("repo: verification tests", "test:verification"),
         pnpm("repo: compatibility audit tests", "test:compatibility-audits"),
         pnpm("repo: impact tests", "test:impact"),

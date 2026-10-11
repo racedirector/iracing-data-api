@@ -82,10 +82,12 @@ function walk(root) {
     for (const entry of fs.readdirSync(path.join(root, relative), {
       withFileTypes: true,
     })) {
-      if (entry.isDirectory() && ignoredDirectoryNames.has(entry.name)) continue;
+      if (entry.isDirectory() && ignoredDirectoryNames.has(entry.name))
+        continue;
       const file = normalize(path.posix.join(normalize(relative), entry.name));
       if (entry.isDirectory()) visit(file);
-      else if (entry.isFile() && sourceExtension.test(entry.name)) files.push(file);
+      else if (entry.isFile() && sourceExtension.test(entry.name))
+        files.push(file);
     }
   }
   visit();

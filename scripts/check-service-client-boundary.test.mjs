@@ -21,7 +21,10 @@ function fixture(files) {
 test("classifies ownership surfaces before applying endpoint policy", () => {
   assert.equal(classifySource("apps/app/src/index.ts"), "runtime");
   assert.equal(classifySource("scripts/tool.mjs"), "repository-tool");
-  assert.equal(classifySource("packages/api/client/fetch/runtime.ts"), "canonical");
+  assert.equal(
+    classifySource("packages/api/client/fetch/runtime.ts"),
+    "canonical",
+  );
   assert.equal(
     classifySource("packages/helpers/api-schema-to-openapi/src/index.ts"),
     "canonical",

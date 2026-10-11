@@ -4,8 +4,8 @@ Start with **Compatible**, **Compatibility issues found**, or **Unable to verify
 
 Build one row per meaningful endpoint/parameter/protocol rule:
 
-| Surface | Current upstream fact and source | Current schema/input-output | Client/runtime | Mapping/generated/docs/tests | Result and interpretation |
-| --- | --- | --- | --- | --- | --- |
+| Surface        | Current upstream fact and source                                        | Current schema/input-output                                | Client/runtime                      | Mapping/generated/docs/tests    | Result and interpretation             |
+| -------------- | ----------------------------------------------------------------------- | ---------------------------------------------------------- | ----------------------------------- | ------------------------------- | ------------------------------------- |
 | Endpoint/field | Official/current source URL and relevant JSON pointer/section; unknowns | Required/optional/null/conditional, coercion, unknown keys | Validation, encoding, calls, errors | Actual representations/coverage | Match/mismatch/ambiguous/out of scope |
 
 Group findings by P1 (likely rejected valid response/invalid request, authentication/security or runtime failure), P2 (meaningful discrepancy or forward compatibility/recovery gap), P3 (optional capability/docs/hardening). Assess breaking impact separately. Each finding must include:
