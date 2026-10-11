@@ -7,6 +7,10 @@ import {
   createSeriesAssetsCommand,
   type SeriesAssetsScopeDependencies,
 } from "./series/index.js";
+import {
+  createTrackAssetsCommand,
+  type TrackAssetsScopeDependencies,
+} from "./track/index.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
 /** Composition inputs for the structural assets command group. */
@@ -14,6 +18,7 @@ export interface CreateAssetsCommandOptions {
   diagnostics: Diagnostics;
   carDependencies?: CarAssetsScopeDependencies;
   seriesDependencies?: SeriesAssetsScopeDependencies;
+  trackDependencies?: TrackAssetsScopeDependencies;
 }
 
 /**
@@ -24,6 +29,7 @@ export function createAssetsCommand({
   diagnostics,
   carDependencies,
   seriesDependencies,
+  trackDependencies,
 }: CreateAssetsCommandOptions) {
   const assets = new Command("assets").description(
     "Data API asset metadata commands",
@@ -35,6 +41,12 @@ export function createAssetsCommand({
     createSeriesAssetsCommand({
       diagnostics,
       dependencies: seriesDependencies,
+    }),
+  );
+  assets.addCommand(
+    createTrackAssetsCommand({
+      diagnostics,
+      dependencies: trackDependencies,
     }),
   );
   return assets;
