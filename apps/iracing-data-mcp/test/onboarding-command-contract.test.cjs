@@ -4,8 +4,7 @@ const path = require("node:path");
 const test = require("node:test");
 
 const root = path.resolve(__dirname, "../../..");
-const read = (relative) =>
-  fs.readFileSync(path.join(root, relative), "utf8");
+const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const readJson = (relative) => JSON.parse(read(relative));
 
 test("documented MCP lifecycle command is owned by the root manifest", () => {
