@@ -43,10 +43,12 @@ const canonicalPrefixes = [
   "packages/oauth/schema/",
 ];
 
+/** Convert native path separators to slashes and remove one leading "./". */
 function normalize(file) {
   return file.split(path.sep).join("/").replace(/^\.\//, "");
 }
 
+/** Whether a repository-relative path belongs to an exempt test, fixture or documentation surface. */
 function isTestFixtureOrDocumentation(file) {
   const value = normalize(file);
   const parts = value.split("/");
@@ -60,6 +62,11 @@ function isTestFixtureOrDocumentation(file) {
   );
 }
 
+/**
+ * Classify a repository-relative path as ignored, canonical, repository-tool or
+ * runtime. Test, fixture and documentation exemptions take precedence over
+ * ownership prefixes; unrecognized locations are ignored.
+ */
 export function classifySource(file) {
   const value = normalize(file);
   if (isTestFixtureOrDocumentation(value)) return "ignored";
@@ -76,8 +83,13 @@ export function classifySource(file) {
   return "ignored";
 }
 
+/**
+ * Collect repository-relative JavaScript/TypeScript source paths beneath root,
+ * skipping ignored directories and symbolic links. Directory read errors propagate.
+ */
 function walk(root) {
   const files = [];
+  /** Append source paths beneath a root-relative directory to files. */
   function visit(relative = ".") {
     for (const entry of fs.readdirSync(path.join(root, relative), {
       withFileTypes: true,
@@ -103,6 +115,11 @@ const obsoleteEvidenceRuntime =
 const importSpecifier =
   /(?:\bfrom\s*|\brequire\s*\(\s*|\bimport\s*\(\s*|\bimport\s*)["']([^"']+)["']/g;
 
+/**
+ * Return the first relative import specifier in source that resolves beneath
+ * root/scripts from the repository-relative file, or undefined. Match source text
+ * without parsing JavaScript or checking whether the imported file exists.
+ */
 function importsRootScript(root, file, source) {
   for (const match of source.matchAll(importSpecifier)) {
     const specifier = match[1];
@@ -114,6 +131,12 @@ function importsRootScript(root, file, source) {
   return undefined;
 }
 
+/**
+ * Scan authored runtime and repository-tool sources beneath root for service
+ * ownership violations. Return sorted diagnostic strings, or an empty array when
+ * none match. Checks match raw source text, including comments and strings;
+ * dynamic request targets are not resolved. Filesystem read errors propagate.
+ */
 export function checkServiceClientBoundary(root = repositoryRoot) {
   const errors = [];
   for (const file of walk(root)) {

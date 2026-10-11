@@ -31,6 +31,12 @@ export const root = path.resolve(
 );
 export const subsystems = ["repo", "js", "examples", "generated", "rust"];
 
+/**
+ * Return ordered command descriptors for repo, js, examples, generated or rust
+ * without executing them. Build selections use policy.workspaces npm ownership
+ * kinds and include their dependency closures. Throw for an unknown subsystem
+ * or a build selection with no matching workspaces.
+ */
 export function verificationPlan(subsystem, policy) {
   const pnpm = (label, ...args) => ({ label, command: "pnpm", args });
   const build = (kind) => {

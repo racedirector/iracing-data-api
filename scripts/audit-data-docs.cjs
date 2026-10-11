@@ -66,6 +66,14 @@ function routeFor(document, pathname) {
     });
   });
 }
+/**
+ * Compare the original documentation map with local OpenAPI GET routes and query
+ * parameters after validation with docsSchema. Return coverage, schema issues,
+ * comparison findings, endpoint rows and unmatched local Data API paths.
+ * Schema rejection returns zero coverage and empty comparison results; errors
+ * thrown by validation, URL parsing or reference resolution propagate to callers.
+ * Findings identify structural review candidates, not live compatibility.
+ */
 function audit(content, document, docsSchema) {
   const parsed = docsSchema.safeParse(content);
   const schemaResult = {
@@ -158,6 +166,13 @@ function audit(content, document, docsSchema) {
       "Structural comparison only. Review ranges/enums, conditional requirements, notes, coercion, stripped fields and runtime serialization separately. /data/doc does not establish endpoint response payloads or live endpoint success.",
   };
 }
+/**
+ * Read UTF-8 JSON from source, using stdin (descriptor 0) when source is "-".
+ * The optional readFile must support the synchronous readFileSync call shape.
+ * Return a non-null, non-array object without validating its documentation shape.
+ * Throw for a missing source or non-object JSON; read and JSON parse errors
+ * propagate to callers.
+ */
 function readDocumentation(source, readFile = fs.readFileSync) {
   if (!source) throw new Error("Expected current Data API documentation input");
   const input = readFile(source === "-" ? 0 : source, "utf8");
