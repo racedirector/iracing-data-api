@@ -38,9 +38,8 @@ function responseError(status) {
 }
 
 test("assets help exposes series", async () => {
-  const { createAssetsCommand } = await import(
-    "../dist/commands/assets/index.js",
-  );
+  const { createAssetsCommand } =
+    await import("../dist/commands/assets/index.js");
   const command = createAssetsCommand({ diagnostics });
   assert.match(command.helpInformation(), /\bseries\b/);
 });
