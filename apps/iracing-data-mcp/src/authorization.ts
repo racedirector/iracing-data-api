@@ -1,3 +1,4 @@
+import { createRemoteJwtVerifier } from "@iracing-data/oauth-client";
 import {
   OAuthError,
   OAuthErrorCode,
@@ -6,11 +7,6 @@ import {
   type AuthInfo,
   type OAuthTokenVerifier,
 } from "@modelcontextprotocol/server";
-import {
-  createRemoteJWKSet,
-  jwtVerify,
-  type JWTVerifyGetKey,
-} from "jose";
 import { z } from "zod";
 
 const noWildcard = (value: string) => !value.includes("*");
@@ -104,21 +100,20 @@ function claimString(payload: Record<string, unknown>, name: string) {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-/**
- * Creates a provider-neutral JWT verifier backed by a remote JWKS. Tests may inject
- * a local deterministic JWK resolver; production defaults to HTTPS JWKS discovery.
- */
+/** Creates the MCP access-token verifier without reusing iRacing token policy. */
 export function createMcpJwtVerifier(
   config: McpRemoteAuthorizationConfig,
-  keySet: JWTVerifyGetKey = createRemoteJWKSet(new URL(config.jwksUrl)),
 ): OAuthTokenVerifier {
+  const verify = createRemoteJwtVerifier({
+    issuer: config.issuer,
+    audience: config.audience,
+    jwksUrl: config.jwksUrl,
+  });
+
   return {
     async verifyAccessToken(token): Promise<AuthInfo> {
       try {
-        const { payload } = await jwtVerify(token, keySet, {
-          issuer: config.issuer,
-          audience: config.audience,
-        });
+        const { payload } = await verify(token);
 
         if (typeof payload.exp !== "number") {
           throw new Error("Missing exp claim.");
