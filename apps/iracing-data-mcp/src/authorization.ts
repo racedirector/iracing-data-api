@@ -84,6 +84,7 @@ export const McpRemoteAuthorizationConfigSchema = z
     }
   });
 
+/** Validated immutable configuration for an external MCP authorization server. */
 export type McpRemoteAuthorizationConfig = Readonly<
   z.infer<typeof McpRemoteAuthorizationConfigSchema>
 >;
@@ -146,6 +147,7 @@ export function createMcpJwtVerifier(
   };
 }
 
+/** Process-scoped OAuth metadata and request authorization gate for MCP ingress. */
 export interface McpAuthorizationBoundary {
   readonly resourceUrl: URL;
   readonly metadataUrl: string;
