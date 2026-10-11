@@ -47,7 +47,9 @@ function responseError(status) {
 }
 
 test("assets is a structural parent and exposes the car leaf", async () => {
-  const { createAssetsCommand } = await import("../dist/commands/assets/index.js");
+  const { createAssetsCommand } = await import(
+    "../dist/commands/assets/index.js"
+  );
   const assets = createAssetsCommand({
     diagnostics,
     carDependencies: {
