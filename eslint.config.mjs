@@ -3,7 +3,38 @@ import tseslint from "@typescript-eslint/eslint-plugin";
 import parser from "@typescript-eslint/parser";
 import eslintConfigPrettier from "eslint-config-prettier";
 import importPlugin from "eslint-plugin-import";
+import jsdoc from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
+
+const authoredTypeScriptJSDocExclusions = [
+  "**/*.test.ts",
+  "**/*.spec.ts",
+  "**/__tests__/**",
+  "**/test/**",
+  "**/tests/**",
+  "**/fixtures/**",
+  "**/__fixtures__/**",
+  "examples/**",
+  "apps/**/examples/**",
+  "packages/**/examples/**",
+  "packages/**/generated/**",
+  "packages/**/src/**/schema.ts",
+  "packages/**/src/**/telemetry.ts",
+  "packages/**/src/**/session.ts",
+  "packages/api/client/**",
+  "packages/telemetry/client/**",
+];
+
+const documentedExportContexts = [
+  "ArrowFunctionExpression",
+  "ClassDeclaration",
+  "ClassExpression",
+  "FunctionDeclaration",
+  "FunctionExpression",
+  "TSEnumDeclaration",
+  "TSInterfaceDeclaration",
+  "TSTypeAliasDeclaration",
+];
 
 export default [
   {
@@ -113,6 +144,65 @@ export default [
           destructuredArrayIgnorePattern: "^_",
           varsIgnorePattern: "^_",
           ignoreRestSiblings: true,
+        },
+      ],
+    },
+  },
+  {
+    files: ["apps/**/*.ts", "packages/**/*.ts"],
+    ignores: authoredTypeScriptJSDocExclusions,
+    plugins: {
+      jsdoc,
+    },
+    settings: {
+      jsdoc: {
+        mode: "typescript",
+      },
+    },
+    rules: {
+      "jsdoc/require-jsdoc": [
+        "error",
+        {
+          enableFixer: false,
+          publicOnly: {
+            cjs: false,
+            esm: true,
+            window: false,
+          },
+          require: {
+            ArrowFunctionExpression: true,
+            ClassDeclaration: true,
+            ClassExpression: true,
+            FunctionDeclaration: true,
+            FunctionExpression: true,
+            MethodDefinition: false,
+          },
+          contexts: [
+            "TSEnumDeclaration",
+            "TSInterfaceDeclaration",
+            "TSTypeAliasDeclaration",
+          ],
+        },
+      ],
+      "jsdoc/require-description": [
+        "error",
+        {
+          contexts: documentedExportContexts,
+          descriptionStyle: "body",
+        },
+      ],
+      "jsdoc/informative-docs": "error",
+      "jsdoc/match-description": [
+        "error",
+        {
+          contexts: documentedExportContexts,
+          mainDescription: {
+            match:
+              "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu",
+            message:
+              "Exported API JSDoc must describe the contract rather than use an empty or placeholder description.",
+          },
+          nonemptyTags: false,
         },
       ],
     },
