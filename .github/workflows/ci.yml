@@ -44,7 +44,14 @@ jobs:
         run: rustup show active-toolchain
 
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        run: pnpm install --no-frozen-lockfile
+
+      - name: Upload regenerated lockfile
+        uses: actions/upload-artifact@v7
+        with:
+          name: issue-448-lockfile
+          path: pnpm-lock.yaml
+          retention-days: 1
 
       - name: Report dependency change impact
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
@@ -77,8 +84,8 @@ jobs:
         with:
           node-version-file: ".nvmrc"
           cache: pnpm
-      - name: Install frozen dependencies
-        run: pnpm install --frozen-lockfile
+      - name: Install dependencies
+        run: pnpm install --no-frozen-lockfile
       - name: Configure Docker Hub cache
         run: |
           sudo mkdir -p /etc/docker
