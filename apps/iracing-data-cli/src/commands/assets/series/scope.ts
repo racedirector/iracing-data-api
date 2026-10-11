@@ -7,12 +7,12 @@ import {
   resolveAccessToken,
   type CredentialOptions,
 } from "../../../credentials.js";
-import type { Diagnostics } from "../../../diagnostics.js";
 import { materializeReturnedDataApiLink } from "../returned-data-api-link.js";
 import type {
   CreateSeriesAssetsCommandScope,
   SeriesAssetsOptions,
 } from "./command.js";
+import type { Diagnostics } from "../../../diagnostics.js";
 
 interface SeriesAssetsClient {
   getSeriesAssets(): Promise<IracingAPIResponse>;
@@ -106,7 +106,9 @@ export function createSeriesAssetsCommandScopeFactory(
         write(payload) {
           const serialized = JSON.stringify(payload, null, 2);
           if (serialized === undefined) {
-            throw new Error("Series asset payload could not be serialized as JSON.");
+            throw new Error(
+              "Series asset payload could not be serialized as JSON.",
+            );
           }
           dependencies.writeStdout(`${serialized}\n`);
         },
