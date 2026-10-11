@@ -62,6 +62,7 @@ test("password-limited bootstrap uses the canonical MCP owner and refresh lifecy
     await initialOwner.dataApiConfiguration.accessToken(),
     acquired.access_token,
   );
+  await initialOwner.shutdownAuthorizationOwner();
 
   const expired = token({
     access_token: jwt(1),
@@ -99,6 +100,7 @@ test("password-limited bootstrap uses the canonical MCP owner and refresh lifecy
   assert.equal(rotated.refresh_token, "rotated-refresh");
   assert.equal(JSON.stringify(rotated).includes(username), false);
   assert.equal(JSON.stringify(rotated).includes(password), false);
+  await refreshOwner.shutdownAuthorizationOwner();
 
   global.fetch = () => {
     throw new Error("restart must consume the rotated credential without a grant");
@@ -109,4 +111,5 @@ test("password-limited bootstrap uses the canonical MCP owner and refresh lifecy
     await restartedOwner.dataApiConfiguration.accessToken(),
     rotated.access_token,
   );
+  await restartedOwner.shutdownAuthorizationOwner();
 });
