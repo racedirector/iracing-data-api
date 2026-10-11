@@ -7,6 +7,7 @@ import jsdoc from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
 
 const authoredTypeScriptJSDocExclusions = [
+  // Test and example exports are executable verification or usage samples, not maintained API contracts.
   "**/*.test.ts",
   "**/*.spec.ts",
   "**/__tests__/**",
@@ -17,6 +18,12 @@ const authoredTypeScriptJSDocExclusions = [
   "examples/**",
   "apps/**/examples/**",
   "packages/**/examples/**",
+
+  // Build, vendor, generated, and derived sources keep their existing owners instead of gaining hand-authored JSDoc.
+  "apps/**/dist/**",
+  "packages/**/dist/**",
+  "apps/**/vendor/**",
+  "packages/**/vendor/**",
   "packages/**/generated/**",
   "packages/**/src/**/schema.ts",
   "packages/**/src/**/telemetry.ts",
@@ -25,8 +32,10 @@ const authoredTypeScriptJSDocExclusions = [
   "packages/telemetry/client/**",
 ];
 
+// Direct Zod type projections inherit their contract from the owning authored schema.
+// Ordinary authored aliases remain covered, including wrappers that add local semantics.
 const authoredTypeAliasContext =
-  "TSTypeAliasDeclaration:not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='infer'])";
+  "TSTypeAliasDeclaration:not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='infer']):not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='input'])";
 
 const documentedExportContexts = [
   "ExportNamedDeclaration:has(> FunctionDeclaration)",
@@ -197,6 +206,7 @@ export default [
         {
           contexts: documentedExportContexts,
           descriptionStyle: "body",
+          exemptedBy: ["inheritdoc", "deprecated"],
         },
       ],
       "jsdoc/match-description": [
