@@ -38,7 +38,8 @@ test("guidance preserves application ownership of opaque returned links", () => 
     assert.match(text, /opaque/i);
     assert.match(text, /returned/i);
   }
-  assert.match(tooling, /application-owned resolution/);
+  assert.match(tooling, /Applications may own safe resolution/);
+  assert.match(tooling, /valid application behavior/);
 });
 
 test("report contract does not claim persisted evidence is current authority", () => {
