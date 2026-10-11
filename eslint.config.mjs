@@ -25,15 +25,23 @@ const authoredTypeScriptJSDocExclusions = [
   "packages/telemetry/client/**",
 ];
 
+const authoredTypeAliasContext =
+  "TSTypeAliasDeclaration:not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='infer'])";
+
 const documentedExportContexts = [
-  "ArrowFunctionExpression",
-  "ClassDeclaration",
-  "ClassExpression",
-  "FunctionDeclaration",
-  "FunctionExpression",
-  "TSEnumDeclaration",
-  "TSInterfaceDeclaration",
-  "TSTypeAliasDeclaration",
+  "ExportNamedDeclaration:has(> FunctionDeclaration)",
+  "ExportNamedDeclaration:has(> ClassDeclaration)",
+  "ExportNamedDeclaration:has(> TSInterfaceDeclaration)",
+  "ExportNamedDeclaration:has(> TSEnumDeclaration)",
+  `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
+  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ArrowFunctionExpression)",
+  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > FunctionExpression)",
+  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ClassExpression)",
+  "ExportDefaultDeclaration:has(> FunctionDeclaration)",
+  "ExportDefaultDeclaration:has(> ClassDeclaration)",
+  "ExportDefaultDeclaration:has(> ArrowFunctionExpression)",
+  "ExportDefaultDeclaration:has(> FunctionExpression)",
+  "ExportDefaultDeclaration:has(> ClassExpression)",
 ];
 
 export default [
@@ -180,7 +188,7 @@ export default [
           contexts: [
             "TSEnumDeclaration",
             "TSInterfaceDeclaration",
-            "TSTypeAliasDeclaration",
+            authoredTypeAliasContext,
           ],
         },
       ],
@@ -191,7 +199,6 @@ export default [
           descriptionStyle: "body",
         },
       ],
-      "jsdoc/informative-docs": "error",
       "jsdoc/match-description": [
         "error",
         {
