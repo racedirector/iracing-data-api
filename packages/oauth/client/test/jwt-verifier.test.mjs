@@ -1,11 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
-  SignJWT,
-  createLocalJWKSet,
-  exportJWK,
-  generateKeyPair,
-} from "jose";
+import { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } from "jose";
 import { createRemoteJwtVerifier } from "../dist/index.js";
 
 const issuer = "https://issuer.example/";
