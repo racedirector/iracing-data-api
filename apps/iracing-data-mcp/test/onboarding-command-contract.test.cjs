@@ -44,6 +44,8 @@ test("ChatGPT tunnel docs gate optional runtimes", () => {
 
   assert.ok(guide.includes("optional version-specific conveniences"));
   assert.ok(guide.includes("tunnel-client runtimes --help"));
-  assert.ok(!guide.includes("use the client's managed runtime supervision"));
+  assert.ok(
+    !guide.includes("use the client's managed runtime supervision"),
+  );
   assert.match(guide, /never invent a missing command/i);
 });
