@@ -19,6 +19,7 @@ export const COLLECTION_LIMITS = Object.freeze({
   resultBytes: 64 * 1024,
   ttlMs: 300_000,
 });
+
 /**
  * Raises the stable cursor-expiration protocol failure used for expired or evicted collection
  * state.

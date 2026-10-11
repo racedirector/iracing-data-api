@@ -25,6 +25,7 @@ export type GatewayTransport = (
   url: URL,
   init: RequestInit,
 ) => Promise<Response>;
+
 /**
  * DNS-resolution seam used to enforce outbound destination policy before gateway requests are
  * issued.

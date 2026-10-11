@@ -1038,6 +1038,7 @@ export class DataApiGateway {
     };
   }
 }
+
 /**
  * Per-call gateway facade that exposes validated Data API operations while keeping transport
  * details and returned-link handling inside the gateway.

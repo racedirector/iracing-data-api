@@ -134,6 +134,7 @@ const contexts = new WeakMap<RequestContext, string>();
 export interface RequestContext {
   readonly request_id: string;
 }
+
 /**
  * Creates a fresh immutable correlation context backed by an internally owned request
  * identifier.
