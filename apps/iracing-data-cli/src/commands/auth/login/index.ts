@@ -18,8 +18,8 @@ export interface CreateLoginCommandOptions {
 }
 
 /**
- * Build a login command with browser OAuth, process environment, and token-file
- * persistence defaults, or supplied dependencies. I/O begins when its action runs.
+ * Build a login command with browser/password-limited OAuth, process environment, secret input,
+ * and token-file persistence defaults, or supplied dependencies. I/O begins when its action runs.
  */
 export function createLoginCommand({
   diagnostics,

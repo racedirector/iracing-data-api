@@ -1,77 +1,258 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
-const diagnostics = { info() {}, warn() {}, error() {} };
+const quietDiagnostics = { info() {}, warn() {}, error() {} };
 
-async function run(args) {
+async function run(args, options = {}) {
   const { createLoginCommand } =
     await import("../dist/commands/auth/login/index.js");
   let output;
-  let authOptions;
+  let writtenToken;
+  let browserAuthOptions;
+  let passwordAuthOptions;
+  let browserCalls = 0;
+  let passwordCalls = 0;
+  const diagnostics = options.diagnostics ?? quietDiagnostics;
   const command = createLoginCommand({
     diagnostics,
     dependencies: {
-      environment: {
+      environment: options.environment ?? {
         IRACING_AUTH_CLIENT: "client-id",
         IRACING_AUTH_SECRET: "client-secret",
         IRACING_AUTH_REDIRECT_URI: "http://127.0.0.1/callback",
+        IRACING_AUTH_USERNAME: "fixture+driver@example.com",
+        IRACING_AUTH_PASSWORD: "fixture-password",
       },
-      authenticate: async (options) => {
-        authOptions = options;
+      authenticate: async (authOptions) => {
+        browserCalls += 1;
+        browserAuthOptions = authOptions;
+        return (
+          (await options.authenticate?.(authOptions)) ?? {
+            access_token: "synthetic-browser",
+            token_type: "Bearer",
+            expires_in: 60,
+          }
+        );
+      },
+      authenticatePasswordLimited: async (authOptions) => {
+        passwordCalls += 1;
+        passwordAuthOptions = authOptions;
+        if (options.authenticatePasswordLimited) {
+          return await options.authenticatePasswordLimited(authOptions);
+        }
         return {
-          access_token: "synthetic",
+          access_token: "synthetic-password-limited",
+          refresh_token: "synthetic-refresh",
           token_type: "Bearer",
           expires_in: 60,
+          scope: authOptions.scopes.join(" "),
         };
       },
-      writeOutput: async (_token, options) => {
-        output = options;
+      writeOutput: async (token, writeOptions) => {
+        writtenToken = token;
+        output = writeOptions;
+        await options.writeOutput?.(token, writeOptions);
       },
     },
   });
   await command.parseAsync(args, { from: "user" });
-  return { output, authOptions };
+  return {
+    output,
+    writtenToken,
+    browserAuthOptions,
+    passwordAuthOptions,
+    browserCalls,
+    passwordCalls,
+  };
 }
 
-test("login module composes environment, authentication, and persistence behind its entry point", async () => {
-  const { authOptions } = await run(["--no-open", "--timeout-seconds", "30"]);
-  assert.equal(authOptions.clientId, "client-id");
-  assert.equal(authOptions.clientSecret, "client-secret");
-  assert.equal(authOptions.redirectUri, "http://127.0.0.1/callback");
-  assert.equal(authOptions.openBrowser, false);
-  assert.equal(authOptions.timeoutSeconds, 30);
+test("login module composes environment, browser authentication, and persistence behind its entry point", async () => {
+  const result = await run(["--no-open", "--timeout-seconds", "30"]);
+  assert.equal(result.browserAuthOptions.clientId, "client-id");
+  assert.equal(result.browserAuthOptions.clientSecret, "client-secret");
+  assert.equal(
+    result.browserAuthOptions.redirectUri,
+    "http://127.0.0.1/callback",
+  );
+  assert.equal(result.browserAuthOptions.openBrowser, false);
+  assert.equal(result.browserAuthOptions.timeoutSeconds, 30);
+  assert.equal(result.browserCalls, 1);
+  assert.equal(result.passwordCalls, 0);
+});
+
+test("browser remains the default and explicit browser selection is equivalent", async () => {
+  const implicit = await run(["--scope", "iracing.auth"]);
+  const explicit = await run([
+    "--method",
+    "browser",
+    "--scope",
+    "iracing.auth",
+  ]);
+
+  assert.deepEqual(explicit.browserAuthOptions, implicit.browserAuthOptions);
+  assert.deepEqual(explicit.output, implicit.output);
+  assert.equal(explicit.browserCalls, 1);
+  assert.equal(explicit.passwordCalls, 0);
 });
 
 test("login updates the stable ignored credential file with auth+profile by default", async () => {
   const { defaultCredentialsPath } = await import("../dist/credentials.js");
-  const { output, authOptions } = await run([]);
+  const { output, browserAuthOptions } = await run([]);
   assert.equal(output.output, defaultCredentialsPath);
   assert.match(output.output, /\.iracing-data\/credentials\.json$/);
   assert.equal(output.force, true);
-  assert.deepEqual(authOptions.scopes, ["iracing.auth", "iracing.profile"]);
+  assert.deepEqual(browserAuthOptions.scopes, [
+    "iracing.auth",
+    "iracing.profile",
+  ]);
 });
 
 test("auth-only login targets the dedicated MCP credential document", async () => {
   const { defaultMcpCredentialsPath } = await import("../dist/credentials.js");
-  const { output, authOptions } = await run(["--scope", "iracing.auth"]);
+  const { output, browserAuthOptions } = await run(["--scope", "iracing.auth"]);
   assert.equal(output.output, defaultMcpCredentialsPath);
   assert.match(
     output.output,
     /\.iracing-data\/iracing-data-mcp\/credentials\.json$/,
   );
   assert.equal(output.force, true);
-  assert.deepEqual(authOptions.scopes, ["iracing.auth"]);
+  assert.deepEqual(browserAuthOptions.scopes, ["iracing.auth"]);
+});
+
+test("password-limited auth-only login acquires once from environment and writes only the returned token", async () => {
+  const { defaultMcpCredentialsPath } = await import("../dist/credentials.js");
+  const username = "hostile+user@example.com";
+  const password = "hostile-password-value";
+  const result = await run(
+    ["--method", "password-limited", "--scope", "iracing.auth"],
+    {
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_USERNAME: username,
+        IRACING_AUTH_PASSWORD: password,
+      },
+    },
+  );
+
+  assert.equal(result.browserCalls, 0);
+  assert.equal(result.passwordCalls, 1);
+  assert.deepEqual(result.passwordAuthOptions, {
+    clientId: "client-id",
+    clientSecret: "client-secret",
+    scopes: ["iracing.auth"],
+    username,
+    password,
+  });
+  assert.equal(result.output.output, defaultMcpCredentialsPath);
+  assert.deepEqual(result.writtenToken, {
+    access_token: "synthetic-password-limited",
+    refresh_token: "synthetic-refresh",
+    token_type: "Bearer",
+    expires_in: 60,
+    scope: "iracing.auth",
+  });
+  const persistedShape = JSON.stringify(result.writtenToken);
+  assert.equal(persistedShape.includes(username), false);
+  assert.equal(persistedShape.includes(password), false);
+});
+
+test("password-limited login rejects missing required environment before the grant", async () => {
+  let attempts = 0;
+  const authenticatePasswordLimited = async () => {
+    attempts += 1;
+    throw new Error("grant should not run");
+  };
+
+  await assert.rejects(
+    run(["--method", "password-limited"], {
+      environment: { IRACING_AUTH_CLIENT: "client-id" },
+      authenticatePasswordLimited,
+    }),
+    /requires IRACING_AUTH_SECRET/,
+  );
+  await assert.rejects(
+    run(["--method", "password-limited"], {
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_PASSWORD: "fixture",
+      },
+      authenticatePasswordLimited,
+    }),
+    /requires IRACING_AUTH_USERNAME/,
+  );
+  await assert.rejects(
+    run(["--method", "password-limited"], {
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_USERNAME: "fixture",
+      },
+      authenticatePasswordLimited,
+    }),
+    /requires IRACING_AUTH_PASSWORD/,
+  );
+  assert.equal(attempts, 0);
+});
+
+test("password-limited OAuth rejection is redacted and never retried", async () => {
+  const username = "leak-me@example.com";
+  const password = "do-not-leak-this";
+  let attempts = 0;
+  let writes = 0;
+  let rejection;
+
+  try {
+    await run(["--method", "password-limited"], {
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_USERNAME: username,
+        IRACING_AUTH_PASSWORD: password,
+      },
+      authenticatePasswordLimited: async () => {
+        attempts += 1;
+        throw new Error(`upstream rejected ${username} ${password}`);
+      },
+      writeOutput: async () => {
+        writes += 1;
+      },
+    });
+  } catch (error) {
+    rejection = error;
+  }
+
+  assert.equal(attempts, 1);
+  assert.equal(writes, 0);
+  assert.ok(rejection instanceof Error);
+  assert.match(
+    rejection.message,
+    /Password-limited OAuth authentication failed/,
+  );
+  assert.equal(rejection.message.includes(username), false);
+  assert.equal(rejection.message.includes(password), false);
 });
 
 test("explicit auth+profile scope preserves the existing default destination", async () => {
   const { defaultCredentialsPath } = await import("../dist/credentials.js");
-  const { output, authOptions } = await run([
+  const { output, browserAuthOptions } = await run([
     "--scope",
     "iracing.auth",
     "iracing.profile",
   ]);
   assert.equal(output.output, defaultCredentialsPath);
-  assert.deepEqual(authOptions.scopes, ["iracing.auth", "iracing.profile"]);
+  assert.deepEqual(browserAuthOptions.scopes, [
+    "iracing.auth",
+    "iracing.profile",
+  ]);
+});
+
+test("rejects unsupported authentication methods", async () => {
+  await assert.rejects(
+    run(["--method", "device-code"]),
+    /--method must be either 'browser' or 'password-limited'/,
+  );
 });
 
 test("rejects unsupported scope choices before composing infrastructure", async () => {
