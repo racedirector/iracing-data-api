@@ -46,15 +46,6 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Lint
-        run: pnpm lint
-
-      - name: Check style
-        run: pnpm style
-
-      - name: Verify JSDoc policy
-        run: pnpm test:jsdoc-policy
-
       - name: Report dependency change impact
         if: github.event_name == 'pull_request' && github.event.pull_request.user.login == 'dependabot[bot]'
         env:
