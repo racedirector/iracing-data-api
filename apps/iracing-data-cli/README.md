@@ -1,6 +1,6 @@
 # iracing-data CLI
 
-`apps/iracing-data-cli` is this repository's private Commander-based `iracing-data` CLI. `iracing-data auth login` obtains iRacing OAuth tokens with the browser Authorization Code flow; `iracing-data docs` fetches authenticated Data API documentation, and `iracing-data whoami` checks the active profile. This is private repository tooling.
+`apps/iracing-data-cli` is this repository's private Commander-based `iracing-data` CLI. `iracing-data auth login` obtains iRacing OAuth tokens with the browser Authorization Code flow; `iracing-data docs` fetches authenticated Data API documentation, `iracing-data assets` materializes runtime asset metadata, and `iracing-data whoami` checks the active profile. This is private repository tooling.
 
 ## Configure an iRacing OAuth client
 
@@ -142,6 +142,21 @@ node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs \
 
 Exit 0 means no structural candidates, 2 means reviewable discrepancies/schema rejection and 1 means audit execution failure. The comparator does not own network transport, persistence, hashes, provenance or historical diffing. Review ranges/enums, notes, conditional requirements and runtime serialization separately; `/data/doc` does not describe complete endpoint response shapes. See [compatibility boundaries](../../docs/UPSTREAM-CONTRACT.md) and the repository compatibility skill for the full report procedure.
 
+## Fetch Data API asset metadata
+
+```bash
+pnpm run iracing-data assets car
+pnpm run iracing-data assets series
+pnpm run iracing-data assets track
+pnpm run iracing-data assets track --credentials .iracing-data/iracing-data-mcp/credentials.json
+```
+
+The three asset leaves use generated `CarApi.getCarAssets()`, `SeriesApi.getSeriesAssets()`, and `TrackApi.getTrackAssets()` operations for the modeled Data API requests. Each operation returns the standard opaque `{ link, expires }` envelope. The CLI validates and materializes the exact returned HTTPS link once, without forwarding the iRacing bearer token, then prints the resulting JSON payload to stdout with a trailing newline.
+
+The commands preserve the returned JSON rather than rewriting it into a CLI-specific schema. They do not download referenced image or binary assets, construct local directory layouts, synchronize files, or maintain an asset cache. Credential precedence is the same authenticated-command contract used by `docs`: explicit `--credentials`, then `IRACING_ACCESS_TOKEN`, then `.iracing-data/credentials.json`.
+
+Canonical OpenAPI parity is verified offline: runtime `/data/**/assets` routes in `openapi/iracing.yaml` must have matching authored `assets` leaves, while `/data/doc/**/assets` documentation routes are excluded. See the [assets command documentation](src/commands/assets/README.md) for ownership and safety details.
+
 ## Use the access token with `data-api-first-call`
 
 The example still accepts `IRACING_ACCESS_TOKEN`. To run it, copy only `access_token` from the ignored credential document into the example's `.env`, without `Bearer `, then follow [its README](../../examples/data-api-first-call/README.md). The CLI does not edit the example's `.env`. For current Data API documentation, use `iracing-data docs` directly.
@@ -202,6 +217,6 @@ Offline unit tests cover OAuth lifecycle, scope selection, callback behavior, ou
 
 - [Browser/callback flow](src/authenticate.ts) and [login policy](src/commands/auth/login/).
 - [Credential precedence](src/credentials.ts) and [output/durability integration](src/token-output.ts).
-- [Documentation command](src/commands/docs/) and [profile check](src/commands/whoami/).
+- [Documentation command](src/commands/docs/), [asset commands](src/commands/assets/), and [profile check](src/commands/whoami/).
 - [Browser launcher](src/browser.ts) and [diagnostic sink](src/diagnostics.ts).
 - Shared [OAuth lifecycle](../../packages/oauth/client/src/client.ts) and [durable store](../../packages/oauth/client/src/storage/token-document-store.ts).
