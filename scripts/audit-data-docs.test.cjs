@@ -1,6 +1,11 @@
 const { test } = require("node:test");
 const assert = require("node:assert/strict");
-const { audit, routeFor, resolve } = require("./audit-data-docs.cjs");
+const {
+  audit,
+  readDocumentation,
+  routeFor,
+  resolve,
+} = require("./audit-data-docs.cjs");
 const docsSchema = { safeParse: () => ({ success: true }) };
 const content = {
   service: {
@@ -31,6 +36,16 @@ const document = {
   },
   components: { schemas: { id: { type: "number" } } },
 };
+test("reads a plain current documentation map without an evidence envelope", () => {
+  assert.deepEqual(
+    readDocumentation("-", () => JSON.stringify(content)),
+    content,
+  );
+  assert.throws(
+    () => readDocumentation("-", () => JSON.stringify([content])),
+    /documentation object/,
+  );
+});
 test("resolves numeric refs and recognizes CSV wire strings", () => {
   const result = audit(content, document, docsSchema);
   assert.deepEqual(result.coverage, {

@@ -1,30 +1,20 @@
 /**
- * Offline structural Data API documentation comparison, separate from capture.
+ * Structural Data API documentation comparison.
  *
- * audit() accepts a documentation map, the authored OpenAPI document and its
- * documentation schema. Record schema parse success/issues but compare original
- * evidence, so maintained-schema stripping cannot hide unknown upstream fields.
- * Match links to local GET paths, including constrained path templates; resolve
- * local component references and union type families. Compare query names,
- * requiredness and primitive families, treating integer as a numeric refinement
- * and CSV strings as intentional representations of upstream `numbers`.
- * Arrays are serialization-review candidates, not automatically incorrect.
+ * audit() accepts the current documentation map, the authored OpenAPI document
+ * and its documentation schema. Record schema parse success/issues but compare
+ * the original upstream response, so maintained-schema stripping cannot hide
+ * unknown fields. Match links to local GET paths, including constrained path
+ * templates; resolve local component references and union type families. Compare
+ * query names, requiredness and primitive families, treating integer as a numeric
+ * refinement and CSV strings as intentional representations of upstream
+ * `numbers`. Arrays are serialization-review candidates, not automatically wrong.
  *
- * Rows retain evidence pointers and coverage; findings include missing/extra
- * parameters and unmatched/local-only paths. No candidates means only structural
- * agreement. Enums/ranges, conditional prose, nullability/coercion, unknown-field
- * preservation and actual generated serialization need semantic review. /data/doc
- * cannot establish complete endpoint response payloads or live success/errors;
- * a local-only path is unverified, not proof of upstream removal. This is not a
- * method audit: local GET selection is an implementation assumption to review.
- *
- * The CLI adapter validates an existing Data snapshot, loads authored schema and
- * mapping sources (build their dependencies first), prints provenance/hash plus
+ * The CLI adapter accepts one plain current Data API documentation JSON input
+ * (a file path or `-` for stdin), loads authored schema/mapping sources, prints
  * the report, and exits 0 for agreement, 2 for candidates/schema rejection or 1
- * for failure. It makes no network requests and writes no files. Failures expose
- * no raw input/error; review evidence/report content before sharing. Its current
- * snapshot-validator dependency is transitional capture tooling, not a permanent
- * application transport boundary. audit-data-docs.test.cjs guards comparison.
+ * for failure. It makes no network requests and writes no files. Live retrieval
+ * belongs to `iracing-data docs`, which uses the generated Data API client.
  */
 
 const fs = require("node:fs");
@@ -116,8 +106,6 @@ function audit(content, document, docsSchema) {
           add("requiredness");
         const localTypes = types(document, local.schema);
         if (upstream.type === "numbers") {
-          // CSV strings are intentional wire representations; array serialization
-          // needs semantic review against the actual generated runtime.
           if (localTypes.includes("array")) add("array-serialization-review");
           else if (!localTypes.includes("string")) add("type-review");
         } else if (
@@ -160,50 +148,38 @@ function audit(content, document, docsSchema) {
       "Structural comparison only. Review ranges/enums, conditional requirements, notes, coercion, stripped fields and runtime serialization separately. /data/doc does not establish endpoint response payloads or live endpoint success.",
   };
 }
-module.exports = { audit, routeFor, resolve };
+function readDocumentation(source, readFile = fs.readFileSync) {
+  if (!source) throw new Error("Expected current Data API documentation input");
+  const input = readFile(source === "-" ? 0 : source, "utf8");
+  const value = JSON.parse(input);
+  if (!value || Array.isArray(value) || typeof value !== "object")
+    throw new Error("Expected Data API documentation object");
+  return value;
+}
+module.exports = { audit, readDocumentation, routeFor, resolve };
 if (require.main === module) {
-  (async () => {
+  try {
     if (process.argv.length !== 3)
-      throw new Error("Expected one snapshot path");
-    const { validateSnapshot } = await import(
-      path.join(root, "scripts/upstream-contract.mjs")
-    );
-    const snapshot = validateSnapshot(
-      JSON.parse(fs.readFileSync(process.argv[2], "utf8")),
-    );
-    if (snapshot.kind !== "data") throw new Error("Expected Data API snapshot");
+      throw new Error("Expected one current Data API documentation path or -");
+    const content = readDocumentation(process.argv[2]);
     const { ServicesDocsResponseSchema } = require(
       path.join(root, "packages/api/schema/src"),
     );
     const { document } = require(
       path.join(root, "packages/helpers/api-schema-to-openapi/src"),
     );
-    const report = audit(
-      snapshot.content,
-      document,
-      ServicesDocsResponseSchema,
-    );
-    console.log(
-      JSON.stringify(
-        {
-          provenance: snapshot.provenance,
-          contentHash: snapshot.contentHash,
-          ...report,
-        },
-        null,
-        2,
-      ),
-    );
+    const report = audit(content, document, ServicesDocsResponseSchema);
+    console.log(JSON.stringify(report, null, 2));
     process.exitCode =
       !report.docsSchema.success ||
       report.findings.length ||
       report.localOnlyPaths.length
         ? 2
         : 0;
-  })().catch(() => {
+  } catch {
     console.error(
-      "Audit failed. Check snapshot validity and build current schema/generator dependencies. No input or raw error logged.",
+      "Audit failed. Check current documentation JSON and build current schema/generator dependencies. No input or raw error logged.",
     );
     process.exitCode = 1;
-  });
+  }
 }

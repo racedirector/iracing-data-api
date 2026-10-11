@@ -14,8 +14,5 @@ crates/iracing-data-api-client/**
 # Scoped guidance is authored and remains formatting-checked.
 !crates/iracing-data-api-client/AGENTS.md
 
-# Private upstream evidence; never a maintained public contract.
-.upstream-contract/
-
 # Shared repository CLI credentials are private runtime output.
 .iracing-data/

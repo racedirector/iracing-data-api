@@ -4,11 +4,12 @@
  *
  * Workspace policy selects builds by classification and pnpm builds dependency
  * closures. Tests run only where declared; examples compile without live grants.
- * Repository checks establish topology, tooling regressions and authored style.
- * Generated checks regenerate temporarily, compare freshness, then build SDKs
- * before offline wire tests. Rust uses pinned, locked all-feature workspace
- * checks; clippy reports the configured warning policy without inventing a stricter
- * generator policy. Frozen pnpm installation remains the caller's prerequisite.
+ * Repository checks establish topology, modeled-service ownership boundaries,
+ * tooling regressions and authored style. Generated checks regenerate temporarily,
+ * compare freshness, then build SDKs before offline wire tests. Rust uses pinned,
+ * locked all-feature workspace checks; clippy reports the configured warning policy
+ * without inventing a stricter generator policy. Frozen pnpm installation remains
+ * the caller's prerequisite.
  *
  * Plans execute in order and preserve a failing command's exit status. Missing
  * tools fail; no subsystem silently skips. Credentials, accounts and running
@@ -48,9 +49,11 @@ export function verificationPlan(subsystem, policy) {
     case "repo":
       return [
         pnpm("repo: topology", "check:topology"),
+        pnpm("repo: modeled-service client boundary", "check:service-client-boundary"),
         pnpm("repo: topology tests", "test:topology"),
+        pnpm("repo: modeled-service boundary tests", "test:service-client-boundary"),
         pnpm("repo: verification tests", "test:verification"),
-        pnpm("repo: upstream contract tests", "test:upstream"),
+        pnpm("repo: compatibility audit tests", "test:compatibility-audits"),
         pnpm("repo: impact tests", "test:impact"),
         pnpm("repo: release presentation tests", "test:release"),
         pnpm("repo: dependency automation tests", "test:dependencies"),
