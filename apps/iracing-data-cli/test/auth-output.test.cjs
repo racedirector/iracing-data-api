@@ -12,7 +12,6 @@ async function run(args, options = {}) {
   let passwordAuthOptions;
   let browserCalls = 0;
   let passwordCalls = 0;
-  let readCredentialsCalls = 0;
   const diagnostics = options.diagnostics ?? quietDiagnostics;
   const command = createLoginCommand({
     diagnostics,
@@ -23,6 +22,8 @@ async function run(args, options = {}) {
           IRACING_AUTH_CLIENT: "client-id",
           IRACING_AUTH_SECRET: "client-secret",
           IRACING_AUTH_REDIRECT_URI: "http://127.0.0.1/callback",
+          IRACING_AUTH_USERNAME: "fixture+driver@example.com",
+          IRACING_AUTH_PASSWORD: "fixture-password",
         },
       authenticate: async (authOptions) => {
         browserCalls += 1;
@@ -49,16 +50,6 @@ async function run(args, options = {}) {
           scope: authOptions.scopes.join(" "),
         };
       },
-      readPasswordLimitedCredentials: async () => {
-        readCredentialsCalls += 1;
-        if (options.readPasswordLimitedCredentials) {
-          return await options.readPasswordLimitedCredentials();
-        }
-        return {
-          username: "fixture+driver@example.com",
-          password: "fixture-password",
-        };
-      },
       writeOutput: async (token, writeOptions) => {
         writtenToken = token;
         output = writeOptions;
@@ -74,7 +65,6 @@ async function run(args, options = {}) {
     passwordAuthOptions,
     browserCalls,
     passwordCalls,
-    readCredentialsCalls,
   };
 }
 
@@ -134,20 +124,24 @@ test("auth-only login targets the dedicated MCP credential document", async () =
   assert.deepEqual(browserAuthOptions.scopes, ["iracing.auth"]);
 });
 
-test("password-limited auth-only login acquires once and writes only the returned token", async () => {
+test("password-limited auth-only login acquires once from environment and writes only the returned token", async () => {
   const { defaultMcpCredentialsPath } = await import("../dist/credentials.js");
   const username = "hostile+user@example.com";
   const password = "hostile-password-value";
   const result = await run(
     ["--method", "password-limited", "--scope", "iracing.auth"],
     {
-      readPasswordLimitedCredentials: async () => ({ username, password }),
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_USERNAME: username,
+        IRACING_AUTH_PASSWORD: password,
+      },
     },
   );
 
   assert.equal(result.browserCalls, 0);
   assert.equal(result.passwordCalls, 1);
-  assert.equal(result.readCredentialsCalls, 1);
   assert.deepEqual(result.passwordAuthOptions, {
     clientId: "client-id",
     clientSecret: "client-secret",
@@ -168,22 +162,7 @@ test("password-limited auth-only login acquires once and writes only the returne
   assert.equal(persistedShape.includes(password), false);
 });
 
-test("password-limited login rejects a missing client secret before credential input", async () => {
-  let prompted = false;
-  await assert.rejects(
-    run(["--method", "password-limited"], {
-      environment: { IRACING_AUTH_CLIENT: "client-id" },
-      readPasswordLimitedCredentials: async () => {
-        prompted = true;
-        return { username: "fixture", password: "fixture" };
-      },
-    }),
-    /requires IRACING_AUTH_SECRET/,
-  );
-  assert.equal(prompted, false);
-});
-
-test("password-limited login rejects missing username or password before the grant", async () => {
+test("password-limited login rejects missing required environment before the grant", async () => {
   let attempts = 0;
   const authenticatePasswordLimited = async () => {
     attempts += 1;
@@ -192,41 +171,34 @@ test("password-limited login rejects missing username or password before the gra
 
   await assert.rejects(
     run(["--method", "password-limited"], {
-      readPasswordLimitedCredentials: async () => ({
-        username: "",
-        password: "fixture",
-      }),
+      environment: { IRACING_AUTH_CLIENT: "client-id" },
       authenticatePasswordLimited,
     }),
-    /Username is required/,
+    /requires IRACING_AUTH_SECRET/,
   );
   await assert.rejects(
     run(["--method", "password-limited"], {
-      readPasswordLimitedCredentials: async () => ({
-        username: "fixture",
-        password: "",
-      }),
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_PASSWORD: "fixture",
+      },
       authenticatePasswordLimited,
     }),
-    /Password is required/,
+    /requires IRACING_AUTH_USERNAME/,
+  );
+  await assert.rejects(
+    run(["--method", "password-limited"], {
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_USERNAME: "fixture",
+      },
+      authenticatePasswordLimited,
+    }),
+    /requires IRACING_AUTH_PASSWORD/,
   );
   assert.equal(attempts, 0);
-});
-
-test("password-limited cancellation writes no credentials", async () => {
-  let writes = 0;
-  await assert.rejects(
-    run(["--method", "password-limited"], {
-      readPasswordLimitedCredentials: async () => {
-        throw new Error("Authentication cancelled.");
-      },
-      writeOutput: async () => {
-        writes += 1;
-      },
-    }),
-    /Authentication cancelled/,
-  );
-  assert.equal(writes, 0);
 });
 
 test("password-limited OAuth rejection is redacted and never retried", async () => {
@@ -238,7 +210,12 @@ test("password-limited OAuth rejection is redacted and never retried", async () 
 
   try {
     await run(["--method", "password-limited"], {
-      readPasswordLimitedCredentials: async () => ({ username, password }),
+      environment: {
+        IRACING_AUTH_CLIENT: "client-id",
+        IRACING_AUTH_SECRET: "client-secret",
+        IRACING_AUTH_USERNAME: username,
+        IRACING_AUTH_PASSWORD: password,
+      },
       authenticatePasswordLimited: async () => {
         attempts += 1;
         throw new Error(`upstream rejected ${username} ${password}`);
