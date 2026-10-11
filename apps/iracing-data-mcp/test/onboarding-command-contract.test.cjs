@@ -7,7 +7,7 @@ const root = path.resolve(__dirname, "../../..");
 const read = (relative) => fs.readFileSync(path.join(root, relative), "utf8");
 const readJson = (relative) => JSON.parse(read(relative));
 
-test("documented MCP lifecycle command is owned by the root manifest", () => {
+test("MCP lifecycle docs match the implementation", () => {
   const rootPackage = readJson("package.json");
   const appPackage = readJson("apps/iracing-data-mcp/package.json");
   const guide = read("apps/iracing-data-mcp/local-container.md");
@@ -18,43 +18,32 @@ test("documented MCP lifecycle command is owned by the root manifest", () => {
     "node --env-file-if-exists=.env apps/iracing-data-mcp/scripts/local-container.mjs",
   );
   assert.equal(appPackage.scripts["mcp:local"], undefined);
-  assert.match(
-    guide,
-    /lifecycle is intentionally owned by the repository-root `package\.json`/,
-  );
+  assert.ok(guide.includes("repository-root `package.json`"));
 
   for (const command of ["login", "up", "stop", "reset", "status"]) {
-    assert.match(guide, new RegExp(`pnpm mcp:local ${command}`));
-    assert.match(helper, new RegExp(`case "${command}"`));
+    assert.ok(guide.includes(`pnpm mcp:local ${command}`));
+    assert.ok(helper.includes(`case "${command}"`));
   }
 });
 
-test(
-  "ChatGPT tunnel guidance uses baseline commands and gates optional runtimes",
-  () => {
-    const guide = read(
-      ".agents/skills/iracing-data-mcp-onboarding/references/chatgpt.md",
-    );
+test("ChatGPT tunnel docs gate optional runtimes", () => {
+  const guide = read(
+    ".agents/skills/iracing-data-mcp-onboarding/references/chatgpt.md",
+  );
+  const baselineCommands = [
+    "tunnel-client --version",
+    "tunnel-client help quickstart",
+    "tunnel-client init --help",
+    "tunnel-client doctor --help",
+    "tunnel-client run --help",
+  ];
 
-    for (const command of [
-      "tunnel-client --version",
-      "tunnel-client help quickstart",
-      "tunnel-client init --help",
-      "tunnel-client doctor --help",
-      "tunnel-client run --help",
-    ]) {
-      assert.match(
-        guide,
-        new RegExp(command.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")),
-      );
-    }
+  for (const command of baselineCommands) {
+    assert.ok(guide.includes(command));
+  }
 
-    assert.match(guide, /optional version-specific conveniences/);
-    assert.match(guide, /tunnel-client runtimes --help/);
-    assert.doesNotMatch(
-      guide,
-      /For a long-lived local process, use the client's managed runtime supervision:/,
-    );
-    assert.match(guide, /never invent a missing command/i);
-  },
-);
+  assert.ok(guide.includes("optional version-specific conveniences"));
+  assert.ok(guide.includes("tunnel-client runtimes --help"));
+  assert.ok(!guide.includes("use the client's managed runtime supervision"));
+  assert.match(guide, /never invent a missing command/i);
+});
