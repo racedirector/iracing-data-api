@@ -15,10 +15,10 @@
  * Host and optional Origin are checked against exact allowlists before MCP work.
  * Uploads are bounded before parsing or SDK construction; protocol failures use
  * fixed text. Tool admission, deadlines and drain limits are declared below.
- * Health/initialize/listing remain available without valid upstream credentials;
- * liveness does not establish account access. This unauthenticated loopback MCP
- * boundary assumes trusted local users and cannot protect against a malicious
- * same-user process. iRacing tokens are not MCP bearer credentials.
+ * Health remains separate from MCP ingress authorization. When no remote OAuth
+ * boundary is configured, the existing trusted-loopback unauthenticated behavior
+ * is unchanged. When configured, bearer authentication runs before MCP protocol
+ * work and verified AuthInfo is carried into the SDK request context.
  *
  * Shutdown stops admission, drains or cancels bounded HTTP work, closes logical
  * MCP sessions, then invokes the credential owner's shutdown hook. Cleanup
@@ -33,8 +33,10 @@ import {
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   WebStandardStreamableHTTPServerTransport,
+  type AuthInfo,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
+import type { McpAuthorizationBoundary } from "./authorization.js";
 import {
   ApplicationFailure,
   ErrorEnvelopeSchema,
@@ -76,6 +78,9 @@ export interface HttpApplicationOptions {
 
   /** Long-lived OAuth and Data API dependencies shared across all MCP lifetimes. */
   readonly services: McpServices;
+
+  /** Optional remote OAuth resource-server boundary; absence preserves local mode. */
+  readonly authorization?: McpAuthorizationBoundary;
 
   /** Optional registrar used by tests or later slices to add tools. */
   readonly registerTools?: McpToolRegistrar;
@@ -149,6 +154,36 @@ function readBoundedBody(req: IncomingMessage, signal: AbortSignal) {
       abort();
     }
   });
+}
+
+/** Builds a bodyless web Request for OAuth metadata/authentication checks. */
+function webRequest(req: IncomingMessage, baseUrl: URL) {
+  const headers = new Headers();
+
+  for (let index = 0; index < req.rawHeaders.length; index += 2) {
+    headers.append(req.rawHeaders[index]!, req.rawHeaders[index + 1] ?? "");
+  }
+
+  return new Request(new URL(req.url ?? "/", baseUrl), {
+    method: req.method ?? "GET",
+    headers,
+  });
+}
+
+/** Writes a web-standard Response to Node without exposing body/header values to logs. */
+async function writeWebResponse(res: ServerResponse, response: Response) {
+  const headers: Record<string, string> = {};
+  response.headers.forEach((value, name) => {
+    headers[name] = value;
+  });
+
+  res.writeHead(response.status, headers);
+  if (response.body === null) {
+    res.end();
+    return;
+  }
+
+  res.end(Buffer.from(await response.arrayBuffer()));
 }
 
 interface Admission {
@@ -601,6 +636,7 @@ async function forwardMcpRequest(
   resolved: ResolvedMcpRequest,
   logger: DiagnosticLogger,
   context: RequestContext,
+  authInfo?: AuthInfo,
 ) {
   const handler = toNodeHandler(
     {
@@ -611,9 +647,12 @@ async function forwardMcpRequest(
 
         const response = await resolved.session.transport.handleRequest(
           scopedRequest,
-          resolved.body === undefined
-            ? undefined
-            : { parsedBody: resolved.body },
+          {
+            ...(resolved.body === undefined
+              ? {}
+              : { parsedBody: resolved.body }),
+            ...(authInfo === undefined ? {} : { authInfo }),
+          },
         );
 
         // SDK HTTP failures may echo protocol headers or exception data.
@@ -732,6 +771,25 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       return reply(503, "Server is shutting down.");
     }
 
+    if (options.authorization) {
+      const metadataResponse = options.authorization.metadataResponse(
+        webRequest(req, options.authorization.resourceUrl),
+      );
+
+      if (metadataResponse) {
+        logger.log("info", context, { status: metadataResponse.status });
+        void writeWebResponse(res, metadataResponse).catch((error) => {
+          logger.failure(context, error);
+          if (!res.headersSent) {
+            reply(500, "Request failed.");
+          } else {
+            res.destroy();
+          }
+        });
+        return;
+      }
+    }
+
     if (req.url === "/healthz") {
       if (req.method !== "GET") {
         return reply(405, "Method not allowed.");
@@ -786,6 +844,22 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       let resolved: ResolvedMcpRequest | undefined;
 
       try {
+        let authInfo: AuthInfo | undefined;
+
+        if (options.authorization) {
+          const authorization = await options.authorization.authorize(
+            webRequest(req, options.authorization.resourceUrl),
+          );
+
+          if (authorization instanceof Response) {
+            logger.log("info", context, { status: authorization.status });
+            await writeWebResponse(res, authorization);
+            return;
+          }
+
+          authInfo = authorization;
+        }
+
         resolved =
           req.method === "POST"
             ? await resolvePostRequest(
@@ -820,6 +894,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           resolved,
           logger,
           context,
+          authInfo,
         );
       } catch (error) {
         const oversized =
