@@ -1,0 +1,25 @@
+name: Format debug
+
+on:
+  push:
+    branches:
+      - issue-426-password-limited-mcp-handoff
+
+permissions:
+  contents: read
+
+jobs:
+  prettier-diff:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6.1.0
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - name: Print formatter diff
+        run: |
+          pnpm exec prettier --write apps/iracing-data-mcp/test/password-limited-bootstrap.test.cjs
+          git diff -- apps/iracing-data-mcp/test/password-limited-bootstrap.test.cjs
