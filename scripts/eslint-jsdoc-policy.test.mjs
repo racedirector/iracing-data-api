@@ -39,6 +39,29 @@ test("authored exported declaration categories require JSDoc", async (t) => {
   }
 });
 
+test("authored schema, telemetry and session filenames remain covered", async (t) => {
+  for (const filePath of [
+    "packages/oauth/schema/src/schema.ts",
+    "packages/oauth/client/src/telemetry.ts",
+    "packages/oauth/client/src/session.ts",
+  ]) {
+    await t.test(filePath, async () => {
+      const source = "export interface AuthoredContract {}";
+      await expectRule(source, "jsdoc/require-jsdoc", filePath);
+      await expectRule(
+        `/** */\n${source}`,
+        "jsdoc/require-description",
+        filePath,
+      );
+      await expectRule(
+        `/** Returns the result. */\n${source}`,
+        "jsdoc/match-description",
+        filePath,
+      );
+    });
+  }
+});
+
 test("meaningful description satisfies coverage without redundant type tags", async () => {
   const messages = await jsdocMessages(`
 /**
@@ -97,6 +120,16 @@ test("generated, test and example exports are outside authored API coverage", as
       "packages/oauth/client/generated/src/__jsdoc-policy-fixture__.ts",
     ],
     [
+      "generated Fetch client",
+      "export interface GeneratedContract {}",
+      "packages/api/client/fetch/src/__jsdoc-policy-fixture__.ts",
+    ],
+    [
+      "generated Axios client",
+      "export interface GeneratedContract {}",
+      "packages/api/client/axios/src/__jsdoc-policy-fixture__.ts",
+    ],
+    [
       "test",
       "export interface TestContract {}",
       "apps/iracing-data-cli/src/__jsdoc-policy-fixture__.test.ts",
@@ -109,12 +142,17 @@ test("generated, test and example exports are outside authored API coverage", as
   ];
 
   for (const [name, source, filePath] of excluded) {
-    await t.test(name, async () => {
-      const messages = await jsdocMessages(source, filePath);
-      assert.equal(
-        messages.some((message) => message.ruleId === "jsdoc/require-jsdoc"),
-        false,
-      );
+    await t.test(name, async (t) => {
+      for (const [description, comment] of [
+        ["no JSDoc", ""],
+        ["empty JSDoc", "/** */\n"],
+        ["placeholder description", "/** Returns the result. */\n"],
+      ]) {
+        await t.test(description, async () => {
+          const messages = await jsdocMessages(`${comment}${source}`, filePath);
+          assert.deepEqual(messages, []);
+        });
+      }
     });
   }
 });

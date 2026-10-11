@@ -35,8 +35,9 @@ function capacity(): never {
 }
 
 /**
- * Builds a successful MCP tool result whose structured and text projections are identical and
- * jointly constrained by the response-size policy.
+ * Builds a successful MCP tool result with the original value as structuredContent and a JSON
+ * text serialization that may omit unsupported values. Both projections are jointly constrained
+ * by the response-size policy.
  */
 export function completeResult(value: Record<string, unknown>) {
   const result = {
