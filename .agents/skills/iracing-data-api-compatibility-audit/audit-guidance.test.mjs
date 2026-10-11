@@ -28,12 +28,21 @@ test("Data API audit guidance uses current generated-client retrieval", () => {
   }
   assert.match(skill, /current authoritative/i);
   assert.match(skill, /generated Data API client/i);
+  assert.match(skill, /runtime discovery/);
   assert.match(workflow, /apps\/iracing-data-cli\/dist\/index\.js docs/);
   assert.match(workflow, /scripts\/audit-data-docs\.cjs -/);
   assert.match(
     tooling,
     /does \*\*not\*\* maintain a generic upstream evidence runtime/,
   );
+});
+
+test("guidance preserves compatibility maintenance and regeneration", () => {
+  assert.match(skill, /compatibility maintenance/i);
+  assert.match(skill, /#repair-and-regenerate/);
+  assert.match(workflow, /## Repair and regenerate/);
+  assert.match(workflow, /same current response/i);
+  assert.match(workflow, /pnpm codegen:client:api/);
 });
 
 test("guidance preserves application ownership of opaque returned links", () => {
