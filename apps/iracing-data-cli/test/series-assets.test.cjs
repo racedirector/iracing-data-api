@@ -3,8 +3,7 @@ const test = require("node:test");
 
 const diagnostics = { info() {}, warn() {}, error() {} };
 const payload = { series: [{ series_id: 1, logo: "/img/series/1.png" }] };
-const loadScope = () =>
-  import("../dist/commands/assets/series/scope.js");
+const loadScope = () => import("../dist/commands/assets/series/scope.js");
 
 function dependencies(overrides = {}) {
   return {
