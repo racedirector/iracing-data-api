@@ -111,7 +111,8 @@ test("password-limited bootstrap uses the canonical MCP owner", async (t) => {
   };
   const restartedOwner = await api.createMcpServices(options);
   assert.equal(restartedOwner.authorizationState(), "ready");
-  const restartedAccess = await restartedOwner.dataApiConfiguration.accessToken();
+  const restartedAccess =
+    await restartedOwner.dataApiConfiguration.accessToken();
   assert.equal(restartedAccess, rotated.access_token);
   await restartedOwner.shutdownAuthorizationOwner();
 });
