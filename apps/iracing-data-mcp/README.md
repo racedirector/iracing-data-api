@@ -113,9 +113,9 @@ No team or unbounded all-driver search is exposed.
 
 Continue with the returned cursor alone. Restart or authorization loss invalidates
 continuations; expired queries must start again. A filtered search can return an
-empty page with a continuation. See the owning [collection](src/tools/collections.ts)
-and [search](src/tools/search.ts) modules for retention/replay contracts and
-[gateway policy](src/gateway/policy.ts) for resource bounds.
+empty page with a continuation. See the owning [collection](../../packages/mcp/server/src/tools/collections.ts)
+and [search](../../packages/mcp/server/src/tools/search.ts) modules for retention/replay contracts and
+[gateway policy](../../packages/mcp/server/src/gateway/policy.ts) for resource bounds.
 
 Errors return `isError:true`, safe JSON text and
 `structuredContent.error` with fixed `code`, `message`, `retryable`, generated
@@ -155,7 +155,7 @@ can access this unauthenticated boundary; it does not defend against malicious
 same-user processes. Treat upstream names/text as untrusted data.
 
 See [production configuration](src/production.ts), [HTTP security](src/http.ts)
-and [upstream policy](src/gateway/policy.ts) for the enforced boundaries.
+and [upstream policy](../../packages/mcp/server/src/gateway/policy.ts) for the enforced boundaries.
 
 Local packaging and 22 Docker recovery acceptance groups passed on macOS arm64
 with Docker 29.5.2, a linux/arm64 runtime and Node 24.21.0. The same 22 groups
@@ -183,8 +183,8 @@ live upstream evidence is separate and opt-in, following
 not establish live completeness. Follow [scoped guidance](AGENTS.md) and the
 [composition/lifetime record](architecture.md) before changing ownership.
 
-Application compatibility is owned by [tool contracts](src/tools/contracts.ts)
-and [registration/projection](src/tools/identity-content.ts). This is a private app;
+Application compatibility is owned by [tool contracts](../../packages/mcp/server/src/tools/contracts.ts)
+and [registration/projection](../../packages/mcp/server/src/tools/identity-content.ts). This is a private app;
 independent publication/release policy requires a separate decision.
 
 Rollout stops/drains the current owner, builds the reviewed SHA image, preserves

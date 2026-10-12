@@ -4,6 +4,7 @@ packages:
   - "packages/api/*"
   - "packages/api/client/*"
   - "packages/helpers/*"
+  - "packages/mcp/*"
   - "packages/oauth/*"
   - "packages/oauth/client/*"
 allowBuilds:

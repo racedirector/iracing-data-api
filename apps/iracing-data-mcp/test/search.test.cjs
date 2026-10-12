@@ -38,7 +38,10 @@ const manifest = (chunks, changes = {}) => ({
 });
 const initial = { cust_id: 7, range: { season_year: 2026, season_quarter: 4 } };
 async function fixture(t, data = {}, options = {}) {
-  const api = await import("../dist/index.js");
+  const api = {
+    ...(await import("../dist/index.js")),
+    ...(await import("@iracing-data/mcp-server")),
+  };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let now = Date.now();
@@ -545,7 +548,8 @@ test("cache 403 retires the exact search handle and explicit release never inval
   assert.equal(f.gateway.hasSearch({ ...two }), false);
 });
 test("canceling a search continuation does not advance or publish its offset", async (t) => {
-  const { SearchCursors } = await import("../dist/tools/search.js");
+  const { SearchCursors } =
+    await import("../../../packages/mcp/server/dist/tools/search.js");
   const f = await fixture(t);
   const owner = new SearchCursors(f.gateway, () => f.now());
   const ready = new AbortController();

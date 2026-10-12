@@ -22,6 +22,14 @@
  */
 import { Configuration } from "@iracing-data/api-client-fetch";
 import {
+  ApplicationFailure,
+  createRequestContext,
+  createDiagnosticLogger,
+  DataApiGateway,
+  type AuthorizationState,
+  type McpServices,
+} from "@iracing-data/mcp-server";
+import {
   OAuthClient,
   OAuthRefreshError,
   OAuthTokenDocumentSessionStore,
@@ -29,23 +37,11 @@ import {
   type OAuthTokenResponse,
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
-import {
-  ApplicationFailure,
-  createRequestContext,
-} from "./diagnostics/errors.js";
-import { createDiagnosticLogger } from "./diagnostics/logging.js";
-import { DataApiGateway } from "./gateway/gateway.js";
-import type { McpServices } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
 export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";
 
-/**
- * MCP session authorization states used to distinguish usable credentials from refresh and
- * reauthorization requirements.
- */
-export type AuthorizationState =
-  "ready" | "authorization_required" | "configuration_error";
+export type { AuthorizationState } from "@iracing-data/mcp-server";
 
 /**
  * Host-provided composition inputs for MCP session services, including credential persistence

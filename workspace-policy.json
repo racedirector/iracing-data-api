@@ -85,6 +85,13 @@
       "owner": "codegen"
     },
     {
+      "path": "packages/mcp/server",
+      "name": "@iracing-data/mcp-server",
+      "ecosystem": "npm",
+      "kind": "internal-tool",
+      "owner": "api"
+    },
+    {
       "path": "packages/oauth/client",
       "name": "@iracing-data/oauth-client",
       "ecosystem": "npm",

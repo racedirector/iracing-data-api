@@ -15,7 +15,6 @@ import {
   ProtocolErrorCode,
 } from "@modelcontextprotocol/server";
 import { registerIdentityContentTools } from "./tools/identity-content.js";
-import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
 /**
@@ -34,7 +33,7 @@ const toolRegistrars: readonly McpToolRegistrar[] = [
 ];
 
 /**
- * Registers the app-owned tool surface on one MCP session/exchange server.
+ * Registers the package-owned tool surface on one MCP session/exchange server.
  *
  * Tool slices add registrars here; transports and shared services remain outside
  * this function so server instances follow the verified transport/session lifetime.
@@ -51,7 +50,7 @@ export function registerMcpTools(
 /** Inputs required to construct one MCP session/exchange server instance. */
 export interface CreateMcpServerOptions {
   /** Stable application identity advertised during MCP initialization. */
-  readonly config: McpApplicationConfig;
+  readonly config: Readonly<{ name: string; version: string }>;
 
   /** Long-lived dependencies shared by all MCP server instances. */
   readonly services: McpServices;
