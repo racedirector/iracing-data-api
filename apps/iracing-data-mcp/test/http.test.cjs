@@ -152,10 +152,10 @@ test("exact HTTP Host and Origin protections on all routes", async (t) => {
     assert.equal((await request({ headers: { Origin: origin } })).status, 403);
 });
 
-test("methods, unknown paths, safe health and body limits", async (t) => {
+test("Express routes preserve health and bounded requests", async (t) => {
   const { request, logs } = await fixture(t);
   for (const method of ["GET", "DELETE", "PUT"])
-    assert.equal((await request({ method, body: "" })).status, 405);
+    assert.equal((await request({ method, body: "" })).status, 404);
   assert.equal((await request({ path: "/auth/iracing" })).status, 404);
   assert.equal((await request({ path: "/missing" })).status, 404);
   const health = await request({ path: "/healthz", method: "GET", body: "" });
@@ -174,33 +174,19 @@ test("methods, unknown paths, safe health and body limits", async (t) => {
   assert.equal((await request({ body: base.padEnd(65536, " ") })).status, 200);
   assert.equal((await request({ body: base.padEnd(65537, " ") })).status, 413);
   assert.equal(
+    (
+      await request({
+        body: require("node:zlib").gzipSync(base),
+        headers: { "Content-Encoding": "gzip" },
+      })
+    ).status,
+    415,
+  );
+  assert.equal(
     (await request({ body: '{"secret":"SYNTHETIC_TOKEN",' })).status,
     400,
   );
   assert.ok(!logs.join("").includes("SYNTHETIC_TOKEN"));
-});
-
-test("chunked oversize is rejected before request completion", async (t) => {
-  const { port } = await fixture(t);
-  await new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        host: "127.0.0.1",
-        port,
-        path: "/mcp",
-        method: "POST",
-        headers: { Host: "localhost:3000", "Transfer-Encoding": "chunked" },
-      },
-      (res) => {
-        assert.equal(res.statusCode, 413);
-        res.resume();
-        res.on("end", resolve);
-      },
-    );
-    req.on("error", reject);
-    req.write(Buffer.alloc(65537, 32)); // deliberately never end the upload
-    t.after(() => req.destroy());
-  });
 });
 
 test("official MCP client initializes, lists and calls stateless JSON tools", async (t) => {

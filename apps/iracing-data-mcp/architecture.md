@@ -18,6 +18,17 @@ beside their owners:
 | Shared retention                                   | [retention.ts](../../packages/mcp/server/src/retention.ts)                                                                                                                                               |
 | Safe diagnostics and failure mapping               | [errors.ts](../../packages/mcp/server/src/diagnostics/errors.ts), [logging.ts](../../packages/mcp/server/src/diagnostics/logging.ts), [mapping.ts](../../packages/mcp/server/src/diagnostics/mapping.ts) |
 
+The host uses Express 5 for routing, bounded JSON parsing and async error dispatch.
+`@modelcontextprotocol/express` owns the optional bearer gate; the official
+`@modelcontextprotocol/node` adapter forwards parsed bodies and request-local
+`req.auth` to the SDK transport. The host retains exact Host/Origin policy,
+protocol/tool error redaction, admission/deadlines, cancellation and bounded drain.
+Unsupported routes/methods use Express's normal 404 handling; MCP batch requests
+remain unsupported so each HTTP exchange has one operation cancellation scope.
+JSON uploads are limited to 64 KiB; compressed uploads are rejected. The framework
+may drain an oversized upload before returning its error; request/header timeouts
+and shutdown still bound incomplete uploads.
+
 Production uses the 2025-era Streamable HTTP session model: initialize owns one
 SDK server/transport pair, subsequent requests route by `Mcp-Session-Id`, and
 DELETE or process shutdown disposes that pair. OAuth/session persistence, the
@@ -25,6 +36,10 @@ Data API gateway, retention and cursor owners remain process/account scoped.
 Request abort/deadline state remains request/tool-operation scoped and must not
 be captured by those longer-lived owners. The HTTP factory can still be composed
 without a session ID generator for explicitly stateless protocol tests/embeddings.
+The installed server SDK 2.3.1 `createMcpHandler` offers only stateless/reject
+legacy serving, so the host keeps the session registry required by #432 rather
+than replacing it with that factory. One Node adapter belongs to each session;
+its small response filter redacts SDK errors that can echo untrusted headers.
 
 Use the [README](README.md) for tools/workflows and [container guide](local-container.md)
 for deployment, stopped credential recovery and rollback. Source describes the
