@@ -30,8 +30,9 @@ long-lived gateway or token callback. Failures from the host should be sanitized
 
 The package requires no OAuth client, token document, credential path, health
 callback or shutdown hook. The app owns these through its local composition and
-`ApplicationServices` lifecycle contract; OAuth failure classification also lives
-in the app.
+separate HTTP health/shutdown options. Production passes only the provider's
+`getDataApiGateway` function into the package; OAuth failure classification also
+lives in the app.
 
 Build the package and its dependencies from the repository root:
 

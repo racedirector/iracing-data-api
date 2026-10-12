@@ -44,7 +44,7 @@ async function fixture(t) {
     write: (value) =>
       oauth.writeOAuthTokenDocument(file, value, { overwrite: true }),
     start: (overrides = {}) =>
-      api.createMcpServices({ ...options, ...overrides }),
+      api.createFileBackedIracingAccess({ ...options, ...overrides }),
   };
 }
 function failure(api, reason, retryable = false) {
@@ -309,7 +309,9 @@ test("real health, initialize, listing and tool errors stay safe before and afte
   async function appFor(services) {
     const app = f.api.createHttpApplication({
       config: f.api.parseMcpApplicationConfig(),
-      services,
+      services: { getDataApiGateway: services.getDataApiGateway },
+      authorizationState: services.authorizationState,
+      shutdownAuthorizationOwner: services.shutdownAuthorizationOwner,
       logger: f.options.logger,
       registerTools(server) {
         server.registerTool(

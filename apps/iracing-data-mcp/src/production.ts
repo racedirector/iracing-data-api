@@ -26,7 +26,10 @@ import {
   createDefaultMcpJwtVerifier,
   remoteAuthorizationFromEnv,
 } from "./jwt-verifier.js";
-import { createMcpServices, MCP_CREDENTIAL_FILE } from "./session.js";
+import {
+  createFileBackedIracingAccess,
+  MCP_CREDENTIAL_FILE,
+} from "./session.js";
 
 /** Creates a recovery error without including configuration values or underlying errors. */
 const configurationError = () =>
@@ -233,7 +236,7 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
     ? await readProductionSecret(config.secretFile)
     : undefined;
 
-  const services = await createMcpServices({
+  const upstreamAccess = await createFileBackedIracingAccess({
     clientMetadata: {
       clientId: config.clientId,
       clientSecret,
@@ -244,7 +247,9 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
 
   const app = createHttpApplication({
     config: parseMcpApplicationConfig(),
-    services,
+    services: { getDataApiGateway: upstreamAccess.getDataApiGateway },
+    authorizationState: upstreamAccess.authorizationState,
+    shutdownAuthorizationOwner: upstreamAccess.shutdownAuthorizationOwner,
     authorization,
     allowedHosts: config.allowedHosts,
     allowedOrigins: config.allowedOrigins,

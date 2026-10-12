@@ -39,6 +39,7 @@ import {
   healthDiagnostics,
   createMcpServer,
   type McpToolRegistrar,
+  type McpServices,
 } from "@iracing-data/mcp-server";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
@@ -48,7 +49,7 @@ import {
 } from "@modelcontextprotocol/server";
 import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
-import type { ApplicationServices } from "./services.js";
+import type { AuthorizationState } from "./session.js";
 
 export const transportLimits = Object.freeze({
   bodyBytes: 64 * 1024,
@@ -75,8 +76,12 @@ export interface HttpApplicationOptions {
   /** Stable application identity advertised by MCP session/exchange servers. */
   readonly config: McpApplicationConfig;
 
-  /** Long-lived OAuth and Data API dependencies shared across all MCP lifetimes. */
-  readonly services: ApplicationServices;
+  /** Request-scoped Data API access borrowed by package tools. */
+  readonly services: McpServices;
+
+  /** Host health and process cleanup; never passed to the MCP package. */
+  readonly authorizationState?: () => AuthorizationState;
+  readonly shutdownAuthorizationOwner?: () => Promise<void>;
 
   /** Optional bearer boundary; absence preserves trusted-local behavior. */
   readonly authorization?: McpAuthorizationBoundary;
@@ -435,7 +440,8 @@ async function createMcpSession(
   stateful: boolean,
 ) {
   const mcp = createMcpServer({
-    ...options,
+    config: options.config,
+    services: options.services,
     registerTools: options.registerTools,
   });
 
@@ -762,7 +768,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           version: "0.0.0",
           live: true,
           ...healthDiagnostics({
-            auth_state: options.services.authorizationState?.(),
+            auth_state: options.authorizationState?.(),
           }),
         }),
       );
@@ -963,7 +969,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
             ),
           );
         })
-        .then(() => options.services.shutdownAuthorizationOwner?.());
+        .then(() => options.shutdownAuthorizationOwner?.());
 
       return shutdownPromise;
     },

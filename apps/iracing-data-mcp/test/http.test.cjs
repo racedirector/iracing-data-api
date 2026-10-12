@@ -26,12 +26,7 @@ async function fixture(t, registerTools, clock = timers()) {
   const services = new Proxy(
     {},
     {
-      get(_target, key) {
-        if (
-          key === "authorizationState" ||
-          key === "shutdownAuthorizationOwner"
-        )
-          return undefined;
+      get() {
         throw new Error("Unexpected upstream service access");
       },
     },
@@ -567,4 +562,65 @@ test("SDK HTTP error text cannot echo secret-bearing protocol headers", async (t
   });
   assert.equal(result.status, 400);
   assert.ok(![result.text, ...logs].join("").includes("SYNTHETIC_TOKEN"));
+});
+
+test("HTTP owns health and cleanup while the package borrows only Data API access", async (t) => {
+  const api = await import("../dist/index.js");
+  const services = Object.freeze({
+    getDataApiGateway: () => {
+      throw new Error("unexpected upstream access");
+    },
+  });
+  let cleanup = 0;
+  let registrations = 0;
+  const allowedHosts = [];
+  const app = api.createHttpApplication({
+    allowedHosts,
+    allowedOrigins: [],
+    config: api.parseMcpApplicationConfig(),
+    services,
+    authorizationState: () => "authorization_required",
+    shutdownAuthorizationOwner: async () => {
+      cleanup++;
+    },
+    registerTools(_server, borrowed) {
+      registrations++;
+      assert.strictEqual(borrowed, services);
+      assert.deepEqual(Object.keys(borrowed), ["getDataApiGateway"]);
+    },
+    logger: api.createDiagnosticLogger(() => {}),
+  });
+  await app.listen(0, "127.0.0.1");
+  t.after(() => app.shutdown());
+  allowedHosts.push("127.0.0.1:" + app.server.address().port);
+  const url = "http://" + allowedHosts[0];
+  const health = await fetch(url + "/healthz", {
+    headers: { Host: allowedHosts[0] },
+  });
+  assert.equal(health.status, 200);
+  assert.equal((await health.json()).auth_state, "authorization_required");
+  const initialized = await fetch(url + "/mcp", {
+    method: "POST",
+    headers: {
+      Host: allowedHosts[0],
+      "Content-Type": "application/json",
+      Accept: "application/json, text/event-stream",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 1,
+      method: "initialize",
+      params: {
+        protocolVersion: "2025-11-25",
+        capabilities: {},
+        clientInfo: { name: "host-composition", version: "1" },
+      },
+    }),
+  });
+  assert.equal(initialized.status, 200);
+  await initialized.text();
+  assert.equal(registrations, 1);
+  assert.equal(cleanup, 0);
+  await Promise.all([app.shutdown(), app.shutdown()]);
+  assert.equal(cleanup, 1);
 });
