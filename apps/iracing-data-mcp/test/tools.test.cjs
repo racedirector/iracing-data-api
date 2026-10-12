@@ -109,9 +109,7 @@ async function fixture(t, data = {}, options = {}) {
     },
   });
   const services = {
-    oauthClient: {},
-    dataApiConfiguration: {},
-    dataApiGateway: gateway,
+    getDataApiGateway: () => gateway,
     authorizationState: () => state,
   };
   const app = api.createHttpApplication({

@@ -70,6 +70,10 @@ test("auth-only bare document loads without network, rotates once, and restarts 
   await f.write(token({ access_token: jwt(1) }));
   const services = await f.start();
   assert.equal(services.authorizationState(), "ready");
+  assert.strictEqual(
+    await services.getDataApiGateway({ signal: new AbortController().signal }),
+    services.dataApiGateway,
+  );
   let grants = 0;
   let release;
   const gate = new Promise((resolve) => (release = resolve));

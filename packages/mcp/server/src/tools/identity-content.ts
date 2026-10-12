@@ -26,6 +26,7 @@ import { z } from "zod";
 import {
   ApplicationFailure,
   createRequestContext,
+  errorEnvelope,
   toolError,
 } from "../diagnostics/errors.js";
 import { parse } from "../gateway/parsers.js";
@@ -177,7 +178,10 @@ export function registerIdentityContentTools(
             throw new ApplicationFailure("INVALID_INPUT");
           }
 
-          const gateway = services.dataApiGateway;
+          const gateway = await services.getDataApiGateway?.({
+            authInfo: ctx.http?.authInfo,
+            signal: ctx.mcpReq.signal,
+          });
 
           if (!gateway) {
             throw new ApplicationFailure("CONFIGURATION_ERROR");
@@ -191,7 +195,12 @@ export function registerIdentityContentTools(
           } catch (error) {
             // Auth loss and gateway invalidation retire projected state too. A
             // quarantined single-owner service cannot hot-replace an account.
-            if (services.authorizationState?.() !== "ready") {
+            if (
+              error instanceof ApplicationFailure &&
+              ["AUTHORIZATION_REQUIRED", "TOKEN_REFRESH_FAILED"].includes(
+                errorEnvelope(error, context).error.code,
+              )
+            ) {
               owners.get(gateway)?.invalidate();
             }
 

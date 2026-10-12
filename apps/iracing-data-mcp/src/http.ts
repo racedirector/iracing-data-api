@@ -39,7 +39,6 @@ import {
   healthDiagnostics,
   createMcpServer,
   type McpToolRegistrar,
-  type McpServices,
 } from "@iracing-data/mcp-server";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
@@ -49,6 +48,7 @@ import {
 } from "@modelcontextprotocol/server";
 import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
+import type { ApplicationServices } from "./services.js";
 
 export const transportLimits = Object.freeze({
   bodyBytes: 64 * 1024,
@@ -76,7 +76,7 @@ export interface HttpApplicationOptions {
   readonly config: McpApplicationConfig;
 
   /** Long-lived OAuth and Data API dependencies shared across all MCP lifetimes. */
-  readonly services: McpServices;
+  readonly services: ApplicationServices;
 
   /** Optional bearer boundary; absence preserves trusted-local behavior. */
   readonly authorization?: McpAuthorizationBoundary;

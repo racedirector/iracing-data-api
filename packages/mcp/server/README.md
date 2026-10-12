@@ -9,14 +9,29 @@ It is not a public release target.
 The [application host](../../../apps/iracing-data-mcp/architecture.md) consumes this
 package and still owns HTTP/transport sessions, ingress authorization, production
 configuration, credential import/refresh/persistence and process shutdown. It
-constructs the existing `McpServices` bag and passes it to `createMcpServer`.
+provides `McpServices.getDataApiGateway(context)` to `createMcpServer`.
 The factory accepts the same validated name/version identity supplied by the host.
 
-This first slice deliberately retains the current service contract, including
-`OAuthClient`, generated Fetch configuration, authorization state and the shutdown
-hook. The package also retains the OAuth dependency used by shared failure mapping.
-These are temporary seams for the next boundary issue; no credential store,
-provider framework or new HTTP adapter is introduced here.
+The only tool access capability is a function returning an account-owned
+`DataApiGateway`, synchronously or asynchronously. The request context contains
+the cancellation signal and optional framework-validated ingress `AuthInfo`.
+The host interprets that identity and selects an upstream account; the package
+performs no claim mapping or authorization policy.
+
+A local host can return one fixed gateway configured with the generated Fetch
+`Configuration.accessToken` callback. A database-backed host can obtain tokens
+in the same callback and select a separate gateway for each account. Credential
+refresh and persistence remain in that callback's host implementation. Return a
+stable gateway per account so continuations reuse its cursor/retention owners;
+never share a gateway across accounts. Call `gateway.invalidate()` when replacing
+an account or revoking its access. Request context must not be retained in the
+long-lived gateway or token callback. Failures from the host should be sanitized
+`ApplicationFailure` instances.
+
+The package requires no OAuth client, token document, credential path, health
+callback or shutdown hook. The app owns these through its local composition and
+`ApplicationServices` lifecycle contract; OAuth failure classification also lives
+in the app.
 
 Build the package and its dependencies from the repository root:
 

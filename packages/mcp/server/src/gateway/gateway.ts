@@ -55,7 +55,7 @@ import {
   errorEnvelope,
 } from "../diagnostics/errors.js";
 import { createDiagnosticLogger } from "../diagnostics/logging.js";
-import { mapFailure } from "../diagnostics/mapping.js";
+import { mapDataApiFailure } from "../diagnostics/mapping.js";
 import { RetentionBudget } from "../retention.js";
 import {
   arrayPayload,
@@ -309,7 +309,7 @@ export class DataApiGateway {
     } catch (error) {
       throw error instanceof ApplicationFailure
         ? error
-        : mapFailure(error, { domain: "upstream" });
+        : mapDataApiFailure(error, { domain: "upstream" });
     } finally {
       if (rejectAbort) {
         controller.signal.removeEventListener("abort", rejectAbort);

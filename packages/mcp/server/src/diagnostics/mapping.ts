@@ -1,5 +1,5 @@
 /**
- * Failure normalization between OAuth, generated Fetch and app boundaries.
+ * Failure normalization between generated Fetch and tool boundaries.
  *
  * Map known types and explicit context evidence without reading response bodies,
  * matching messages, recursively walking causes or attempting refresh. Session
@@ -12,13 +12,6 @@ import {
   RequiredError,
   ResponseError,
 } from "@iracing-data/api-client-fetch";
-import {
-  ClientMetadataError,
-  OAuthClaimsError,
-  OAuthRefreshError,
-  OAuthTokenDocumentError,
-  SessionNotFoundError,
-} from "@iracing-data/oauth-client";
 import {
   ApplicationFailure,
   ProtocolFailure,
@@ -34,14 +27,10 @@ export interface MappingContext {
 
   /** Only set when the gateway has confirmed account entitlement denial. */
   readonly upstreamAuthorization?: "account_entitlement";
-
-  /** Set by the session owner from lifecycle evidence, never an error message. */
-  readonly refreshOutcome?:
-    "safe_to_retry" | "rotation_uncertain" | "persistence_failed";
 }
 
 /** Minimal seams only: no body reads, message matching, recursive causes, or refresh. */
-export function mapFailure(
+export function mapDataApiFailure(
   error: unknown,
   context: MappingContext,
 ): ApplicationFailure | ProtocolFailure {
@@ -53,73 +42,8 @@ export function mapFailure(
     return error;
   }
 
-  if (
-    context.domain === "configuration" ||
-    error instanceof ClientMetadataError
-  ) {
+  if (context.domain === "configuration") {
     return new ApplicationFailure("CONFIGURATION_ERROR");
-  }
-
-  if (context.domain === "oauth_session") {
-    if (context.refreshOutcome === "persistence_failed") {
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "persistence_failed",
-      });
-    }
-
-    if (context.refreshOutcome === "rotation_uncertain") {
-      return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-        reason: "rotation_uncertain",
-      });
-    }
-
-    if (error instanceof SessionNotFoundError) {
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "missing_session",
-      });
-    }
-
-    if (
-      error instanceof OAuthClaimsError ||
-      error instanceof OAuthTokenDocumentError
-    ) {
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "invalid_session",
-      });
-    }
-
-    if (error instanceof OAuthRefreshError) {
-      // OAuthRefreshError.from retains oauth4webapi's library code, not its
-      // OAuth error identifier. Inspect only the exact retained discriminator.
-      const cause = Object.getOwnPropertyDescriptor(error, "cause")?.value;
-
-      const oauthCode =
-        error.code === "OAUTH_RESPONSE_BODY_ERROR" &&
-        cause !== null &&
-        typeof cause === "object"
-          ? Object.getOwnPropertyDescriptor(cause, "error")?.value
-          : undefined;
-
-      if (
-        [
-          "invalid_grant",
-          "MISSING_REFRESH_TOKEN",
-          "REFRESH_TOKEN_EXPIRED",
-        ].includes(error.code ?? "") ||
-        oauthCode === "invalid_grant"
-      ) {
-        return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-          reason: "revoked_authorization",
-        });
-      }
-    }
-
-    return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-      reason:
-        context.refreshOutcome === "safe_to_retry"
-          ? "transient_refresh"
-          : "rotation_uncertain",
-    });
   }
 
   if (context.domain === "upstream") {

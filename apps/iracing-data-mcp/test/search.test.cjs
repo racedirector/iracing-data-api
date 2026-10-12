@@ -91,9 +91,7 @@ async function fixture(t, data = {}, options = {}) {
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services: {
-      oauthClient: {},
-      dataApiConfiguration: {},
-      dataApiGateway: gateway,
+      getDataApiGateway: () => gateway,
       authorizationState: () => (ready ? "ready" : "authorization_required"),
     },
     logger: api.createDiagnosticLogger(() => {}),

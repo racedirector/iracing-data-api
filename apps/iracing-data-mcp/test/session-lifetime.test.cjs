@@ -102,9 +102,7 @@ async function toolServices(api) {
   });
 
   return Object.freeze({
-    oauthClient: {},
-    dataApiConfiguration: {},
-    dataApiGateway: gateway,
+    getDataApiGateway: () => gateway,
     authorizationState: () => "ready",
     shutdownAuthorizationOwner: async () => {},
   });

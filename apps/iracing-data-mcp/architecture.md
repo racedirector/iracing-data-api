@@ -29,7 +29,10 @@ without a session ID generator for explicitly stateless protocol tests/embedding
 Use the [README](README.md) for tools/workflows and [container guide](local-container.md)
 for deployment, stopped credential recovery and rollback. Source describes the
 shipped architecture. The [package boundary](../../packages/mcp/server/README.md)
-documents the temporary service dependencies retained by this first extraction.
+documents request-scoped gateway selection and account-scoped retention. The local
+credential owner adapts its fixed gateway through `getDataApiGateway`; health and
+shutdown hooks remain in the app-owned `ApplicationServices` contract. OAuth failure
+classification lives in [failure-mapping.ts](src/failure-mapping.ts).
 
 See [remote authorization](remote-authorization.md) for the optional MCP ingress
 resource-server boundary, distinct from the durable iRacing credential owner.
