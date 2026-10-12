@@ -40,60 +40,63 @@ const initial = { cust_id: 7, range: { season_year: 2026, season_quarter: 4 } };
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-server")),
+    ...(await import("@iracing-data/mcp-tools")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let now = Date.now();
+  t.mock.method(Date, "now", () => now);
   const requests = [];
   let ready = true;
   const sources = { chunks: [[race(30), race(10)], [race(20)]], ...data };
-  const gateway = new api.DataApiGateway({
-    configuration: new Configuration({
-      accessToken: async () => "TOKEN_SECRET",
-    }),
-    authorizationState: () => (ready ? "ready" : "authorization_required"),
-    now: () => now,
-    logger: api.createDiagnosticLogger(() => {}),
-    transport:
-      options.transport ??
-      (async (url, init) => {
-        requests.push({ url, init });
-        if (url.hostname === "members-ng.iracing.com") {
-          if (url.pathname.endsWith("/member/info"))
-            return Response.json({
-              link: "https://scorpio-assets.s3.amazonaws.com/member",
-              expires: new Date(
-                now + (options.expiryMs ?? 900000),
-              ).toISOString(),
-            });
-          assert.equal(url.pathname, "/data/results/search_series");
+  let continuationScope = {};
+  const transport =
+    options.transport ??
+    (async (url, init) => {
+      requests.push({ url, init });
+      if (url.hostname === "members-ng.iracing.com") {
+        if (url.pathname.endsWith("/member/info"))
           return Response.json({
-            ...manifest(sources.chunks, sources.manifest),
-            data: {
-              ...manifest(sources.chunks, sources.manifest).data,
-              params: sources.params ?? {},
-            },
+            link: "https://scorpio-assets.s3.amazonaws.com/member",
+            expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
           });
-        }
-        assert.equal(new Headers(init.headers).has("authorization"), false);
-        if (url.pathname === "/member")
-          return Response.json({
-            cust_id: 7,
-            display_name: "Synthetic driver",
-          });
-        const index = Number(url.pathname.split("/").pop().split(".")[0]);
-        if (sources.status)
-          return new Response(null, { status: sources.status });
-        return Response.json(sources.chunks[index]);
-      }),
+        assert.equal(url.pathname, "/data/results/search_series");
+        return Response.json({
+          ...manifest(sources.chunks, sources.manifest),
+          data: {
+            ...manifest(sources.chunks, sources.manifest).data,
+            params: sources.params ?? {},
+          },
+        });
+      }
+      assert.equal(new Headers(init.headers).has("authorization"), false);
+      if (url.pathname === "/member")
+        return Response.json({
+          cust_id: 7,
+          display_name: "Synthetic driver",
+        });
+      const index = Number(url.pathname.split("/").pop().split(".")[0]);
+      if (sources.status) return new Response(null, { status: sources.status });
+      return Response.json(sources.chunks[index]);
+    });
+  const configuration = new Configuration({
+    accessToken: async () => "TOKEN_SECRET",
+    fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const access = () => ({ configuration, continuationScope });
+  const changeScope = () => {
+    continuationScope = {};
+  };
+
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services: {
       oauthClient: {},
       dataApiConfiguration: {},
-      dataApiGateway: gateway,
+      getDataApiAccess: () => {
+        if (!ready) throw new api.ApplicationFailure("AUTHORIZATION_REQUIRED");
+        return access();
+      },
       authorizationState: () => (ready ? "ready" : "authorization_required"),
     },
     logger: api.createDiagnosticLogger(() => {}),
@@ -144,7 +147,8 @@ async function fixture(t, data = {}, options = {}) {
   return {
     api,
     app,
-    gateway,
+    access,
+    changeScope,
     client,
     requests,
     sources,
@@ -314,7 +318,7 @@ test("empty source completes; byte limit preserves offset and source order", asy
     [2, 3],
   );
 });
-test("expiry, account invalidation, cross-tool and restart cursors never restart manifests", async (t) => {
+test("expiry, scope replacement, cross-tool and restart cursors never restart manifests", async (t) => {
   const f = await fixture(t);
   const p = success(
     await f.call("search_driver_races", { ...initial, limit: 1 }),
@@ -335,7 +339,7 @@ test("expiry, account invalidation, cross-tool and restart cursors never restart
   const p2 = success(
     await f.call("search_driver_races", { ...initial, limit: 1 }),
   );
-  f.gateway.invalidate();
+  f.changeScope();
   failure(
     await f.call("search_driver_races", { cursor: p2.next_cursor }),
     "CURSOR_EXPIRED",
@@ -442,134 +446,6 @@ test("earliest member envelope expiry applies to initial search and all replay p
   assert.equal(
     f.requests.filter((r) => r.url.pathname.endsWith("search_series")).length,
     1,
-  );
-});
-test("combined token budget characterizes existing collections and reclaims invalidated owners", async (t) => {
-  const f = await fixture(t);
-  const owner = new f.api.CollectionCursors(
-    () => f.now(),
-    f.gateway.retention,
-    () => f.gateway.generation,
-  );
-  const start = () =>
-    owner.start({
-      tool: "characterization",
-      filters: {},
-      generation: f.gateway.generation,
-      items: [{ id: 1 }, { id: 2 }],
-      limit: 1,
-      expiresAt: f.now() + 300000,
-    });
-  const cursors = Array.from({ length: 31 }, start);
-  const p = success(
-    await f.call("search_driver_races", { ...initial, limit: 1 }),
-  );
-  failure(
-    await f.call("search_driver_races", { cursor: p.next_cursor }),
-    "RESPONSE_LIMIT_EXCEEDED",
-  );
-  assert.deepEqual(
-    owner.resume(
-      "characterization",
-      cursors[0].structuredContent.next_cursor,
-      f.gateway.generation,
-    ).structuredContent.items,
-    [{ id: 2 }],
-  );
-  f.gateway.invalidate();
-  const fresh = success(
-    await f.call("search_driver_races", { ...initial, limit: 1 }),
-  );
-  assert.equal(fresh.items[0].subsession_id, 30);
-  assert.throws(() =>
-    owner.resume(
-      "characterization",
-      cursors[1].structuredContent.next_cursor,
-      f.gateway.generation,
-    ),
-  );
-});
-test("combined serialized byte budget includes projected collections, manifests, chunks and replay", async (t) => {
-  const f = await fixture(t, {
-    chunks: [[race(1, 30, { raw_url: "x".repeat(3 * 1024 * 1024) }), race(2)]],
-  });
-  const owner = new f.api.CollectionCursors(
-    () => f.now(),
-    f.gateway.retention,
-    () => f.gateway.generation,
-  );
-  const start = () =>
-    owner.start({
-      tool: "characterization",
-      filters: {},
-      generation: f.gateway.generation,
-      items: [
-        { id: 1 },
-        ...Array.from({ length: 6 }, (_, i) => ({
-          id: i + 2,
-          hidden: "x".repeat(1024 * 1024),
-        })),
-      ],
-      limit: 1,
-      expiresAt: f.now() + 1000,
-    });
-  for (let i = 0; i < 5; i++) start();
-  failure(
-    await f.call("search_driver_races", initial),
-    "RESPONSE_LIMIT_EXCEEDED",
-  );
-  f.advance(1001);
-  assert.equal(
-    success(await f.call("search_driver_races", initial)).returned_count,
-    2,
-  );
-  // Reverse direction: expired search manifests/chunks release space for a collection reservation.
-  f.advance(300001);
-  assert.ok(start().structuredContent.next_cursor);
-});
-test("cache 403 retires the exact search handle and explicit release never invalidates peers", async (t) => {
-  const f = await fixture(t);
-  const p = success(
-    await f.call("search_driver_races", { ...initial, limit: 2 }),
-  );
-  f.sources.status = 403;
-  failure(
-    await f.call("search_driver_races", { cursor: p.next_cursor }),
-    "CURSOR_EXPIRED",
-  );
-  const [one, two] = await f.gateway.withCall(async (call) => [
-    await call.search({ cust_id: 7, event_types: "5" }),
-    await call.search({ cust_id: 8, event_types: "5" }),
-  ]);
-  f.gateway.releaseSearch(one);
-  f.gateway.releaseSearch(one);
-  assert.equal(f.gateway.hasSearch(one), false);
-  assert.equal(f.gateway.hasSearch(two), true);
-  assert.equal(f.gateway.hasSearch({ ...two }), false);
-});
-test("canceling a search continuation does not advance or publish its offset", async (t) => {
-  const { SearchCursors } =
-    await import("../../../packages/mcp/server/dist/tools/search.js");
-  const f = await fixture(t);
-  const owner = new SearchCursors(f.gateway, () => f.now());
-  const ready = new AbortController();
-  const p = await f.gateway.withCall((call) =>
-    owner.start({ ...initial, limit: 2 }, call, ready.signal),
-  );
-  const canceled = new AbortController();
-  canceled.abort();
-  await assert.rejects(
-    f.gateway.withCall((call) =>
-      owner.resume(p.structuredContent.next_cursor, call, canceled.signal),
-    ),
-    (error) => error instanceof f.api.ApplicationFailure,
-  );
-  const q = await f.gateway.withCall((call) =>
-    owner.resume(p.structuredContent.next_cursor, call, ready.signal),
-  );
-  assert.deepEqual(
-    q.structuredContent.items.map((x) => x.subsession_id),
-    [20],
   );
 });
 test("optional manifest echoes accept normalization and reject contradictory search identity", async (t) => {

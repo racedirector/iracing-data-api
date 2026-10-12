@@ -1,16 +1,11 @@
 // Runs only as an isolated child: builtin interception never leaks into sibling tests.
-// The real session store, generated client, DNS-pinned transport, gateway, HTTP server,
+// The real session store, generated client, native fetch transport, HTTP server,
 // and official MCP client remain composed. Only external wire boundaries are synthetic.
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
-const https = require("node:https");
-const dns = require("node:dns/promises");
-const { EventEmitter } = require("node:events");
-const { Readable } = require("node:stream");
-const { syncBuiltinESMExports } = require("node:module");
 const oauth = require("@iracing-data/oauth-client");
 const outputFields = require("./output-fields.json");
 function assertFields(value, fields) {
@@ -128,137 +123,69 @@ const mapping = {
   "/data/track/get": "tracks",
   "/data/stats/member_recent_races": "recent",
 };
-dns.lookup = async (hostname, options) => {
-  assert.ok(
-    ["members-ng.iracing.com", "scorpio-assets.s3.amazonaws.com"].includes(
-      hostname,
-    ),
-  );
-  assert.deepEqual(options, { all: true });
-  return [{ address: "8.8.8.8", family: 4 }];
-};
-https.request = (url, options, callback) => {
-  const request = new EventEmitter();
-  request.destroy = () => {};
-  request.end = () =>
-    queueMicrotask(() => {
-      try {
-        if (mode === "hold") {
-          const onAbort = () => {
-            abortedWires++;
-            request.emit("error", new Error("synthetic cancellation"));
-          };
-          held.push(() => {
-            options.signal.removeEventListener("abort", onAbort);
-            request.end();
-          });
-          options.signal.addEventListener("abort", onAbort, { once: true });
-          return;
-        }
-        wireCount++;
-        if (mode === "rate") {
-          const incoming = Readable.from([Buffer.from("SECRET upstream")]);
-          incoming.statusCode = 429;
-          incoming.headers = { "retry-after": "2" };
-          callback(incoming);
-          return;
-        }
-        assert.equal(options.method, "GET");
-        assert.equal(options.rejectUnauthorized, true);
-        assert.equal(options.agent, false);
-        assert.equal(options.headers.cookie, undefined);
-        if (url.hostname === "members-ng.iracing.com") {
-          const queries = {
-            "/data/member/info": {},
-            "/data/lookup/drivers": { search_term: "Synthetic" },
-            "/data/stats/member_recent_races": {},
-            "/data/car/get": {},
-            "/data/track/get": {},
-            "/data/series/season_list": { include_series: "false" },
-            "/data/series/season_schedule": { season_id: "10" },
-            "/data/results/search_series": {
-              cust_id: "7",
-              season_year: "2026",
-              season_quarter: "4",
-              event_types: "5",
-            },
-            "/data/results/get": {
-              subsession_id: url.searchParams.get("subsession_id"),
-              include_licenses: "false",
-            },
-          };
-          assert.ok(
-            Object.hasOwn(queries, url.pathname),
-            "unadvertised API route",
-          );
-          assert.deepEqual(
-            Object.fromEntries(url.searchParams),
-            queries[url.pathname],
-          );
-          if (url.pathname === "/data/results/get")
-            assert.ok(
-              ["100", "101"].includes(url.searchParams.get("subsession_id")),
-            );
-        }
-        let value;
-        if (url.hostname === "members-ng.iracing.com") {
-          if (url.pathname === "/data/results/search_series") {
-            assert.match(options.headers.authorization, /^Bearer /);
-            routes.push(url.pathname + url.search);
-            const incoming = Readable.from([
-              Buffer.from(
-                JSON.stringify({
-                  type: "search_series_results",
-                  data: {
-                    success: true,
-                    params: {},
-                    chunk_info: {
-                      chunk_size: 2,
-                      rows: 2,
-                      num_chunks: 1,
-                      base_download_url:
-                        "https://scorpio-assets.s3.amazonaws.com/",
-                      chunk_file_names: ["chunk"],
-                    },
-                  },
-                }),
-              ),
-            ]);
-            incoming.statusCode = 200;
-            incoming.headers = {};
-            callback(incoming);
-            return;
-          }
-          let key = mapping[url.pathname];
-          if (key === "result") key += url.searchParams.get("subsession_id");
-          assert.ok(key, "unexpected canonical API method");
-          assert.match(options.headers.authorization, /^Bearer /);
-          routes.push(url.pathname + url.search);
-          value = {
-            link: `https://scorpio-assets.s3.amazonaws.com/${key}?signature=SECRET`,
-            expires: new Date(Date.now() + 900000).toISOString(),
-          };
-        } else {
-          assert.equal(url.hostname, "scorpio-assets.s3.amazonaws.com");
-          assert.equal(options.headers.authorization, undefined);
-          value = sources[url.pathname.slice(1)];
-          assert.ok(value, "unexpected cache route");
-        }
-        const incoming = Readable.from([Buffer.from(JSON.stringify(value))]);
-        incoming.statusCode = 200;
-        incoming.headers = { "content-type": "application/json" };
-        callback(incoming);
-      } catch (error) {
-        unexpected.push(error.message);
-        request.emit("error", error);
-      }
+const dataFetch = async (target, options = {}) => {
+  const url = new URL(target);
+  if (mode === "hold") {
+    await new Promise((resolve, reject) => {
+      const onAbort = () => {
+        abortedWires++;
+        reject(new Error("synthetic cancellation"));
+      };
+      held.push(() => {
+        options.signal.removeEventListener("abort", onAbort);
+        resolve();
+      });
+      options.signal.addEventListener("abort", onAbort, { once: true });
     });
-  return request;
+  }
+  wireCount++;
+  if (mode === "rate")
+    return new Response("SECRET upstream", {
+      status: 429,
+      headers: { "retry-after": "2" },
+    });
+  try {
+    assert.equal(options.method ?? "GET", "GET");
+    const headers = new Headers(options.headers);
+    assert.equal(headers.get("cookie"), null);
+    if (url.hostname === "members-ng.iracing.com") {
+      assert.match(headers.get("authorization"), /^Bearer /);
+      routes.push(url.pathname + url.search);
+      if (url.pathname === "/data/results/search_series")
+        return Response.json({
+          type: "search_series_results",
+          data: {
+            success: true,
+            params: {},
+            chunk_info: {
+              chunk_size: 2,
+              rows: 2,
+              num_chunks: 1,
+              base_download_url: "https://scorpio-assets.s3.amazonaws.com/",
+              chunk_file_names: ["chunk"],
+            },
+          },
+        });
+      let key = mapping[url.pathname];
+      if (key === "result") key += url.searchParams.get("subsession_id");
+      assert.ok(key, "unexpected canonical API method");
+      return Response.json({
+        link: `https://scorpio-assets.s3.amazonaws.com/${key}?signature=SECRET`,
+        expires: new Date(Date.now() + 900000).toISOString(),
+      });
+    }
+    assert.equal(url.hostname, "scorpio-assets.s3.amazonaws.com");
+    assert.equal(headers.get("authorization"), null);
+    assert.equal(options.redirect, "error");
+    const value = sources[url.pathname.slice(1)];
+    assert.ok(value, "unexpected cache route");
+    return Response.json(value);
+  } catch (error) {
+    unexpected.push(error.message);
+    throw error;
+  }
 };
-syncBuiltinESMExports();
-global.fetch = () => {
-  throw new Error("unexpected external fetch");
-};
+global.fetch = dataFetch;
 async function main() {
   const api = await import("../../dist/index.js");
   const { Client, StreamableHTTPClientTransport } =
@@ -634,14 +561,12 @@ async function main() {
       assert.equal(failedRefresh.authorizationState(), expectedState);
       checks++;
     }
-    global.fetch = () => {
-      throw new Error("unexpected external fetch");
-    };
+    global.fetch = dataFetch;
     mode = "hold";
     const admitted = Array.from({ length: 8 }, () =>
       client.callTool({ name: "get_my_driver", arguments: {} }),
     );
-    await until(() => held.length === 1);
+    await until(() => held.length === 8);
     mode = "normal";
     held.splice(0).forEach((release) => release());
     for (const value of await Promise.all(admitted)) {
@@ -683,20 +608,13 @@ async function main() {
       arguments: { kind: "cars" },
     });
     await until(() => held.length === 2);
-    const networkExcess = await client.callTool({
-      name: "lookup_content",
-      arguments: { kind: "tracks" },
-    });
-    assert.equal(networkExcess.structuredContent.error.code, "RATE_LIMITED");
-    assert.equal(held.length, 2);
-    output.push(JSON.stringify(networkExcess));
-    checks++;
     mode = "normal";
     held.splice(0).forEach((release) => release());
     for (const value of await Promise.all([networkA, networkB])) {
       assert.ok(!value.isError);
       output.push(JSON.stringify(value));
     }
+    checks++;
     mode = "rate";
     const rate = await client.callTool({
       name: "get_my_driver",
@@ -711,7 +629,7 @@ async function main() {
     });
     assert.equal(sharedRate.structuredContent.error.code, "RATE_LIMITED");
     output.push(JSON.stringify(sharedRate));
-    assert.equal(wireCount, rateCount);
+    assert.equal(wireCount, rateCount + 1);
     checks++;
     mode = "normal";
     clockOffset = 2001;

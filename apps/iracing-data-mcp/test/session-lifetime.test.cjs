@@ -80,31 +80,32 @@ async function toolServices(api) {
       price: 99,
     },
   ];
-  const gateway = new api.DataApiGateway({
-    configuration: new Configuration({
-      accessToken: async () => "TOKEN_SECRET",
-    }),
-    authorizationState: () => "ready",
-    now: () => now,
-    logger: api.createDiagnosticLogger(() => {}),
-    transport: async (url, init) => {
-      if (url.hostname === "members-ng.iracing.com") {
-        const key = url.pathname.includes("member/info") ? "member" : "cars";
-        return Response.json({
-          link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}`,
-          expires: new Date(now + 900000).toISOString(),
-        });
-      }
+  let continuationScope = {};
+  const transport = async (url, init) => {
+    if (url.hostname === "members-ng.iracing.com") {
+      const key = url.pathname.includes("member/info") ? "member" : "cars";
+      return Response.json({
+        link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}`,
+        expires: new Date(now + 900000).toISOString(),
+      });
+    }
 
-      assert.equal(new Headers(init.headers).has("authorization"), false);
-      return Response.json(url.pathname.endsWith("/member") ? driver : cars);
-    },
+    assert.equal(new Headers(init.headers).has("authorization"), false);
+    return Response.json(url.pathname.endsWith("/member") ? driver : cars);
+  };
+  const configuration = new Configuration({
+    accessToken: async () => "TOKEN_SECRET",
+    fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const access = () => ({ configuration, continuationScope });
+  const changeScope = () => {
+    continuationScope = {};
+  };
 
   return Object.freeze({
     oauthClient: {},
     dataApiConfiguration: {},
-    dataApiGateway: gateway,
+    getDataApiAccess: access,
     authorizationState: () => "ready",
     shutdownAuthorizationOwner: async () => {},
   });

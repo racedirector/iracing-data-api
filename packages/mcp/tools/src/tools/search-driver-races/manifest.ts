@@ -1,79 +1,40 @@
-/**
- * Application acceptance boundary for upstream Data API/cache payloads.
- *
- * Maintained public schemas are reused where applicable; app-local schemas narrow
- * only the payloads this gateway projects. Envelope, manifest and parameter-echo
- * validation prevents contradictory counts or query identity from being treated as
- * a coherent snapshot. Optional echoes may be absent. Structural fixture success
- * is not evidence of complete live upstream response coverage. Parsing failures
- * are projected as fixed DATA_RESOLUTION_FAILED errors, never raw Zod input.
- */
-import {
-  APIResponseSchema,
-  ConstantsResponseSchema,
-  ResultsSearchSeriesResponseSchema,
-  ServicesDocsResponseSchema,
-} from "@iracing-data/api-schema";
+import { ResultsSearchSeriesResponseSchema } from "@iracing-data/api-schema";
 import { z } from "zod";
-import { cacheUrl, chunkUrl, invalidData } from "./policy.js";
-
-export const objectPayload = z.record(z.string(), z.unknown());
-export const arrayPayload = z.array(objectPayload);
-export const payloadSchemas = {
-  member: objectPayload.refine(
-    (value) =>
-      Number.isSafeInteger(value.cust_id) &&
-      (value.cust_id as number) > 0 &&
-      typeof value.display_name === "string",
-  ),
-  drivers: arrayPayload,
-  cars: arrayPayload,
-  tracks: arrayPayload,
-  seasons: z.object({ seasons: arrayPayload }).passthrough(),
-  schedule: z
-    .object({
-      success: z.literal(true),
-      season_id: z.number().int().positive(),
-      schedules: arrayPayload,
-    })
-    .passthrough(),
-  recent: z
-    .object({ cust_id: z.number().int().positive(), races: arrayPayload })
-    .passthrough(),
-  result: z.object({ session_results: arrayPayload }).passthrough(),
-};
-
-/** Return schema-parsed data or throw DATA_RESOLUTION_FAILED with reason invalid_data. */
-export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
-  const parsed = schema.safeParse(value);
-
-  if (!parsed.success) {
-    invalidData();
-  }
-
-  return parsed.data;
+import { ApplicationFailure } from "../../diagnostics/errors.js";
+import { parse, linkedUrl } from "../../linked-response.js";
+const objectPayload = z.record(z.string(), z.unknown());
+function invalidData(): never {
+  throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+    reason: "invalid_data",
+  });
 }
-
 /**
- * Validate a cache link and return its URL and expiry in Unix milliseconds.
- * Does not check freshness. Malformed data or unsafe URLs throw DATA_RESOLUTION_FAILED.
+ * Validate an HTTPS URL without embedded credentials. Directory URLs must end in
+ * a slash and have no query or fragment. Rejections throw DATA_RESOLUTION_FAILED.
  */
-export function parseEnvelope(value: unknown) {
-  // Zod URL validation trims whitespace/strips tabs: reject the original wire URL first.
-  const wire = parse(objectPayload, value);
-
-  if (typeof wire.link !== "string") {
+function cacheUrl(input: string, directory = false): URL {
+  const url = linkedUrl(input);
+  if (directory && (!url.pathname.endsWith("/") || url.search || url.hash))
     invalidData();
-  }
-
-  cacheUrl(wire.link);
-  const envelope = parse(APIResponseSchema, value);
-
-  cacheUrl(envelope.link);
-
-  return { url: envelope.link, expiry: Date.parse(envelope.expires) };
+  return url;
 }
-
+/**
+ * Resolve a filename of at most 255 characters within the API-provided HTTPS directory.
+ * Reject invalid directories, unsupported filename characters, or paths outside that
+ * directory with DATA_RESOLUTION_FAILED.
+ */
+export function chunkUrl(base: string, filename: string): URL {
+  const url = cacheUrl(base, true);
+  if (
+    !/^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*$/.test(filename) ||
+    filename.length > 255
+  )
+    invalidData();
+  const child = new URL(filename, url);
+  if (child.origin !== url.origin || child.pathname !== url.pathname + filename)
+    invalidData();
+  return child;
+}
 /**
  * Return chunk metadata for a successful search with consistent counts and safe URLs.
  * Allows at most 1,000 chunks and 500,000 rows; an empty result must have no chunks.
@@ -115,11 +76,6 @@ export function parseManifest(value: unknown) {
 
   return info;
 }
-
-export const directSchemas = {
-  document: ServicesDocsResponseSchema,
-  constants: ConstantsResponseSchema,
-};
 
 /** Optional manifest echoes may be absent, but must never contradict the request. */
 export function validateSearchEcho(

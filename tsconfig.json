@@ -44,7 +44,7 @@
       "path": "./packages/oauth/schema"
     },
     {
-      "path": "./packages/mcp/server"
+      "path": "./packages/mcp/tools"
     }
   ]
 }

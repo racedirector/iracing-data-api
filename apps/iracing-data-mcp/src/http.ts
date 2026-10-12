@@ -5,14 +5,11 @@ import {
   ErrorEnvelopeSchema,
   createRequestContext,
   toolError,
-  createDiagnosticLogger,
-  healthDiagnostics,
-  createMcpServer,
-  type McpToolRegistrar,
-  type McpServices,
-} from "@iracing-data/mcp-server";
+  registerIracingTools,
+} from "@iracing-data/mcp-tools";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
+  McpServer,
   WebStandardStreamableHTTPServerTransport,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
@@ -20,8 +17,13 @@ import express, {
   type ErrorRequestHandler,
   type RequestHandler,
 } from "express";
+import {
+  createDiagnosticLogger,
+  healthDiagnostics,
+} from "./diagnostics/logging.js";
 import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
+import type { McpServices, McpToolRegistrar } from "./services.js";
 
 export const transportLimits = Object.freeze({
   bodyBytes: 64 * 1024,
@@ -89,7 +91,7 @@ interface ToolOperation extends RequestBinding {
 }
 
 interface McpSession {
-  readonly mcp: ReturnType<typeof createMcpServer>;
+  readonly mcp: McpServer;
   readonly transport: WebStandardStreamableHTTPServerTransport;
   readonly handleRequest: ReturnType<typeof toNodeHandler>;
   readonly requests: Map<JsonRpcId, RequestBinding>;
@@ -296,11 +298,13 @@ async function createMcpSession(
   sessions: Map<string, McpSession>,
   stateful: boolean,
 ) {
-  const mcp = createMcpServer({
-    config: options.config,
-    services: options.services,
-    registerTools: options.registerTools,
-  });
+  const mcp = new McpServer(
+    { name: options.config.name, version: options.config.version },
+    { supportedProtocolVersions: ["2025-11-25", "2025-06-18", "2025-03-26"] },
+  );
+
+  registerIracingTools(mcp, options.services);
+  options.registerTools?.(mcp, options.services);
 
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: stateful ? options.sessionIdGenerator : undefined,

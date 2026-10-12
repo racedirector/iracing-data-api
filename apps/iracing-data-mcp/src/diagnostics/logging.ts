@@ -7,13 +7,13 @@
  * IDs correlate support reports without disclosing upstream data. Logging is not
  * a token/output channel; stdout belongs to protocol or command results.
  */
-import { z } from "zod";
 import {
   ApplicationErrorCodeSchema,
   errorEnvelope,
   requestId,
   type RequestContext,
-} from "./errors.js";
+} from "@iracing-data/mcp-tools";
+import { z } from "zod";
 
 // No free-form strings: even a 'safe-looking' token/name/path must not pass.
 const diagnosticFields = z.object({
