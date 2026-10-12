@@ -79,7 +79,8 @@ function validateSession(token: OAuthTokenResponse | undefined) {
  * token requests restore the session and may refresh and persist rotated credentials.
  * Missing or invalid stored credentials leave services in authorization_required
  * and make later token requests fail. OAuth client construction errors instead
- * reject composition with CONFIGURATION_ERROR.
+ * reject composition with CONFIGURATION_ERROR. Returned tool access shares one opaque
+ * continuation scope and throws AUTHORIZATION_REQUIRED after quarantine or shutdown begins.
  */
 export async function createMcpServices(
   options: SessionCompositionOptions,
@@ -310,6 +311,11 @@ export async function createMcpServices(
 
   const continuationScope = {};
 
+  /**
+   * Stop new access and return the same shutdown promise on repeated calls.
+   * If rotation is pending, quarantine the owner and remove uncertain credentials;
+   * reject with CONFIGURATION_ERROR when removal cannot be confirmed.
+   */
   function shutdownAuthorizationOwner() {
     ownerShutdown ??= (async () => {
       ownerClosing = true;

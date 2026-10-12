@@ -5,7 +5,10 @@ import {
 import { APIResponseSchema } from "@iracing-data/api-schema";
 import { z } from "zod";
 import { ApplicationFailure } from "./diagnostics/errors.js";
-/** Validate payloads without exposing validator diagnostics. */
+/**
+ * Return schema-parsed data, throwing DATA_RESOLUTION_FAILED for validation failures
+ * without exposing validator diagnostics. Exceptions thrown by schema callbacks propagate.
+ */
 export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
   const result = schema.safeParse(value);
   if (!result.success)
@@ -14,7 +17,10 @@ export function parse<T>(schema: z.ZodType<T>, value: unknown): T {
     });
   return result.data;
 }
-/** Accept only credential-free HTTPS URLs returned by the authenticated API. */
+/**
+ * Parse an absolute HTTPS URL without embedded credentials, throwing
+ * DATA_RESOLUTION_FAILED with reason unsafe_link when it is rejected.
+ */
 export function linkedUrl(input: string): URL {
   try {
     const url = new URL(input);
@@ -26,7 +32,13 @@ export function linkedUrl(input: string): URL {
     reason: "unsafe_link",
   });
 }
-/** Fetch an opaque API-produced URL with no inherited headers or bearer credentials. */
+/**
+ * Fetch and validate an API-provided HTTPS link with no inherited headers or bearer
+ * credentials, requesting redirect rejection from fetchApi. Fetch rejections and
+ * HTTP 5xx become UPSTREAM_UNAVAILABLE; HTTP 403/404 become CURSOR_EXPIRED.
+ * Other non-success statuses, unsafe URLs, and invalid payloads become
+ * DATA_RESOLUTION_FAILED. JSON decoding errors and explicit abort checks propagate.
+ */
 export async function fetchLinkedJson<T>(
   url: string,
   schema: z.ZodType<T>,
@@ -53,7 +65,12 @@ export async function fetchLinkedJson<T>(
   signal.throwIfAborted();
   return parse(schema, value);
 }
-/** Resolve a generated link envelope and validate the final maintained/projection contract. */
+/**
+ * Resolve a generated link envelope and return validated data with expiresAt in
+ * Unix milliseconds, 30 seconds before the upstream expiry. Reject with CURSOR_EXPIRED
+ * if that deadline is reached before or after fetching. Malformed envelopes raise
+ * DATA_RESOLUTION_FAILED; linked-fetch, JSON decoding, and abort errors propagate.
+ */
 export async function materialize<T>(
   envelope: IracingAPIResponse,
   schema: z.ZodType<T>,

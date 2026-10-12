@@ -8,13 +8,21 @@ function invalidData(): never {
     reason: "invalid_data",
   });
 }
+/**
+ * Validate an HTTPS URL without embedded credentials. Directory URLs must end in
+ * a slash and have no query or fragment. Rejections throw DATA_RESOLUTION_FAILED.
+ */
 function cacheUrl(input: string, directory = false): URL {
   const url = linkedUrl(input);
   if (directory && (!url.pathname.endsWith("/") || url.search || url.hash))
     invalidData();
   return url;
 }
-/** Resolve only a filename within the API-provided chunk directory. */
+/**
+ * Resolve a filename of at most 255 characters within the API-provided HTTPS directory.
+ * Reject invalid directories, unsupported filename characters, or paths outside that
+ * directory with DATA_RESOLUTION_FAILED.
+ */
 export function chunkUrl(base: string, filename: string): URL {
   const url = cacheUrl(base, true);
   if (

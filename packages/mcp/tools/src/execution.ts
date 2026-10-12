@@ -28,7 +28,10 @@ export function pageOutput(items: z.ZodType, context: z.ZodRawShape = {}) {
     source_total: z.number().int().nonnegative(),
   });
 }
-/** Advertise strict input while projecting validation diagnostics inside the safe boundary. */
+/**
+ * Advertise the input schema while deferring validation to the registered handler,
+ * where rejected inputs become sanitized tool errors. Schema conversion errors propagate.
+ */
 function safeInput(schema: z.ZodType): StandardSchemaWithJSON {
   const json = { ...z.toJSONSchema(schema, { io: "input" }), type: "object" };
   return {
@@ -93,7 +96,13 @@ function executionFailure(error: unknown, signal: AbortSignal): unknown {
     return new ApplicationFailure("DATA_RESOLUTION_FAILED");
   return error;
 }
-/** Bind one tool's contract and handler to native SDK registration and structured validation. */
+/**
+ * Register a tool that validates input, obtains request-local access, and validates
+ * structured output. Handler failures become sanitized tool-error results; unknown
+ * failures become INTERNAL_ERROR. ProtocolFailure escapes as a protocol rejection
+ * unless an aborted signal maps it to UPSTREAM_UNAVAILABLE.
+ * Schema conversion and server registration errors propagate to the caller.
+ */
 export function registerTool<T>(
   server: IracingToolRegistry,
   services: IracingToolServices,

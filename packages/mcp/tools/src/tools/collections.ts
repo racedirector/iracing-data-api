@@ -64,6 +64,7 @@ interface Cursor {
 export class CollectionCursors {
   readonly #entries = new Map<string, Cursor>();
   readonly #now: () => number;
+  /** Register expiry cleanup with the shared budget; now returns Unix milliseconds. */
   constructor(
     now: () => number = Date.now,
     readonly budget = new RetentionBudget(),
@@ -75,6 +76,7 @@ export class CollectionCursors {
     this.budget.release(this.#bytes(), this.#entries.size);
     this.#entries.clear();
   }
+  /** Remove expired cursors and release their snapshot, replay, and token reservations. */
   #prune() {
     const before = this.#bytes(),
       tokens = this.#entries.size;
@@ -103,6 +105,14 @@ export class CollectionCursors {
 
     return bytes;
   }
+  /**
+   * Clone a collection and return its first page, retaining continuation state as needed.
+   * expiresAt is in Unix milliseconds and is capped at five minutes from now.
+   * limit must be an integer from 1 to 100; pages may shrink to fit 64 KiB.
+   * source_total counts all supplied items. Expired state throws CURSOR_EXPIRED;
+   * invalid limits or exhausted capacity throw RESPONSE_LIMIT_EXCEEDED.
+   * Cloning and JSON serialization errors propagate.
+   */
   start(options: {
     tool: string;
     filters: unknown;
@@ -155,6 +165,11 @@ export class CollectionCursors {
 
     return this.#page(snapshot, 0);
   }
+  /**
+   * Return a cloned page for this owner's tool-bound token, caching successful replay.
+   * Unknown, expired, or wrong-tool tokens throw CURSOR_EXPIRED. Page or retention
+   * capacity failures propagate as RESPONSE_LIMIT_EXCEEDED without advancing the token.
+   */
   resume(tool: string, token: string): Result {
     this.#prune();
     const entry = this.#entries.get(token);
@@ -171,6 +186,11 @@ export class CollectionCursors {
 
     return structuredClone(result);
   }
+  /**
+   * Build a page from a zero-based item offset, shrinking it to the response byte cap.
+   * Reserve continuation/replay capacity before publication; capacity and expiry
+   * failures propagate without publishing a new token or cached replay result.
+   */
   #page(snapshot: Snapshot, offset: number, current?: Cursor): Result {
     let token: string;
 

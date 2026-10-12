@@ -41,12 +41,14 @@ interface Cursor {
 /** Immutable offsets and retained replay responses make retries deterministic. */
 export class SearchCursors {
   readonly #entries = new Map<string, Cursor>();
+  /** Register search expiry cleanup with the budget; now returns Unix milliseconds. */
   constructor(
     readonly budget: RetentionBudget,
     readonly now: () => number = Date.now,
   ) {
     budget.registerPruner(() => this.#prune());
   }
+  /** Release retained searches whose snapshots are disposed or have expired. */
   #prune() {
     const expired = new Set<Snapshot>();
 
@@ -60,6 +62,7 @@ export class SearchCursors {
       this.#drop(snapshot);
     }
   }
+  /** Dispose a snapshot and release its retained bytes and cursor reservations once. */
   #drop(snapshot: Snapshot) {
     if (snapshot.disposed) {
       return;
@@ -75,6 +78,13 @@ export class SearchCursors {
 
     this.budget.release(snapshot.bytes);
   }
+  /**
+   * Fetch a search manifest for validated filters and return its first bounded page.
+   * An omitted cust_id resolves to the authenticated member. Continuations expire
+   * after five minutes or at the earlier resolved member-link deadline.
+   * API, payload, cancellation, and capacity errors propagate; failed initial pages
+   * release their snapshot reservations.
+   */
   async start(
     filters: Filters,
     access: IracingDataAccess,
@@ -157,6 +167,11 @@ export class SearchCursors {
       throw error;
     }
   }
+  /**
+   * Resume a retained token, returning a clone of a cached or concurrently pending page.
+   * Pending replay shares the first caller's access and signal. Unknown or expired
+   * tokens throw CURSOR_EXPIRED; page errors propagate without advancing the offset.
+   */
   async resume(
     token: string,
     access: IracingDataAccess,
@@ -186,6 +201,12 @@ export class SearchCursors {
       delete entry.pending;
     }
   }
+  /**
+   * Scan at most four chunks from the saved offset, applying track filters locally.
+   * Preserve source order; source_total includes filtered-out rows, and an empty page
+   * may be incomplete. Chunk fetch, validation, abort, expiry, and capacity errors
+   * propagate. A linked-fetch CURSOR_EXPIRED also disposes the snapshot.
+   */
   async #page(
     entry: Cursor,
     access: IracingDataAccess,
@@ -328,6 +349,10 @@ export class SearchCursors {
       return false;
     }
   }
+  /**
+   * Reserve capacity and publish the next offset, optionally caching this replay result.
+   * Return a clone; abort, expiry, and capacity failures propagate before publication.
+   */
   #publish(
     entry: Cursor,
     chunk: number,
