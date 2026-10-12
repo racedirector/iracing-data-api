@@ -11,3 +11,5 @@ export * from "./tools/collections.js";
 export * from "./tools/contracts.js";
 
 export * from "./authorization.js";
+
+export * from "./jwt-verifier.js";
