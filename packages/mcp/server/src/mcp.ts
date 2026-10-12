@@ -4,7 +4,7 @@
  * Explicit registrar collections bind the current tools to injected shared owners.
  * A fresh SDK server is created for one logical MCP session, or for one isolated
  * exchange when the HTTP boundary is explicitly composed statelessly. It borrows
- * OAuth/gateway capabilities; it does not own credential restoration, cursor
+ * Data API capabilities; it does not own credential restoration, cursor
  * lifetime or process shutdown. identity-content.ts currently owns the common
  * execution wrapper and gateway-keyed cursor WeakMaps. Keep registration explicit
  * and preserve the existing tool protocol during extraction.
@@ -20,7 +20,7 @@ import type { McpServices } from "./services.js";
 /**
  * Registers MCP tools on one session/exchange server using shared application services.
  *
- * Registrars should only bind protocol handlers; long-lived OAuth and Data API state belongs
+ * Registrars should only bind protocol handlers; account-scoped Data API state belongs
  * to {@link McpServices} so it can be reused across MCP sessions and HTTP requests.
  */
 export type McpToolRegistrar = (

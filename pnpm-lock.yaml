@@ -447,9 +447,6 @@ importers:
       '@iracing-data/api-schema':
         specifier: workspace:*
         version: link:../../api/schema
-      '@iracing-data/oauth-client':
-        specifier: workspace:*
-        version: link:../../oauth/client
       '@modelcontextprotocol/server':
         specifier: 2.3.1
         version: 2.3.1

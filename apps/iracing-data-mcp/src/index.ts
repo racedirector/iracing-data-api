@@ -5,3 +5,6 @@ export * from "./session.js";
 
 export * from "./authorization.js";
 export * from "./jwt-verifier.js";
+
+export type { ApplicationServices } from "./services.js";
+export { mapFailure, type MappingContext } from "./failure-mapping.js";

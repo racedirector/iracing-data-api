@@ -26,8 +26,6 @@ import {
   createRequestContext,
   createDiagnosticLogger,
   DataApiGateway,
-  type AuthorizationState,
-  type McpServices,
 } from "@iracing-data/mcp-server";
 import {
   OAuthClient,
@@ -37,11 +35,19 @@ import {
   type OAuthTokenResponse,
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
+import type { ApplicationServices, AuthorizationState } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
 export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";
 
-export type { AuthorizationState } from "@iracing-data/mcp-server";
+export type { AuthorizationState } from "./services.js";
+
+/** Local credential owner; these fields are not part of the MCP package contract. */
+export interface LocalMcpServices extends ApplicationServices {
+  readonly oauthClient: OAuthClient;
+  readonly dataApiConfiguration: Configuration;
+  readonly dataApiGateway: DataApiGateway;
+}
 
 /**
  * Host-provided composition inputs for MCP session services, including credential persistence
@@ -85,7 +91,7 @@ function validateSession(token: OAuthTokenResponse | undefined) {
  */
 export async function createMcpServices(
   options: SessionCompositionOptions,
-): Promise<McpServices> {
+): Promise<LocalMcpServices> {
   const logger = options.logger ?? createDiagnosticLogger();
 
   const context = createRequestContext();
@@ -340,6 +346,7 @@ export async function createMcpServices(
   }
 
   return Object.freeze({
+    getDataApiGateway: () => dataApiGateway,
     shutdownAuthorizationOwner,
     oauthClient,
     authorizationState: () => state,
