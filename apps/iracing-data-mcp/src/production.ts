@@ -19,8 +19,13 @@ import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
 import { z } from "zod";
+import { createMcpAuthorizationBoundary } from "./authorization.js";
 import { parseMcpApplicationConfig } from "./config.js";
 import { createHttpApplication, installTerminationHandlers } from "./http.js";
+import {
+  createDefaultMcpJwtVerifier,
+  remoteAuthorizationFromEnv,
+} from "./jwt-verifier.js";
 import { createMcpServices, MCP_CREDENTIAL_FILE } from "./session.js";
 
 /** Creates a recovery error without including configuration values or underlying errors. */
@@ -129,6 +134,7 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
     allowedHosts,
     allowedOrigins,
     listenHost,
+    remoteAuthorization: remoteAuthorizationFromEnv(env),
   });
 }
 
@@ -214,6 +220,13 @@ export async function readProductionSecret(file: string) {
 export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const config = parseProductionConfig(env);
 
+  const authorization = config.remoteAuthorization
+    ? createMcpAuthorizationBoundary({
+        ...config.remoteAuthorization,
+        verifier: await createDefaultMcpJwtVerifier(config.remoteAuthorization),
+      })
+    : undefined;
+
   await checkProductionDirectory(path.dirname(MCP_CREDENTIAL_FILE));
 
   const clientSecret = config.secretFile
@@ -232,6 +245,7 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const app = createHttpApplication({
     config: parseMcpApplicationConfig(),
     services,
+    authorization,
     allowedHosts: config.allowedHosts,
     allowedOrigins: config.allowedOrigins,
     sessionIdGenerator: randomUUID,
