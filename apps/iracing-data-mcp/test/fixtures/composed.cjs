@@ -641,22 +641,13 @@ async function main() {
     const admitted = Array.from({ length: 8 }, () =>
       client.callTool({ name: "get_my_driver", arguments: {} }),
     );
-    await until(() => app.admittedTools === 8 && held.length === 1);
-    const excess = await client.callTool({
-      name: "get_my_driver",
-      arguments: {},
-    });
-    assert.equal(excess.structuredContent.error.code, "RATE_LIMITED");
-    output.push(JSON.stringify(excess));
-    assert.equal(held.length, 1);
-    checks++;
+    await until(() => held.length === 1);
     mode = "normal";
     held.splice(0).forEach((release) => release());
     for (const value of await Promise.all(admitted)) {
       assert.ok(!value.isError);
       output.push(JSON.stringify(value));
     }
-    assert.equal(app.admittedTools, 0);
     mode = "hold";
     const cancel = http.request({
       host: "127.0.0.1",
@@ -677,7 +668,7 @@ async function main() {
     await until(() => held.length === 1);
     const priorAborts = abortedWires;
     cancel.destroy();
-    await until(() => abortedWires > priorAborts && app.admittedTools === 0);
+    await until(() => abortedWires > priorAborts);
     held.length = 0;
     mode = "normal";
     checks++;

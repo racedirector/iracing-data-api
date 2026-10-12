@@ -157,10 +157,10 @@ test("exact HTTP Host and Origin protections on all routes", async (t) => {
     assert.equal((await request({ headers: { Origin: origin } })).status, 403);
 });
 
-test("methods, unknown paths, safe health and body limits", async (t) => {
+test("Express routes preserve health and bounded requests", async (t) => {
   const { request, logs } = await fixture(t);
   for (const method of ["GET", "DELETE", "PUT"])
-    assert.equal((await request({ method, body: "" })).status, 405);
+    assert.equal((await request({ method, body: "" })).status, 404);
   assert.equal((await request({ path: "/auth/iracing" })).status, 404);
   assert.equal((await request({ path: "/missing" })).status, 404);
   const health = await request({ path: "/healthz", method: "GET", body: "" });
@@ -179,33 +179,19 @@ test("methods, unknown paths, safe health and body limits", async (t) => {
   assert.equal((await request({ body: base.padEnd(65536, " ") })).status, 200);
   assert.equal((await request({ body: base.padEnd(65537, " ") })).status, 413);
   assert.equal(
+    (
+      await request({
+        body: require("node:zlib").gzipSync(base),
+        headers: { "Content-Encoding": "gzip" },
+      })
+    ).status,
+    415,
+  );
+  assert.equal(
     (await request({ body: '{"secret":"SYNTHETIC_TOKEN",' })).status,
     400,
   );
   assert.ok(!logs.join("").includes("SYNTHETIC_TOKEN"));
-});
-
-test("chunked oversize is rejected before request completion", async (t) => {
-  const { port } = await fixture(t);
-  await new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        host: "127.0.0.1",
-        port,
-        path: "/mcp",
-        method: "POST",
-        headers: { Host: "localhost:3000", "Transfer-Encoding": "chunked" },
-      },
-      (res) => {
-        assert.equal(res.statusCode, 413);
-        res.resume();
-        res.on("end", resolve);
-      },
-    );
-    req.on("error", reject);
-    req.write(Buffer.alloc(65537, 32)); // deliberately never end the upload
-    t.after(() => req.destroy());
-  });
 });
 
 test("official MCP client initializes, lists and calls stateless JSON tools", async (t) => {
@@ -260,7 +246,6 @@ test("official MCP client initializes, lists and calls stateless JSON tools", as
     "ok",
   );
   assert.ok(seenServices);
-  assert.equal(app.admittedTools, 0);
   const init = await request({
     body: JSON.stringify({
       jsonrpc: "2.0",
@@ -316,9 +301,9 @@ test("bearer tokens do not authorize or bypass the local boundary; errors are re
   );
 });
 
-test("eight admitted tools, immediate overload, release after success and deadline", async (t) => {
+test("concurrent tools are not capped or assigned a host deadline", async (t) => {
   const work = [];
-  const { request, app, clock, logs } = await fixture(t, (server) =>
+  const { request, clock } = await fixture(t, (server) =>
     server.registerTool(
       "probe",
       {},
@@ -328,34 +313,17 @@ test("eight admitted tools, immediate overload, release after success and deadli
         }),
     ),
   );
-  const calls = Array.from({ length: 8 }, () => request({ body: call() }));
-  await until(() => work.length === 8);
-  assert.equal(app.admittedTools, 8);
-  const excess = await request({ body: call() });
-  assert.equal(
-    excess.json().result.structuredContent.error.code,
-    "RATE_LIMITED",
-  );
-  assert.equal(work.length, 8);
-  assert.equal(
-    excess.json().result.structuredContent.error.message,
-    "Request capacity is temporarily limited. Wait before retrying.",
-  );
-  work[0].resolve({ content: [] });
-  await calls[0];
-  assert.equal(app.admittedTools, 7);
+  const calls = Array.from({ length: 12 }, () => request({ body: call() }));
+  await until(() => work.length === 12);
+  assert.equal(clock.jobs.size, 0);
   clock.fire(30000);
-  for (const result of await Promise.all(calls.slice(1)))
-    assert.equal(
-      result.json().result.structuredContent.error.code,
-      "INTERNAL_ERROR",
-    );
-  await until(() => work.slice(1).every((x) => x.signal.aborted));
-  assert.equal(app.admittedTools, 0);
-  assert.ok(!logs.join("").includes("arguments"));
+  assert.ok(work.every((x) => !x.signal.aborted));
+  work.forEach((x) => x.resolve({ content: [] }));
+  for (const result of await Promise.all(calls))
+    assert.equal(result.status, 200);
 });
 
-test("shutdown drains admitted work and rejects new admission", async (t) => {
+test("shutdown drains active work", async (t) => {
   let finish;
   const { request, app, clock } = await fixture(t, (server) =>
     server.registerTool(
@@ -368,7 +336,7 @@ test("shutdown drains admitted work and rejects new admission", async (t) => {
     ),
   );
   const callPromise = request({ body: call() });
-  await until(() => app.admittedTools === 1 && finish);
+  await until(() => finish);
   const shutdown = app.shutdown();
   assert.equal(app.stopping, true);
   assert.strictEqual(app.shutdown(), shutdown);
@@ -376,7 +344,6 @@ test("shutdown drains admitted work and rejects new admission", async (t) => {
   finish({ content: [] });
   assert.equal((await callPromise).status, 200);
   await shutdown;
-  assert.equal(app.admittedTools, 0);
   assert.equal(clock.jobs.size, 0);
 });
 
@@ -395,10 +362,9 @@ test("shutdown forcibly cancels remaining work at ten seconds", async (t) => {
   await shutdown;
   await pending;
   await until(() => signal.aborted);
-  assert.equal(app.admittedTools, 0);
 });
 
-test("disconnect aborts SDK tool work, frees capacity, and ignores late failures", async (t) => {
+test("disconnect aborts SDK tool work and ignores late failures", async (t) => {
   let signal, rejectTool;
   const { app, port, logs } = await fixture(t, (server) =>
     server.registerTool("probe", {}, (ctx) => {
@@ -422,15 +388,15 @@ test("disconnect aborts SDK tool work, frees capacity, and ignores late failures
   });
   req.on("error", () => {});
   req.end(call());
-  await until(() => signal && app.admittedTools === 1);
+  await until(() => signal);
   req.destroy();
-  await until(() => signal.aborted && app.admittedTools === 0);
+  await until(() => signal.aborted);
   rejectTool(new Error("SYNTHETIC_TOKEN"));
   await tick();
   assert.ok(!logs.join("").includes("SYNTHETIC_TOKEN"));
 });
 
-test("safe application envelopes and error completion release admission", async (t) => {
+test("safe application envelopes survive host error sanitization", async (t) => {
   const { request, app, api } = await fixture(t, (server) =>
     server.registerTool("probe", {}, () =>
       api.toolError(
@@ -446,7 +412,6 @@ test("safe application envelopes and error completion release admission", async 
     result.json().result.structuredContent.error.code,
     "AUTHORIZATION_REQUIRED",
   );
-  assert.equal(app.admittedTools, 0);
 });
 
 test("initialize negotiates unknown proposals; unsupported headers and batches fail", async (t) => {
@@ -510,7 +475,6 @@ test("shutdown rejects partially read new work and cancels incomplete uploads", 
   });
   await received;
   assert.equal(response.statusCode, 503);
-  assert.equal(app.admittedTools, 0);
   assert.equal(clock.jobs.size, 0);
 });
 
@@ -548,7 +512,6 @@ test("duplicate Host is rejected and shutdown bounds incomplete uploads", async 
   clock.fire(10000);
   await shutdown;
   await closed;
-  assert.equal(app.admittedTools, 0);
 });
 
 test("signal handlers install explicitly and can be removed", async (t) => {

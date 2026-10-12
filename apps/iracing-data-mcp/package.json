@@ -14,15 +14,20 @@
   },
   "dependencies": {
     "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/mcp-server": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
+    "@modelcontextprotocol/express": "^2.0.2",
     "@modelcontextprotocol/node": "2.1.1",
     "@modelcontextprotocol/server": "2.3.1",
+    "cors": "2.8.6",
+    "express": "^5.3.0",
     "jose": "^6.2.12",
-    "zod": "^4.3.6",
-    "@iracing-data/mcp-server": "workspace:*"
+    "zod": "^4.3.6"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.3.1",
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
     "@types/node": "^26.6.2"
   }
 }

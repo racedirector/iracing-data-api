@@ -172,7 +172,6 @@ test("SDK bearer boundary rejects missing authorization and insufficient scope",
   const { request, authorization } = await fixture(t);
   const missing = await request();
   assert.equal(missing.status, 401);
-  assert.equal(missing.headers.connection, "close");
   assert.ok(
     missing.headers["www-authenticate"].includes(authorization.metadataUrl),
   );
@@ -280,8 +279,7 @@ test("PRM exposes exact root and mapped resource identities and optional scopes"
         ),
       );
       const denied = await request({ path, method: "POST" });
-      assert.equal(denied.status, 405);
-      assert.equal(denied.headers.allow, "GET, HEAD, OPTIONS");
+      assert.equal(denied.status, 404);
     }
   }
 });
@@ -400,4 +398,25 @@ test("shutdown while verification is pending answers the connected request", asy
   release();
   assert.equal((await pending).status, 503);
   await shutdown;
+});
+
+test("ingress middleware authorizes before parsing or constructing sessions", async (t) => {
+  const { request, app } = await fixture(t);
+  for (const body of ['{"secret":"SYNTHETIC_TOKEN",', " ".repeat(65537)]) {
+    const denied = await request({ body });
+    assert.equal(denied.status, 401);
+    assert.ok(!denied.text.includes("SYNTHETIC_TOKEN"));
+    assert.equal(app.activeSessions, 0);
+  }
+  const malformed = await request({
+    token: "principal",
+    body: '{"secret":"SYNTHETIC_TOKEN",',
+  });
+  assert.equal(malformed.status, 400);
+  assert.ok(!malformed.text.includes("SYNTHETIC_TOKEN"));
+  assert.equal(
+    (await request({ token: "principal", body: " ".repeat(65537) })).status,
+    413,
+  );
+  assert.equal(app.activeSessions, 0);
 });

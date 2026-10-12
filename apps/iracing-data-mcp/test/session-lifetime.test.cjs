@@ -191,7 +191,7 @@ test("official MCP client preserves one logical session across initialize, list 
   assert.equal(await stale.text(), "Session not found.");
 });
 
-test("request abort releases tool admission without terminating its MCP session", async (t) => {
+test("request abort cancels tool work without terminating its MCP session", async (t) => {
   let toolSignal;
   const { app, url } = await fixture(t, {
     registerTools(server) {
@@ -225,10 +225,9 @@ test("request abort releases tool admission without terminating its MCP session"
     }),
   }).catch(() => undefined);
 
-  await until(() => app.admittedTools === 1 && toolSignal);
+  await until(() => toolSignal);
   controller.abort();
   await pending;
-  await until(() => app.admittedTools === 0);
   await until(() => toolSignal.aborted);
   assert.equal(app.activeSessions, 1);
 

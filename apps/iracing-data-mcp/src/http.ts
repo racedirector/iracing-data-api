@@ -1,35 +1,5 @@
-/**
- * HTTP and Streamable HTTP boundary for the local application.
- *
- * One listener shares application admission state and process/account services.
- * When session IDs are enabled by the composition root, 2025-era Streamable HTTP
- * initialize requests create one logical MCP session whose SDK server and transport
- * survive subsequent HTTP exchanges carrying the issued Mcp-Session-Id. Stateless
- * composition retains the existing isolated server/transport per HTTP exchange.
- *
- * HTTP request abort signals, deadlines and admission leases remain request/tool
- * scoped. They are never captured by process owners, and aborting one request
- * does not tear down an established MCP session. DELETE, failed initialization,
- * and application shutdown dispose session-owned SDK servers/transports.
- *
- * Host and optional Origin are checked against exact allowlists before MCP work.
- * Uploads are bounded before parsing or SDK construction; protocol failures use
- * fixed text. Tool admission, deadlines and drain limits are declared below.
- * Health/initialize/listing remain available without valid upstream credentials;
- * liveness does not establish account access. This unauthenticated loopback MCP
- * boundary assumes trusted local users and cannot protect against a malicious
- * same-user process. iRacing tokens are not MCP bearer credentials.
- *
- * Shutdown stops admission, drains or cancels bounded HTTP work, closes logical
- * MCP sessions, then invokes the credential owner's shutdown hook. Cleanup
- * failure must remain observable as a nonzero production exit; forced
- * termination cannot guarantee durable quarantine.
- */
-import {
-  createServer,
-  type IncomingMessage,
-  type ServerResponse,
-} from "node:http";
+/** Host-owned Express routing, legacy MCP sessions, cancellation and shutdown. */
+import { createServer, type IncomingMessage } from "node:http";
 import {
   ApplicationFailure,
   ErrorEnvelopeSchema,
@@ -44,16 +14,17 @@ import {
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   WebStandardStreamableHTTPServerTransport,
-  type AuthInfo,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
+import express, {
+  type ErrorRequestHandler,
+  type RequestHandler,
+} from "express";
 import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
 
 export const transportLimits = Object.freeze({
   bodyBytes: 64 * 1024,
-  toolMs: 30_000,
-  admittedTools: 8,
   drainMs: 10_000,
 });
 
@@ -75,7 +46,7 @@ export interface HttpApplicationOptions {
   /** Stable application identity advertised by MCP session/exchange servers. */
   readonly config: McpApplicationConfig;
 
-  /** Long-lived OAuth and Data API dependencies shared across all MCP lifetimes. */
+  /** Long-lived upstream services shared across MCP sessions. */
   readonly services: McpServices;
 
   /** Optional bearer boundary; absence preserves trusted-local behavior. */
@@ -101,73 +72,10 @@ export interface HttpApplicationOptions {
   readonly sessionIdGenerator?: () => string;
 }
 
-// Bound uploads before parsing or SDK construction; pause oversize input so
-// the fixed 413 response can be flushed before closing the connection.
-function readBoundedBody(req: IncomingMessage, signal: AbortSignal) {
-  return new Promise<string>((resolve, reject) => {
-    const chunks: Buffer[] = [];
-
-    let bytes = 0;
-
-    const cleanup = () => {
-      req.off("data", data);
-      req.off("end", end);
-      req.off("error", fail);
-      signal.removeEventListener("abort", abort);
-    };
-
-    const fail = () => {
-      cleanup();
-      reject(new Error("Request failed."));
-    };
-
-    const abort = () => {
-      req.pause();
-      fail();
-    };
-
-    const end = () => {
-      cleanup();
-      resolve(Buffer.concat(chunks).toString("utf8"));
-    };
-
-    const data = (chunk: Buffer) => {
-      bytes += chunk.length;
-      if (bytes > transportLimits.bodyBytes) {
-        cleanup();
-        req.pause();
-        const error = new Error("Request body too large.");
-
-        error.name = "RequestBodyTooLargeError";
-        reject(error);
-      } else {
-        chunks.push(chunk);
-      }
-    };
-
-    req.on("data", data);
-    req.once("end", end);
-    req.once("error", fail);
-    signal.addEventListener("abort", abort, { once: true });
-    if (signal.aborted) {
-      abort();
-    }
-  });
-}
-
-interface Admission {
-  admitted: number;
-  stopping: boolean;
-}
-
 type JsonRpcId = string | number;
-type ToolFailure = (
-  code: "INTERNAL_ERROR" | "RATE_LIMITED",
-  context: RequestContext,
-) => ReturnType<typeof toolError>;
+
 type RequestContext = ReturnType<typeof createRequestContext>;
 type DiagnosticLogger = ReturnType<typeof createDiagnosticLogger>;
-type Reply = (status: number, message: string) => void;
 
 interface RequestBinding {
   readonly context: RequestContext;
@@ -183,18 +91,12 @@ interface ToolOperation extends RequestBinding {
 interface McpSession {
   readonly mcp: ReturnType<typeof createMcpServer>;
   readonly transport: WebStandardStreamableHTTPServerTransport;
+  readonly handleRequest: ReturnType<typeof toNodeHandler>;
   readonly requests: Map<JsonRpcId, RequestBinding>;
   readonly tools: Map<JsonRpcId, ToolOperation>;
   readonly stateful: boolean;
   id?: string;
   closing?: Promise<void>;
-}
-
-interface ResolvedMcpRequest {
-  readonly session: McpSession;
-  readonly closeAfterRequest: boolean;
-  readonly body?: unknown;
-  readonly requestId?: JsonRpcId;
 }
 
 /** Returns a string or numeric ID, or undefined, without validating the RPC message. */
@@ -215,22 +117,13 @@ function requestSessionId(req: IncomingMessage): string | undefined {
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-/**
- * Adds tool admission, deadlines, and error sanitization to a connected transport.
- * Shared admission rejects calls with RATE_LIMITED while stopping or at capacity;
- * the tool deadline sends INTERNAL_ERROR and then cancels the bound HTTP request.
- * Request aborts cancel the corresponding SDK operation and release its admission
- * without closing the session. Replies also release admission; unrecognized tool
- * errors become INTERNAL_ERROR, and protocol errors retain only their code.
- */
+/** Bridges HTTP disconnects to SDK cancellation and sanitizes protocol/tool failures. */
 function installTransportLifecycle(
   session: McpSession,
-  admission: Admission,
-  clock: Schedule,
   logger: DiagnosticLogger,
 ) {
-  const failure: ToolFailure = (code, context) => {
-    const error = new ApplicationFailure(code);
+  const failure = (context: RequestContext) => {
+    const error = new ApplicationFailure("INTERNAL_ERROR");
 
     logger.failure(context, error, {
       operation: "tool_call",
@@ -289,7 +182,7 @@ function installTransportLifecycle(
                 ),
                 operation.context,
               )
-            : failure("INTERNAL_ERROR", operation.context),
+            : failure(operation.context),
         };
       }
 
@@ -317,35 +210,7 @@ function installTransportLifecycle(
         signal: new AbortController().signal,
       };
 
-      if (
-        admission.stopping ||
-        admission.admitted >= transportLimits.admittedTools
-      ) {
-        void session.transport
-          .send({
-            jsonrpc: "2.0",
-            id: message.id,
-            result: failure("RATE_LIMITED", binding.context),
-          })
-          .catch((error) => logger.failure(binding.context, error));
-
-        return;
-      }
-
-      admission.admitted++;
-
       let released = false;
-
-      const clear = clock(() => {
-        void session.transport
-          .send({
-            jsonrpc: "2.0",
-            id: message.id,
-            result: failure("INTERNAL_ERROR", binding.context),
-          })
-          .finally(binding.cancel)
-          .catch((error) => logger.failure(binding.context, error));
-      }, transportLimits.toolMs);
 
       const operation: ToolOperation = {
         ...binding,
@@ -353,8 +218,7 @@ function installTransportLifecycle(
         release: () => {
           if (!released) {
             released = true;
-            admission.admitted--;
-            clear();
+            binding.signal.removeEventListener("abort", cancelOperation);
           }
         },
       };
@@ -423,23 +287,20 @@ async function closeMcpSession(
  * Creates and connects an SDK server/transport using the shared services.
  * Stateful sessions enter the registry on protocol initialization and are removed
  * and closed on protocol termination; stateless instances belong to one exchange.
- * Returns the connected session with admission and cancellation handling installed.
+ * Returns the connected session with cancellation handling installed.
  * Construction, tool registration, and connection errors propagate.
  */
 async function createMcpSession(
   options: HttpApplicationOptions,
-  admission: Admission,
-  clock: Schedule,
   logger: DiagnosticLogger,
   sessions: Map<string, McpSession>,
   stateful: boolean,
 ) {
   const mcp = createMcpServer({
-    ...options,
+    config: options.config,
+    services: options.services,
     registerTools: options.registerTools,
   });
-
-  let session!: McpSession;
 
   const transport = new WebStandardStreamableHTTPServerTransport({
     sessionIdGenerator: stateful ? options.sessionIdGenerator : undefined,
@@ -463,9 +324,35 @@ async function createMcpSession(
     maxRequestBodySize: transportLimits.bodyBytes,
   });
 
-  session = {
+  const session: McpSession = {
     mcp,
     transport,
+    handleRequest: toNodeHandler(
+      {
+        async fetch(request, requestOptions) {
+          const response = await transport.handleRequest(
+            request,
+            requestOptions,
+          );
+
+          // SDK errors can echo untrusted headers; retain status without exposing them.
+          if (response.status >= 400) {
+            await response.body?.cancel();
+
+            return new Response("Protocol request rejected.", {
+              status: response.status,
+              headers: { "Content-Type": "text/plain" },
+            });
+          }
+
+          return response;
+        },
+      },
+      {
+        maxRequestBodySize: transportLimits.bodyBytes,
+        onerror: (error) => logger.failure(createRequestContext(), error),
+      },
+    ),
     requests: new Map(),
     tools: new Map(),
     stateful,
@@ -473,204 +360,19 @@ async function createMcpSession(
 
   mcp.server.onerror = (error) => logger.failure(createRequestContext(), error);
   await mcp.connect(transport);
-  installTransportLifecycle(session, admission, clock, logger);
+  installTransportLifecycle(session, logger);
 
   return session;
 }
 
 /**
- * Reads at most 64 KiB of JSON and selects an existing session by header, or
- * creates one when no session ID is supplied. Returns the parsed body, optional
- * RPC ID, and whether the caller must close a stateless session after the request.
- * Invalid JSON or batches receive 400, unknown sessions receive 404, and shutdown
- * after body reading receives 503 if the response is still available; these paths
- * return undefined. Body read/abort errors and session creation errors propagate,
- * including RequestBodyTooLargeError when the byte limit is exceeded.
- */
-async function resolvePostRequest(
-  req: IncomingMessage,
-  res: ServerResponse,
-  controller: AbortController,
-  admission: Admission,
-  reply: Reply,
-  options: HttpApplicationOptions,
-  clock: Schedule,
-  logger: DiagnosticLogger,
-  sessions: Map<string, McpSession>,
-): Promise<ResolvedMcpRequest | undefined> {
-  const text = await readBoundedBody(req, controller.signal);
-
-  if (controller.signal.aborted || admission.stopping) {
-    if (!res.destroyed) {
-      reply(503, "Server is shutting down.");
-    }
-
-    return undefined;
-  }
-
-  let body: unknown;
-
-  try {
-    body = JSON.parse(text);
-  } catch {
-    reply(400, "Invalid JSON.");
-
-    return undefined;
-  }
-
-  if (Array.isArray(body)) {
-    reply(400, "Batch requests are unsupported.");
-
-    return undefined;
-  }
-
-  const sessionId = requestSessionId(req);
-
-  if (sessionId) {
-    const session = sessions.get(sessionId);
-
-    if (!session) {
-      reply(404, "Session not found.");
-
-      return undefined;
-    }
-
-    return {
-      session,
-      closeAfterRequest: false,
-      body,
-      requestId: jsonRpcId(body),
-    };
-  }
-
-  const stateful = options.sessionIdGenerator !== undefined;
-
-  const session = await createMcpSession(
-    options,
-    admission,
-    clock,
-    logger,
-    sessions,
-    stateful,
-  );
-
-  return {
-    session,
-    closeAfterRequest: !stateful,
-    body,
-    requestId: jsonRpcId(body),
-  };
-}
-
-/**
- * Resolves GET/DELETE to an existing session without closing it.
- * Replies with 400 for a missing session header or 404 for an unknown session,
- * returning undefined in either case.
- */
-function resolveSessionRequest(
-  req: IncomingMessage,
-  reply: Reply,
-  sessions: Map<string, McpSession>,
-): ResolvedMcpRequest | undefined {
-  const sessionId = requestSessionId(req);
-
-  if (!sessionId) {
-    reply(400, "Mcp-Session-Id header is required.");
-
-    return undefined;
-  }
-
-  const session = sessions.get(sessionId);
-
-  if (!session) {
-    reply(404, "Session not found.");
-
-    return undefined;
-  }
-
-  return { session, closeAfterRequest: false };
-}
-
-/**
- * Forwards an HTTP exchange to its session with request and controller cancellation.
- * SDK HTTP errors retain their status but receive a fixed body and content type.
- * The adapter converts request conversion/handling failures to 413 or 500 responses;
- * failures escaping the adapter propagate. Resolves when forwarding finishes or
- * the controller emits an abort, without closing the session here.
- */
-async function forwardMcpRequest(
-  req: IncomingMessage,
-  res: ServerResponse,
-  controller: AbortController,
-  resolved: ResolvedMcpRequest,
-  logger: DiagnosticLogger,
-  context: RequestContext,
-  authInfo?: AuthInfo,
-) {
-  const handler = toNodeHandler(
-    {
-      fetch: async (request) => {
-        const signal = AbortSignal.any([request.signal, controller.signal]);
-
-        const scopedRequest = new Request(request, { signal });
-
-        const response = await resolved.session.transport.handleRequest(
-          scopedRequest,
-          { authInfo, parsedBody: resolved.body },
-        );
-
-        // SDK HTTP failures may echo protocol headers or exception data.
-        // Preserve the SDK-owned status, discard its free-form error body.
-        if (response.status >= 400) {
-          logger.log("info", context, { status: response.status });
-          await response.body?.cancel();
-
-          return new Response("Protocol request rejected.", {
-            status: response.status,
-            headers: { "Content-Type": "text/plain" },
-          });
-        }
-
-        return response;
-      },
-    },
-    {
-      maxRequestBodySize: transportLimits.bodyBytes,
-      onerror: (error) => logger.failure(context, error),
-    },
-  );
-
-  await Promise.race([
-    handler(req, res, resolved.body),
-    new Promise<void>((resolve) => {
-      controller.signal.addEventListener("abort", () => resolve(), {
-        once: true,
-      });
-    }),
-  ]);
-}
-
-/** Copies a finite SDK/metadata response to Node HTTP without rebuilding its semantics. */
-async function writeWebResponse(
-  res: ServerResponse,
-  response: Response,
-  close = false,
-) {
-  res.writeHead(response.status, {
-    ...Object.fromEntries(response.headers),
-    ...(close ? { Connection: "close" } : {}),
-  });
-  res.end(await response.text());
-}
-
-/**
  * Creates the process-scoped HTTP application serving health and MCP endpoints.
  *
- * The returned application owns shared admission/shutdown state and, when enabled,
+ * The returned application owns shared shutdown state and, when enabled,
  * a registry of logical MCP sessions. initialize creates a session-scoped SDK
  * server/transport; subsequent POST/GET/DELETE exchanges route by Mcp-Session-Id.
  * Explicit stateless composition retains one server/transport per POST. Host/origin
- * validation, body limits, cancellation, tool admission, and bounded shutdown are
+ * validation, body limits, cancellation, and bounded shutdown are
  * enforced before request work can escape this boundary.
  *
  * Host/origin allowlists replace their defaults and are matched verbatim. Defaults
@@ -687,38 +389,19 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
   const sessions = new Map<string, McpSession>();
 
-  const admission: Admission = { admitted: 0, stopping: false };
+  let stopping = false;
 
   let shutdownPromise: Promise<void> | undefined;
 
-  const server = createServer((req, res) => {
-    const context = createRequestContext();
+  const app = express();
 
-    res.once("finish", () => {
-      if (admission.stopping) {
-        server.closeIdleConnections();
-      }
-    });
+  const server = createServer(app);
 
-    const reply = (status: number, message: string) => {
-      logger.log("info", context, { status });
-      res.writeHead(status, {
-        "Content-Type": "text/plain",
-        Connection: "close",
-        ...(status === 405
-          ? {
-              Allow:
-                req.url === "/healthz"
-                  ? "GET"
-                  : options.sessionIdGenerator === undefined
-                    ? "POST"
-                    : "POST, GET, DELETE",
-            }
-          : {}),
-      });
-      res.end(message);
-    };
+  app.disable("x-powered-by");
 
+  // SDK Host/Origin middleware is port-agnostic. Keep the established exact
+  // authority/origin policy (including duplicate Host rejection) for this host.
+  app.use((req, res, next) => {
     const hostCount = req.rawHeaders.filter(
       (header, index) => index % 2 === 0 && header.toLowerCase() === "host",
     ).length;
@@ -729,7 +412,9 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         req.headers.host ?? "",
       )
     ) {
-      return reply(403, "Host rejected.");
+      res.status(403).type("text").send("Host rejected.");
+
+      return;
     }
 
     if (
@@ -741,64 +426,67 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         ]
       ).includes(req.headers.origin)
     ) {
-      return reply(403, "Origin rejected.");
-    }
-
-    if (admission.stopping) {
-      return reply(503, "Server is shutting down.");
-    }
-
-    if (req.url === "/healthz") {
-      if (req.method !== "GET") {
-        return reply(405, "Method not allowed.");
-      }
-
-      res.writeHead(200, { "Content-Type": "application/json" });
-
-      // Read cached local state only; never restore or refresh from health.
-      return res.end(
-        JSON.stringify({
-          name: "iracing-data-mcp",
-          version: "0.0.0",
-          live: true,
-          ...healthDiagnostics({
-            auth_state: options.services.authorizationState?.(),
-          }),
-        }),
-      );
-    }
-
-    const metadata = options.authorization?.metadataResponse(
-      req.method ?? "GET",
-      req.url ?? "/",
-    );
-
-    if (metadata) {
-      void writeWebResponse(res, metadata).catch(() => res.destroy());
+      res.status(403).type("text").send("Origin rejected.");
 
       return;
     }
 
-    if (req.url !== "/mcp") {
-      return reply(404, "Not found.");
+    res.once("finish", () => {
+      if (stopping) {
+        server.closeIdleConnections();
+      }
+    });
+    if (stopping) {
+      res.status(503).type("text").send("Server is shutting down.");
+
+      return;
     }
 
-    if (!req.method || !["POST", "GET", "DELETE"].includes(req.method)) {
-      return reply(405, "Method not allowed.");
+    next();
+  });
+
+  app.get("/healthz", (_req, res) => {
+    // Cached local state only; health never restores or refreshes credentials.
+    res.json({
+      name: "iracing-data-mcp",
+      version: "0.0.0",
+      live: true,
+      ...healthDiagnostics({
+        auth_state: options.services.authorizationState?.(),
+      }),
+    });
+  });
+  if (options.authorization) {
+    app.use(options.authorization.metadataRouter);
+    app.all("/mcp", options.authorization.middleware);
+  }
+
+  // Authentication precedes parsing. Express owns buffering, byte limits and JSON
+  // errors; compressed uploads are disabled so they cannot bypass the wire bound.
+  app.all(
+    "/mcp",
+    express.json({ limit: transportLimits.bodyBytes, inflate: false }),
+  );
+  const handleMcpRequest: RequestHandler = async (req, res) => {
+    if (stopping) {
+      res.status(503).type("text").send("Server is shutting down.");
+
+      return;
     }
 
-    if (
-      options.sessionIdGenerator === undefined &&
-      (req.method === "GET" || req.method === "DELETE")
-    ) {
-      return reply(405, "Method not allowed.");
+    // One RPC operation binds to one HTTP cancellation scope.
+    // The legacy SDK accepts batches, but this host has never admitted them.
+    if (Array.isArray(req.body)) {
+      res.status(400).type("text").send("Batch requests are unsupported.");
+
+      return;
     }
+
+    const context = createRequestContext();
 
     const controller = new AbortController();
 
     const cancel = () => controller.abort();
-
-    active.add(cancel);
 
     const disconnected = () => {
       if (!res.writableFinished) {
@@ -806,118 +494,108 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       }
     };
 
+    active.add(cancel);
     res.on("close", disconnected);
     req.on("aborted", cancel);
+    let session: McpSession | undefined;
 
-    void (async () => {
-      let resolved: ResolvedMcpRequest | undefined;
+    const requestId = jsonRpcId(req.body);
 
-      try {
-        const auth = await options.authorization?.authorize(
-          req.headers.authorization,
-        );
+    try {
+      const sessionId = requestSessionId(req);
 
-        if (auth instanceof Response) {
-          logger.log("info", context, { status: auth.status });
-          await writeWebResponse(res, auth, true);
+      session = sessionId ? sessions.get(sessionId) : undefined;
 
-          return;
-        }
+      if (sessionId && !session) {
+        res.status(404).type("text").send("Session not found.");
 
-        if (controller.signal.aborted || admission.stopping) {
-          if (!res.destroyed && !res.headersSent) {
-            reply(503, "Server is shutting down.");
-          }
-
-          return;
-        }
-
-        resolved =
-          req.method === "POST"
-            ? await resolvePostRequest(
-                req,
-                res,
-                controller,
-                admission,
-                reply,
-                options,
-                clock,
-                logger,
-                sessions,
-              )
-            : resolveSessionRequest(req, reply, sessions);
-
-        if (!resolved) {
-          return;
-        }
-
-        if (resolved.requestId !== undefined) {
-          resolved.session.requests.set(resolved.requestId, {
-            context,
-            cancel,
-            signal: controller.signal,
-          });
-        }
-
-        await forwardMcpRequest(
-          req,
-          res,
-          controller,
-          resolved,
-          logger,
-          context,
-          auth,
-        );
-      } catch (error) {
-        const oversized =
-          error instanceof Error && error.name === "RequestBodyTooLargeError";
-
-        logger.log("error", context, { status: oversized ? 413 : 500 });
-        if (!res.headersSent && !res.destroyed) {
-          reply(
-            oversized ? 413 : 500,
-            oversized ? "Request body too large." : "Request failed.",
-          );
-        }
-      } finally {
-        if (resolved?.requestId !== undefined) {
-          resolved.session.requests.delete(resolved.requestId);
-        }
-
-        if (
-          resolved &&
-          (resolved.closeAfterRequest ||
-            (resolved.session.stateful && resolved.session.id === undefined))
-        ) {
-          await closeMcpSession(resolved.session, sessions);
-        }
-
-        active.delete(cancel);
-        res.off("close", disconnected);
-        req.off("aborted", cancel);
+        return;
       }
-    })();
-  });
 
-  // Bound slow/incomplete HTTP bodies independently of tool execution.
-  server.requestTimeout = transportLimits.toolMs;
-  server.headersTimeout = transportLimits.toolMs;
-  server.on("clientError", (_error, socket) =>
-    socket.end("HTTP/1.1 400 Bad Request\r\nConnection: close\r\n\r\n"),
-  );
+      if (!session && req.method !== "POST") {
+        res.status(400).type("text").send("Mcp-Session-Id header is required.");
+
+        return;
+      }
+
+      session ??= await createMcpSession(
+        options,
+        logger,
+        sessions,
+        options.sessionIdGenerator !== undefined,
+      );
+      if (requestId !== undefined) {
+        session.requests.set(requestId, {
+          context,
+          cancel,
+          signal: controller.signal,
+        });
+      }
+
+      await Promise.race([
+        session.handleRequest(req, res, req.body),
+        new Promise<void>((resolve) => {
+          controller.signal.addEventListener("abort", () => resolve(), {
+            once: true,
+          });
+        }),
+      ]);
+    } finally {
+      if (requestId !== undefined) {
+        session?.requests.delete(requestId);
+      }
+
+      active.delete(cancel);
+      res.off("close", disconnected);
+      req.off("aborted", cancel);
+      if (session && (!session.stateful || session.id === undefined)) {
+        await closeMcpSession(session, sessions);
+      }
+    }
+  };
+
+  app.post("/mcp", handleMcpRequest);
+  if (options.sessionIdGenerator) {
+    app.get("/mcp", handleMcpRequest);
+    app.delete("/mcp", handleMcpRequest);
+  }
+
+  // Keep parser/async failures sanitized; Express 5 forwards rejected handlers here.
+  const errors: ErrorRequestHandler = (error: unknown, _req, res, next) => {
+    const status =
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      typeof error.status === "number" &&
+      Number.isInteger(error.status) &&
+      error.status >= 400 &&
+      error.status <= 599
+        ? error.status
+        : 500;
+
+    logger.log("error", createRequestContext(), { status });
+    if (res.headersSent) {
+      next(new Error("Request failed."));
+
+      return;
+    }
+
+    res.status(status).type("text").send("Request failed.");
+  };
+
+  app.use(errors);
+
+  // Node owns ordinary HTTP header/upload timeouts; no tool deadline is imposed.
 
   return {
     server,
-    get admittedTools() {
-      return admission.admitted;
-    },
 
     /** Counts initialized sessions still registered, excluding stateless exchanges. */
     get activeSessions() {
       return sessions.size;
     },
     get stopping() {
-      return admission.stopping;
+      return stopping;
     },
     listen(port = 3000, host = "127.0.0.1") {
       return new Promise<void>((resolve, reject) => {
@@ -930,7 +608,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
     },
 
     /**
-     * Stops admission and drains HTTP work, canceling remaining requests and
+     * Stops new HTTP work and drains active exchanges, canceling remaining requests and
      * connections after 10 seconds. Closes registered MCP sessions before invoking
      * the authorization owner's shutdown hook. Returns the same promise on repeat
      * calls; cleanup failures reject it, and session close failure skips the hook.
@@ -940,7 +618,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         return shutdownPromise;
       }
 
-      admission.stopping = true;
+      stopping = true;
       shutdownPromise = new Promise<void>((resolve) => {
         const clear = clock(() => {
           for (const abort of active) {
