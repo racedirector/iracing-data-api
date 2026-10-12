@@ -1,12 +1,18 @@
-import { createRemoteJwtVerifier } from "@iracing-data/oauth-client";
 import {
   OAuthError,
   OAuthErrorCode,
   getOAuthProtectedResourceMetadataUrl,
   requireBearerAuth,
   type AuthInfo,
+  type OAuthProtectedResourceMetadata,
   type OAuthTokenVerifier,
 } from "@modelcontextprotocol/server";
+import {
+  createRemoteJWKSet,
+  jwtVerify,
+  type JWTPayload,
+  type JWTVerifyGetKey,
+} from "jose";
 import { z } from "zod";
 
 const noWildcard = (value: string) => !value.includes("*");
@@ -36,8 +42,7 @@ const httpsUrl = z
     }
 
     // OAuth issuer/resource identifiers are exact strings. Validate URL structure
-    // without normalizing the operator-supplied identifier (for example by adding
-    // a trailing slash) before issuer/audience comparisons.
+    // without normalizing the operator-supplied identifier before comparisons.
     return value;
   });
 
@@ -101,35 +106,39 @@ export function parseMcpRemoteAuthorizationConfig(
   return Object.freeze(McpRemoteAuthorizationConfigSchema.parse(input));
 }
 
-function claimString(payload: Record<string, unknown>, name: string) {
+function claimString(payload: JWTPayload, name: string) {
   const value = payload[name];
 
   return typeof value === "string" && value.length > 0 ? value : undefined;
 }
 
-/** Creates the MCP access-token verifier without reusing iRacing token policy. */
+function resourceFromAudience(audience: JWTPayload["aud"], expected: string) {
+  const audiences = Array.isArray(audience)
+    ? audience
+    : audience === undefined
+      ? []
+      : [audience];
+  const resource = audiences.find((value) => value === expected);
+
+  return resource === undefined ? undefined : new URL(resource);
+}
+
+/** Creates the MCP JWT verifier using JOSE for signature and claim validation. */
 export function createMcpJwtVerifier(
   config: McpRemoteAuthorizationConfig,
+  keySet: JWTVerifyGetKey = createRemoteJWKSet(new URL(config.jwksUrl)),
 ): OAuthTokenVerifier {
-  const verify = createRemoteJwtVerifier({
-    issuer: config.issuer,
-    audience: config.audience,
-    jwksUrl: config.jwksUrl,
-  });
-
   return {
     async verifyAccessToken(token): Promise<AuthInfo> {
       try {
-        const { payload } = await verify(token);
+        const { payload } = await jwtVerify(token, keySet, {
+          issuer: config.issuer,
+          audience: config.audience,
+        });
 
         if (typeof payload.exp !== "number") {
           throw new Error("Missing exp claim.");
         }
-
-        const scopes =
-          typeof payload.scope === "string"
-            ? payload.scope.split(" ").filter(Boolean)
-            : [];
 
         const clientId =
           claimString(payload, "client_id") ??
@@ -143,9 +152,12 @@ export function createMcpJwtVerifier(
         return {
           token,
           clientId,
-          scopes,
+          scopes:
+            typeof payload.scope === "string"
+              ? payload.scope.split(" ").filter(Boolean)
+              : [],
           expiresAt: payload.exp,
-          resource: new URL(config.resourceUrl),
+          resource: resourceFromAudience(payload.aud, config.resourceUrl),
         };
       } catch {
         throw new OAuthError(
@@ -161,12 +173,7 @@ export function createMcpJwtVerifier(
 export interface McpAuthorizationBoundary {
   readonly resourceUrl: URL;
   readonly metadataUrl: string;
-  readonly metadataPath: string;
-  readonly metadata: Readonly<{
-    resource: string;
-    authorization_servers: readonly string[];
-    scopes_supported: readonly string[];
-  }>;
+  readonly metadata: Readonly<OAuthProtectedResourceMetadata>;
   authorize(request: Request): Promise<AuthInfo | Response>;
   metadataResponse(request: Request): Response | undefined;
 }
@@ -180,17 +187,13 @@ export function createMcpAuthorizationBoundary(
   verifier: OAuthTokenVerifier = createMcpJwtVerifier(config),
 ): McpAuthorizationBoundary {
   const resourceUrl = new URL(config.resourceUrl);
-
   const metadataUrl = getOAuthProtectedResourceMetadataUrl(resourceUrl);
-
   const metadataPath = new URL(metadataUrl).pathname;
-
-  const metadata = Object.freeze({
+  const metadata: OAuthProtectedResourceMetadata = Object.freeze({
     resource: config.resourceUrl,
-    authorization_servers: Object.freeze([config.issuer]),
-    scopes_supported: Object.freeze([...config.requiredScopes]),
+    authorization_servers: [config.issuer],
+    scopes_supported: [...config.requiredScopes],
   });
-
   const authorize = requireBearerAuth({
     verifier,
     requiredScopes: [...config.requiredScopes],
@@ -201,7 +204,6 @@ export function createMcpAuthorizationBoundary(
   return Object.freeze({
     resourceUrl,
     metadataUrl,
-    metadataPath,
     metadata,
     authorize,
     metadataResponse(request: Request) {
