@@ -274,7 +274,7 @@ async function main() {
     refresh_token: "REFRESH_SECRET",
     scope: "iracing.auth",
   });
-  const services = await api.createMcpServices({
+  const services = await api.createFileBackedIracingAccess({
     credentialFile: file,
     clientMetadata: {
       clientId: "fixture",
@@ -284,7 +284,9 @@ async function main() {
   });
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
-    services,
+    services: { getDataApiGateway: services.getDataApiGateway },
+    authorizationState: services.authorizationState,
+    shutdownAuthorizationOwner: services.shutdownAuthorizationOwner,
   });
   await app.listen(0, "127.0.0.1");
   let targetPort = app.server.address().port;
@@ -524,7 +526,7 @@ async function main() {
     );
     output.push(JSON.stringify(oversized));
     checks++;
-    const missing = await api.createMcpServices({
+    const missing = await api.createFileBackedIracingAccess({
       credentialFile: path.join(dir, "missing.json"),
       clientMetadata: {
         clientId: "fixture",
@@ -535,7 +537,7 @@ async function main() {
     await assert.rejects(missing.dataApiConfiguration.accessToken());
     checks++;
     await fs.writeFile(file, "corrupt SECRET", { mode: 0o600 });
-    const corrupt = await api.createMcpServices({
+    const corrupt = await api.createFileBackedIracingAccess({
       credentialFile: file,
       clientMetadata: {
         clientId: "fixture",
@@ -567,7 +569,7 @@ async function main() {
       clientId: "fixture",
       redirectUri: "http://127.0.0.1:0/callback",
     };
-    const rotating = await api.createMcpServices({
+    const rotating = await api.createFileBackedIracingAccess({
       credentialFile: file,
       clientMetadata: metadata,
     });
@@ -600,7 +602,7 @@ async function main() {
     );
     checks++;
     await oauth.writeOAuthTokenDocument(file, token, { overwrite: true });
-    const persistence = await api.createMcpServices({
+    const persistence = await api.createFileBackedIracingAccess({
       credentialFile: file,
       clientMetadata: metadata,
       fileSystem: {
@@ -618,7 +620,7 @@ async function main() {
       ["invalid_grant", 400, "authorization_required"],
     ]) {
       await oauth.writeOAuthTokenDocument(file, token, { overwrite: true });
-      const failedRefresh = await api.createMcpServices({
+      const failedRefresh = await api.createFileBackedIracingAccess({
         credentialFile: file,
         clientMetadata: metadata,
       });
@@ -737,7 +739,7 @@ async function main() {
     for (const [ownedServices, expectedCode] of [
       [missing, "AUTHORIZATION_REQUIRED"],
       [
-        await api.createMcpServices({
+        await api.createFileBackedIracingAccess({
           credentialFile: file,
           clientMetadata: metadata,
         }),
@@ -746,7 +748,9 @@ async function main() {
     ]) {
       const restarted = api.createHttpApplication({
         config: api.parseMcpApplicationConfig(),
-        services: ownedServices,
+        services: { getDataApiGateway: ownedServices.getDataApiGateway },
+        authorizationState: ownedServices.authorizationState,
+        shutdownAuthorizationOwner: ownedServices.shutdownAuthorizationOwner,
       });
       await restarted.listen(0, "127.0.0.1");
       targetPort = restarted.server.address().port;

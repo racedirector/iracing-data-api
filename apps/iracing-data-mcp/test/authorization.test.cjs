@@ -25,12 +25,7 @@ async function fixture(
   const services = new Proxy(
     {},
     {
-      get(_target, key) {
-        if (
-          key === "authorizationState" ||
-          key === "shutdownAuthorizationOwner"
-        )
-          return undefined;
+      get() {
         throw new Error("Unexpected upstream service access");
       },
     },

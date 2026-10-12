@@ -95,7 +95,12 @@ test("configured HTTP Host/Origin list stays exact without accepting default hos
   const api = await import("../dist/index.js");
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
-    services: { authorizationState: () => "authorization_required" },
+    services: {
+      getDataApiGateway: () => {
+        throw new Error("unexpected upstream access");
+      },
+    },
+    authorizationState: () => "authorization_required",
     allowedHosts: ["localhost:4321"],
     allowedOrigins: ["http://localhost:4321"],
     logger: api.createDiagnosticLogger(() => {}),

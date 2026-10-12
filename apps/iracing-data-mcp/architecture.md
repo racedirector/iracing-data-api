@@ -8,7 +8,7 @@ beside their owners:
 | Question                                           | Authoritative source                                                                                                                                                                                     |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Startup, configuration and mount validation        | [production.ts](src/production.ts), [main.ts](src/main.ts)                                                                                                                                               |
-| Process services and MCP session/exchange lifetime | [services.ts](../../packages/mcp/server/src/services.ts), [mcp.ts](../../packages/mcp/server/src/mcp.ts), [http.ts](src/http.ts)                                                                         |
+| Process services and MCP session/exchange lifetime | [session.ts](src/session.ts), [services.ts](../../packages/mcp/server/src/services.ts), [mcp.ts](../../packages/mcp/server/src/mcp.ts), [http.ts](src/http.ts)                                           |
 | HTTP admission, security, cancellation and drain   | [http.ts](src/http.ts)                                                                                                                                                                                   |
 | Durable authorization, rotation and quarantine     | [session.ts](src/session.ts)                                                                                                                                                                             |
 | Generated endpoint boundary and bounded resolution | [gateway.ts](../../packages/mcp/server/src/gateway/gateway.ts)                                                                                                                                           |
@@ -31,7 +31,9 @@ for deployment, stopped credential recovery and rollback. Source describes the
 shipped architecture. The [package boundary](../../packages/mcp/server/README.md)
 documents request-scoped gateway selection and account-scoped retention. The local
 credential owner adapts its fixed gateway through `getDataApiGateway`; health and
-shutdown hooks remain in the app-owned `ApplicationServices` contract. OAuth failure
+shutdown hooks are separate HTTP options and never reach the package.
+Production explicitly projects `createFileBackedIracingAccess` into the package
+access seam; the provider owns fixed paths, refresh and quarantine. OAuth failure
 classification lives in [failure-mapping.ts](src/failure-mapping.ts).
 
 See [remote authorization](remote-authorization.md) for the optional MCP ingress

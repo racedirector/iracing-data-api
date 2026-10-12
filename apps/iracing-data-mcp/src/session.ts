@@ -35,15 +35,19 @@ import {
   type OAuthTokenResponse,
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
-import type { ApplicationServices, AuthorizationState } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
 export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";
 
-export type { AuthorizationState } from "./services.js";
+/** Health of the app-owned local credential provider. */
+export type AuthorizationState =
+  "ready" | "authorization_required" | "configuration_error";
 
 /** Local credential owner; these fields are not part of the MCP package contract. */
-export interface LocalMcpServices extends ApplicationServices {
+export interface FileBackedIracingAccess {
+  readonly getDataApiGateway: () => DataApiGateway;
+  readonly authorizationState: () => AuthorizationState;
+  readonly shutdownAuthorizationOwner: () => Promise<void>;
   readonly oauthClient: OAuthClient;
   readonly dataApiConfiguration: Configuration;
   readonly dataApiGateway: DataApiGateway;
@@ -53,7 +57,7 @@ export interface LocalMcpServices extends ApplicationServices {
  * Host-provided composition inputs for MCP session services, including credential persistence
  * and diagnostic seams.
  */
-export interface SessionCompositionOptions {
+export interface FileBackedIracingAccessOptions {
   readonly clientMetadata: OAuthClientOptions["clientMetadata"];
   readonly credentialFile?: string;
   readonly fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
@@ -89,9 +93,9 @@ function validateSession(token: OAuthTokenResponse | undefined) {
  * and make later token requests fail. OAuth client construction errors instead
  * reject composition with CONFIGURATION_ERROR.
  */
-export async function createMcpServices(
-  options: SessionCompositionOptions,
-): Promise<LocalMcpServices> {
+export async function createFileBackedIracingAccess(
+  options: FileBackedIracingAccessOptions,
+): Promise<FileBackedIracingAccess> {
   const logger = options.logger ?? createDiagnosticLogger();
 
   const context = createRequestContext();

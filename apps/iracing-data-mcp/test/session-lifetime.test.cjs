@@ -22,6 +22,8 @@ async function fixture(t, { registerTools, services } = {}) {
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services: sharedServices,
+    authorizationState: sharedServices.authorizationState,
+    shutdownAuthorizationOwner: sharedServices.shutdownAuthorizationOwner,
     registerTools,
     allowedHosts,
     allowedOrigins: [],
