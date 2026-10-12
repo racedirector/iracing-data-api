@@ -10,55 +10,42 @@ const remoteConfig = Object.freeze({
   requiredScopes: ["mcp:use"],
 });
 
+async function signingFixture() {
+  const { SignJWT, createLocalJWKSet, exportJWK, generateKeyPair } =
+    await import("jose");
+  const { privateKey, publicKey } = await generateKeyPair("RS256");
+  const jwk = await exportJWK(publicKey);
+  Object.assign(jwk, { alg: "RS256", kid: "test-key", use: "sig" });
+
+  async function sign(overrides = {}, signingKey = privateKey) {
+    const now = Math.floor(Date.now() / 1000);
+    const claims = {
+      iss: remoteConfig.issuer,
+      aud: remoteConfig.audience,
+      sub: "principal-123",
+      scope: "mcp:use",
+      iat: now,
+      exp: now + 300,
+      ...overrides,
+    };
+
+    return new SignJWT(claims)
+      .setProtectedHeader({ alg: "RS256", kid: "test-key" })
+      .sign(signingKey);
+  }
+
+  return {
+    keySet: createLocalJWKSet({ keys: [jwk] }),
+    sign,
+    generateKeyPair,
+  };
+}
+
 async function fixture(t) {
   const api = await import("../dist/index.js");
-  const { OAuthError, OAuthErrorCode } =
-    await import("@modelcontextprotocol/server");
+  const signing = await signingFixture();
   const logs = [];
   let seenAuth;
-
-  const verifier = {
-    async verifyAccessToken(token) {
-      const expiresAt = Math.floor(Date.now() / 1000) + 300;
-      if (token === "valid") {
-        return {
-          token,
-          clientId: "principal-123",
-          scopes: ["mcp:use"],
-          expiresAt,
-          resource: new URL(remoteConfig.resourceUrl),
-        };
-      }
-      if (token === "no-scope") {
-        return {
-          token,
-          clientId: "principal-123",
-          scopes: [],
-          expiresAt,
-          resource: new URL(remoteConfig.resourceUrl),
-        };
-      }
-      if (token === "wrong-resource") {
-        return {
-          token,
-          clientId: "principal-123",
-          scopes: ["mcp:use"],
-          expiresAt,
-          resource: new URL("https://other.example/mcp"),
-        };
-      }
-      if (token === "expired") {
-        return {
-          token,
-          clientId: "principal-123",
-          scopes: ["mcp:use"],
-          expiresAt: Math.floor(Date.now() / 1000) - 1,
-          resource: new URL(remoteConfig.resourceUrl),
-        };
-      }
-      throw new OAuthError(OAuthErrorCode.InvalidToken, "Invalid access token");
-    },
-  };
 
   const services = new Proxy(
     {},
@@ -74,14 +61,16 @@ async function fixture(t) {
     },
   );
 
+  const config = api.parseMcpRemoteAuthorizationConfig(remoteConfig);
   const authorization = api.createMcpAuthorizationBoundary(
-    api.parseMcpRemoteAuthorizationConfig(remoteConfig),
-    verifier,
+    config,
+    api.createMcpJwtVerifier(config, signing.keySet),
   );
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services,
     authorization,
+    sessionIdGenerator: () => "auth-session-1",
     registerTools(server) {
       server.registerTool("auth_probe", {}, (ctx) => {
         seenAuth = ctx.http?.authInfo;
@@ -99,6 +88,7 @@ async function fixture(t) {
     path = "/mcp",
     method = "POST",
     token,
+    sessionId,
     headers = {},
     body = JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
   } = {}) {
@@ -115,6 +105,9 @@ async function fixture(t) {
             "Content-Type": "application/json",
             "MCP-Protocol-Version": "2025-11-25",
             ...(token === undefined ? {} : { Authorization: `Bearer ${token}` }),
+            ...(sessionId === undefined
+              ? {}
+              : { "Mcp-Session-Id": sessionId }),
             ...headers,
           },
         },
@@ -136,7 +129,16 @@ async function fixture(t) {
     });
   }
 
-  return { api, app, authorization, logs, request, seenAuth: () => seenAuth };
+  return {
+    api,
+    app,
+    authorization,
+    logs,
+    request,
+    sign: signing.sign,
+    generateKeyPair: signing.generateKeyPair,
+    seenAuth: () => seenAuth,
+  };
 }
 
 function initializeBody() {
@@ -222,8 +224,9 @@ test("serves path-aware protected resource metadata without bearer auth", async 
   assert.equal(response.headers["access-control-allow-origin"], "*");
 });
 
-test("protected MCP requests reject missing, malformed, invalid, expired, wrong-resource, and underscoped credentials", async (t) => {
-  const { request } = await fixture(t);
+test("signed JWT verification rejects invalid credentials and enforces scope", async (t) => {
+  const { request, sign, generateKeyPair } = await fixture(t);
+  const now = Math.floor(Date.now() / 1000);
 
   const missing = await request();
   assert.equal(missing.status, 401);
@@ -241,28 +244,49 @@ test("protected MCP requests reject missing, malformed, invalid, expired, wrong-
     (await request({ token: "iracing-style-access-token" })).status,
     401,
   );
-  assert.equal((await request({ token: "expired" })).status, 401);
-  assert.equal((await request({ token: "wrong-resource" })).status, 401);
+  assert.equal((await request({ token: await sign({ exp: now - 1 }) })).status, 401);
+  assert.equal(
+    (await request({ token: await sign({ iss: "https://other.example/" }) }))
+      .status,
+    401,
+  );
+  assert.equal(
+    (
+      await request({
+        token: await sign({ aud: "https://other.example/mcp" }),
+      })
+    ).status,
+    401,
+  );
 
-  const noScope = await request({ token: "no-scope" });
+  const { privateKey: untrustedKey } = await generateKeyPair("RS256");
+  assert.equal((await request({ token: await sign({}, untrustedKey) })).status, 401);
+
+  const noScope = await request({ token: await sign({ scope: "other" }) });
   assert.equal(noScope.status, 403);
   assert.match(noScope.headers["www-authenticate"], /insufficient_scope/);
   assert.match(noScope.headers["www-authenticate"], /scope="mcp:use"/);
 });
 
-test("valid bearer auth reaches initialize, tools/list, tool execution, and request auth context", async (t) => {
-  const { request, seenAuth } = await fixture(t);
+test("signed bearer auth is rechecked across a stateful MCP session", async (t) => {
+  const { request, sign, seenAuth } = await fixture(t);
+  const token = await sign();
 
-  const initialized = await request({ token: "valid", body: initializeBody() });
+  const initialized = await request({ token, body: initializeBody() });
   assert.equal(initialized.status, 200);
   assert.equal(initialized.json().result.protocolVersion, "2025-11-25");
+  assert.equal(initialized.headers["mcp-session-id"], "auth-session-1");
 
-  const list = await request({ token: "valid" });
+  const withoutBearer = await request({ sessionId: "auth-session-1" });
+  assert.equal(withoutBearer.status, 401);
+
+  const list = await request({ token, sessionId: "auth-session-1" });
   assert.equal(list.status, 200);
   assert.ok(list.json().result.tools.some((tool) => tool.name === "auth_probe"));
 
   const called = await request({
-    token: "valid",
+    token,
+    sessionId: "auth-session-1",
     body: JSON.stringify({
       jsonrpc: "2.0",
       id: 2,
