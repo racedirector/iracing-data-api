@@ -10,7 +10,7 @@ const remoteConfig = Object.freeze({
   requiredScopes: ["mcp:use"],
 });
 
-async function fixture(t, local = false) {
+async function fixture(t, local = false, verifyAccessToken) {
   const api = await import("../dist/index.js");
 
   const logs = [];
@@ -35,6 +35,7 @@ async function fixture(t, local = false) {
     requiredScopes: remoteConfig.requiredScopes,
     verifier: {
       async verifyAccessToken(token) {
+        if (verifyAccessToken) return verifyAccessToken(token);
         return {
           token,
           clientId: token,
@@ -136,6 +137,7 @@ test("SDK bearer boundary rejects missing authorization and insufficient scope",
   const { request, authorization } = await fixture(t);
   const missing = await request();
   assert.equal(missing.status, 401);
+  assert.equal(missing.headers.connection, "close");
   assert.ok(
     missing.headers["www-authenticate"].includes(authorization.metadataUrl),
   );
@@ -194,4 +196,31 @@ test("health remains separate from remote MCP bearer authentication", async (t) 
 test("local initialize remains unauthenticated", async (t) => {
   const { request } = await fixture(t, true);
   assert.equal((await request({ body: initializeBody() })).status, 200);
+});
+
+test("shutdown while verification is pending answers the connected request", async (t) => {
+  let release, started;
+  const waiting = new Promise((resolve) => {
+    started = resolve;
+  });
+  const gate = new Promise((resolve) => {
+    release = resolve;
+  });
+  const { request, app } = await fixture(t, false, async (token) => {
+    started();
+    await gate;
+    return {
+      token,
+      clientId: "pending",
+      scopes: ["mcp:use"],
+      expiresAt: Math.floor(Date.now() / 1000) + 300,
+      resource: new URL(remoteConfig.resourceUrl),
+    };
+  });
+  const pending = request({ token: "pending", body: initializeBody() });
+  await waiting;
+  const shutdown = app.shutdown();
+  release();
+  assert.equal((await pending).status, 503);
+  await shutdown;
 });

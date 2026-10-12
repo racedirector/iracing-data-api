@@ -795,13 +795,21 @@ export function createHttpApplication(options: HttpApplicationOptions) {
         );
 
         if (auth instanceof Response) {
-          res.writeHead(auth.status, Object.fromEntries(auth.headers));
+          logger.log("info", context, { status: auth.status });
+          res.writeHead(auth.status, {
+            ...Object.fromEntries(auth.headers),
+            Connection: "close",
+          });
           res.end(await auth.text());
 
           return;
         }
 
         if (controller.signal.aborted || admission.stopping) {
+          if (!res.destroyed && !res.headersSent) {
+            reply(503, "Server is shutting down.");
+          }
+
           return;
         }
 
