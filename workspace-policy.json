@@ -118,6 +118,20 @@
       "ecosystem": "cargo",
       "kind": "generated-public-client",
       "owner": "codegen"
+    },
+    {
+      "path": "examples/node-mcp-server",
+      "name": "iracing-node-mcp-server",
+      "ecosystem": "npm",
+      "kind": "example",
+      "owner": "examples"
+    },
+    {
+      "path": "examples/express-mcp-server",
+      "name": "iracing-express-mcp-server",
+      "ecosystem": "npm",
+      "kind": "example",
+      "owner": "examples"
     }
   ]
 }

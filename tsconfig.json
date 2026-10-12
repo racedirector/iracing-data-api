@@ -45,6 +45,12 @@
     },
     {
       "path": "./packages/mcp/server"
+    },
+    {
+      "path": "./examples/node-mcp-server"
+    },
+    {
+      "path": "./examples/express-mcp-server"
     }
   ]
 }
