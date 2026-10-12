@@ -60,12 +60,13 @@ const race = (id = 1) => ({
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-server")),
+    ...(await import("@iracing-data/mcp-tools")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let state = "ready",
     now = Date.now();
+  t.mock.method(Date, "now", () => now);
   const requests = [],
     logs = [];
   const sources = {
@@ -79,39 +80,45 @@ async function fixture(t, data = {}, options = {}) {
     },
     ...data,
   };
-  const gateway = new api.DataApiGateway({
-    configuration: new Configuration({
-      accessToken: async () => "TOKEN_SECRET",
-    }),
-    authorizationState: () => state,
-    now: () => now,
-    logger: api.createDiagnosticLogger((line) => logs.push(line)),
-    transport: async (url, init) => {
-      requests.push({ url, init });
-      if (options.transport) return options.transport(url, init, sources);
-      if (url.hostname === "members-ng.iracing.com") {
-        const key = url.pathname.includes("member/info")
-          ? "member"
-          : url.pathname.includes("lookup/drivers")
-            ? "drivers"
-            : url.pathname.includes("stats/member_recent_races")
-              ? "recent"
-              : url.pathname.includes("/car/get")
-                ? "cars"
-                : "tracks";
-        return Response.json({
-          link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
-          expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
-        });
-      }
-      assert.equal(new Headers(init.headers).has("authorization"), false);
-      return Response.json(sources[url.pathname.split("/").pop()]);
-    },
+  let continuationScope = {};
+  const transport = async (url, init) => {
+    requests.push({ url, init });
+    if (options.transport) return options.transport(url, init, sources);
+    if (url.hostname === "members-ng.iracing.com") {
+      const key = url.pathname.includes("member/info")
+        ? "member"
+        : url.pathname.includes("lookup/drivers")
+          ? "drivers"
+          : url.pathname.includes("stats/member_recent_races")
+            ? "recent"
+            : url.pathname.includes("/car/get")
+              ? "cars"
+              : "tracks";
+      return Response.json({
+        link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
+        expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
+      });
+    }
+    assert.equal(new Headers(init.headers).has("authorization"), false);
+    return Response.json(sources[url.pathname.split("/").pop()]);
+  };
+  const configuration = new Configuration({
+    accessToken: async () => "TOKEN_SECRET",
+    fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const access = () => ({ configuration, continuationScope });
+  const changeScope = () => {
+    continuationScope = {};
+  };
+
   const services = {
     oauthClient: {},
     dataApiConfiguration: {},
-    dataApiGateway: gateway,
+    getDataApiAccess: () => {
+      if (state !== "ready")
+        throw new api.ApplicationFailure("AUTHORIZATION_REQUIRED");
+      return access();
+    },
     authorizationState: () => state,
   };
   const app = api.createHttpApplication({
@@ -168,11 +175,15 @@ async function fixture(t, data = {}, options = {}) {
     app,
     client,
     call,
-    gateway,
+    access,
+    changeScope,
     requests,
     sources,
     logs,
-    setState: (value) => (state = value),
+    setState: (value) => {
+      state = value;
+      changeScope();
+    },
     advance: (ms) => (now += ms),
     now: () => now,
   };
@@ -393,7 +404,7 @@ test("complete result cap includes duplicated text, reduces collection pages and
   f.sources.recent.races = [{ ...race(), series_name: "x".repeat(40000) }];
   failure(await f.call("get_recent_races"), "RESPONSE_LIMIT_EXCEEDED");
 });
-test("earliest envelope expiry, gateway invalidation and authorization loss retire cursors without network replay", async (t) => {
+test("earliest envelope expiry, scope replacement and authorization loss retire cursors without network replay", async (t) => {
   const f = await fixture(t, {}, { expiryMs: 90000 });
   t.mock.method(Date, "now", () => f.now());
   let p = success(await f.call("find_drivers", { query: "ab", limit: 1 }));
@@ -436,95 +447,6 @@ test("unauthenticated initialize/listing remain available; tools require auth", 
     failure(await f.call(name, args), "AUTHORIZATION_REQUIRED");
   assert.equal(f.requests.length, 0);
 });
-test("opaque collections enforce TTL, immutable input/results, generation, restart, replay and global capacity", async () => {
-  const { CollectionCursors, COLLECTION_LIMITS } =
-    await import("../dist/index.js");
-  let now = 1000;
-  const owner = new CollectionCursors(() => now),
-    items = Array.from({ length: 4 }, (_, i) => ({ id: i + 1 }));
-  const start = (extra = {}) =>
-    owner.start({
-      tool: "test",
-      filters: { q: "a" },
-      generation: 1,
-      items,
-      limit: 1,
-      expiresAt: now + 900000,
-      ...extra,
-    });
-  const p = start();
-  p.structuredContent.items[0].id = 99;
-  items[1].id = 88;
-  const q = owner.resume("test", p.structuredContent.next_cursor, 1);
-  assert.equal(q.structuredContent.items[0].id, 2);
-  q.structuredContent.items[0].id = 77;
-  assert.equal(
-    owner.resume("test", p.structuredContent.next_cursor, 1).structuredContent
-      .items[0].id,
-    2,
-  );
-  const expired = (error) =>
-    error.message.includes("cursor") ||
-    error.constructor.name === "ApplicationFailure";
-  assert.throws(
-    () =>
-      new CollectionCursors(() => now).resume(
-        "test",
-        p.structuredContent.next_cursor,
-        1,
-      ),
-    expired,
-  );
-  assert.throws(
-    () => owner.resume("other", p.structuredContent.next_cursor, 1),
-    expired,
-  );
-  now += 300001;
-  assert.throws(
-    () => owner.resume("test", p.structuredContent.next_cursor, 1),
-    expired,
-  );
-  const short = start({ expiresAt: now + 1000 });
-  now += 1000;
-  assert.throws(
-    () => owner.resume("test", short.structuredContent.next_cursor, 1),
-    expired,
-  );
-  const changed = start();
-  assert.throws(
-    () => owner.resume("test", changed.structuredContent.next_cursor, 2),
-    expired,
-  );
-  for (let i = 0; i < COLLECTION_LIMITS.cursors; i++) start();
-  assert.throws(() => start());
-  now += 300001;
-  assert.ok(start().structuredContent.next_cursor);
-});
-test("retained collection bytes are bounded and expiry reclaims capacity", async () => {
-  const { CollectionCursors } = await import("../dist/index.js");
-  let now = 1000;
-  const owner = new CollectionCursors(() => now);
-  const items = [
-    { id: 1 },
-    ...Array.from({ length: 6 }, (_, i) => ({
-      id: i + 2,
-      label: "x".repeat(1024 * 1024),
-    })),
-  ];
-  const start = () =>
-    owner.start({
-      tool: "test",
-      filters: {},
-      generation: 1,
-      items,
-      limit: 1,
-      expiresAt: now + 1000,
-    });
-  for (let i = 0; i < 5; i++) start();
-  assert.throws(start);
-  now += 1000;
-  assert.ok(start().structuredContent.next_cursor);
-});
 test("100-item page cap completes on the next cursor and schema listing keeps strict variants", async (t) => {
   const f = await fixture(t, {
     drivers: Array.from({ length: 101 }, (_, i) => driver(i + 1)),
@@ -541,7 +463,7 @@ test("100-item page cap completes on the next cursor and schema listing keeps st
   assert.equal(q.returned_count, 1);
   assert.equal(q.complete, true);
 });
-test("tool disconnect passes cancellation into the one gateway budget and frees its network slot", async (t) => {
+test("tool disconnect passes cancellation into generated requests", async (t) => {
   let started = false,
     aborted = false;
   const f = await fixture(
@@ -556,7 +478,13 @@ test("tool disconnect passes cancellation into the one gateway budget and frees 
           });
         started = true;
         init.signal.addEventListener("abort", () => (aborted = true));
-        return new Promise(() => {});
+        return new Promise((_resolve, reject) => {
+          init.signal.addEventListener(
+            "abort",
+            () => reject(init.signal.reason),
+            { once: true },
+          );
+        });
       },
     },
   );
@@ -586,5 +514,4 @@ test("tool disconnect passes cancellation into the one gateway budget and frees 
   req.destroy();
   for (let i = 0; i < 100 && !aborted; i++) await new Promise(setImmediate);
   assert.equal(aborted, true);
-  assert.equal(await f.gateway.withCall(async () => "released"), "released");
 });

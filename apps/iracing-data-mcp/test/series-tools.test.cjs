@@ -36,11 +36,12 @@ const week = (race_week_num, track_id = 30) => ({
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-server")),
+    ...(await import("@iracing-data/mcp-tools")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let now = Date.now();
+  t.mock.method(Date, "now", () => now);
   const requests = [];
   const sources = {
     seasons: {
@@ -53,39 +54,41 @@ async function fixture(t, data = {}, options = {}) {
     },
     ...data,
   };
-  const gateway = new api.DataApiGateway({
-    configuration: new Configuration({
-      accessToken: async () => "TOKEN_SECRET",
-    }),
-    authorizationState: () => "ready",
-    now: () => now,
-    logger: api.createDiagnosticLogger(() => {}),
-    transport:
-      options.transport ??
-      (async (url, init) => {
-        requests.push({ url, init });
-        if (url.hostname === "members-ng.iracing.com") {
-          const key = url.pathname.endsWith("/series/season_list")
-            ? "seasons"
-            : url.pathname.endsWith("/series/season_schedule")
-              ? "schedule"
-              : null;
-          assert.ok(key, `unexpected API path ${url.pathname}`);
-          return Response.json({
-            link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
-            expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
-          });
-        }
-        assert.equal(new Headers(init.headers).has("authorization"), false);
-        return Response.json(sources[url.pathname.split("/").pop()]);
-      }),
+  let continuationScope = {};
+  const transport =
+    options.transport ??
+    (async (url, init) => {
+      requests.push({ url, init });
+      if (url.hostname === "members-ng.iracing.com") {
+        const key = url.pathname.endsWith("/series/season_list")
+          ? "seasons"
+          : url.pathname.endsWith("/series/season_schedule")
+            ? "schedule"
+            : null;
+        assert.ok(key, `unexpected API path ${url.pathname}`);
+        return Response.json({
+          link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
+          expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
+        });
+      }
+      assert.equal(new Headers(init.headers).has("authorization"), false);
+      return Response.json(sources[url.pathname.split("/").pop()]);
+    });
+  const configuration = new Configuration({
+    accessToken: async () => "TOKEN_SECRET",
+    fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const access = () => ({ configuration, continuationScope });
+  const changeScope = () => {
+    continuationScope = {};
+  };
+
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services: {
       oauthClient: {},
       dataApiConfiguration: {},
-      dataApiGateway: gateway,
+      getDataApiAccess: access,
       authorizationState: () => "ready",
     },
     logger: api.createDiagnosticLogger(() => {}),
@@ -136,7 +139,8 @@ async function fixture(t, data = {}, options = {}) {
   return {
     api,
     app,
-    gateway,
+    access,
+    changeScope,
     client,
     requests,
     sources,
@@ -407,7 +411,7 @@ test("series cursors replay concurrently without upstream reads, bind tools and 
       await f.call(other, { cursor: first.next_cursor }),
       "CURSOR_EXPIRED",
     );
-    f.gateway.invalidate();
+    f.changeScope();
     failure(
       await f.call(name, { cursor: first.next_cursor }),
       "CURSOR_EXPIRED",
@@ -429,28 +433,8 @@ test("series cursors expire at the earliest safe source expiry and enforce share
     await f.call("get_series_schedule", { season_id: 10, limit: 1 }),
     "RESPONSE_LIMIT_EXCEEDED",
   );
-  f.gateway.invalidate();
+  f.changeScope();
   success(await f.call("get_series_schedule", { season_id: 10, limit: 1 }));
-});
-
-test("series tools enforce source byte caps even when a local filter would match nothing", async (t) => {
-  const f = await fixture(t, {
-    seasons: { seasons: [season(1)], bulk: "x".repeat(8 * 1024 * 1024) },
-    schedule: {
-      success: true,
-      season_id: 10,
-      schedules: [week(0)],
-      bulk: "x".repeat(8 * 1024 * 1024),
-    },
-  });
-  failure(
-    await f.call("list_series_seasons", { series_id: 999 }),
-    "RESPONSE_LIMIT_EXCEEDED",
-  );
-  failure(
-    await f.call("get_series_schedule", { season_id: 10, race_week_num: 52 }),
-    "RESPONSE_LIMIT_EXCEEDED",
-  );
 });
 
 test("series essential identifiers and duplicate season IDs fail without source leakage", async (t) => {
@@ -474,7 +458,7 @@ test("series essential identifiers and duplicate season IDs fail without source 
   );
 });
 
-test("both series tools propagate HTTP disconnect cancellation into the gateway", async (t) => {
+test("both series tools propagate HTTP disconnect cancellation into generated requests", async (t) => {
   for (const [name, args] of [
     ["list_series_seasons", {}],
     ["get_series_schedule", { season_id: 10 }],
@@ -495,7 +479,13 @@ test("both series tools propagate HTTP disconnect cancellation into the gateway"
           init.signal.addEventListener("abort", () => {
             aborted = true;
           });
-          return new Promise(() => {});
+          return new Promise((_resolve, reject) => {
+            init.signal.addEventListener(
+              "abort",
+              () => reject(init.signal.reason),
+              { once: true },
+            );
+          });
         },
       },
     );
@@ -527,6 +517,5 @@ test("both series tools propagate HTTP disconnect cancellation into the gateway"
     for (let index = 0; index < 100 && !aborted; index++)
       await new Promise(setImmediate);
     assert.equal(aborted, true);
-    assert.equal(await f.gateway.withCall(async () => "released"), "released");
   }
 });

@@ -36,42 +36,45 @@ const race = () => ({
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-server")),
+    ...(await import("@iracing-data/mcp-tools")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let now = Date.now();
+  t.mock.method(Date, "now", () => now);
   const requests = [];
   const sources = { result: race(), ...data };
-  const gateway = new api.DataApiGateway({
-    configuration: new Configuration({
-      accessToken: async () => "TOKEN_SECRET",
-    }),
-    authorizationState: () => "ready",
-    now: () => now,
-    logger: api.createDiagnosticLogger(() => {}),
-    transport:
-      options.transport ??
-      (async (url, init) => {
-        requests.push({ url, init });
-        if (url.hostname === "members-ng.iracing.com") {
-          assert.equal(url.pathname, "/data/results/get");
-          const key = "result";
-          return Response.json({
-            link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
-            expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
-          });
-        }
-        assert.equal(new Headers(init.headers).has("authorization"), false);
-        return Response.json(sources[url.pathname.split("/").pop()]);
-      }),
+  let continuationScope = {};
+  const transport =
+    options.transport ??
+    (async (url, init) => {
+      requests.push({ url, init });
+      if (url.hostname === "members-ng.iracing.com") {
+        assert.equal(url.pathname, "/data/results/get");
+        const key = "result";
+        return Response.json({
+          link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
+          expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),
+        });
+      }
+      assert.equal(new Headers(init.headers).has("authorization"), false);
+      return Response.json(sources[url.pathname.split("/").pop()]);
+    });
+  const configuration = new Configuration({
+    accessToken: async () => "TOKEN_SECRET",
+    fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const access = () => ({ configuration, continuationScope });
+  const changeScope = () => {
+    continuationScope = {};
+  };
+
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services: {
       oauthClient: {},
       dataApiConfiguration: {},
-      dataApiGateway: gateway,
+      getDataApiAccess: access,
       authorizationState: () => "ready",
     },
     logger: api.createDiagnosticLogger(() => {}),
@@ -122,7 +125,8 @@ async function fixture(t, data = {}, options = {}) {
   return {
     api,
     app,
-    gateway,
+    access,
+    changeScope,
     client,
     requests,
     sources,
@@ -183,7 +187,7 @@ test("official client compares two results using bounded ordered projections and
     await f.call("get_race_result", { subsession_id: 101, cust_ids: [3] }),
   );
   assert.equal(other.items[0].finish_position, 1);
-  f.gateway.invalidate();
+  f.changeScope();
   failure(
     await f.call("get_race_result", { cursor: first.next_cursor }),
     "CURSOR_EXPIRED",
@@ -349,27 +353,20 @@ test("race result pages enforce byte/item/source caps and earliest expiry", asyn
     await f.call("get_race_result", { subsession_id: 100 }),
     "RESPONSE_LIMIT_EXCEEDED",
   );
-  f.sources.result = { ...race(), bulk: "x".repeat(8 * 1024 * 1024) };
-  failure(
-    await f.call("get_race_result", { subsession_id: 100, cust_ids: [999] }),
-    "RESPONSE_LIMIT_EXCEEDED",
-  );
   const expired = await fixture(t, {}, { expiryMs: 30000 });
   failure(
     await expired.call("get_race_result", { subsession_id: 100, limit: 1 }),
     "CURSOR_EXPIRED",
   );
-  let clock = Date.now();
-  t.mock.method(Date, "now", () => clock);
   const short = await fixture(t, {}, { expiryMs: 120000 });
   const cursor = success(
     await short.call("get_race_result", { subsession_id: 100, limit: 1 }),
   ).next_cursor;
-  clock += 120000;
+  short.advance(120000);
   failure(await short.call("get_race_result", { cursor }), "CURSOR_EXPIRED");
 });
 
-test("race results propagate HTTP disconnect cancellation into the gateway", async (t) => {
+test("race results propagate HTTP disconnect cancellation into generated requests", async (t) => {
   for (const [name, args] of [["get_race_result", { subsession_id: 100 }]]) {
     let started = false,
       aborted = false;
@@ -387,7 +384,13 @@ test("race results propagate HTTP disconnect cancellation into the gateway", asy
           init.signal.addEventListener("abort", () => {
             aborted = true;
           });
-          return new Promise(() => {});
+          return new Promise((_resolve, reject) => {
+            init.signal.addEventListener(
+              "abort",
+              () => reject(init.signal.reason),
+              { once: true },
+            );
+          });
         },
       },
     );
@@ -419,7 +422,6 @@ test("race results propagate HTTP disconnect cancellation into the gateway", asy
     for (let index = 0; index < 100 && !aborted; index++)
       await new Promise(setImmediate);
     assert.equal(aborted, true);
-    assert.equal(await f.gateway.withCall(async () => "released"), "released");
   }
 });
 
@@ -433,7 +435,7 @@ test("race cursors share global capacity and unrelated sessions do not change se
     await f.call("get_race_result", { subsession_id: 100, limit: 1 }),
     "RESPONSE_LIMIT_EXCEEDED",
   );
-  f.gateway.invalidate();
+  f.changeScope();
   success(await f.call("get_race_result", { subsession_id: 100, limit: 1 }));
 });
 

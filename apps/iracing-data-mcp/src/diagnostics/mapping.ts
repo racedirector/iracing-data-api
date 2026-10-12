@@ -13,17 +13,17 @@ import {
   ResponseError,
 } from "@iracing-data/api-client-fetch";
 import {
+  ApplicationFailure,
+  ProtocolFailure,
+  type FailureDomain,
+} from "@iracing-data/mcp-tools";
+import {
   ClientMetadataError,
   OAuthClaimsError,
   OAuthRefreshError,
   OAuthTokenDocumentError,
   SessionNotFoundError,
 } from "@iracing-data/oauth-client";
-import {
-  ApplicationFailure,
-  ProtocolFailure,
-  type FailureDomain,
-} from "./errors.js";
 
 /**
  * Explicit domain and authorization evidence used to classify failures without inferring
@@ -32,7 +32,7 @@ import {
 export interface MappingContext {
   readonly domain: FailureDomain;
 
-  /** Only set when the gateway has confirmed account entitlement denial. */
+  /** Only set when the host has confirmed account entitlement denial. */
   readonly upstreamAuthorization?: "account_entitlement";
 
   /** Set by the session owner from lifecycle evidence, never an error message. */
@@ -166,7 +166,7 @@ export function mapFailure(
       if (status === 429) {
         const header = upstreamResponse.headers.get("retry-after");
 
-        // Delta seconds only. HTTP dates require a clock and are deferred to the gateway.
+        // Delta seconds only. HTTP dates require a clock and are not inferred here.
         const seconds =
           header && /^\d{1,6}$/.test(header) ? Number(header) : undefined;
 

@@ -1,5 +1,5 @@
 /**
- * Process/account owner for local durable authorization and gateway composition.
+ * Process/account owner for local durable authorization and generated-client composition.
  *
  * This module specializes the reusable OAuthClient and token-document store for
  * one stopped-login credential lifecycle. Shared protocol/PKCE/refresh mechanics
@@ -18,17 +18,13 @@
  *
  * One process owns the file by operator discipline, not a process lock. There is
  * no hot credential reload. Repair/re-login creates a new owner after stopping.
- * The generated Data API configuration and gateway share this fixed owner.
+ * The generated Data API configuration shares this fixed owner.
  */
 import { Configuration } from "@iracing-data/api-client-fetch";
 import {
   ApplicationFailure,
   createRequestContext,
-  createDiagnosticLogger,
-  DataApiGateway,
-  type AuthorizationState,
-  type McpServices,
-} from "@iracing-data/mcp-server";
+} from "@iracing-data/mcp-tools";
 import {
   OAuthClient,
   OAuthRefreshError,
@@ -37,11 +33,13 @@ import {
   type OAuthTokenResponse,
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
+import { createDiagnosticLogger } from "./diagnostics/logging.js";
+import type { AuthorizationState, McpServices } from "./services.js";
 
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
 export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";
 
-export type { AuthorizationState } from "@iracing-data/mcp-server";
+export type { AuthorizationState } from "./services.js";
 
 /**
  * Host-provided composition inputs for MCP session services, including credential persistence
@@ -76,7 +74,7 @@ function validateSession(token: OAuthTokenResponse | undefined) {
 }
 
 /**
- * Compose the OAuth client, Data API configuration, and gateway around one session file.
+ * Compose the OAuth client, Data API configuration around one session file.
  * One process owns one file until stopped. Loading and health never refresh;
  * token requests restore the session and may refresh and persist rotated credentials.
  * Missing or invalid stored credentials leave services in authorization_required
@@ -310,11 +308,7 @@ export async function createMcpServices(
         .access_token,
   });
 
-  const dataApiGateway = new DataApiGateway({
-    configuration: dataApiConfiguration,
-    authorizationState: () => state,
-    logger,
-  });
+  const continuationScope = {};
 
   function shutdownAuthorizationOwner() {
     ownerShutdown ??= (async () => {
@@ -329,7 +323,6 @@ export async function createMcpServices(
         }),
       );
       logger.failure(context, terminal, { operation: "shutdown" });
-      dataApiGateway.invalidate();
       if (!(await discardCredential())) {
         // Do not report a clean stop when secure deletion could not be confirmed.
         throw new ApplicationFailure("CONFIGURATION_ERROR");
@@ -344,6 +337,16 @@ export async function createMcpServices(
     oauthClient,
     authorizationState: () => state,
     dataApiConfiguration,
-    dataApiGateway,
+    getDataApiAccess: () => {
+      if (terminal) {
+        throw authorization("invalid_session");
+      }
+
+      if (ownerClosing) {
+        throw authorization("invalid_session");
+      }
+
+      return { configuration: dataApiConfiguration, continuationScope };
+    },
   });
 }

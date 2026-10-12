@@ -1,5 +1,5 @@
 {
-  "name": "@iracing-data/mcp-server",
+  "name": "@iracing-data/mcp-tools",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -21,11 +21,11 @@
   "dependencies": {
     "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/api-schema": "workspace:*",
-    "@iracing-data/oauth-client": "workspace:*",
     "@modelcontextprotocol/server": "2.3.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
-    "@types/node": "^26.6.2"
+    "@types/node": "^26.6.2",
+    "@modelcontextprotocol/client": "2.3.1"
   }
 }

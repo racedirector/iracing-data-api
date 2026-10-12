@@ -1,10 +1,8 @@
 // Read-only test mount, never copied into the production image. The actual main entrypoint,
-// session owner, secure store, gateway, protocol and termination handlers remain unchanged.
+// session owner, secure store, generated clients, protocol and termination handlers remain unchanged.
 import assert from "node:assert/strict";
-import dns from "node:dns/promises";
 import http from "node:http";
-import https from "node:https";
-import { syncBuiltinESMExports, createRequire } from "node:module";
+import { createRequire } from "node:module";
 
 const require = createRequire("/app/package.json");
 
@@ -164,58 +162,32 @@ const originalFetch = globalThis.fetch;
 globalThis.fetch = (input, init) => {
   const url = new URL(typeof input === "string" ? input : (input.url ?? input));
 
-  if (url.href !== "https://oauth.iracing.com/oauth2/token") {
-    state.unexpected++;
-    throw new Error("Unexpected external fetch blocked");
-  }
+  let target;
 
-  return originalFetch(`${origin}/grant`, init);
-};
-
-dns.lookup = async (hostname) => {
-  assert.ok(
-    ["members-ng.iracing.com", "scorpio-assets.s3.amazonaws.com"].includes(
-      hostname,
-    ),
-  );
-
-  return [{ address: "93.184.216.34", family: 4 }];
-};
-
-https.request = (url, options, callback) => {
-  assert.equal(options.method, "GET");
-  assert.equal(options.rejectUnauthorized, true);
-  assert.equal(options.agent, false);
-  let pathname;
-
-  if (
+  if (url.href === "https://oauth.iracing.com/oauth2/token") {
+    target = "/grant";
+  } else if (
     url.hostname === "members-ng.iracing.com" &&
     url.pathname === "/data/member/info" &&
     url.search === ""
   ) {
-    pathname = `/api${url.pathname}`;
+    assert.equal(init.method, "GET");
+    target = `/api${url.pathname}`;
   } else if (
     url.hostname === "scorpio-assets.s3.amazonaws.com" &&
     url.pathname === "/member"
   ) {
-    pathname = `/cache${url.pathname}${url.search}`;
+    assert.equal(new Headers(init.headers).get("authorization"), null);
+    assert.equal(init.redirect, "error");
+    target = `/cache${url.pathname}${url.search}`;
   } else {
     state.unexpected++;
-    throw new Error("Unexpected external wire blocked");
+    throw new Error("Unexpected external fetch blocked");
   }
 
-  return http.request(
-    `${origin}${pathname}`,
-    {
-      method: options.method,
-      headers: options.headers,
-      signal: options.signal,
-    },
-    callback,
-  );
+  return originalFetch(`${origin}${target}`, init);
 };
 
-syncBuiltinESMExports();
 process.on("SIGTERM", () => {
   if (mode !== "hold") {
     fixture.close();

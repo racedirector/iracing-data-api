@@ -1,36 +1,30 @@
-/**
- * Lazy race-history continuation over one validated upstream manifest.
- *
- * Search binds one customer, forced race event type, range and local track filters.
- * Manifest/file/row order is retained; subsession_id order is a proxy, not a promised
- * chronological sort. source_total counts manifest rows before local filtering;
- * complete means fully scanned snapshot, not complete historical account coverage.
- *
- * A page scans at most four distinct chunks; an empty filtered page can still have
- * a next cursor. Immutable offsets and cached/pending replay provide deterministic
- * concurrent retries; failed/canceled pages do not advance. Expiry/generation and
- * cache 403/404 discard the snapshot without silent restart or cross-snapshot mixing.
- * Gateway manifests/chunks and cursor/replay reservations share account caps. Results
- * do not establish driver finishes; selected race details are separate bounded calls.
- */
 import { randomBytes } from "node:crypto";
+import {
+  MemberApi,
+  ResultsApi,
+  ResultsSearchSeriesResponseToJSON,
+} from "@iracing-data/api-client-fetch";
 import { z } from "zod";
-import { parse } from "../gateway/parsers.js";
-import { collectionExpired, completeResult } from "./collections.js";
+import { continuation } from "../../continuation.js";
+import {
+  ApplicationFailure,
+  errorEnvelope,
+  createRequestContext,
+} from "../../diagnostics/errors.js";
+import { parse, materialize, fetchLinkedJson } from "../../linked-response.js";
+import { collectionExpired, completeResult } from "../collections.js";
 import { SearchInitialInput, SearchProjection } from "./contracts.js";
-import type {
-  DataApiGateway,
-  GatewayCall,
-  GatewaySearch,
-} from "../gateway/gateway.js";
+import { parseManifest, validateSearchEcho, chunkUrl } from "./manifest.js";
+import type { RetentionBudget } from "../../retention.js";
+import type { IracingDataAccess } from "../../services.js";
 
 type Filters = z.infer<typeof SearchInitialInput>;
 type Result = ReturnType<typeof completeResult>;
 interface Snapshot {
-  handle: GatewaySearch;
+  info: ReturnType<typeof parseManifest>;
+  chunks: Map<number, readonly Record<string, unknown>[]>;
   filters: Filters;
   custId: number;
-  generation: number;
   expiresAt: number;
   bytes: number;
   disposed?: boolean;
@@ -48,21 +42,16 @@ interface Cursor {
 export class SearchCursors {
   readonly #entries = new Map<string, Cursor>();
   constructor(
-    readonly gateway: DataApiGateway,
+    readonly budget: RetentionBudget,
     readonly now: () => number = Date.now,
   ) {
-    gateway.retention.registerPruner(() => this.#prune());
+    budget.registerPruner(() => this.#prune());
   }
   #prune() {
     const expired = new Set<Snapshot>();
 
     for (const entry of this.#entries.values()) {
-      if (
-        entry.snapshot.disposed ||
-        entry.snapshot.generation !== this.gateway.generation ||
-        entry.snapshot.expiresAt <= this.now() ||
-        !this.gateway.hasSearch(entry.snapshot.handle)
-      ) {
+      if (entry.snapshot.disposed || entry.snapshot.expiresAt <= this.now()) {
         expired.add(entry.snapshot);
       }
     }
@@ -79,27 +68,33 @@ export class SearchCursors {
     snapshot.disposed = true;
     for (const [token, entry] of this.#entries) {
       if (entry.snapshot === snapshot) {
-        this.gateway.retention.release(entry.resultBytes ?? 0, 1);
+        this.budget.release(entry.resultBytes ?? 0, 1);
         this.#entries.delete(token);
       }
     }
 
-    this.gateway.retention.release(snapshot.bytes);
-    this.gateway.releaseSearch(snapshot.handle);
+    this.budget.release(snapshot.bytes);
   }
   async start(
     filters: Filters,
-    call: GatewayCall,
+    access: IracingDataAccess,
     signal: AbortSignal,
   ): Promise<Result> {
     this.#prune();
-    const custId =
-      filters.cust_id ??
-      parse(z.number().int().positive().safe(), (await call.member()).cust_id);
+    const member =
+      filters.cust_id === undefined
+        ? await materialize(
+            await new MemberApi(access.configuration).getMemberInfo({ signal }),
+            z.object({ cust_id: z.number().int().positive().safe() }),
+            signal,
+            access.configuration.fetchApi,
+          )
+        : undefined;
+    const custId = filters.cust_id ?? member!.data.cust_id;
 
     const range = filters.range;
 
-    const handle = await call.search({
+    const request = {
       cust_id: custId,
       event_types: "5",
       ...(filters.series_id === undefined
@@ -114,32 +109,41 @@ export class SearchCursors {
             start_range_end: new Date(range.start_end),
           }
         : range),
-    });
+    };
+    const manifest = await new ResultsApi(
+      access.configuration,
+    ).getResultsSearchSeries(request, { signal });
+    const wire = ResultsSearchSeriesResponseToJSON(manifest);
+    const info = parseManifest(wire);
+    validateSearchEcho(
+      wire,
+      Object.fromEntries(
+        Object.entries(request).map(([key, value]) => [
+          key,
+          value instanceof Date ? value.toISOString() : value,
+        ]),
+      ),
+    );
 
     const snapshot: Snapshot = {
-      handle,
+      info,
+      chunks: new Map(),
       filters: structuredClone(filters),
       custId,
-      generation: this.gateway.generation,
-      expiresAt: Math.min(
-        handle.expiresAt,
-        call.expiresAt,
-        this.now() + 300000,
-      ),
-      bytes: Buffer.byteLength(JSON.stringify({ filters, custId })),
+      expiresAt: Math.min(member?.expiresAt ?? Infinity, this.now() + 300000),
+      bytes: Buffer.byteLength(JSON.stringify({ filters, custId, info })),
     };
 
     try {
-      this.gateway.retention.reserve(snapshot.bytes);
+      this.budget.reserve(snapshot.bytes);
     } catch (error) {
-      this.gateway.releaseSearch(handle);
       throw error;
     }
 
     try {
       const result = await this.#page(
         { snapshot, chunk: 0, row: 0 },
-        call,
+        access,
         signal,
       );
 
@@ -155,7 +159,7 @@ export class SearchCursors {
   }
   async resume(
     token: string,
-    call: GatewayCall,
+    access: IracingDataAccess,
     signal: AbortSignal,
   ): Promise<Result> {
     this.#prune();
@@ -173,7 +177,7 @@ export class SearchCursors {
       return structuredClone(await entry.pending);
     }
 
-    const pending = this.#page(entry, call, signal, true);
+    const pending = this.#page(entry, access, signal, true);
 
     entry.pending = pending;
     try {
@@ -184,7 +188,7 @@ export class SearchCursors {
   }
   async #page(
     entry: Cursor,
-    call: GatewayCall,
+    access: IracingDataAccess,
     signal: AbortSignal,
     replay = false,
   ): Promise<Result> {
@@ -208,15 +212,57 @@ export class SearchCursors {
       returned_count: items.length,
       complete,
       next_cursor: complete ? null : token,
-      source_total: snapshot.handle.totalRows,
+      source_total: snapshot.info.rows,
     });
 
     while (
-      chunk < snapshot.handle.chunks &&
+      chunk < snapshot.info.num_chunks &&
       scanned < 4 &&
       items.length < snapshot.filters.limit
     ) {
-      const rows = await call.chunk(snapshot.handle, chunk);
+      let rows = snapshot.chunks.get(chunk);
+      if (!rows) {
+        try {
+          rows = await fetchLinkedJson(
+            chunkUrl(
+              snapshot.info.base_download_url,
+              snapshot.info.chunk_file_names[chunk],
+            ).href,
+            z.array(z.record(z.string(), z.unknown())),
+            signal,
+            access.configuration.fetchApi,
+          );
+        } catch (error) {
+          if (
+            error instanceof ApplicationFailure &&
+            errorEnvelope(error, createRequestContext()).error.code ===
+              "CURSOR_EXPIRED"
+          )
+            this.#drop(snapshot);
+          throw error;
+        }
+        const expected = Math.min(
+          snapshot.info.chunk_size,
+          snapshot.info.rows - chunk * snapshot.info.chunk_size,
+        );
+        if (rows.length !== expected)
+          throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+        const bytes = Buffer.byteLength(JSON.stringify(rows));
+        signal.throwIfAborted();
+        if (snapshot.disposed || snapshot.expiresAt <= this.now())
+          collectionExpired();
+        if (!snapshot.chunks.has(chunk)) {
+          this.budget.reserve(bytes);
+          if (snapshot.disposed) {
+            this.budget.release(bytes);
+            collectionExpired();
+          }
+          snapshot.bytes += bytes;
+          snapshot.chunks.set(chunk, rows);
+        } else {
+          rows = snapshot.chunks.get(chunk)!;
+        }
+      }
 
       scanned++;
       while (row < rows.length && items.length < snapshot.filters.limit) {
@@ -251,7 +297,7 @@ export class SearchCursors {
       }
     }
 
-    const complete = chunk === snapshot.handle.chunks;
+    const complete = chunk === snapshot.info.num_chunks;
 
     return this.#publish(
       entry,
@@ -292,12 +338,7 @@ export class SearchCursors {
     signal: AbortSignal,
   ): Result {
     signal.throwIfAborted();
-    if (
-      entry.snapshot.disposed ||
-      entry.snapshot.generation !== this.gateway.generation ||
-      entry.snapshot.expiresAt <= this.now() ||
-      !this.gateway.hasSearch(entry.snapshot.handle)
-    ) {
+    if (entry.snapshot.disposed || entry.snapshot.expiresAt <= this.now()) {
       collectionExpired();
     }
 
@@ -305,13 +346,9 @@ export class SearchCursors {
 
     const bytes = replay ? Buffer.byteLength(JSON.stringify(result)) : 0;
 
-    this.gateway.retention.reserve(bytes, more ? 1 : 0);
-    if (
-      entry.snapshot.disposed ||
-      entry.snapshot.expiresAt <= this.now() ||
-      !this.gateway.hasSearch(entry.snapshot.handle)
-    ) {
-      this.gateway.retention.release(bytes, more ? 1 : 0);
+    this.budget.reserve(bytes, more ? 1 : 0);
+    if (entry.snapshot.disposed || entry.snapshot.expiresAt <= this.now()) {
+      this.budget.release(bytes, more ? 1 : 0);
       collectionExpired();
     }
 
@@ -326,4 +363,15 @@ export class SearchCursors {
 
     return structuredClone(result);
   }
+}
+
+const owners = new WeakMap<object, SearchCursors>();
+/** Share bounded search state only within the opaque continuation scope. */
+export function searchCursors(scope: object): SearchCursors {
+  let owner = owners.get(scope);
+  if (!owner) {
+    owner = new SearchCursors(continuation(scope).budget);
+    owners.set(scope, owner);
+  }
+  return owner;
 }
