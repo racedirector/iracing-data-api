@@ -5,17 +5,19 @@ import { createGetMyDriverTool } from "./tools/get-my-driver";
 import { ConfigurationResolver } from "./tools/resolvers/configuration";
 
 export interface CreateServerOptions {
+  serverInfo: ConstructorParameters<typeof McpServer>[0];
   logger: AppLogger;
   linkService: IRacingLinkService;
   resolveConfiguration: ConfigurationResolver;
 }
 
 export function createServer({
+  serverInfo,
   logger,
   linkService,
   resolveConfiguration,
 }: CreateServerOptions) {
-  const server = new McpServer({ name: "iracing-data", version: "1.0.0" });
+  const server = new McpServer(serverInfo);
 
   createGetMyDriverTool(server, {
     resolveConfiguration,

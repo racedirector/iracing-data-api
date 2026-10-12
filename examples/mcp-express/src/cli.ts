@@ -1,7 +1,13 @@
 #!/usr/bin/env node
-
-import { Command } from "@commander-js/extra-typings";
-import { createOAuthClient } from "./credentials";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+import { Command, Option } from "@commander-js/extra-typings";
+import {
+  InMemoryStore,
+  InternalState,
+  OAuthClient,
+} from "@iracing-data/oauth-client";
+import { createOAuthClient, FileSessionStore } from "./credentials";
 import { AppLogger, createPinoLogger } from "./logger";
 import { createServer as createMcpServer } from "./mcp";
 import { createConfigurationResolver } from "./mcp/tools/resolvers/configuration";
@@ -11,51 +17,78 @@ import { createHttpTransport } from "./transports/http";
 import { createStdIoTransport } from "./transports/stdio";
 import { registerTerminationHandlers } from "./transports/transport";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 const logger = createPinoLogger();
 
-function createServer(logger: AppLogger) {
+export interface CreateServerOptions {
+  logger: AppLogger;
+  oauth: {
+    sessionStore: OAuthClient["sessionStore"];
+  };
+}
+
+function createServer({
+  logger,
+  oauth: { sessionStore },
+}: CreateServerOptions) {
   const oauthClient = createOAuthClient({
+    sessionStore,
     clientId: process.env.IRACING_AUTH_CLIENT!,
     clientSecret: process.env.IRACING_AUTH_SECRET,
     redirectUri: "http://127.0.0.1:3000/api/auth/iracing/callback",
     scopes: ["iracing.auth", "iracing.profile"],
-  });
-
-  const linkService = createFetchIRacingLinkService();
-
-  const resolveConfiguration = createConfigurationResolver({
-    accessTokenResolver: async ({ auth }) => {
-      const identity = auth?.clientId || "local";
-      const session = await oauthClient.restoreSessionForId(identity);
-      if (!session) {
-        throw new Error("Could not fetch access token for identity.");
-      }
-
-      return session.access_token;
-    },
+    stateStore: new InMemoryStore<string, InternalState>(),
   });
 
   return () =>
     createMcpServer({
+      serverInfo: { name: "iracing-data", version: "1.0.0" },
       logger,
-      linkService,
-      resolveConfiguration,
+      linkService: createFetchIRacingLinkService({
+        fetchApi: fetch,
+        now: Date.now,
+      }),
+      resolveConfiguration: createConfigurationResolver({
+        accessTokenResolver: async () => {
+          const session = await oauthClient.restoreSessionForId("local");
+          if (!session) {
+            throw new Error("Could not fetch access token for identity.");
+          }
+
+          return session.access_token;
+        },
+      }),
     });
 }
 
-const program = new Command("iracing-data-mcp").description(
-  "iRacing `/data` API MCP server",
-);
+const program = new Command("iracing-data-mcp")
+  .description("iRacing `/data` API MCP server")
+  .showHelpAfterError()
+  .addOption(
+    new Option("--credentials <path>", "path to JSON credentials")
+      .default(
+        path.resolve(__dirname, "../../../../.iracing-data/credentials.json"),
+      )
+      .env("IRACING_CREDENTIALS_PATH"),
+  );
 
 program
   .command("express")
   .description("Start an express server")
-  .action(() => {
+  .action((_, command) => {
+    const { credentials } = command.optsWithGlobals();
     const expressLogger = logger.child({ transport: "express" });
 
     registerTerminationHandlers(
       createExpressTransport({
-        createServer: createServer(expressLogger),
+        createServer: createServer({
+          logger: expressLogger,
+          oauth: {
+            sessionStore: new FileSessionStore(credentials),
+          },
+        }),
         logger: expressLogger,
       }),
       expressLogger,
@@ -65,12 +98,18 @@ program
 program
   .command("stdio", { isDefault: true })
   .description("Start a stdio server")
-  .action(() => {
+  .action((_, command) => {
+    const { credentials } = command.optsWithGlobals();
     const stdioLogger = logger.child({ transport: "stdio" });
 
     registerTerminationHandlers(
       createStdIoTransport({
-        createServer: createServer(stdioLogger),
+        createServer: createServer({
+          logger: stdioLogger,
+          oauth: {
+            sessionStore: new FileSessionStore(credentials),
+          },
+        }),
         logger: stdioLogger,
       }),
       stdioLogger,
@@ -80,12 +119,18 @@ program
 program
   .command("http")
   .description("Start a Node HTTP server")
-  .action(() => {
+  .action((_, command) => {
+    const { credentials } = command.optsWithGlobals();
     const httpLogger = logger.child({ transport: "http" });
 
     registerTerminationHandlers(
       createHttpTransport({
-        createServer: createServer(httpLogger),
+        createServer: createServer({
+          logger: httpLogger,
+          oauth: {
+            sessionStore: new FileSessionStore(credentials),
+          },
+        }),
         logger: httpLogger,
       }),
       httpLogger,

@@ -9,11 +9,15 @@ The build checks types with TypeScript, then bundles the local source into
 the bundle resolves them for Node's ESM runtime. Package dependencies remain
 external and must be installed at runtime.
 
-`src/services/iracing-link.ts` provides `IRacingLinkService`. After fetching an API
-link envelope, call `links.materialize(response, schema, signal)` to fetch and
+The CLI composition supplies the MCP server's name and version through `serverInfo`.
+
+`src/services/iracing-link.ts` provides `IRacingLinkService`. Its factory requires
+explicit `fetchApi` and `now` dependencies; `now` returns Unix milliseconds. The CLI
+supplies `fetch` and `Date.now`. After fetching an API
+link envelope, call `links.materialize({ response, schema, signal })` to fetch and
 validate its JSON payload. It uses the API package's envelope schema and returns
 the parsed payload directly. Link requests carry no API bearer token; expired
-links, HTTP failures, and invalid payloads throw. `src/mcp/index.ts` shows its use
+links, HTTP failures, and invalid payloads throw. `src/mcp/tools/get-my-driver.ts` shows its use
 with the existing driver output schema.
 
 `src/credentials` provides `FileSessionStore`, an OAuth `SessionStore` for the CLI's

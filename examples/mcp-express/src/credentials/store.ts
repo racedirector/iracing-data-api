@@ -13,9 +13,7 @@ export class FileSessionStore implements SessionStore {
   constructor(
     readonly filePath: string,
     readonly sessionId = "local",
-  ) {
-    console.error("Initialized with:", filePath);
-  }
+  ) {}
 
   async get(
     key: string,
@@ -62,28 +60,4 @@ export class FileSessionStore implements SessionStore {
   async del(key: string): Promise<void> {
     if (key === this.sessionId) await rm(this.filePath, { force: true });
   }
-}
-
-export interface CreateFileSessionStoreOptions {
-  filePath: string;
-  sessionId?: string;
-}
-
-export function createFileSessionStore({
-  filePath,
-  sessionId,
-}: CreateFileSessionStoreOptions) {
-  return new FileSessionStore(filePath, sessionId);
-}
-
-export function createFileSessionStoreFromEnv({
-  env,
-}: {
-  env: NodeJS.ProcessEnv;
-}) {
-  return createFileSessionStore({ filePath: env.MCP_CREDENTIAL_FILE! });
-}
-
-export function createDefaultFileSessionStore() {
-  return createFileSessionStoreFromEnv({ env: process.env });
 }

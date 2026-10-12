@@ -1,5 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/server";
-import { AppLogger, createNoopLogger } from "../logger";
+import { AppLogger } from "../logger";
 
 export interface TransportOptions {
   createServer: () => McpServer;
@@ -21,7 +21,7 @@ export interface Transport {
  */
 export function registerTerminationHandlers(
   handle: TransportHandle,
-  logger: AppLogger = createNoopLogger(),
+  logger: AppLogger,
 ) {
   let stopping = false;
   const stop = (signal: NodeJS.Signals) => {
