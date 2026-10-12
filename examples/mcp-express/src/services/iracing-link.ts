@@ -15,19 +15,18 @@ export interface IRacingLinkService {
 
 export interface CreateFetchIRacingLinkServiceOptions {
   fetchApi: typeof fetch;
+  /** Current Unix time in milliseconds. */
+  now: () => number;
 }
 
-const DEFAULT_OPTIONS: CreateFetchIRacingLinkServiceOptions = {
-  fetchApi: fetch,
-};
-
 /**
- * A concrete implementation of IRacingLinkService using a custom fetch API.
+ * A concrete implementation of IRacingLinkService using an injected fetch API and clock.
  * @returns IRacingLinkService
  */
 export function createFetchIRacingLinkService({
   fetchApi,
-}: CreateFetchIRacingLinkServiceOptions = DEFAULT_OPTIONS): IRacingLinkService {
+  now,
+}: CreateFetchIRacingLinkServiceOptions): IRacingLinkService {
   return {
     async materialize({ response, schema, signal }) {
       signal?.throwIfAborted();
@@ -42,7 +41,7 @@ export function createFetchIRacingLinkService({
       }
 
       const expiresAt = Date.parse(expires);
-      if (expiresAt <= Date.now()) {
+      if (expiresAt <= now()) {
         throw new Error("iRacing data link expired");
       }
 
@@ -61,7 +60,7 @@ export function createFetchIRacingLinkService({
 
       signal?.throwIfAborted();
 
-      if (expiresAt <= Date.now()) {
+      if (expiresAt <= now()) {
         throw new Error("iRacing data link expired");
       }
 

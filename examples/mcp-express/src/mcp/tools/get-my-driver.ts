@@ -7,7 +7,7 @@ import type { McpServer } from "@modelcontextprotocol/server";
 
 const InputSchema = z.object({});
 
-const ResponseSchema = z.object({
+const OutputSchema = z.object({
   cust_id: z.number().int().positive().max(Number.MAX_SAFE_INTEGER),
   display_name: z.string().min(1),
 });
@@ -32,7 +32,7 @@ export function createGetMyDriverTool(
       description:
         "Identify the authenticated driver. Returns only customer ID and display name; requires iracing.auth.",
       inputSchema: InputSchema,
-      outputSchema: ResponseSchema,
+      outputSchema: OutputSchema,
     },
     async (input, ctx) => {
       const abortSignal = ctx.mcpReq.signal;
@@ -43,14 +43,11 @@ export function createGetMyDriverTool(
           auth: ctx.http?.authInfo,
         });
 
-        // TODO: This is a candidate to get abstracted, but whatever for now.
-        const response = await new MemberApi(configuration).getMemberInfo({
-          signal: abortSignal,
-        });
-
         const result = await linkService.materialize({
-          response,
-          schema: ResponseSchema,
+          response: await new MemberApi(configuration).getMemberInfo({
+            signal: abortSignal,
+          }),
+          schema: OutputSchema,
           signal: abortSignal,
         });
 
