@@ -651,6 +651,19 @@ async function forwardMcpRequest(
   ]);
 }
 
+/** Copies a finite SDK/metadata response to Node HTTP without rebuilding its semantics. */
+async function writeWebResponse(
+  res: ServerResponse,
+  response: Response,
+  close = false,
+) {
+  res.writeHead(response.status, {
+    ...Object.fromEntries(response.headers),
+    ...(close ? { Connection: "close" } : {}),
+  });
+  res.end(await response.text());
+}
+
 /**
  * Creates the process-scoped HTTP application serving health and MCP endpoints.
  *
@@ -756,6 +769,17 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       );
     }
 
+    const metadata = options.authorization?.metadataResponse(
+      req.method ?? "GET",
+      req.url ?? "/",
+    );
+
+    if (metadata) {
+      void writeWebResponse(res, metadata).catch(() => res.destroy());
+
+      return;
+    }
+
     if (req.url !== "/mcp") {
       return reply(404, "Not found.");
     }
@@ -796,11 +820,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
         if (auth instanceof Response) {
           logger.log("info", context, { status: auth.status });
-          res.writeHead(auth.status, {
-            ...Object.fromEntries(auth.headers),
-            Connection: "close",
-          });
-          res.end(await auth.text());
+          await writeWebResponse(res, auth, true);
 
           return;
         }

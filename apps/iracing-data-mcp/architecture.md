@@ -26,3 +26,6 @@ without a session ID generator for explicitly stateless protocol tests/embedding
 Use the [README](README.md) for tools/workflows and [container guide](local-container.md)
 for deployment, stopped credential recovery and rollback. Source describes the
 shipped architecture; proposed extractions remain backlog work.
+
+See [remote authorization](remote-authorization.md) for the optional MCP ingress
+resource-server boundary, distinct from the durable iRacing credential owner.

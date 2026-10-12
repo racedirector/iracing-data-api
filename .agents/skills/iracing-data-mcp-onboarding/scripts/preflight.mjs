@@ -244,6 +244,8 @@ console.info(
         runCommand("git", ["rev-parse", "--short", "HEAD"]).output ?? null,
       ready_for_login: readyForLogin,
       checks,
+      onboardingMode: "local",
+      remoteAuthorizationGuide: "apps/iracing-data-mcp/remote-authorization.md",
       observations: {
         client_secret_configured: configured(env.get("IRACING_AUTH_SECRET")),
         named_volume_present: volume.ok,
