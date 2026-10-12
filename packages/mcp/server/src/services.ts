@@ -16,9 +16,15 @@
  * not shutdown.
  */
 import type { DataApiGateway } from "./gateway/gateway.js";
-import type { AuthorizationState } from "./session.js";
 import type { Configuration as DataApiConfiguration } from "@iracing-data/api-client-fetch";
 import type { OAuthClient } from "@iracing-data/oauth-client";
+
+/**
+ * MCP session authorization states used to distinguish usable credentials from refresh and
+ * reauthorization requirements.
+ */
+export type AuthorizationState =
+  "ready" | "authorization_required" | "configuration_error";
 
 /**
  * Long-lived application services shared across MCP sessions and HTTP requests.

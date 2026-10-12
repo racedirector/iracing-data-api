@@ -4,8 +4,8 @@ Inherits [root guidance](../../AGENTS.md). Inspect [`workspace-policy.json`](../
 
 The app is an agent-facing adapter over the maintained Data API and OAuth packages. Follow [Data API guidance](../../packages/api/AGENTS.md), [generated client guidance](../../packages/api/client/AGENTS.md), and [OAuth guidance](../../packages/oauth/AGENTS.md) for their owned surfaces. Do not duplicate or hand-edit generated Data API contracts in this app. App-local Zod schemas are appropriate only for MCP-specific narrowing, projection, or composition.
 
-Inspect [services](src/services.ts), [session ownership](src/session.ts),
-[HTTP lifecycle](src/http.ts), and [tool registration](src/tools/identity-content.ts)
+Inspect [services](../../packages/mcp/server/src/services.ts), [session ownership](src/session.ts),
+[HTTP lifecycle](src/http.ts), and [tool registration](../../packages/mcp/server/src/tools/identity-content.ts)
 before changing composition. The full source map is in [architecture navigation](architecture.md).
 Preserve the characterized protocol/recovery contracts when moving boundaries.
 

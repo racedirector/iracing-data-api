@@ -34,7 +34,10 @@ const race = () => ({
   assets: ["SECRET"],
 });
 async function fixture(t, data = {}, options = {}) {
-  const api = await import("../dist/index.js");
+  const api = {
+    ...(await import("../dist/index.js")),
+    ...(await import("@iracing-data/mcp-server")),
+  };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let now = Date.now();

@@ -260,9 +260,9 @@ importers:
       '@iracing-data/api-client-fetch':
         specifier: workspace:*
         version: link:../../packages/api/client/fetch
-      '@iracing-data/api-schema':
+      '@iracing-data/mcp-server':
         specifier: workspace:*
-        version: link:../../packages/api/schema
+        version: link:../../packages/mcp/server
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
@@ -438,6 +438,28 @@ importers:
       '@commander-js/extra-typings':
         specifier: ^15.0.0
         version: 15.0.0(commander@15.0.0)
+
+  packages/mcp/server:
+    dependencies:
+      '@iracing-data/api-client-fetch':
+        specifier: workspace:*
+        version: link:../../api/client/fetch
+      '@iracing-data/api-schema':
+        specifier: workspace:*
+        version: link:../../api/schema
+      '@iracing-data/oauth-client':
+        specifier: workspace:*
+        version: link:../../oauth/client
+      '@modelcontextprotocol/server':
+        specifier: 2.3.1
+        version: 2.3.1
+      zod:
+        specifier: ^4.3.6
+        version: 4.6.5
+    devDependencies:
+      '@types/node':
+        specifier: ^26.6.2
+        version: 26.6.3
 
   packages/oauth/client:
     dependencies:

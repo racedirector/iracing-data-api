@@ -30,26 +30,25 @@ import {
   type IncomingMessage,
   type ServerResponse,
 } from "node:http";
+import {
+  ApplicationFailure,
+  ErrorEnvelopeSchema,
+  createRequestContext,
+  toolError,
+  createDiagnosticLogger,
+  healthDiagnostics,
+  createMcpServer,
+  type McpToolRegistrar,
+  type McpServices,
+} from "@iracing-data/mcp-server";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   WebStandardStreamableHTTPServerTransport,
   type AuthInfo,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
-import {
-  ApplicationFailure,
-  ErrorEnvelopeSchema,
-  createRequestContext,
-  toolError,
-} from "./diagnostics/errors.js";
-import {
-  createDiagnosticLogger,
-  healthDiagnostics,
-} from "./diagnostics/logging.js";
-import { createMcpServer, type McpToolRegistrar } from "./mcp.js";
 import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
-import type { McpServices } from "./services.js";
 
 export const transportLimits = Object.freeze({
   bodyBytes: 64 * 1024,

@@ -1,5 +1,5 @@
+import { ApplicationFailure } from "@iracing-data/mcp-server";
 import { z } from "zod";
-import { ApplicationFailure } from "./diagnostics/errors.js";
 
 export const McpApplicationConfigSchema = z.object({
   name: z.string().trim().min(1).default("iracing-data-mcp"),
