@@ -1,0 +1,43 @@
+{
+  "name": "mcp-express",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/cli.js",
+  "bin": {
+    "iracing-mcp-service": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc --project tsconfig.build.json --noEmit && esbuild src/cli.ts --bundle --platform=node --format=esm --target=node24 --packages=external --sourcemap --outfile=dist/cli.js",
+    "dev": "node --env-file-if-exists=.env --import tsx src/cli.ts",
+    "dev:express": "node --env-file-if-exists=.env --import tsx src/cli.ts express",
+    "dev:http": "node --env-file-if-exists=.env --import tsx src/cli.ts http",
+    "dev:stdio": "node --env-file-if-exists=.env --import tsx src/cli.ts stdio",
+    "start": "node dist/cli.js",
+    "start:http": "node dist/cli.js http",
+    "start:stdio": "node dist/cli.js stdio"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
+    "@iracing-data/mcp-tools": "workspace:*",
+    "@iracing-data/oauth-client": "workspace:*",
+    "@modelcontextprotocol/express": "^2.0.2",
+    "@modelcontextprotocol/node": "^2.1.1",
+    "@modelcontextprotocol/server": "^2.3.1",
+    "commander": "^15.0.0",
+    "express": "^5.3.0",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
+    "@types/node": "^26.6.2",
+    "esbuild": "0.28.2",
+    "tsx": "^4.23.15"
+  }
+}
