@@ -1,6 +1,6 @@
 [package]
 name = "iracing-data-api-client"
-version = "0.1.0"
+version = "0.2.0"
 authors = [ "iRacing Data API contributors" ]
 description = "Typed Rust client for the iRacing Data API, generated from maintained OpenAPI schemas."
 license = "MIT"

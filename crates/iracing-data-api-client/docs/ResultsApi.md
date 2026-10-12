@@ -157,7 +157,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_results_search_series
 
-> models::IracingApiResponse get_results_search_series(season_year, season_quarter, start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, series_id, race_week_num, official_only, event_types, category_ids)
+> models::ResultsSearchSeriesResponse get_results_search_series(season_year, season_quarter, start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, series_id, race_week_num, official_only, event_types, category_ids)
 
 ### Parameters
 
@@ -179,7 +179,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**models::ResultsSearchSeriesResponse**](resultsSearchSeriesResponse.md)
 
 ### Authorization
 

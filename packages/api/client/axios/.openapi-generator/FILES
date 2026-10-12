@@ -25,6 +25,9 @@ docs/LookupApi.md
 docs/MemberApi.md
 docs/PostAuthRequest.md
 docs/ResultsApi.md
+docs/ResultsSearchSeriesResponse.md
+docs/ResultsSearchSeriesResponseData.md
+docs/ResultsSearchSeriesResponseDataChunkInfo.md
 docs/SeasonApi.md
 docs/SeriesApi.md
 docs/StatsApi.md

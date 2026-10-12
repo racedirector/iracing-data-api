@@ -52,6 +52,7 @@ import {
   ResultsLapDataParametersSchema,
   ResultsSearchHostedParametersSchema,
   ResultsSearchSeriesParametersSchema,
+  ResultsSearchSeriesResponseSchema,
   ResultsSeasonResultsParametersSchema,
   SeasonListParametersSchema,
   SeasonRaceGuideParametersSchema,
@@ -128,6 +129,13 @@ export const document = createDocument({
           "application/json": {
             schema: APIResponseSchema,
           },
+        },
+      },
+      ResultsSearchSeries: {
+        description: "Direct search-series chunk manifest",
+        headers: RateLimitHeadersSchema,
+        content: {
+          "application/json": { schema: ResultsSearchSeriesResponseSchema },
         },
       },
       Constants: {
@@ -1735,7 +1743,7 @@ export const document = createDocument({
           url: "/data/doc/results/search_series",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: { $ref: "#/components/responses/ResultsSearchSeries" },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },

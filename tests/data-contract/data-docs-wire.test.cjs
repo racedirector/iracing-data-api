@@ -141,3 +141,110 @@ test("schema array inputs are assignable to both generated clients", () => {
     [],
   );
 });
+
+test("generated Fetch returns direct search-series manifests without losing chunk data", async () => {
+  for (const [names, rows, success] of [
+    [[], 0, true],
+    [["chunk-0.json"], 3, true],
+    [["chunk-0.json", "chunk-1.json"], 750, true],
+    [[], 0, false],
+  ]) {
+    const manifest = {
+      type: "search_series_results",
+      data: {
+        success,
+        chunk_info: {
+          chunk_size: 500,
+          num_chunks: names.length,
+          rows,
+          base_download_url: "https://example.com/results/",
+          chunk_file_names: names,
+        },
+        params: {
+          cust_id: 7,
+          category_ids: [1, 2],
+          nested: { retained: true },
+        },
+      },
+    };
+    let calls = 0;
+    const api = new fetchClient.ResultsApi(
+      new fetchClient.Configuration({
+        accessToken: async () => "synthetic",
+        fetchApi: async (url, options) => {
+          calls++;
+          const parsed = new URL(url);
+          assert.equal(parsed.pathname, "/data/results/search_series");
+          assert.equal(parsed.searchParams.get("cust_id"), "7");
+          assert.equal(options.headers.Authorization, "Bearer synthetic");
+          return Response.json(manifest);
+        },
+      }),
+    );
+    const decoded = await api.getResultsSearchSeries({ cust_id: 7 });
+    assert.equal(decoded.type, "search_series_results");
+    assert.equal(decoded.data.success, success);
+    assert.deepEqual(decoded.data.chunkInfo, {
+      chunkSize: 500,
+      numChunks: names.length,
+      rows,
+      baseDownloadUrl: manifest.data.chunk_info.base_download_url,
+      chunkFileNames: names,
+    });
+    assert.deepEqual(decoded.data.params, manifest.data.params);
+    assert.deepEqual(
+      fetchClient.ResultsSearchSeriesResponseToJSON(decoded),
+      manifest,
+    );
+    assert.equal(calls, 1);
+  }
+});
+
+test("generated Axios exposes the direct manifest while sibling results keep link envelopes", async () => {
+  const manifest = {
+    type: "search_series_results",
+    data: {
+      success: true,
+      chunk_info: {
+        chunk_size: 500,
+        num_chunks: 1,
+        rows: 1,
+        base_download_url: "https://example.com/results/",
+        chunk_file_names: ["chunk-0.json"],
+      },
+      params: { cust_id: 7 },
+    },
+  };
+  const instance = axios.create({
+    adapter: async (config) => {
+      const parsed = new URL(instance.getUri(config));
+      assert.equal(parsed.pathname, "/data/results/search_series");
+      return {
+        data: manifest,
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config,
+      };
+    },
+  });
+  assert.deepEqual(
+    (
+      await new axiosClient.ResultsApi(
+        undefined,
+        undefined,
+        instance,
+      ).getResultsSearchSeries({ cust_id: 7 })
+    ).data,
+    manifest,
+  );
+  const api = new fetchClient.ResultsApi(
+    new fetchClient.Configuration({
+      fetchApi: async () => Response.json(envelope),
+    }),
+  );
+  assert.equal(
+    (await api.getResults({ subsession_id: 1 })).link,
+    envelope.link,
+  );
+});

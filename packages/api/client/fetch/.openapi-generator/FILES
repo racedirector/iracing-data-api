@@ -21,6 +21,9 @@ docs/LookupApi.md
 docs/MemberApi.md
 docs/PostAuthRequest.md
 docs/ResultsApi.md
+docs/ResultsSearchSeriesResponse.md
+docs/ResultsSearchSeriesResponseData.md
+docs/ResultsSearchSeriesResponseDataChunkInfo.md
 docs/SeasonApi.md
 docs/SeriesApi.md
 docs/StatsApi.md
@@ -56,6 +59,9 @@ src/models/IracingServiceMethodDocs.ts
 src/models/IracingServiceMethodDocsNote.ts
 src/models/IracingServiceMethodParametersDocs.ts
 src/models/PostAuthRequest.ts
+src/models/ResultsSearchSeriesResponse.ts
+src/models/ResultsSearchSeriesResponseData.ts
+src/models/ResultsSearchSeriesResponseDataChunkInfo.ts
 src/models/index.ts
 src/runtime.ts
 tsconfig.json

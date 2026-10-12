@@ -17,6 +17,7 @@ import type {
   ErrorResponse,
   IracingAPIResponse,
   IracingEventType,
+  ResultsSearchSeriesResponse,
 } from "../models/index";
 import {
   ErrorResponseFromJSON,
@@ -25,6 +26,8 @@ import {
   IracingAPIResponseToJSON,
   IracingEventTypeFromJSON,
   IracingEventTypeToJSON,
+  ResultsSearchSeriesResponseFromJSON,
+  ResultsSearchSeriesResponseToJSON,
 } from "../models/index";
 
 export interface GetResultsRequest {
@@ -487,7 +490,7 @@ export class ResultsApi extends runtime.BaseAPI {
   async getResultsSearchSeriesRaw(
     requestParameters: GetResultsSearchSeriesRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<ResultsSearchSeriesResponse>> {
     const queryParameters: any = {};
 
     if (requestParameters["season_year"] != null) {
@@ -569,7 +572,7 @@ export class ResultsApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
+      ResultsSearchSeriesResponseFromJSON(jsonValue),
     );
   }
 
@@ -578,7 +581,7 @@ export class ResultsApi extends runtime.BaseAPI {
   async getResultsSearchSeries(
     requestParameters: GetResultsSearchSeriesRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<ResultsSearchSeriesResponse> {
     const response = await this.getResultsSearchSeriesRaw(
       requestParameters,
       initOverrides,
