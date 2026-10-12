@@ -19,6 +19,9 @@ docs/LookupApi.md
 docs/MemberApi.md
 docs/PostAuthRequest.md
 docs/ResultsApi.md
+docs/ResultsSearchSeriesResponse.md
+docs/ResultsSearchSeriesResponseData.md
+docs/ResultsSearchSeriesResponseDataChunkInfo.md
 docs/SeasonApi.md
 docs/SeriesApi.md
 docs/StatsApi.md
@@ -56,3 +59,6 @@ src/models/iracing_service_method_docs_note.rs
 src/models/iracing_service_method_parameters_docs.rs
 src/models/mod.rs
 src/models/post_auth_request.rs
+src/models/results_search_series_response.rs
+src/models/results_search_series_response_data.rs
+src/models/results_search_series_response_data_chunk_info.rs

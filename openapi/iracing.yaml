@@ -2051,7 +2051,7 @@ paths:
             ?category_ids=1,2,3,4
       responses:
         "200":
-          $ref: "#/components/responses/Success"
+          $ref: "#/components/responses/ResultsSearchSeries"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "429":
@@ -3037,6 +3037,61 @@ components:
         - expires
       additionalProperties: false
       description: Response from iRacing `/data` API.
+    resultsSearchSeriesResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          const: search_series_results
+        data:
+          type: object
+          properties:
+            success:
+              type: boolean
+            chunk_info:
+              type: object
+              properties:
+                chunk_size:
+                  type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                num_chunks:
+                  type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                rows:
+                  type: integer
+                  minimum: 0
+                  maximum: 9007199254740991
+                base_download_url:
+                  type: string
+                  format: uri
+                chunk_file_names:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - chunk_size
+                - num_chunks
+                - rows
+                - base_download_url
+                - chunk_file_names
+              additionalProperties: false
+            params:
+              type: object
+              propertyNames:
+                type: string
+              additionalProperties: {}
+          required:
+            - success
+            - chunk_info
+            - params
+          additionalProperties: false
+      required:
+        - type
+        - data
+      additionalProperties: false
+      description: Direct manifest response from `/data/results/search_series`.
     iracingConstantsResponse:
       type: array
       items:
@@ -3143,6 +3198,16 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/iracingAPIResponse"
+    ResultsSearchSeries:
+      description: Direct search-series chunk manifest
+      headers:
+        x-ratelimit-limit: *a1
+        x-ratelimit-remaining: *a2
+        x-ratelimit-reset: *a3
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/resultsSearchSeriesResponse"
     Constants:
       description: Constants returned directly as an array of objects
       headers:

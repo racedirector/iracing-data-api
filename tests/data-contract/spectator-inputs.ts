@@ -1,5 +1,11 @@
-import type { SeasonApi as AxiosSeasonApi } from "../../packages/api/client/axios/dist";
-import type { SeasonApi as FetchSeasonApi } from "../../packages/api/client/fetch/dist";
+import type {
+  SeasonApi as AxiosSeasonApi,
+  ResultsApi as AxiosResultsApi,
+} from "../../packages/api/client/axios/dist";
+import type {
+  SeasonApi as FetchSeasonApi,
+  ResultsApi as FetchResultsApi,
+} from "../../packages/api/client/fetch/dist";
 import type { SeasonSpectatorSubsessionidsDetailParameters } from "../../packages/api/schema/dist";
 
 const parameters: SeasonSpectatorSubsessionidsDetailParameters = {
@@ -24,3 +30,18 @@ const named: SeasonSpectatorSubsessionidsDetailParameters = {
 };
 void csv;
 void named;
+
+// The corrected endpoint exposes the direct manifest in both generated APIs.
+function manifestTypes(
+  fetch: Awaited<ReturnType<FetchResultsApi["getResultsSearchSeries"]>>,
+  axios: Awaited<ReturnType<AxiosResultsApi["getResultsSearchSeries"]>>,
+) {
+  const rows: number = fetch.data.chunkInfo.rows;
+  const files: string[] = axios.data.data.chunk_info.chunk_file_names;
+  // @ts-expect-error The direct manifest is not a link-envelope response.
+  void fetch.link;
+  // @ts-expect-error The direct manifest is not a link-envelope response.
+  void axios.data.expires;
+  return { rows, files };
+}
+void manifestTypes;

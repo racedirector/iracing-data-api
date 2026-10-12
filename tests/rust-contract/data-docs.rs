@@ -69,3 +69,39 @@ async fn spectator_arrays_are_sent_as_single_csv_query_values() {
     server.join().unwrap();
     response.unwrap();
 }
+
+#[test]
+fn search_series_manifest_retains_typed_chunk_metadata_and_open_params() {
+    use iracing_data_api_client::models::ResultsSearchSeriesResponse;
+    for (names, rows, success) in [
+        (vec![], 0, true),
+        (vec!["chunk-0.json"], 3, true),
+        (vec!["chunk-0.json", "chunk-1.json"], 750, true),
+        (vec![], 0, false),
+    ] {
+        let manifest = json!({
+            "type": "search_series_results",
+            "data": {
+                "success": success,
+                "chunk_info": {
+                    "chunk_size": 500, "num_chunks": names.len(), "rows": rows,
+                    "base_download_url": "https://example.com/results/",
+                    "chunk_file_names": names,
+                },
+                "params": {"cust_id": 7, "category_ids": [1, 2], "nested": {"retained": true}},
+            },
+        });
+        let decoded: ResultsSearchSeriesResponse =
+            serde_json::from_value(manifest.clone()).unwrap();
+        assert_eq!(decoded.data.success, success);
+        assert_eq!(decoded.data.chunk_info.rows, rows);
+        assert_eq!(decoded.data.chunk_info.chunk_file_names, names);
+        assert_eq!(serde_json::to_value(decoded).unwrap(), manifest);
+    }
+    assert!(
+        serde_json::from_value::<ResultsSearchSeriesResponse>(json!({
+            "link": "https://example.com/cache.json", "expires": "2026-10-05T01:00:00Z"
+        }))
+        .is_err()
+    );
+}

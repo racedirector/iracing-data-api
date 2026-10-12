@@ -198,6 +198,9 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [IracingServiceMethodDocsNote](docs/IracingServiceMethodDocsNote.md)
 - [IracingServiceMethodParametersDocs](docs/IracingServiceMethodParametersDocs.md)
 - [PostAuthRequest](docs/PostAuthRequest.md)
+- [ResultsSearchSeriesResponse](docs/ResultsSearchSeriesResponse.md)
+- [ResultsSearchSeriesResponseData](docs/ResultsSearchSeriesResponseData.md)
+- [ResultsSearchSeriesResponseDataChunkInfo](docs/ResultsSearchSeriesResponseDataChunkInfo.md)
 
 <a id="documentation-for-authorization"></a>
 

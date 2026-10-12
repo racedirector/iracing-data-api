@@ -6,7 +6,7 @@ Typed Rust client generated from this repository's maintained iRacing Data API O
 
 ```toml
 [dependencies]
-iracing-data-api-client = { version = "0.1.0", features = ["rustls-tls"] }
+iracing-data-api-client = { version = "0.2.0", features = ["rustls-tls"] }
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 ```
 
@@ -216,6 +216,9 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [IracingServiceMethodDocsNote](docs/IracingServiceMethodDocsNote.md)
 - [IracingServiceMethodParametersDocs](docs/IracingServiceMethodParametersDocs.md)
 - [PostAuthRequest](docs/PostAuthRequest.md)
+- [ResultsSearchSeriesResponse](docs/ResultsSearchSeriesResponse.md)
+- [ResultsSearchSeriesResponseData](docs/ResultsSearchSeriesResponseData.md)
+- [ResultsSearchSeriesResponseDataChunkInfo](docs/ResultsSearchSeriesResponseDataChunkInfo.md)
 
 To get access to the crate's generated documentation, use:
 

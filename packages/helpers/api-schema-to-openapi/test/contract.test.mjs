@@ -203,3 +203,57 @@ test("current docs optionality and corrected wire paths are represented", () => 
   assert.equal(constants.type, "array");
   assert.equal(constants.items.type, "object");
 });
+
+test("only search_series maps to the maintained direct manifest", async (t) => {
+  const document = await generate(t);
+  const operation = document.paths["/data/results/search_series"].get;
+  assert.equal(operation.operationId, "getResultsSearchSeries");
+  assert.equal(
+    operation.responses[200].$ref,
+    "#/components/responses/ResultsSearchSeries",
+  );
+  const response = document.components.responses.ResultsSearchSeries;
+  assert.deepEqual(
+    response.headers,
+    document.components.responses.Success.headers,
+  );
+  assert.deepEqual(response.content["application/json"].schema, {
+    $ref: "#/components/schemas/resultsSearchSeriesResponse",
+  });
+  const manifest = dereference(
+    document,
+    response.content["application/json"].schema,
+  );
+  assert.deepEqual(manifest.required, ["type", "data"]);
+  assert.equal(manifest.properties.type.const, "search_series_results");
+  assert.equal(manifest.properties.link, undefined);
+  assert.equal(manifest.properties.expires, undefined);
+  const data = dereference(document, manifest.properties.data);
+  assert.deepEqual(data.required, ["success", "chunk_info", "params"]);
+  const chunks = dereference(document, data.properties.chunk_info);
+  assert.deepEqual(chunks.required, [
+    "chunk_size",
+    "num_chunks",
+    "rows",
+    "base_download_url",
+    "chunk_file_names",
+  ]);
+  assert.equal(chunks.properties.chunk_file_names.type, "array");
+  assert.equal(chunks.properties.chunk_file_names.items.type, "string");
+  for (const [path, item] of Object.entries(document.paths)) {
+    if (
+      path.startsWith("/data/results/") &&
+      path !== "/data/results/search_series"
+    )
+      assert.equal(
+        item.get.responses[200].$ref,
+        "#/components/responses/Success",
+        path,
+      );
+  }
+  for (const status of [401, 429, 503])
+    assert.deepEqual(
+      operation.responses[status],
+      document.paths["/data/results/search_hosted"].get.responses[status],
+    );
+});

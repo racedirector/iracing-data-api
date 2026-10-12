@@ -194,6 +194,33 @@ export interface PostAuthRequest {
   email: string;
   password: string;
 }
+/**
+ * Direct manifest response from `/data/results/search_series`.
+ */
+export interface ResultsSearchSeriesResponse {
+  type: ResultsSearchSeriesResponseTypeEnum;
+  data: ResultsSearchSeriesResponseData;
+}
+
+export const ResultsSearchSeriesResponseTypeEnum = {
+  SearchSeriesResults: "search_series_results",
+} as const;
+
+export type ResultsSearchSeriesResponseTypeEnum =
+  (typeof ResultsSearchSeriesResponseTypeEnum)[keyof typeof ResultsSearchSeriesResponseTypeEnum];
+
+export interface ResultsSearchSeriesResponseData {
+  success: boolean;
+  chunk_info: ResultsSearchSeriesResponseDataChunkInfo;
+  params: object;
+}
+export interface ResultsSearchSeriesResponseDataChunkInfo {
+  chunk_size: number;
+  num_chunks: number;
+  rows: number;
+  base_download_url: string;
+  chunk_file_names: Array<string>;
+}
 
 /**
  * AuthApi - axios parameter creator
@@ -4780,7 +4807,9 @@ export const DocApiFp = function (configuration?: Configuration) {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    async getDocs(options?: RawAxiosRequestConfig): Promise<
+    async getDocs(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
       (
         axios?: AxiosInstance,
         basePath?: string,
@@ -6994,7 +7023,9 @@ export const DocApiFactory = function (
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getDocs(options?: RawAxiosRequestConfig): AxiosPromise<{
+    getDocs(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<{
       [key: string]: { [key: string]: IracingServiceMethodDocs };
     }> {
       return localVarFp
@@ -13052,7 +13083,7 @@ export const ResultsApiFp = function (configuration?: Configuration) {
       (
         axios?: AxiosInstance,
         basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      ) => AxiosPromise<ResultsSearchSeriesResponse>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getResultsSearchSeries(
@@ -13248,7 +13279,7 @@ export const ResultsApiFactory = function (
     getResultsSearchSeries(
       requestParameters: ResultsApiGetResultsSearchSeriesRequest = {},
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<ResultsSearchSeriesResponse> {
       return localVarFp
         .getResultsSearchSeries(
           requestParameters.season_year,

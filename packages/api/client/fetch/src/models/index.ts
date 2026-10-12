@@ -9,3 +9,6 @@ export * from "./IracingServiceMethodDocs";
 export * from "./IracingServiceMethodDocsNote";
 export * from "./IracingServiceMethodParametersDocs";
 export * from "./PostAuthRequest";
+export * from "./ResultsSearchSeriesResponse";
+export * from "./ResultsSearchSeriesResponseData";
+export * from "./ResultsSearchSeriesResponseDataChunkInfo";
