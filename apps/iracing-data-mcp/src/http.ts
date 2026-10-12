@@ -33,6 +33,7 @@ import {
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   WebStandardStreamableHTTPServerTransport,
+  type AuthInfo,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
 import {
@@ -46,6 +47,7 @@ import {
   healthDiagnostics,
 } from "./diagnostics/logging.js";
 import { createMcpServer, type McpToolRegistrar } from "./mcp.js";
+import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
 import type { McpServices } from "./services.js";
 
@@ -76,6 +78,9 @@ export interface HttpApplicationOptions {
 
   /** Long-lived OAuth and Data API dependencies shared across all MCP lifetimes. */
   readonly services: McpServices;
+
+  /** Optional bearer boundary; absence preserves trusted-local behavior. */
+  readonly authorization?: McpAuthorizationBoundary;
 
   /** Optional registrar used by tests or later slices to add tools. */
   readonly registerTools?: McpToolRegistrar;
@@ -601,6 +606,7 @@ async function forwardMcpRequest(
   resolved: ResolvedMcpRequest,
   logger: DiagnosticLogger,
   context: RequestContext,
+  authInfo?: AuthInfo,
 ) {
   const handler = toNodeHandler(
     {
@@ -611,9 +617,7 @@ async function forwardMcpRequest(
 
         const response = await resolved.session.transport.handleRequest(
           scopedRequest,
-          resolved.body === undefined
-            ? undefined
-            : { parsedBody: resolved.body },
+          { authInfo, parsedBody: resolved.body },
         );
 
         // SDK HTTP failures may echo protocol headers or exception data.
@@ -786,6 +790,21 @@ export function createHttpApplication(options: HttpApplicationOptions) {
       let resolved: ResolvedMcpRequest | undefined;
 
       try {
+        const auth = await options.authorization?.authorize(
+          req.headers.authorization,
+        );
+
+        if (auth instanceof Response) {
+          res.writeHead(auth.status, Object.fromEntries(auth.headers));
+          res.end(await auth.text());
+
+          return;
+        }
+
+        if (controller.signal.aborted || admission.stopping) {
+          return;
+        }
+
         resolved =
           req.method === "POST"
             ? await resolvePostRequest(
@@ -820,6 +839,7 @@ export function createHttpApplication(options: HttpApplicationOptions) {
           resolved,
           logger,
           context,
+          auth,
         );
       } catch (error) {
         const oversized =

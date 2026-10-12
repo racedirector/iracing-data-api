@@ -9,3 +9,5 @@ export * from "./session.js";
 export * from "./gateway/gateway.js";
 export * from "./tools/collections.js";
 export * from "./tools/contracts.js";
+
+export * from "./authorization.js";
