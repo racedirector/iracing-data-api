@@ -55,7 +55,7 @@ Discover workspace scripts from their manifests; use `pnpm --filter <package>` f
 - [Contributing workflow](CONTRIBUTING.md) and [security policy](SECURITY.md)
 
 For implementation details, go directly to the [Data API document builder](packages/helpers/api-schema-to-openapi/src/index.ts),
-[OAuth client](packages/oauth/client/src/index.ts), [MCP composition](apps/iracing-data-mcp/src/services.ts),
+[OAuth client](packages/oauth/client/src/index.ts), [MCP composition](apps/iracing-data-mcp/src/session.ts),
 [CLI authentication command](apps/iracing-data-cli/src/authenticate.ts),
 [generation/freshness orchestrator](scripts/check-generated.mjs), or
 [client presentation normalizer](scripts/normalize-client-presentation.js).
