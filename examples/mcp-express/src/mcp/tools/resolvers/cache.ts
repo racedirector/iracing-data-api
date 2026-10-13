@@ -15,7 +15,7 @@ export interface CacheResolver {
   ): Promise<unknown | undefined>;
 
   /**
-   * Store a value until the absolute Unix-millisecond expiration.
+   * Store a value until the absolute Unix-millisecond.
    *
    * Backend failures are best-effort and must not fail the operation.
    * Request cancellation must still propagate.
