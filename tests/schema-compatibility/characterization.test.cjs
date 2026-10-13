@@ -26,15 +26,16 @@ test("historical package and declaration-module exports remain available", () =>
     assert.notEqual(surface[entry.old], undefined);
   }
 });
+// Member inputs deliberately use typed arrays/native booleans; aliases retain identity.
 test("wire behavior, metadata, errors and codecs", () => {
   assert.equal(api.IRacingCustomerIdSchema.parse("42"), 42);
   assert.equal(api.IRacingCustomerIdSchema.meta().id, "customerId");
   assert.deepEqual(
     api.IRacingMemberGetParametersSchema.parse({
-      cust_ids: 42,
-      include_licenses: "true",
+      cust_ids: ["42"],
+      include_licenses: true,
     }),
-    { cust_ids: "42", include_licenses: true },
+    { cust_ids: ["42"], include_licenses: true },
   );
   assert.equal(
     api.IRacingMemberGetParametersSchema.safeParse({ cust_ids: "bad" }).success,

@@ -17,7 +17,7 @@ use serde::{de::Error as _, Deserialize, Serialize};
 #[derive(Clone, Debug)]
 pub struct GetMemberParams {
     /// Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4
-    pub cust_ids: String,
+    pub cust_ids: Vec<String>,
     pub include_licenses: Option<bool>,
 }
 
@@ -131,7 +131,25 @@ pub async fn get_member(
     let uri_str = format!("{}/data/member/get", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
-    req_builder = req_builder.query(&[("cust_ids", &params.cust_ids.to_string())]);
+    req_builder = match "csv" {
+        "multi" => req_builder.query(
+            &params
+                .cust_ids
+                .into_iter()
+                .map(|p| ("cust_ids".to_owned(), p.to_string()))
+                .collect::<Vec<(std::string::String, std::string::String)>>(),
+        ),
+        _ => req_builder.query(&[(
+            "cust_ids",
+            &params
+                .cust_ids
+                .into_iter()
+                .map(|p| p.to_string())
+                .collect::<Vec<String>>()
+                .join(",")
+                .to_string(),
+        )]),
+    };
     if let Some(ref param_value) = params.include_licenses {
         req_builder = req_builder.query(&[("include_licenses", &param_value.to_string())]);
     }

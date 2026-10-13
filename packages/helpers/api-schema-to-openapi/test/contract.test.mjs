@@ -117,6 +117,12 @@ test("Data API JSON/YAML preserve query mapping, authentication, and response en
   );
   assert.equal(customer.in, "query");
   assert.equal(customer.required, true);
+  assert.equal(customer.schema.type, "array");
+  assert.equal(customer.schema.items.type, "string");
+  assert.equal(customer.schema.items.pattern, "^\\d+$");
+  assert.equal(customer.schema.minItems, 1);
+  assert.equal(customer.style, "form");
+  assert.equal(customer.explode, false);
   const results = document.paths["/data/results/get"].get;
   assert.equal(results.operationId, "getResults");
   const subsession = results.parameters.find(

@@ -40,7 +40,9 @@ const recap = StatsMemberRecapParametersSchema.parse({ year: "2026" });
 
 Spectator filters are typed arrays: `event_types` accepts the existing numeric IDs `2 | 3 | 4 | 5`, and `season_ids` accepts numbers. Pass arrays to schema validation and generated clients; the request layer serializes them as one comma-separated query value. The [authored mapping](../../helpers/api-schema-to-openapi/src/index.ts) owns their OpenAPI serialization. Empty arrays fail schema validation; omit an optional filter to use the server default.
 
-Boolean query parameters accept native booleans and the exact strings `"true"`/`"false"`. `"false"` now parses as false; arbitrary strings, numbers and null fail validation instead of being converted by JavaScript truthiness. Correct an invalid input using the field path in the Zod error. Recap `year` accepts calendar-year numbers and numeric strings; omission retains the upstream default.
+`MemberGetParametersSchema` accepts a nonempty `cust_ids` array of digit strings and an optional native boolean `include_licenses`. Pass the same values to generated clients; IDs serialize as one comma-separated query value, preserving order and duplicates. This deliberately replaces the previous CSV-string/coercing member input contract.
+
+Other boolean query parameters accept native booleans and the exact strings `"true"`/`"false"`. `"false"` now parses as false; arbitrary strings, numbers and null fail validation instead of being converted by JavaScript truthiness. Correct an invalid input using the field path in the Zod error. Recap `year` accepts calendar-year numbers and numeric strings; omission retains the upstream default.
 
 `ConstantsResponseSchema` describes a direct array of objects for the three constants endpoints. It preserves object fields without assuming their detailed contract. Generated clients now return that array instead of a cache-link envelope. The time-trial operations retain their existing method names while requesting `/data/stats/season_tt_results` and `/data/stats/season_tt_standings`.
 

@@ -9,31 +9,44 @@ import {
 } from "./parameters";
 
 describe("MemberGetParameters", () => {
-  it("coerces single integers", () => {
-    const integerValue = MemberGetParametersSchema.parse({
-      cust_ids: 1,
-    });
-    assert.deepStrictEqual(integerValue, {
-      cust_ids: "1",
-    });
+  it("preserves typed IDs, order, duplicates and native booleans", () => {
+    const input: import("zod").z.input<typeof MemberGetParametersSchema> = {
+      cust_ids: ["2", "3", "2"],
+      include_licenses: false,
+    };
+    assert.deepStrictEqual(MemberGetParametersSchema.parse(input), input);
+    assert.deepStrictEqual(
+      MemberGetParametersSchema.parse({ cust_ids: ["1"] }),
+      {
+        cust_ids: ["1"],
+      },
+    );
   });
-
-  it("preserves cust_ids as a string", () => {
-    const singleValue = MemberGetParametersSchema.parse({
-      cust_ids: "1",
-    });
-    const multipleValues = MemberGetParametersSchema.parse({
-      cust_ids: "1,2,3",
-      include_licenses: "true",
-    });
-
-    assert.deepStrictEqual(singleValue, {
-      cust_ids: "1",
-    });
-    assert.deepStrictEqual(multipleValues, {
-      cust_ids: "1,2,3",
-      include_licenses: true,
-    });
+  it("rejects wire strings and invalid application values", () => {
+    for (const cust_ids of [
+      undefined,
+      [],
+      1,
+      "1,2",
+      [1],
+      ["bad"],
+      ["1,2"],
+      [""],
+    ]) {
+      assert.equal(
+        MemberGetParametersSchema.safeParse({ cust_ids }).success,
+        false,
+      );
+    }
+    for (const include_licenses of ["true", "false", 1, null]) {
+      assert.equal(
+        MemberGetParametersSchema.safeParse({
+          cust_ids: ["1"],
+          include_licenses,
+        }).success,
+        false,
+      );
+    }
   });
 });
 

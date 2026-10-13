@@ -1614,9 +1614,14 @@ paths:
         - in: query
           name: cust_ids
           schema:
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              type: string
+              pattern: ^\d+$
             description: "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4"
+          style: form
+          explode: false
           required: true
           description: "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4"
         - in: query

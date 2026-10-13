@@ -24,6 +24,10 @@ const envelope = {
 
 function checkUrl(url) {
   const parsed = new URL(url);
+  if (parsed.pathname === "/data/member/get") {
+    assert.deepEqual(parsed.searchParams.getAll("cust_ids"), ["2,3,2"]);
+    assert.deepEqual(parsed.searchParams.getAll("include_licenses"), ["false"]);
+  }
   if (parsed.pathname.includes("spectator")) {
     assert.deepEqual(parsed.searchParams.getAll("event_types"), ["2,3"]);
     assert.deepEqual(parsed.searchParams.getAll("season_ids"), ["513,937"]);
@@ -67,7 +71,11 @@ test("Fetch consumer preserves docs notes, parses constants arrays and uses corr
   await new fetchClient.StatsApi(configuration).getStatsMemberRecap({
     year: 2026,
   });
-  assert.equal(urls.length, 5);
+  await new fetchClient.MemberApi(configuration).getMember({
+    cust_ids: ["2", "3", "2"],
+    include_licenses: false,
+  });
+  assert.equal(urls.length, 6);
 });
 test("Axios consumer returns constants arrays and serializes CSV filters without repeated keys", async () => {
   const urls = [];
@@ -117,7 +125,10 @@ test("Axios consumer returns constants arrays and serializes CSV filters without
     undefined,
     instance,
   ).getStatsMemberRecap({ year: 2026 });
-  assert.equal(urls.length, 5);
+  await new axiosClient.MemberApi(configuration, undefined, instance).getMember(
+    { cust_ids: ["2", "3", "2"], include_licenses: false },
+  );
+  assert.equal(urls.length, 6);
 });
 
 test("schema array inputs are assignable to both generated clients", () => {
