@@ -1,4 +1,4 @@
-import { McpServer, McpServerFactory } from "@modelcontextprotocol/server";
+import { McpServer } from "@modelcontextprotocol/server";
 import { createGetMyDriverTool } from "./tools/get-my-driver";
 import {
   CacheResolver,

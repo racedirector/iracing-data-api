@@ -87,5 +87,7 @@ bodies, no nested or redundant ternaries, no comma expressions or chained
 assignments, and blank lines around statement groups and comments. The
 `write-good-comments` plugin checks repeated words, wordy expressions, and clichés;
 Prettier continues to own formatting. Run `pnpm exec eslint examples/mcp-express`
-from the repository root. Run the existing tests with
-`pnpm --filter mcp-express exec tsx --test test/*.test.ts`.
+from the repository root. Run the package tests with
+`pnpm --filter mcp-express test`. The suite covers cache adapters, tool invocation,
+resolvers, server lifetime, transports, credentials, and CLI startup using synthetic
+dependencies; no live iRacing credentials are required.

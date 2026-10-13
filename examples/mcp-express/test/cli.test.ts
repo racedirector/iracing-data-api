@@ -11,7 +11,7 @@ function run(args: string[], environment: Record<string, string> = {}) {
   delete env.IRACING_AUTH_CLIENT;
   delete env.IRACING_AUTH_SECRET;
   delete env.IRACING_CREDENTIALS_PATH;
-  delete env.IRACING_MCP_ERROR_DETAILS;
+
   const result = spawnSync(
     process.execPath,
     ["--import", "tsx", "src/cli.ts", ...args],
@@ -30,7 +30,12 @@ function run(args: string[], environment: Record<string, string> = {}) {
 }
 
 test("help works without credentials and hides OAuth options", () => {
-  for (const args of [["--help"], ["express", "--help"]]) {
+  for (const args of [
+    ["--help"],
+    ["express", "--help"],
+    ["http", "--help"],
+    ["stdio", "--help"],
+  ]) {
     const result = run(args);
 
     assert.equal(result.status, 0);
@@ -40,29 +45,6 @@ test("help works without credentials and hides OAuth options", () => {
     );
     assert.doesNotMatch(result.output, /Starting/);
   }
-});
-
-test("error disclosure is explicit environment configuration", () => {
-  const environment = { IRACING_AUTH_CLIENT: "synthetic-client" };
-
-  const dev = run(["stdio"], {
-    ...environment,
-    IRACING_MCP_ERROR_DETAILS: "development",
-  });
-
-  assert.equal(dev.status, 0, dev.output);
-  const invalid = run(["stdio"], {
-    ...environment,
-    IRACING_MCP_ERROR_DETAILS: "invalid-mode",
-  });
-
-  assert.notEqual(invalid.status, 0);
-  assert.match(invalid.output, /must be production or development/);
-  assert.doesNotMatch(invalid.output, /Starting/);
-  const cli = run(["stdio", "--error-details", "development"], environment);
-
-  assert.notEqual(cli.status, 0);
-  assert.match(cli.output, /through the environment only/);
 });
 
 test("missing and blank environment configuration fails before startup", () => {

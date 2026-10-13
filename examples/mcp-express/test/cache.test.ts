@@ -4,6 +4,7 @@ import { createNoopLogger } from "../src/logger";
 import {
   createBestEffortCacheResolver,
   createScopedCacheResolver,
+  createMemoryCacheStore,
 } from "../src/services/cache";
 import type { CacheResolver } from "../src/mcp/tools/resolvers/cache";
 
@@ -43,6 +44,74 @@ test("best-effort forwards successful operations and normal misses unchanged", a
     ["miss", undefined],
     ["driver", value, 12345, options],
   ]);
+  assert.deepEqual(logs, []);
+});
+
+test("memory cache misses, replaces values and expires at the exact absolute boundary", async () => {
+  let now = 1000;
+  const cache = createMemoryCacheStore({ now: () => now });
+
+  assert.equal(await cache.get("missing"), undefined);
+  await cache.set("key", "first", 2000);
+  assert.equal(await cache.get("key"), "first");
+  await cache.set("key", "second", 2000);
+  assert.equal(await cache.get("key"), "second");
+  now = 2000;
+  assert.equal(await cache.get("key"), undefined);
+  await cache.set("key", "replacement", 3000);
+  assert.equal(await cache.get("key"), "replacement");
+  now = 3001;
+  assert.equal(await cache.get("key"), undefined);
+  await cache.set("key", "fresh", 4000);
+  assert.equal(await cache.get("key"), "fresh");
+  for (const expiresAt of [now, now - 1]) {
+    await cache.set("key", "expired", expiresAt);
+    assert.equal(await cache.get("key"), undefined);
+  }
+});
+
+test("memory cache rejects already aborted reads and writes without replacing a value", async () => {
+  const cache = createMemoryCacheStore({ now: () => 1000 });
+
+  await cache.set("key", "original", 2000);
+  const controller = new AbortController();
+  const reason = new Error("cancelled");
+
+  controller.abort(reason);
+  await assert.rejects(
+    cache.get("key", { signal: controller.signal }),
+    (error) => error === reason,
+  );
+  await assert.rejects(
+    cache.set("key", "changed", 2000, { signal: controller.signal }),
+    (error) => error === reason,
+  );
+  assert.equal(await cache.get("key"), "original");
+});
+
+test("scoped best-effort memory composition isolates principals and preserves expiration and validation", async () => {
+  let now = 1000;
+  const { resolver, logs } = setup(createMemoryCacheStore({ now: () => now }));
+  const a = createScopedCacheResolver({ cache: resolver, scope: "a:b /%" });
+  const same = createScopedCacheResolver({ cache: resolver, scope: "a:b /%" });
+  const b = createScopedCacheResolver({ cache: resolver, scope: "a%3Ab /%" });
+
+  await a.set("key", "A", 2000);
+  await b.set("key", "B", 3000);
+  assert.equal(await same.get("key"), "A");
+  assert.equal(await b.get("key"), "B");
+  now = 2000;
+  assert.equal(await a.get("key"), undefined);
+  assert.equal(await b.get("key"), "B");
+  for (const key of ["", "   ", "\t\n"]) {
+    assert.throws(() => a.get(key), /key/i);
+    assert.throws(() => a.set(key, "value", 4000), /key/i);
+  }
+
+  assert.throws(
+    () => createScopedCacheResolver({ cache: resolver, scope: " " }),
+    /scope/i,
+  );
   assert.deepEqual(logs, []);
 });
 

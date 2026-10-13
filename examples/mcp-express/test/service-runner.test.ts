@@ -2,9 +2,16 @@ import assert from "node:assert/strict";
 import { EventEmitter, once } from "node:events";
 import { createServer } from "node:http";
 import test from "node:test";
+import { Configuration } from "@iracing-data/api-client-fetch";
 import { createMcpHandler, McpServer } from "@modelcontextprotocol/server";
 import { createNoopLogger } from "../src/logger";
+import { createServer as createAppServer } from "../src/mcp";
 import { createServiceRunner } from "../src/service-runner";
+import {
+  createMemoryCacheStore,
+  createBestEffortCacheResolver,
+  createScopedCacheResolver,
+} from "../src/services/cache";
 import { configureExpressTransport } from "../src/transports/express";
 import { configureHttpTransport } from "../src/transports/http";
 import { startHttpListener } from "../src/transports/http-listener";
@@ -20,6 +27,125 @@ function lifecycle() {
     exitCode: undefined as number | undefined,
   }) as EventEmitter & ProcessLifecycle;
 }
+
+test("one runner composition shares local cache across fresh SDK servers", async (t) => {
+  let compositions = 0;
+  let configurations = 0;
+  let requests = 0;
+  let downloads = 0;
+  let creations = 0;
+
+  t.mock.method(globalThis, "fetch", async () => {
+    downloads++;
+
+    return Response.json({
+      cust_id: 123,
+      display_name: "Driver",
+      extra: "stripped",
+    });
+  });
+  const run = createServiceRunner({
+    logger: createNoopLogger(),
+    lifecycle: lifecycle(),
+    composeServer: () => {
+      compositions++;
+
+      // The nearest stable boundary mirrors the CLI's command-owned composition.
+      const cache = createScopedCacheResolver({
+        scope: "local",
+        cache: createBestEffortCacheResolver({
+          cache: createMemoryCacheStore(),
+          logger: createNoopLogger(),
+        }),
+      });
+
+      return () => {
+        creations++;
+
+        return createAppServer({
+          serverInfo: { name: "test", version: "1" },
+          cache,
+          resolveConfiguration: () => {
+            configurations++;
+
+            return new Configuration({
+              accessToken: "synthetic-token",
+              fetchApi: async () => {
+                requests++;
+
+                return Response.json({
+                  link: "https://example.invalid/data",
+                  expires: new Date(Date.now() + 60_000).toISOString(),
+                });
+              },
+            });
+          },
+        });
+      };
+    },
+  });
+  const handle = await run({
+    name: "test",
+    configuration: {},
+    transport: async ({ createServer }) => {
+      const handler = createMcpHandler(createServer);
+
+      try {
+        for (const id of [1, 2]) {
+          const response = await handler.fetch(
+            new Request("http://localhost/mcp", {
+              method: "POST",
+              headers: {
+                "content-type": "application/json",
+                accept: "application/json, text/event-stream",
+                "mcp-protocol-version": "2025-11-25",
+              },
+              body: JSON.stringify({
+                jsonrpc: "2.0",
+                id,
+                method: "tools/call",
+                params: { name: "get_my_driver", arguments: {} },
+              }),
+            }),
+          );
+          const body = await response.text();
+
+          assert.equal(response.status, 200, body);
+          const json = body.startsWith("{")
+            ? body
+            : body
+                .split("\n")
+                .find((line) => line.startsWith("data: "))
+                ?.slice(6);
+
+          assert.ok(json, body);
+          const message = JSON.parse(json);
+
+          assert.deepEqual(message.result.structuredContent, {
+            cust_id: 123,
+            display_name: "Driver",
+          });
+          assert.deepEqual(
+            JSON.parse(message.result.content[0].text),
+            message.result.structuredContent,
+          );
+        }
+      } catch (error) {
+        await handler.close();
+        throw error;
+      }
+
+      return { close: () => handler.close() };
+    },
+  });
+
+  await handle.close();
+  assert.equal(compositions, 1);
+  assert.equal(creations, 2);
+  assert.equal(configurations, 1);
+  assert.equal(requests, 1);
+  assert.equal(downloads, 1);
+});
 
 test("runner composes once and passes the exact context-aware factory to its transport", async () => {
   const context: McpRequestContext = { era: "modern" };
