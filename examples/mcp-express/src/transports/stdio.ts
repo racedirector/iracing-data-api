@@ -12,7 +12,9 @@ export const createStdIoTransport: Transport = ({ logger, createServer }) => {
       logger.error("Stdio MCP server failed", { err: error });
     },
   });
+
   logger.info("Stdio MCP server started");
+
   return server;
 };
 

@@ -122,6 +122,7 @@ function logToConsole(
 ): void {
   if (fields) {
     log(message, fields);
+
     return;
   }
 

@@ -1,42 +1,45 @@
-/**
- * Serves the MCP server over expresss HTTP.
- */
-import { errorMonitor } from "node:events";
+import { createServer } from "node:http";
 import { createMcpExpressApp } from "@modelcontextprotocol/express";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import { createMcpHandler } from "@modelcontextprotocol/server";
-import { Transport } from "./transport";
+import { startHttpListener } from "./http-listener";
+import type { HttpListenerOptions } from "./http-listener";
+import type { Transport } from "./transport";
 
-export const createExpressTransport: Transport = ({ logger, createServer }) => {
-  logger.info("Starting Express MCP server");
-  const handler = createMcpHandler(createServer);
-  const app = createMcpExpressApp();
-  const node = toNodeHandler(handler);
+/** Listener and routing choices owned by the command. */
+export interface ExpressTransportOptions extends HttpListenerOptions {
+  path: string;
+}
 
-  app.all("/mcp", (req, res) => void node(req, res, req.body));
+/** Configure Express without opening a listener until the transport is started. */
+export function configureExpressTransport(
+  options: ExpressTransportOptions,
+): Transport {
+  return async ({ logger, createServer: createMcpServer }) => {
+    logger.info("Starting Express MCP server");
 
-  const server = app.listen(3000, "127.0.0.1");
-  server.once("listening", () => {
-    logger.info("Express MCP server listening", {
-      host: "127.0.0.1",
-      port: 3000,
-      path: "/mcp",
+    const handler = createMcpHandler(createMcpServer);
+
+    const app = createMcpExpressApp();
+
+    const node = toNodeHandler(handler);
+
+    app.all(options.path, (req, res) => void node(req, res, req.body));
+
+    const server = createServer(app);
+
+    server.on("error", (error: Error) => {
+      logger.error("Express MCP server failed", { err: error });
     });
-  });
-  server.on(errorMonitor, (error: Error) => {
-    logger.error("Express MCP server failed", { err: error });
-  });
 
-  return {
-    async close() {
-      logger.debug("Closing Express listener, connections, and MCP handler");
-      const closed = new Promise<void>((resolve, reject) => {
-        server.close((error) => (error ? reject(error) : resolve()));
-      });
-      server.closeAllConnections();
-      await Promise.all([handler.close(), closed]);
-    },
+    // Binding must succeed before the runner installs termination handlers.
+    const handle = await startHttpListener(server, handler, options);
+
+    logger.info("Express MCP server listening", {
+      address: server.address(),
+      path: options.path,
+    });
+
+    return handle;
   };
-};
-
-export default createExpressTransport;
+}
