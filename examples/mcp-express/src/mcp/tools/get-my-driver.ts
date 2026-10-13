@@ -1,5 +1,6 @@
 import { MemberApi } from "@iracing-data/api-client-fetch";
 import { z } from "zod";
+import { createToolInvocation } from "./invocation";
 import {
   CacheResolver,
   ConfigurationResolver,
@@ -16,8 +17,6 @@ const OutputSchema = z.object({
 });
 
 type Output = z.infer<typeof OutputSchema>;
-
-const CACHE_KEY = "get_my_driver:v1";
 
 /** Request access, linked downloads, and result presentation supplied by the root. */
 export interface GetMyDriverToolOptions {
@@ -45,53 +44,20 @@ export function createGetMyDriverTool(
       inputSchema: InputSchema,
       outputSchema: OutputSchema,
     },
-    async (input, ctx) => {
-      const abortSignal = ctx.mcpReq.signal;
-
-      try {
-        /**
-         * Check for a cached value before executing a network request
-         */
-        const cached = await cache?.get(CACHE_KEY, {
-          signal: abortSignal,
-        });
-
-        if (cached !== undefined) {
-          const parsed = OutputSchema.safeParse(cached);
-
-          if (parsed.success) {
-            return resolveResponse.success(parsed.data);
-          }
-
-          // !!!: We may want to remove the cached value if it doesn't
-          // parse correctly, but that's a later problem.
-        }
-
-        const configuration = await resolveConfiguration({
-          signal: abortSignal,
-          auth: ctx.http?.authInfo,
-        });
-
-        const response = await new MemberApi(configuration).getMemberInfo({
-          signal: abortSignal,
-        });
-
-        const { value, expiresAt } = await resolveLink({
-          response,
-          schema: OutputSchema,
-          signal: abortSignal,
-        });
-
-        abortSignal.throwIfAborted();
-
-        await cache?.set(CACHE_KEY, value, expiresAt, { signal: abortSignal });
-
-        abortSignal.throwIfAborted();
-
-        return resolveResponse.success(value);
-      } catch (error) {
-        return resolveResponse.error(error);
-      }
-    },
+    createToolInvocation(
+      {
+        cacheKey: "get_my_driver:v1",
+        outputSchema: OutputSchema,
+        request: (configuration, options) => {
+          return new MemberApi(configuration).getMemberInfo(options);
+        },
+      },
+      {
+        resolveConfiguration,
+        resolveLink,
+        resolveResponse,
+        cache,
+      },
+    ),
   );
 }
