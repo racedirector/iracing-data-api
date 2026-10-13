@@ -190,11 +190,11 @@ export const MemberChartDataParametersSchema = z.object({
 });
 
 export const MemberGetParametersSchema = z.object({
-  cust_ids: CommaSeparatedNumberString.meta({
+  cust_ids: z.array(z.string().regex(/^\d+$/)).min(1).meta({
     description:
       "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4",
   }),
-  include_licenses: BooleanParameterSchema.optional(),
+  include_licenses: z.boolean().optional(),
 });
 
 export const MemberProfileParametersSchema = z.object({

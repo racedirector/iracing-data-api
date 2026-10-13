@@ -24,7 +24,7 @@ import { MemberApi, Configuration } from "@iracing-data/api-client-axios";
 const configuration = new Configuration();
 const apiInstance = new MemberApi(configuration);
 
-let cust_ids: string; //Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4 (default to undefined)
+let cust_ids: Array<string>; //Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4 (default to undefined)
 let include_licenses: boolean; // (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getMember(
@@ -35,10 +35,10 @@ const { status, data } = await apiInstance.getMember(
 
 ### Parameters
 
-| Name                 | Type          | Description                                                         | Notes                            |
-| -------------------- | ------------- | ------------------------------------------------------------------- | -------------------------------- |
-| **cust_ids**         | [**string**]  | Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4 | defaults to undefined            |
-| **include_licenses** | [**boolean**] |                                                                     | (optional) defaults to undefined |
+| Name                 | Type                    | Description                                                         | Notes                            |
+| -------------------- | ----------------------- | ------------------------------------------------------------------- | -------------------------------- |
+| **cust_ids**         | **Array&lt;string&gt;** | Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4 | defaults to undefined            |
+| **include_licenses** | [**boolean**]           |                                                                     | (optional) defaults to undefined |
 
 ### Return type
 

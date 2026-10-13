@@ -19,8 +19,11 @@ All URIs are relative to *https://members-ng.iracing.com*
 ### Example
 
 ```ts
-import { Configuration, MemberApi } from "@iracing-data/api-client-fetch";
-import type { GetMemberRequest } from "@iracing-data/api-client-fetch";
+import {
+  Configuration,
+  MemberApi,
+} from '@iracing-data/api-client-fetch';
+import type { GetMemberRequest } from '@iracing-data/api-client-fetch';
 
 async function example() {
   console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
@@ -31,8 +34,8 @@ async function example() {
   const api = new MemberApi(config);
 
   const body = {
-    // string | Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4
-    cust_ids: cust_ids_example,
+    // Array<string> | Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4
+    cust_ids: ...,
     // boolean (optional)
     include_licenses: true,
   } satisfies GetMemberRequest;
@@ -51,10 +54,10 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name                 | Type      | Description                                                         | Notes                                |
-| -------------------- | --------- | ------------------------------------------------------------------- | ------------------------------------ |
-| **cust_ids**         | `string`  | Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4 | [Defaults to `undefined`]            |
-| **include_licenses** | `boolean` |                                                                     | [Optional] [Defaults to `undefined`] |
+| Name                 | Type            | Description                                                         | Notes                                |
+| -------------------- | --------------- | ------------------------------------------------------------------- | ------------------------------------ |
+| **cust_ids**         | `Array<string>` | Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4 |                                      |
+| **include_licenses** | `boolean`       |                                                                     | [Optional] [Defaults to `undefined`] |
 
 ### Return type
 

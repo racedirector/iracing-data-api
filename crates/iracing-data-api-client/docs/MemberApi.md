@@ -18,10 +18,10 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Parameters
 
-| Name                 | Type             | Description                                                    | Required   | Notes |
-| -------------------- | ---------------- | -------------------------------------------------------------- | ---------- | ----- |
-| **cust_ids**         | **String**       | Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4 | [required] |
-| **include_licenses** | Option<**bool**> |                                                                |            |
+| Name                 | Type                         | Description                                                    | Required   | Notes |
+| -------------------- | ---------------------------- | -------------------------------------------------------------- | ---------- | ----- |
+| **cust_ids**         | [**Vec<String>**](String.md) | Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4 | [required] |
+| **include_licenses** | Option<**bool**>             |                                                                |            |
 
 ### Return type
 
