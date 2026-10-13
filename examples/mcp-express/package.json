@@ -7,6 +7,7 @@
     "iracing-mcp-service": "./dist/cli.js"
   },
   "scripts": {
+    "typecheck": "tsc --project tsconfig.build.json --noEmit",
     "build": "tsc --project tsconfig.build.json --noEmit && esbuild src/cli.ts --bundle --platform=node --format=esm --target=node24 --packages=external --sourcemap --outfile=dist/cli.js",
     "dev": "node --env-file-if-exists=.env --import tsx src/cli.ts",
     "dev:express": "node --env-file-if-exists=.env --import tsx src/cli.ts express",

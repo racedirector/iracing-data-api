@@ -43,6 +43,7 @@ SDK input/protocol validation remains SDK-owned. The unregistered `find_drivers`
 skeleton is not yet migrated.
 
 Run `pnpm build` before `pnpm start`, `pnpm start:stdio`, or `pnpm start:http`.
+Run `pnpm typecheck` to check types without bundling the source.
 The build checks types with TypeScript, then bundles the local source into
 `dist/cli.js` with esbuild. Relative source imports can omit file extensions;
 the bundle resolves them for Node's ESM runtime. Package dependencies remain

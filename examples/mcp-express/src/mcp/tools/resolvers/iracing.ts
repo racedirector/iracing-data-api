@@ -20,10 +20,18 @@ export interface IRacingLinkResolverOptions<T> {
 }
 
 /**
+ * A resolved value from an iRacing provided link
+ */
+export interface ResolvedIRacingLink<T> {
+  value: T;
+  expiresAt: number;
+}
+
+/**
  * A link resolver; accepts options and returns the result.
  */
 export interface IRacingLinkResolver<T> {
-  (options: IRacingLinkResolverOptions<T>): Promise<T>;
+  (options: IRacingLinkResolverOptions<T>): Promise<ResolvedIRacingLink<T>>;
 }
 
 export interface CreateIRacingLinkResolverOptions {
@@ -100,7 +108,10 @@ export function createIRacingLinkResolver<T>(
         throw new Error("iRacing data link expired");
       }
 
-      return schema.parse(data);
+      return {
+        value: schema.parse(data),
+        expiresAt,
+      };
     } catch (cause) {
       signal?.throwIfAborted();
 

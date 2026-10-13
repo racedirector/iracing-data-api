@@ -49,7 +49,7 @@ export function createGetMyDriverTool(
           auth: ctx.http?.authInfo,
         });
 
-        const result = await resolveLink({
+        const { value } = await resolveLink({
           response: await new MemberApi(configuration).getMemberInfo({
             signal: abortSignal,
           }),
@@ -59,7 +59,7 @@ export function createGetMyDriverTool(
 
         abortSignal.throwIfAborted();
 
-        return resolveResponse.success(result);
+        return resolveResponse.success(value);
       } catch (error) {
         return resolveResponse.error(error);
       }
