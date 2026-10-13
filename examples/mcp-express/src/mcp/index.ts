@@ -1,6 +1,7 @@
 import { McpServer, McpServerFactory } from "@modelcontextprotocol/server";
 import { createGetMyDriverTool } from "./tools/get-my-driver";
 import {
+  CacheResolver,
   ConfigurationResolver,
   createIRacingLinkResolver,
 } from "./tools/resolvers";
@@ -9,16 +10,19 @@ import {
 export interface CreateServerOptions {
   serverInfo: ConstructorParameters<typeof McpServer>[0];
   resolveConfiguration: ConfigurationResolver;
+  cache?: CacheResolver;
 }
 
 /** Register tools on a fresh MCP server while retaining caller-owned dependencies. */
 export function createServer({
   serverInfo,
   resolveConfiguration,
+  cache,
 }: CreateServerOptions) {
   const server = new McpServer(serverInfo);
 
   createGetMyDriverTool(server, {
+    cache,
     resolveConfiguration,
     resolveLink: createIRacingLinkResolver({
       fetchApi: fetch,
