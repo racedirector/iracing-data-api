@@ -1,0 +1,4 @@
+interface:
+  display_name: "Add an iRacing CLI Command"
+  short_description: "Add CLI commands with scoped composition and tests"
+  default_prompt: "Use $iracing-data-cli-add-command to implement a new command in apps/iracing-data-cli with offline tests and usage documentation."
