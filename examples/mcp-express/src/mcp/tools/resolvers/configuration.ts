@@ -30,6 +30,9 @@ export function createConfigurationResolver(
       auth,
     });
 
+    // Token restoration can outlive the request; do not start an API call afterward.
+    signal.throwIfAborted();
+
     return new Configuration({
       accessToken,
       basePath: options.basePath,

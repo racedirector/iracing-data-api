@@ -1,8 +1,10 @@
 import { MemberApi } from "@iracing-data/api-client-fetch";
 import { z } from "zod";
-import { AppLogger, createNoopLogger } from "../../logger";
-import { IRacingLinkService } from "../../services/iracing-link";
-import { ConfigurationResolver } from "./resolvers/configuration";
+import {
+  ConfigurationResolver,
+  IRacingLinkResolver,
+  ResponseResolver,
+} from "./resolvers";
 import type { McpServer } from "@modelcontextprotocol/server";
 
 const InputSchema = z.object({});
@@ -12,18 +14,22 @@ const OutputSchema = z.object({
   display_name: z.string().min(1),
 });
 
+type Output = z.infer<typeof OutputSchema>;
+
+/** Request access, linked downloads, and result presentation supplied by the root. */
 export interface GetMyDriverToolOptions {
-  logger?: AppLogger;
   resolveConfiguration: ConfigurationResolver;
-  linkService: IRacingLinkService;
+  resolveLink: IRacingLinkResolver<Output>;
+  resolveResponse: ResponseResolver<Output>;
 }
 
+/** Register the authenticated driver's small, agent-facing identity projection. */
 export function createGetMyDriverTool(
   server: McpServer,
   {
-    logger = createNoopLogger(),
     resolveConfiguration,
-    linkService,
+    resolveLink,
+    resolveResponse,
   }: GetMyDriverToolOptions,
 ) {
   return server.registerTool(
@@ -43,7 +49,7 @@ export function createGetMyDriverTool(
           auth: ctx.http?.authInfo,
         });
 
-        const result = await linkService.materialize({
+        const result = await resolveLink({
           response: await new MemberApi(configuration).getMemberInfo({
             signal: abortSignal,
           }),
@@ -51,17 +57,11 @@ export function createGetMyDriverTool(
           signal: abortSignal,
         });
 
-        return {
-          content: [
-            {
-              type: "text",
-              text: JSON.stringify(result),
-            },
-          ],
-          structuredContent: result,
-        };
+        abortSignal.throwIfAborted();
+
+        return resolveResponse.success(result);
       } catch (error) {
-        throw error;
+        return resolveResponse.error(error);
       }
     },
   );

@@ -20,9 +20,11 @@ const token = {
 
 test("reads CLI JSON, conforms to SessionStore, and restores through ordinary OAuthClient", async (t) => {
   const directory = await mkdtemp(join(tmpdir(), "mcp-file-session-"));
+
   t.after(() => rm(directory, { recursive: true, force: true }));
   const file = join(directory, "credentials.json");
   const store: SessionStore = new FileSessionStore(file);
+
   assert.equal(await store.get("local"), undefined);
   await writeFile(file, JSON.stringify(token));
   const client = new OAuthClient({
@@ -34,8 +36,10 @@ test("reads CLI JSON, conforms to SessionStore, and restores through ordinary OA
     stateStore: new InMemoryStore(),
     sessionStore: store,
   });
+
   assert.deepEqual(await client.restoreSessionForId("local"), token);
   const replacement = { ...token, refresh_token: "replacement" };
+
   await store.set("local", replacement);
   assert.deepEqual(JSON.parse(await readFile(file, "utf8")), replacement);
   assert.deepEqual(await new FileSessionStore(file).get("local"), replacement);
@@ -47,9 +51,11 @@ test("reads CLI JSON, conforms to SessionStore, and restores through ordinary OA
 
 test("preserves other keys, reloads disk changes, and propagates invalid files", async (t) => {
   const directory = await mkdtemp(join(tmpdir(), "mcp-file-session-"));
+
   t.after(() => rm(directory, { recursive: true, force: true }));
   const file = join(directory, "nested", "credentials.json");
   const store = new FileSessionStore(file, "driver");
+
   await store.set("driver", token);
   assert.equal(await store.get("other"), undefined);
   await assert.rejects(store.set("other", token));

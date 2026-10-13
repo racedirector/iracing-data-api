@@ -1,49 +1,48 @@
-/**
- * Serves the MCP server over a default Node HTTP server.
- */
-import { errorMonitor } from "node:events";
-import { createServer as createHttpServer } from "node:http";
+import { createServer } from "node:http";
 import {
   localhostHostValidation,
   localhostOriginValidation,
   toNodeHandler,
 } from "@modelcontextprotocol/node";
 import { createMcpHandler } from "@modelcontextprotocol/server";
-import { Transport } from "./transport";
+import { startHttpListener } from "./http-listener";
+import type { HttpListenerOptions } from "./http-listener";
+import type { Transport } from "./transport";
 
-export const createHttpTransport: Transport = ({ logger, createServer }) => {
-  logger.info("Starting Node HTTP MCP server");
+/** Configure the native HTTP adapter; the returned transport owns its listener. */
+export function configureHttpTransport(
+  options: HttpListenerOptions,
+): Transport {
+  return async ({ logger, createServer: createMcpServer }) => {
+    logger.info("Starting Node HTTP MCP server");
 
-  const handler = createMcpHandler(createServer);
-  const nodeHandler = toNodeHandler(handler);
-  const validateHost = localhostHostValidation();
-  const validateOrigin = localhostOriginValidation();
+    const handler = createMcpHandler(createMcpServer);
 
-  const server = createHttpServer((req, res) => {
-    if (!validateHost(req, res) || !validateOrigin(req, res)) return;
-    void nodeHandler(req, res);
-  })
-    .listen(3000, "127.0.0.1")
-    .once("listening", () => {
-      logger.info("Node HTTP MCP server listening", {
-        host: "127.0.0.1",
-        port: 3000,
-      });
-    })
-    .on(errorMonitor, (error: Error) => {
+    const nodeHandler = toNodeHandler(handler);
+
+    const validateHost = localhostHostValidation();
+
+    const validateOrigin = localhostOriginValidation();
+
+    const server = createServer((req, res) => {
+      if (!validateHost(req, res) || !validateOrigin(req, res)) {
+        return;
+      }
+
+      void nodeHandler(req, res);
+    });
+
+    server.on("error", (error: Error) => {
       logger.error("Node HTTP MCP server failed", { err: error });
     });
 
-  return {
-    async close() {
-      logger.debug("Closing HTTP listener, connections, and MCP handler");
-      const closed = new Promise<void>((resolve, reject) => {
-        server.close((error) => (error ? reject(error) : resolve()));
-      });
-      server.closeAllConnections();
-      await Promise.all([handler.close(), closed]);
-    },
-  };
-};
+    // Binding must succeed before the runner installs termination handlers.
+    const handle = await startHttpListener(server, handler, options);
 
-export default createHttpTransport;
+    logger.info("Node HTTP MCP server listening", {
+      address: server.address(),
+    });
+
+    return handle;
+  };
+}

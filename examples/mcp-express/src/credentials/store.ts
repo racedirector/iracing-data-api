@@ -19,16 +19,22 @@ export class FileSessionStore implements SessionStore {
     key: string,
     options?: GetOptions,
   ): Promise<OAuthTokenResponse | undefined> {
-    if (key !== this.sessionId) return undefined;
+    if (key !== this.sessionId) {
+      return undefined;
+    }
 
     let document: string;
+
     try {
       document = await readFile(this.filePath, {
         encoding: "utf8",
         signal: options?.signal,
       });
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") {
+        return undefined;
+      }
+
       throw error;
     }
 
@@ -36,8 +42,9 @@ export class FileSessionStore implements SessionStore {
   }
 
   async set(key: string, token: OAuthTokenResponse): Promise<void> {
-    if (key !== this.sessionId)
+    if (key !== this.sessionId) {
       throw new Error("Unknown credential session ID");
+    }
 
     const document =
       JSON.stringify(OAuthTokenResponseSchema.parse(token), null, 2) + "\n";
@@ -45,6 +52,7 @@ export class FileSessionStore implements SessionStore {
     await mkdir(dirname(this.filePath), { recursive: true, mode: 0o700 });
 
     const temporary = `${this.filePath}.${randomUUID()}.tmp`;
+
     try {
       await writeFile(temporary, document, {
         encoding: "utf8",
@@ -58,6 +66,8 @@ export class FileSessionStore implements SessionStore {
   }
 
   async del(key: string): Promise<void> {
-    if (key === this.sessionId) await rm(this.filePath, { force: true });
+    if (key === this.sessionId) {
+      await rm(this.filePath, { force: true });
+    }
   }
 }
