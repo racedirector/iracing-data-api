@@ -40,6 +40,8 @@ export function createToolInvocation<Input, Output>(
   return async (input, ctx) => {
     const signal = ctx.mcpReq.signal;
 
+    signal.throwIfAborted();
+
     try {
       /**
        * Attempt to resolve the request from the cache
@@ -48,10 +50,14 @@ export function createToolInvocation<Input, Output>(
         signal,
       });
 
+      signal.throwIfAborted();
+
       if (cached !== undefined) {
         const parsed = context.outputSchema.safeParse(cached);
 
         if (parsed.success) {
+          signal.throwIfAborted();
+
           return options.resolveResponse.success(parsed.data);
         }
       }
@@ -83,6 +89,8 @@ export function createToolInvocation<Input, Output>(
 
       return options.resolveResponse.success(value);
     } catch (cause) {
+      signal.throwIfAborted();
+
       return options.resolveResponse.error(cause);
     }
   };

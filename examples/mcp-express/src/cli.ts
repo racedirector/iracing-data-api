@@ -10,6 +10,11 @@ import { createServer as createMcpServer } from "./mcp";
 import { createConfigurationResolver } from "./mcp/tools/resolvers/configuration";
 import { createServiceRunner } from "./service-runner";
 import {
+  createBestEffortCacheResolver,
+  createMemoryCacheStore,
+  createScopedCacheResolver,
+} from "./services/cache";
+import {
   configureExpressTransport,
   configureHttpTransport,
   createStdIoTransport,
@@ -74,11 +79,24 @@ function composeMcpServer(
     },
   });
 
+  const backingCache = createMemoryCacheStore({
+    now: Date.now,
+  });
+
+  const cache = createScopedCacheResolver({
+    cache: createBestEffortCacheResolver({
+      cache: backingCache,
+      logger,
+    }),
+    scope: "local",
+  });
+
   // Keep the SDK context for future per-principal composition.
   return (_mcpContext) =>
     createMcpServer({
       serverInfo: { name: "iracing-data", version: "1.0.0" },
       resolveConfiguration,
+      cache,
     });
 }
 

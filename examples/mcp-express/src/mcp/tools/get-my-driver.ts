@@ -1,6 +1,5 @@
 import { MemberApi } from "@iracing-data/api-client-fetch";
 import { z } from "zod";
-import { createToolInvocation } from "./invocation";
 import {
   CacheResolver,
   ConfigurationResolver,
@@ -17,6 +16,8 @@ const OutputSchema = z.object({
 });
 
 type Output = z.infer<typeof OutputSchema>;
+
+const CACHE_KEY = "get_my_driver:v1";
 
 /** Request access, linked downloads, and result presentation supplied by the root. */
 export interface GetMyDriverToolOptions {
@@ -44,20 +45,65 @@ export function createGetMyDriverTool(
       inputSchema: InputSchema,
       outputSchema: OutputSchema,
     },
-    createToolInvocation(
-      {
-        cacheKey: "get_my_driver:v1",
-        outputSchema: OutputSchema,
-        request: (configuration, options) => {
-          return new MemberApi(configuration).getMemberInfo(options);
-        },
-      },
-      {
-        resolveConfiguration,
-        resolveLink,
-        resolveResponse,
-        cache,
-      },
-    ),
+    async (input, ctx) => {
+      const signal = ctx.mcpReq.signal;
+
+      signal.throwIfAborted();
+
+      try {
+        /**
+         * Attempt to resolve the request from the cache
+         */
+        const cached = await cache?.get(CACHE_KEY, {
+          signal,
+        });
+
+        signal.throwIfAborted();
+
+        if (cached !== undefined) {
+          const parsed = OutputSchema.safeParse(cached);
+
+          if (parsed.success) {
+            signal.throwIfAborted();
+
+            return resolveResponse.success(parsed.data);
+          }
+        }
+
+        /**
+         * Attempt to resolve the request from the network
+         */
+
+        const configuration = await resolveConfiguration({
+          signal,
+          auth: ctx.http?.authInfo,
+        });
+
+        const response = await new MemberApi(configuration).getMemberInfo({
+          signal,
+        });
+
+        const { value, expiresAt } = await resolveLink({
+          response,
+          signal,
+          schema: OutputSchema,
+        });
+
+        signal.throwIfAborted();
+
+        /**
+         * Cache the result
+         */
+        await cache?.set(CACHE_KEY, value, expiresAt, { signal });
+
+        signal.throwIfAborted();
+
+        return resolveResponse.success(value);
+      } catch (cause) {
+        signal.throwIfAborted();
+
+        return resolveResponse.error(cause);
+      }
+    },
   );
 }

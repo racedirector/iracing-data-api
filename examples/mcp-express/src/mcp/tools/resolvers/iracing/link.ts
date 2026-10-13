@@ -8,7 +8,7 @@ import { z } from "zod";
 /**
  * Options for resolving a link from iRacing
  */
-export interface IRacingLinkResolverOptions<T> {
+export interface LinkResolverOptions<T> {
   /** The IracingAPIResponse to resolve */
   response: IracingAPIResponse;
 
@@ -22,7 +22,7 @@ export interface IRacingLinkResolverOptions<T> {
 /**
  * A resolved value from an iRacing provided link
  */
-export interface ResolvedIRacingLink<T> {
+export interface ResolvedLink<T> {
   value: T;
   expiresAt: number;
 }
@@ -30,20 +30,20 @@ export interface ResolvedIRacingLink<T> {
 /**
  * A link resolver; accepts options and returns the result.
  */
-export interface IRacingLinkResolver<T> {
-  (options: IRacingLinkResolverOptions<T>): Promise<ResolvedIRacingLink<T>>;
+export interface LinkResolver<T> {
+  (options: LinkResolverOptions<T>): Promise<ResolvedLink<T>>;
 }
 
-export interface CreateIRacingLinkResolverOptions {
+export interface CreateLinkResolverOptions {
   fetchApi: typeof fetch;
 
   /** Current Unix time in milliseconds. */
   now: () => number;
 }
 
-export function createIRacingLinkResolver<T>(
-  options: CreateIRacingLinkResolverOptions,
-): IRacingLinkResolver<T> {
+export function createLinkResolver<T>(
+  options: CreateLinkResolverOptions,
+): LinkResolver<T> {
   return async ({ response, schema, signal }) => {
     signal?.throwIfAborted();
 
