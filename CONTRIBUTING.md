@@ -16,6 +16,8 @@ pnpm verify
 
 The [verification guide](docs/VERIFICATION.md) describes native build prerequisites, focused commands, and the additional Docker recovery contract. Normal verification uses offline fixtures; no iRacing account, credentials, or running service is required. Live authentication and upstream checks are separate opt-in work. If a check fails, record the command and error; do not count missing tools or skipped checks as passing.
 
+Use LF line endings on macOS and Windows. [Git attributes](.gitattributes) enforce LF for text checkouts, and [EditorConfig](.editorconfig) and VS Code workspace settings use the same default. Windows `.bat` and `.cmd` files use CRLF. These settings do not rewrite existing files; for an existing authored file, select LF in the editor and save it. Use the owning regeneration commands for generated files.
+
 ## Find the owning source
 
 The repository contains authored TypeScript schemas and OAuth runtime code, generated Data API clients for Fetch, Axios, and Rust, private development tools, and examples. [Workspace policy](docs/WORKSPACE-POLICY.md) explains package classification and publication boundaries. Read package identities, scripts, and dependencies from their manifests.
