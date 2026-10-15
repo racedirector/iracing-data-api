@@ -2,8 +2,6 @@ import { strict as assert } from "node:assert";
 import { it } from "node:test";
 import {
   ConstantsResponseSchema,
-  GetCarResponseSchema,
-  GetTrackResponseSchema,
   ResultsSearchSeriesResponseSchema,
   ServiceMethodDocsResponseSchema,
   ServicesDocsResponseSchema,
@@ -56,23 +54,6 @@ it("validates direct constant object arrays without inventing their field contra
   assert.deepEqual(ConstantsResponseSchema.parse(value), value);
   for (const invalid of [{ link: "https://example.com" }, [1], null])
     assert.equal(ConstantsResponseSchema.safeParse(invalid).success, false);
-});
-
-it("uses numeric domain identifiers in maintained car and track responses", () => {
-  assert.deepEqual(GetCarResponseSchema.parse([{ car_id: 7 }]), [
-    { car_id: 7 },
-  ]);
-  assert.deepEqual(GetTrackResponseSchema.parse([{ track_id: 8 }]), [
-    { track_id: 8 },
-  ]);
-  assert.equal(
-    GetCarResponseSchema.safeParse([{ car_id: "7" }]).success,
-    false,
-  );
-  assert.equal(
-    GetTrackResponseSchema.safeParse([{ track_id: "8" }]).success,
-    false,
-  );
 });
 
 it("validates zero, one, and multi-chunk search-series manifests", () => {

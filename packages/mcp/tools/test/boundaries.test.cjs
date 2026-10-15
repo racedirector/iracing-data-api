@@ -220,3 +220,23 @@ test("linked URLs require HTTPS and reject embedded credentials", async (t) => {
     assert.equal(f.requests.length, 1);
   }
 });
+
+test("content projections validate numeric IDs in application-owned linked payloads", async () => {
+  const { CarProjection, TrackProjection } =
+    await import("../dist/tools/lookup-content.js");
+  for (const [schema, key, name] of [
+    [CarProjection, "car_id", "car_name"],
+    [TrackProjection, "track_id", "track_name"],
+  ]) {
+    assert.equal(
+      schema.safeParse({ [key]: 7, [name]: "Example" }).success,
+      true,
+    );
+    for (const id of ["7", null, undefined]) {
+      assert.equal(
+        schema.safeParse({ [key]: id, [name]: "Example" }).success,
+        false,
+      );
+    }
+  }
+});

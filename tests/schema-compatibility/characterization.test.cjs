@@ -15,7 +15,17 @@ const { test } = require("node:test");
 const { z } = require("../../packages/oauth/schema/node_modules/zod");
 const api = require("../../packages/api/schema/src");
 const oauth = require("../../packages/oauth/schema/src");
-const baseline = require("./exports.json");
+const { retained: baseline } = require("./retained-exports.cjs");
+test("intentionally removed linked-payload contracts stay outside the schema package", () => {
+  const { removed } = require("./retained-exports.cjs");
+  assert.equal(removed.length, 8);
+  for (const entry of removed) {
+    for (const surface of [api, require("../../" + entry.module)]) {
+      assert.equal(Object.hasOwn(surface, entry.old), false, entry.old);
+      assert.equal(Object.hasOwn(surface, entry.new), false, entry.new);
+    }
+  }
+});
 test("historical package and declaration-module exports remain available", () => {
   for (const entry of baseline.filter((entry) => entry.kind === "const")) {
     const surface = entry.module.includes("/oauth/") ? oauth : api;

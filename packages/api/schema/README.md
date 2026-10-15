@@ -11,9 +11,9 @@ pnpm add @iracing-data/api-schema
 ## Usage
 
 ```typescript
-import { GetCarResponseSchema } from "@iracing-data/api-schema";
+import { APIResponseSchema } from "@iracing-data/api-schema";
 
-const result = GetCarResponseSchema.parse(apiResponse);
+const result = APIResponseSchema.parse(apiResponse);
 ```
 
 Use the schemas directly for runtime validation or feed them into helpers like `@iracing-data/api-schema-to-openapi` for OpenAPI generation.
@@ -77,7 +77,7 @@ See the [repository package chooser](https://github.com/racedirector/iracing-dat
 
 ## Schema naming compatibility
 
-Canonical schema exports omit the leading `IRacing` and retain `OAuth` where present. All historical schema names remain as deprecated aliases with identical values and equivalent types, including OAuth-client re-exports. See the [complete migration map and compatibility policy](../../../docs/SCHEMA-MIGRATION.md).
+Canonical schema exports omit the leading `IRacing` and retain `OAuth` where present. Except for the removed linked-payload contracts documented in the migration policy, historical schema names remain as deprecated aliases with identical values and equivalent types, including OAuth-client re-exports. See the [complete migration map and compatibility policy](../../../docs/SCHEMA-MIGRATION.md).
 
 ## Source navigation
 

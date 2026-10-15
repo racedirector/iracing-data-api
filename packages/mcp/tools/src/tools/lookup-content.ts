@@ -1,8 +1,4 @@
 import { CarApi, TrackApi } from "@iracing-data/api-client-fetch";
-import {
-  GetCarResponseSchema,
-  GetTrackResponseSchema,
-} from "@iracing-data/api-schema";
 import { z } from "zod";
 import { continuation } from "../continuation.js";
 import { ApplicationFailure } from "../diagnostics/errors.js";
@@ -69,14 +65,7 @@ export function registerLookupContent(
       );
       const source = resolved.data;
 
-      // Current canonical collection schemas validate wire IDs; app schemas own
-      // the deliberately smaller agent-facing fields (without raw passthrough).
-      if (input.kind === "cars") {
-        parse(GetCarResponseSchema, source);
-      } else {
-        parse(GetTrackResponseSchema, source);
-      }
-
+      // Application projections validate the linked payload and its numeric IDs.
       const rows: Record<string, unknown>[] =
         input.kind === "cars"
           ? parse(z.array(CarProjection), source)

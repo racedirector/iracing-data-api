@@ -6,7 +6,8 @@
  * It is the historical public package/module inventory, including the callback
  * spelling exception. Never regenerate it from current exports: doing so could
  * make deleted aliases disappear from the test instead of failing compatibility.
- * Any intentional removal needs a separately reviewed breaking-contract decision.
+ * Intentional linked-payload removals are recorded in retained-exports.cjs and
+ * docs/SCHEMA-MIGRATION.md; all other historical pairs remain enforced.
  *
  * After dependency builds, require value identity at root/module/client exports,
  * replacement-specific deprecation declarations, exhaustive type-fixture coverage,
@@ -22,7 +23,7 @@ const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const { test } = require("node:test");
 const ts = require("typescript");
-const baseline = require("./exports.json");
+const { retained: baseline } = require("./retained-exports.cjs");
 const root = path.resolve(__dirname, "../..");
 test("every built alias retains identity and replacement-specific declaration documentation", () => {
   for (const entry of baseline) {
