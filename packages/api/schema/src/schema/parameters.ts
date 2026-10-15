@@ -16,16 +16,34 @@
  */
 import { z } from "zod";
 import {
-  CategorySchema,
   BooleanParameterSchema,
-  CustomerIdSchema,
+  CarClassIdParameterSchema,
+  CarIdParameterSchema,
   CategoryIdParameterSchema,
+  CategoryIdsParameterSchema,
+  CategorySchema,
   ChartTypeParameterSchema,
-  CommaSeparatedNumberString,
-  EventTypeSchema,
-  EventTypeTimeTrialSchema,
+  CustomerIdSchema,
+  CustomerIdsParameterSchema,
+  DivisionParameterSchema,
+  EventTypeParameterSchema,
   EventTypeRaceSchema,
-  DivisionSchema,
+  EventTypeSchema,
+  EventTypesParameterSchema,
+  EventTypeTimeTrialSchema,
+  LeagueIdParameterSchema,
+  LeagueSeasonIdParameterSchema,
+  PackageIdParameterSchema,
+  RaceWeekNumParameterSchema,
+  SeasonIdParameterSchema,
+  SeasonIdSchema,
+  SeasonQuarterParameterSchema,
+  SeasonYearParameterSchema,
+  SeriesIdParameterSchema,
+  SimSessionNumberParameterSchema,
+  SubsessionIdParameterSchema,
+  TeamIdParameterSchema,
+  TrackIdParameterSchema,
 } from "./primitives";
 
 export const AuthParametersSchema = z.object({
@@ -38,7 +56,7 @@ export const DriverStatsByCategoryPathSchema = z.object({
 });
 
 export const HostedCombinedSessionsParametersSchema = z.object({
-  package_id: z.coerce.number().optional().meta({
+  package_id: PackageIdParameterSchema.optional().meta({
     description:
       "If set, return only sessions using this car or track package ID.",
   }),
@@ -48,7 +66,7 @@ export const LeagueCustomerSessionsParametersSchema = z.object({
   mine: BooleanParameterSchema.optional().meta({
     description: "If true, return only sessions created by this user.",
   }),
-  package_id: z.coerce.number().optional().meta({
+  package_id: PackageIdParameterSchema.optional().meta({
     description:
       "If set, return only sessions using this car or track package ID.",
   }),
@@ -100,15 +118,15 @@ export const LeagueDirectoryParametersSchema = z.object({
 });
 
 export const LeagueGetParametersSchema = z.object({
-  league_id: z.coerce.number(),
+  league_id: LeagueIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
 
 export const LeagueGetPointsSystemsParametersSchema = z.object({
-  league_id: z.coerce.number(),
-  season_id: z.coerce.number().optional().meta({
+  league_id: LeagueIdParameterSchema,
+  season_id: LeagueSeasonIdParameterSchema.optional().meta({
     description:
       "If included and the season is using custom points (points_system_id:2) then the custom points option is included in the returned list. Otherwise the custom points option is not returned.",
   }),
@@ -123,32 +141,32 @@ export const LeagueMembershipParametersSchema = z.object({
 });
 
 export const LeagueRosterParametersSchema = z.object({
-  league_id: z.coerce.number(),
+  league_id: LeagueIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
 });
 
 export const LeagueSeasonsParametersSchema = z.object({
-  league_id: z.coerce.number(),
+  league_id: LeagueIdParameterSchema,
   retired: BooleanParameterSchema.optional().meta({
     description: "If true include seasons which are no longer active.",
   }),
 });
 
 export const LeagueSeasonStandingsParametersSchema = z.object({
-  league_id: z.coerce.number(),
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number().optional(),
-  car_id: z.coerce.number().optional().meta({
+  league_id: LeagueIdParameterSchema,
+  season_id: LeagueSeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema.optional(),
+  car_id: CarIdParameterSchema.optional().meta({
     description:
       "If car_class_id is included then the standings are for the car in that car class, otherwise they are for the car across car classes.",
   }),
 });
 
 export const LeagueSeasonSessionsParametersSchema = z.object({
-  league_id: z.coerce.number(),
-  season_id: z.coerce.number(),
+  league_id: LeagueIdParameterSchema,
+  season_id: LeagueSeasonIdParameterSchema,
   results_only: BooleanParameterSchema.optional().meta({
     description:
       "If true include only sessions for which results are available.",
@@ -159,7 +177,7 @@ export const LookupDriversParametersSchema = z.object({
   search_term: z
     .string()
     .meta({ description: "A cust_id or partial name for which to search." }),
-  league_id: z.coerce.number().optional().meta({
+  league_id: LeagueIdParameterSchema.optional().meta({
     description: "Narrow the search to the roster of the given league.",
   }),
 });
@@ -190,7 +208,7 @@ export const MemberChartDataParametersSchema = z.object({
 });
 
 export const MemberGetParametersSchema = z.object({
-  cust_ids: CommaSeparatedNumberString.meta({
+  cust_ids: CustomerIdsParameterSchema.meta({
     description:
       "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4",
   }),
@@ -204,37 +222,36 @@ export const MemberProfileParametersSchema = z.object({
 });
 
 export const ResultsGetParametersSchema = z.object({
-  subsession_id: z.coerce.number(),
+  subsession_id: SubsessionIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional(),
 });
 
 export const ResultsEventLogParametersSchema = z.object({
-  subsession_id: z.coerce.number(),
-  simsession_number: z.coerce.number().meta({
+  subsession_id: SubsessionIdParameterSchema,
+  simsession_number: SimSessionNumberParameterSchema.meta({
     description: "The main event is 0; the preceding event is -1, and so on.",
   }),
 });
 
 export const ResultsLapChartDataParametersSchema = z.object({
-  subsession_id: z.coerce.number(),
-  simsession_number: z.coerce.number().meta({
+  subsession_id: SubsessionIdParameterSchema,
+  simsession_number: SimSessionNumberParameterSchema.meta({
     description: "The main event is 0; the preceding event is -1, and so on.",
   }),
 });
 
 export const ResultsLapDataParametersSchema = z.object({
-  subsession_id: z.coerce.number(),
-  simsession_number: z.coerce.number().meta({
+  subsession_id: SubsessionIdParameterSchema,
+  simsession_number: SimSessionNumberParameterSchema.meta({
     description: "The main event is 0; the preceding event is -1, and so on.",
   }),
   cust_id: CustomerIdSchema.optional().meta({
     description:
       "Required if the subsession was a single-driver event. Optional for team events. If omitted for a team event then the laps driven by all the team's drivers will be included.",
   }),
-  team_id: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Required if the subsession was a team event." }),
+  team_id: TeamIdParameterSchema.optional().meta({
+    description: "Required if the subsession was a team event.",
+  }),
 });
 
 export const ResultsSearchHostedParametersSchema = z.object({
@@ -258,7 +275,7 @@ export const ResultsSearchHostedParametersSchema = z.object({
     description:
       "The participant's customer ID. Ignored if team_id is supplied.",
   }),
-  team_id: z.coerce.number().optional().meta({
+  team_id: TeamIdParameterSchema.optional().meta({
     description:
       "The team ID to search for. Takes priority over cust_id if both are supplied.",
   }),
@@ -269,36 +286,31 @@ export const ResultsSearchHostedParametersSchema = z.object({
     .string()
     .optional()
     .meta({ description: "Part or all of the session's name." }),
-  league_id: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Include only results for the league with this ID." }),
-  league_season_id: z.coerce.number().optional().meta({
+  league_id: LeagueIdParameterSchema.optional().meta({
+    description: "Include only results for the league with this ID.",
+  }),
+  league_season_id: LeagueSeasonIdParameterSchema.optional().meta({
     description: "Include only results for the league season with this ID.",
   }),
-  car_id: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "One of the cars used by the session." }),
-  track_id: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "The ID of the track used by the session." }),
-  category_ids: CommaSeparatedNumberString.optional().meta({
+  car_id: CarIdParameterSchema.optional().meta({
+    description: "One of the cars used by the session.",
+  }),
+  track_id: TrackIdParameterSchema.optional().meta({
+    description: "The ID of the track used by the session.",
+  }),
+  category_ids: CategoryIdsParameterSchema.optional().meta({
     description:
       "Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4",
   }),
 });
 
 export const ResultsSearchSeriesParametersSchema = z.object({
-  season_year: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Required when using season_quarter." }),
-  season_quarter: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Required when using season_year." }),
+  season_year: SeasonYearParameterSchema.optional().meta({
+    description: "Required when using season_quarter.",
+  }),
+  season_quarter: SeasonQuarterParameterSchema.optional().meta({
+    description: "Required when using season_year.",
+  }),
   start_range_begin: z.iso.datetime().optional().meta({
     description:
       'Session start times. ISO-8601 UTC time zero offset: "2022-04-01T15:45Z".',
@@ -319,47 +331,44 @@ export const ResultsSearchSeriesParametersSchema = z.object({
     description:
       "Include only sessions in which this customer participated. Ignored if team_id is supplied.",
   }),
-  team_id: z.number().optional().meta({
+  team_id: TeamIdParameterSchema.optional().meta({
     description:
       "Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.",
   }),
-  series_id: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Include only sessions for series with this ID." }),
-  race_week_num: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Include only sessions with this race week number." }),
+  series_id: SeriesIdParameterSchema.optional().meta({
+    description: "Include only sessions for series with this ID.",
+  }),
+  race_week_num: RaceWeekNumParameterSchema.optional().meta({
+    description: "Include only sessions with this race week number.",
+  }),
   official_only: BooleanParameterSchema.optional().meta({
     description:
       "If true, include only sessions earning championship points. Defaults to all.",
   }),
-  event_types: CommaSeparatedNumberString.optional().meta({
+  event_types: EventTypesParameterSchema.optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
-  category_ids: CommaSeparatedNumberString.optional().meta({
+  category_ids: CategoryIdsParameterSchema.optional().meta({
     description:
       "License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4",
   }),
 });
 
 export const ResultsSeasonResultsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  event_type: EventTypeSchema.optional().meta({
+  season_id: SeasonIdParameterSchema,
+  event_type: EventTypeParameterSchema.optional().meta({
     description:
       "Retrict to one event type: 2 - Practice; 3 - Qualify; 4 - Time Trial; 5 - Race",
   }),
-  race_week_num: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "The first race week of a season is 0." }),
+  race_week_num: RaceWeekNumParameterSchema.optional().meta({
+    description: "The first race week of a season is 0.",
+  }),
 });
 
 export const SeasonListParametersSchema = z.object({
-  season_year: z.coerce.number(),
-  season_quarter: z.coerce.number(),
+  season_year: SeasonYearParameterSchema,
+  season_quarter: SeasonQuarterParameterSchema,
 });
 
 export const SeasonRaceGuideParametersSchema = z.object({
@@ -384,23 +393,23 @@ export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
-  season_ids: z.array(z.number()).min(1).optional().meta({
+  season_ids: z.array(SeasonIdSchema).min(1).optional().meta({
     description:
       "Seasons to include in the search. Defaults to all. ?season_ids=513,937",
   }),
 });
 
 export const SeriesPastSeasonsParametersSchema = z.object({
-  series_id: z.coerce.number(),
+  series_id: SeriesIdParameterSchema,
 });
 
 export const SeriesSeasonsParametersSchema = z.object({
   include_series: BooleanParameterSchema.optional(),
-  season_year: z.coerce.number().optional().meta({
+  season_year: SeasonYearParameterSchema.optional().meta({
     description:
       "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned.",
   }),
-  season_quarter: z.coerce.number().optional().meta({
+  season_quarter: SeasonQuarterParameterSchema.optional().meta({
     description:
       "To look up past seasons use both a season_year and season_quarter.  Without both, the active seasons are returned.",
   }),
@@ -408,19 +417,19 @@ export const SeriesSeasonsParametersSchema = z.object({
 
 export const SeriesSeasonListParametersSchema = z.object({
   include_series: BooleanParameterSchema.optional(),
-  season_year: z.coerce.number().optional(),
-  season_quarter: z.coerce.number().optional(),
+  season_year: SeasonYearParameterSchema.optional(),
+  season_quarter: SeasonQuarterParameterSchema.optional(),
 });
 
 export const SeriesSeasonScheduleParametersSchema = z.object({
-  season_id: z.coerce.number(),
+  season_id: SeasonIdParameterSchema,
 });
 
 export const StatsMemberBestsParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
-  car_id: z.coerce.number().optional().meta({
+  car_id: CarIdParameterSchema.optional().meta({
     description:
       "First call should exclude car_id; use cars_driven list in return for subsequent calls.",
   }),
@@ -433,7 +442,7 @@ export const StatsMemberCareerParametersSchema = z.object({
 });
 
 export const StatsMemberDivisionParametersSchema = z.object({
-  season_id: z.coerce.number(),
+  season_id: SeasonIdParameterSchema,
   event_type: z.union([EventTypeTimeTrialSchema, EventTypeRaceSchema]).meta({
     description:
       "The event type code for the division type: 4 - Time Trial; 5 - Race",
@@ -444,11 +453,11 @@ export const StatsMemberRecapParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
-  year: z.coerce.number().optional().meta({
+  year: SeasonYearParameterSchema.optional().meta({
     description:
       "Season year; if not supplied the current calendar year (UTC) is used.",
   }),
-  season: z.coerce.number().optional().meta({
+  season: SeasonQuarterParameterSchema.optional().meta({
     description:
       "Season (quarter) within the year; if not supplied the recap will be for the entire year.",
   }),
@@ -473,77 +482,72 @@ export const StatsMemberYearlyParametersSchema = z.object({
 });
 
 export const StatsSeasonDriverStandingsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number(),
-  division: DivisionSchema.optional(),
-  race_week_num: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "The first race week of a season is 0." }),
+  season_id: SeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema,
+  division: DivisionParameterSchema.optional(),
+  race_week_num: RaceWeekNumParameterSchema.optional().meta({
+    description: "The first race week of a season is 0.",
+  }),
 });
 
 export const StatsSeasonSupersessionStandingsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number(),
-  division: DivisionSchema.optional(),
-  race_week_num: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "The first race week of a season is 0." }),
+  season_id: SeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema,
+  division: DivisionParameterSchema.optional(),
+  race_week_num: RaceWeekNumParameterSchema.optional().meta({
+    description: "The first race week of a season is 0.",
+  }),
 });
 
 export const StatsSeasonTeamStandingsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number(),
-  race_week_num: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "The first race week of a season is 0." }),
+  season_id: SeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema,
+  race_week_num: RaceWeekNumParameterSchema.optional().meta({
+    description: "The first race week of a season is 0.",
+  }),
 });
 
 export const StatsSeasonTTStandingsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number(),
-  division: DivisionSchema.optional(),
-  race_week_num: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "The first race week of a season is 0." }),
+  season_id: SeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema,
+  division: DivisionParameterSchema.optional(),
+  race_week_num: RaceWeekNumParameterSchema.optional().meta({
+    description: "The first race week of a season is 0.",
+  }),
 });
 
 export const StatsSeasonTTResultsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number(),
-  race_week_num: z.coerce
-    .number()
-    .meta({ description: "The first race week of a season is 0." }),
-  division: DivisionSchema.optional(),
+  season_id: SeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema,
+  race_week_num: RaceWeekNumParameterSchema.meta({
+    description: "The first race week of a season is 0.",
+  }),
+  division: DivisionParameterSchema.optional(),
 });
 
 export const StatsSeasonQualifyResultsParametersSchema = z.object({
-  season_id: z.coerce.number(),
-  car_class_id: z.coerce.number(),
-  race_week_num: z.coerce
-    .number()
-    .meta({ description: "The first race week of a season is 0." }),
-  division: DivisionSchema.optional(),
+  season_id: SeasonIdParameterSchema,
+  car_class_id: CarClassIdParameterSchema,
+  race_week_num: RaceWeekNumParameterSchema.meta({
+    description: "The first race week of a season is 0.",
+  }),
+  division: DivisionParameterSchema.optional(),
 });
 
 export const StatsWorldRecordsParametersSchema = z.object({
-  car_id: z.coerce.number(),
-  track_id: z.coerce.number(),
-  season_year: z.coerce
-    .number()
-    .optional()
-    .meta({ description: "Limit best times to a given year." }),
-  season_quarter: z.coerce.number().optional().meta({
+  car_id: CarIdParameterSchema,
+  track_id: TrackIdParameterSchema,
+  season_year: SeasonYearParameterSchema.optional().meta({
+    description: "Limit best times to a given year.",
+  }),
+  season_quarter: SeasonQuarterParameterSchema.optional().meta({
     description:
       "Limit best times to a given quarter; only applicable when year is used.",
   }),
 });
 
 export const TeamGetParametersSchema = z.object({
-  team_id: z.coerce.number(),
+  team_id: TeamIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
     description: "For faster responses, only request when necessary.",
   }),
