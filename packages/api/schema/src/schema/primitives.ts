@@ -94,23 +94,28 @@ export const CustomerIdSchema = z.coerce.number().meta({
 });
 
 export const PackageIdSchema = z.number();
-export const PackageIdParameterSchema = NumericParameterSchema.pipe(PackageIdSchema);
+export const PackageIdParameterSchema =
+  NumericParameterSchema.pipe(PackageIdSchema);
 
 export const LeagueIdSchema = z.number();
-export const LeagueIdParameterSchema = NumericParameterSchema.pipe(LeagueIdSchema);
+export const LeagueIdParameterSchema =
+  NumericParameterSchema.pipe(LeagueIdSchema);
 
 export const LeagueSeasonIdSchema = z.number();
 export const LeagueSeasonIdParameterSchema =
   NumericParameterSchema.pipe(LeagueSeasonIdSchema);
 
 export const SeasonIdSchema = z.number();
-export const SeasonIdParameterSchema = NumericParameterSchema.pipe(SeasonIdSchema);
+export const SeasonIdParameterSchema =
+  NumericParameterSchema.pipe(SeasonIdSchema);
 
 export const SeriesIdSchema = z.number();
-export const SeriesIdParameterSchema = NumericParameterSchema.pipe(SeriesIdSchema);
+export const SeriesIdParameterSchema =
+  NumericParameterSchema.pipe(SeriesIdSchema);
 
 export const TrackIdSchema = z.number();
-export const TrackIdParameterSchema = NumericParameterSchema.pipe(TrackIdSchema);
+export const TrackIdParameterSchema =
+  NumericParameterSchema.pipe(TrackIdSchema);
 
 export const CarIdSchema = z.number();
 export const CarIdParameterSchema = NumericParameterSchema.pipe(CarIdSchema);
@@ -131,15 +136,17 @@ export const RaceWeekNumParameterSchema =
   NumericParameterSchema.pipe(RaceWeekNumSchema);
 
 export const SeasonYearSchema = z.number();
-export const SeasonYearParameterSchema = NumericParameterSchema.pipe(SeasonYearSchema);
+export const SeasonYearParameterSchema =
+  NumericParameterSchema.pipe(SeasonYearSchema);
 
 export const SeasonQuarterSchema = z.number();
 export const SeasonQuarterParameterSchema =
   NumericParameterSchema.pipe(SeasonQuarterSchema);
 
 export const SimSessionNumberSchema = z.number();
-export const SimSessionNumberParameterSchema =
-  NumericParameterSchema.pipe(SimSessionNumberSchema);
+export const SimSessionNumberParameterSchema = NumericParameterSchema.pipe(
+  SimSessionNumberSchema,
+);
 
 const commaSeparatedNumberString = () =>
   z.coerce.string().regex(/^\d+(?:,\d+)*$/, {
@@ -177,7 +184,8 @@ export const EventTypeSchema = z
     description: "iRacing Event Type",
   });
 
-export const EventTypeParameterSchema = NumericParameterSchema.pipe(EventTypeSchema);
+export const EventTypeParameterSchema =
+  NumericParameterSchema.pipe(EventTypeSchema);
 
 export const ChartTypeSchema = z
   .union([
@@ -190,7 +198,8 @@ export const ChartTypeSchema = z
     description: "iRacing Chart Type",
   });
 
-export const ChartTypeParameterSchema = NumericParameterSchema.pipe(ChartTypeSchema);
+export const ChartTypeParameterSchema =
+  NumericParameterSchema.pipe(ChartTypeSchema);
 
 export const CategorySchema = z
   .union([
@@ -223,7 +232,8 @@ export const CategoryIdSchema = z
     id: "iracingCategoryId",
   });
 
-export const CategoryIdParameterSchema = NumericParameterSchema.pipe(CategoryIdSchema);
+export const CategoryIdParameterSchema =
+  NumericParameterSchema.pipe(CategoryIdSchema);
 
 export const DivisionSchema = z
   .union([
@@ -267,7 +277,8 @@ export const DivisionSchema = z
     id: "iracingDivision",
   });
 
-export const DivisionParameterSchema = NumericParameterSchema.pipe(DivisionSchema);
+export const DivisionParameterSchema =
+  NumericParameterSchema.pipe(DivisionSchema);
 
 /**
  * Types
