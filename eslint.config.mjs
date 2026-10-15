@@ -162,32 +162,49 @@ const authoredTypeScriptExclusions = [
 const authoredTypeAliasContext =
   "TSTypeAliasDeclaration:not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='infer']):not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='input'])";
 
-// AST selectors identifying inline exported declarations whose existing JSDoc
-// must have a meaningful description. Used by jsdoc/require-description and
-// jsdoc/match-description; jsdoc/require-jsdoc separately checks comment presence.
-//
-// Covers named/default functions and classes, named interfaces/enums/type aliases,
-// and exported variables initialized with a function or class expression. Ordinary
-// exported values and re-exports do not match. For example, `export const run =
-// () => {}` matches, while `export const version = "1"` does not.
-//
-// Selector syntax: :has(...) requires a matching descendant, `>` means a direct
-// child, and :not(...) in authoredTypeAliasContext excludes direct Zod projections.
-const documentedExportContexts = [
-  "ExportNamedDeclaration:has(> FunctionDeclaration)",
-  "ExportNamedDeclaration:has(> ClassDeclaration)",
-  "ExportNamedDeclaration:has(> TSInterfaceDeclaration)",
-  "ExportNamedDeclaration:has(> TSEnumDeclaration)",
-  `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
-  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ArrowFunctionExpression)",
-  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > FunctionExpression)",
-  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ClassExpression)",
-  "ExportDefaultDeclaration:has(> FunctionDeclaration)",
-  "ExportDefaultDeclaration:has(> ClassDeclaration)",
-  "ExportDefaultDeclaration:has(> ArrowFunctionExpression)",
-  "ExportDefaultDeclaration:has(> FunctionExpression)",
-  "ExportDefaultDeclaration:has(> ClassExpression)",
+// Keep these selectors rooted at exported declarations: descendants of exported
+// function bodies can contain private local classes and interfaces.
+const exportedClassContexts = [
+  ":matches(ExportNamedDeclaration, ExportDefaultDeclaration) > :matches(ClassDeclaration, ClassExpression)",
+  "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ClassExpression",
 ];
+const publicClassMemberContexts = exportedClassContexts.map(
+  (context) =>
+    `${context} > ClassBody > :matches(MethodDefinition, PropertyDefinition):not([accessibility=private]):not([accessibility=protected]):not([key.type=PrivateIdentifier])`,
+);
+const publicShapeMemberContexts = [
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > :matches(TSPropertySignature, TSMethodSignature)",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > :matches(TSPropertySignature, TSMethodSignature)",
+];
+const documentedExportContexts = [
+  "ExportNamedDeclaration:has(> :matches(FunctionDeclaration, ClassDeclaration, TSInterfaceDeclaration, TSEnumDeclaration, VariableDeclaration))",
+  `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
+  "ExportDefaultDeclaration:has(> :matches(FunctionDeclaration, ClassDeclaration, ArrowFunctionExpression, FunctionExpression, ClassExpression))",
+  ...publicClassMemberContexts.map(
+    (context) => `${context} > FunctionExpression`,
+  ),
+  ...publicClassMemberContexts.map(
+    (context) => `${context}[type=PropertyDefinition]`,
+  ),
+  ...publicShapeMemberContexts,
+];
+const documentedCallableContexts = [
+  ":matches(ExportNamedDeclaration, ExportDefaultDeclaration) > FunctionDeclaration",
+  "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > :matches(ArrowFunctionExpression, FunctionExpression)",
+  "ExportDefaultDeclaration > :matches(ArrowFunctionExpression, FunctionExpression)",
+  ...publicClassMemberContexts.map(
+    (context) =>
+      `${context} > :matches(FunctionExpression, ArrowFunctionExpression)`,
+  ),
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > TSMethodSignature",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSFunctionType",
+  ...publicShapeMemberContexts.map(
+    (context) => `${context} > TSTypeAnnotation > TSFunctionType`,
+  ),
+];
+
+const contractDescriptionPattern =
+  "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value|customer id|the configuration)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu";
 
 export default defineConfig([
   {
@@ -397,6 +414,15 @@ export default defineConfig([
     settings: {
       jsdoc: {
         mode: "typescript",
+        tagNamePreference: {
+          arg: "param",
+          argument: "param",
+          return: "returns",
+          exception: "throws",
+        },
+        structuredTags: {
+          throws: { required: ["type"] },
+        },
       },
     },
     rules: {
@@ -418,31 +444,97 @@ export default defineConfig([
             MethodDefinition: false,
           },
           contexts: [
+            "ExportNamedDeclaration > VariableDeclaration",
+            "Program > VariableDeclaration > VariableDeclarator > *.init",
+            ...publicClassMemberContexts.map(
+              (context) =>
+                `${context} > :matches(FunctionExpression, ArrowFunctionExpression)`,
+            ),
+            ...publicClassMemberContexts.map(
+              (context) => `${context}[type=PropertyDefinition]`,
+            ),
+            ...publicShapeMemberContexts,
             "TSEnumDeclaration",
             "TSInterfaceDeclaration",
             authoredTypeAliasContext,
           ],
         },
       ],
+      "jsdoc/check-alignment": "error",
+      "jsdoc/require-asterisk-prefix": "error",
+      "jsdoc/require-description-complete-sentence": "error",
+      "jsdoc/check-param-names": "error",
+      "jsdoc/check-property-names": "error",
+      "jsdoc/check-tag-names": "error",
+      "jsdoc/check-types": "error",
+      "jsdoc/check-values": "error",
+      "jsdoc/valid-types": "error",
+      "jsdoc/informative-docs": "error",
+      "jsdoc/require-param": [
+        "error",
+        { contexts: documentedCallableContexts },
+      ],
+      "jsdoc/require-param-name": "error",
+      "jsdoc/require-param-type": "error",
+      "jsdoc/require-param-description": "error",
+      "jsdoc/require-returns": [
+        "error",
+        {
+          contexts: documentedCallableContexts.map((context) => ({
+            context,
+            forceRequireReturn:
+              context.endsWith("TSMethodSignature") ||
+              context.endsWith("TSFunctionType"),
+          })),
+          forceReturnsWithAsync: true,
+        },
+      ],
+      "jsdoc/require-returns-type": "error",
+      "jsdoc/require-returns-description": "error",
+      "jsdoc/require-throws": [
+        "error",
+        { contexts: documentedCallableContexts },
+      ],
+      "jsdoc/require-property": "error",
+      "jsdoc/require-property-name": "error",
+      "jsdoc/require-property-type": "error",
+      "jsdoc/require-property-description": "error",
+      "jsdoc/normalize-see-links": ["error", { wrapBareUrls: true }],
       "jsdoc/require-description": [
         "error",
         {
-          contexts: documentedExportContexts,
+          contexts: [
+            ...documentedExportContexts,
+            "FunctionDeclaration",
+            "ArrowFunctionExpression",
+            "FunctionExpression",
+            "VariableDeclaration",
+            "TSInterfaceDeclaration",
+            authoredTypeAliasContext,
+            "TSEnumDeclaration",
+          ],
           descriptionStyle: "body",
-          exemptedBy: ["inheritdoc", "deprecated"],
+          exemptedBy: ["inheritdoc"],
         },
       ],
       "jsdoc/match-description": [
         "error",
         {
-          contexts: documentedExportContexts,
+          contexts: ["any"],
           mainDescription: {
-            match:
-              "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu",
+            match: contractDescriptionPattern,
             message:
               "Exported API JSDoc must describe the contract rather than use an empty or placeholder description.",
           },
-          nonemptyTags: false,
+          matchDescription: contractDescriptionPattern,
+          tags: {
+            param: true,
+            returns: true,
+            property: true,
+            deprecated: true,
+            throws: true,
+          },
+          nonemptyTags: true,
         },
       ],
     },

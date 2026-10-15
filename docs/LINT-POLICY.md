@@ -26,8 +26,7 @@ the CLI's strict compiler settings because the root solution only has references
 Only the selected SonarJS rules are enabled, covering cognitive complexity,
 duplicated branches/functions/conditions/expressions, gratuitous expressions,
 and nested switches. Core control-flow rules and typed correctness rules apply
-alongside the presets. Public API JSDoc coverage, meaningful descriptions,
-placeholder rejection, and direct Zod projection handling remain unchanged.
+alongside the presets. Public API documentation follows the JSDoc policy below.
 
 The same public API documentation rules apply to `eslint.config.mjs`: exported
 functions and classes require descriptive JSDoc, including rejection of empty or
@@ -100,3 +99,52 @@ post-processing hook also applies this adjustment during ordinary regeneration.
 ESLint receives an explicit root configuration path there because ESLint 10
 searches for configuration from each linted file, including isolated temporary
 outputs used by freshness verification.
+
+## Explicit public API documentation
+
+The authored documentation block uses `eslint-plugin-jsdoc` 65.3.4 directly,
+with TypeScript parsing but without a preset that removes JSDoc types. Authored
+production TypeScript under `apps/**` and `packages/**` requires documentation
+for exported functions, callable values, classes, interfaces, enums, type aliases,
+public constants, and directly declared public class and interface members.
+Private, protected, and ECMAScript private class members are outside presence
+checks. Direct `z.infer` and `z.input` aliases remain owned by their source schema;
+wrappers around those aliases still need their own documentation.
+
+`require-param`, `check-param-names`, and `require-param-name/type/description`
+check parameter coverage and explicit annotations. `require-returns` and
+`require-returns-type/description` check value-returning functions, async functions,
+and interface call signatures. `require-throws` detects explicit throw statements;
+`valid-types` requires a type for every throws tag, and `match-description` requires
+an error condition. Property tags have corresponding presence, name, type, and
+description checks. Void interface signatures currently require an explicit
+`@returns {void}` tag as well.
+
+`require-description`, `informative-docs`, and `match-description` reject empty,
+name-repeating, and known placeholder descriptions. Complete-sentence and asterisk
+prefix rules keep prose consistent. Alignment, tag names, type expressions, and
+supported tag values are checked by the plugin. Preferred tags are `@param`,
+`@returns`, `@throws`, `@see`, and `@deprecated`; deprecated APIs still need a body
+description and a deprecation explanation.
+
+Use the authoritative contract defining the behavior in `@see`, with official
+JSDoc inline links: `@see {@link https://example.org/contract|Contract title}`.
+`normalize-see-links` normalizes labeled links to the pipe form and wraps bare
+HTTP URLs. It does not fetch links, verify availability, decide authority, or
+require a source link where semantics derive from an upstream contract. Those
+remain review responsibilities. See the [official JSDoc link syntax](https://jsdoc.app/tags-see).
+
+Static checks do not establish prose accuracy or discover all delegated,
+propagated, asynchronous, transport, validation, or authentication failures.
+Read implementations and callers before adding error tags; document supported
+error conditions and types without inventing generic guarantees. The installed
+plugin also cannot identify separately exported TypeScript interfaces/type aliases
+through its runtime export map; declare these contracts inline with `export` so
+presence and member checks can see them. Separately exported runtime functions
+and initialized constants are covered.
+
+Tests, fixtures, generated clients/code, vendored files, build output, and examples
+retain their existing exclusions because they are not authored production API
+contracts. Existing JSDoc comments in authored code receive tag validity checks,
+but private implementation helpers do not acquire a blanket documentation
+requirement. `pnpm test:jsdoc-policy` exercises the actual ESLint configuration.

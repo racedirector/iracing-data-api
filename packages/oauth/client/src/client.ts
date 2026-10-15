@@ -24,7 +24,7 @@
  * Failures clear the single-flight entry, not authorization uncertainty. Applications
  * must decide safe retry/quarantine from grant-consumption evidence; this generic
  * client supplies no cross-instance/process lock or automatic durable quarantine.
- * refresh() alone neither stores nor coordinates tokens. JWT convenience helpers
+ * Refresh() alone neither stores nor coordinates tokens. JWT convenience helpers
  * remain separate from opaque-refresh restoration. Never log retained raw errors.
  */
 import {
@@ -63,7 +63,7 @@ function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
 /**
  * Composition inputs for the OAuth lifecycle owner, including immutable client metadata,
  * transient-state storage, session storage, and API construction.
- * clientMetadata supplies the client registration used by the OAuth lifecycle.
+ * ClientMetadata supplies the client registration used by the OAuth lifecycle.
  */
 export interface OAuthClientOptions {
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
@@ -100,7 +100,7 @@ export class OAuthClient {
   /**
    * Creates an OAuth client configured for the iRacing authorization servers.
    *
-   * @param options - Client metadata, storage backends, and low-level API composition used by the client.
+   * @param {OAuthClientOptions} options - Client metadata, storage backends, and low-level API composition used by the client.
    * @throws {Error} If the client metadata does not match the expected schema.
    */
   constructor(options: OAuthClientOptions) {
@@ -138,7 +138,7 @@ export class OAuthClient {
 
   /**
    * Generates an Authorization URL for kicking off the OAuth flow.
-   * @returns The URL, verifier, and state parameter.
+   * @returns {Promise<{ url: URL; verifier: string; state: string; }>} The URL, verifier, and state parameter.
    *
    * @throws {Error} If the client is not configured with a redirect URI.
    */
@@ -187,7 +187,7 @@ export class OAuthClient {
 
   /**
    * Authorizes the consumer with the password limited flow on iRacing auth servers.
-   * @returns The session token from the OAuth API.
+   * @returns {Promise<OAuthTokenResponse>} The session token from the OAuth API.
    *
    * @throws {Error} If username, password, or client secret are missing from the client configuration.
    * @throws {Error} If the grant request fails or the returned token payload cannot be parsed.
@@ -245,9 +245,9 @@ export class OAuthClient {
   /**
    * Given the parameters from the authorization server,
    * fetches the token.
-   * @param params The query parameters from the authorization server.
-   * @param sessionId Optional explicit storage key. When provided, no profile lookup is required.
-   * @returns The auth token.
+   * @param {URLSearchParams} params The query parameters from the authorization server.
+   * @param {string} sessionId Optional explicit storage key. When provided, no profile lookup is required.
+   * @returns {Promise<OAuthTokenResponse>} The auth token.
    *
    * @throws {Error} If the client is not configured with a redirect URI.
    * @throws {OAuthCallbackError} If the callback is missing the `state` or `code` parameter,
@@ -341,8 +341,8 @@ export class OAuthClient {
 
   /**
    * Refreshes a token for the given refresh token.
-   * @param token The refresh token
-   * @returns a new access token.
+   * @param {string} token The refresh token.
+   * @returns {Promise<OAuthTokenResponse>} The complete grant response, including any rotated refresh credential.
    *
    * @throws {OAuthRefreshError} If the OAuth server returns a structured refresh error body.
    * @throws {Error} If the refresh token request fails or the response body cannot be processed.
@@ -378,11 +378,11 @@ export class OAuthClient {
    *
    * This looks up a session for the given session ID, and forwards the access token to `oauth4webapi.protectedResourceRequest`.
    *
-   * @param sessionId — The id of the session to use for the request.
-   * @param method — The HTTP method for the request.
-   * @param path — The path for the request, relative to the iRacing API URL.
-   * @param request — Optional headers, body, and protocol controls for the request.
-   * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
+   * @param {string} sessionId — The id of the session to use for the request.
+   * @param {string} method — The HTTP method for the request.
+   * @param {string} path — The path for the request, relative to the iRacing API URL.
+   * @param {ProtectedRequestOptions} request — Optional headers, body, and protocol controls for the request.
+   * @returns {Promise<Response>} Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
    *   rejected with {@link WWWAuthenticateChallengeError}.
    *
    * @throws {OAuthRefreshError} If the stored session must be refreshed and the refresh fails.
@@ -409,11 +409,11 @@ export class OAuthClient {
    *
    * This forwards the stored access token to `oauth4webapi.protectedResourceRequest`.
    *
-   * @param session - The session to use for the request.
-   * @param method - The HTTP method for the request.
-   * @param path - The path for the request, relative to the iRacing API URL.
-   * @param request - Headers, body, and protocol options for this request.
-   * @returns Resolves with a {@link !Response} instance.
+   * @param {OAuthTokenResponse} session - The session to use for the request.
+   * @param {string} method - The HTTP method for the request.
+   * @param {string} path - The path for the request, relative to the iRacing API URL.
+   * @param {ProtectedRequestOptions} request - Headers, body, and protocol options for this request.
+   * @returns {Promise<Response>} Resolves with a {@link !Response} instance.
    * @throws {Error} If the protected resource request fails.
    */
   private async _makeProtectedRequest(
@@ -435,8 +435,8 @@ export class OAuthClient {
   /**
    * Reads a session from the configured session store.
    *
-   * @param sessionId - The session identifier to load.
-   * @returns The stored session, or `undefined` when no session exists.
+   * @param {string} sessionId - The session identifier to load.
+   * @returns {Promise<OAuthTokenResponse | undefined>} The stored session, or `undefined` when no session exists.
    */
   private async getSession(sessionId: string) {
     return await this.sessionStore.get(sessionId);
@@ -445,8 +445,8 @@ export class OAuthClient {
   /**
    * Writes a session to the configured session store.
    *
-   * @param sessionId - The session identifier to persist.
-   * @param session - The session payload to store.
+   * @param {string} sessionId - The session identifier to persist.
+   * @param {OAuthTokenResponse} session - The session payload to store.
    */
   private async storeSession(sessionId: string, session: OAuthTokenResponse) {
     await this.sessionStore.set(sessionId, session);
@@ -455,8 +455,8 @@ export class OAuthClient {
   /**
    * Refreshes a stored session using its refresh token and persists the updated result.
    *
-   * @param sessionId - The session identifier to refresh.
-   * @returns The complete persisted session.
+   * @param {string} sessionId - The session identifier to refresh.
+   * @returns {Promise<OAuthTokenResponse>} The complete persisted session.
    * @throws {OAuthRefreshError} If the session does not exist, is missing a refresh token,
    *   or the authorization server rejects the refresh grant.
    */
@@ -503,8 +503,8 @@ export class OAuthClient {
   /**
    * Restores a session from storage, refreshing it if the access token has expired.
    *
-   * @param sessionId - The session identifier to load.
-   * @returns The stored session, or `undefined` when no session exists.
+   * @param {string} sessionId - The session identifier to load.
+   * @returns {Promise<OAuthTokenResponse | undefined>} The stored session, or `undefined` when no session exists.
    * @throws {OAuthRefreshError} If a stored session must be refreshed and the refresh fails.
    * @throws {Error} If the stored access token is malformed.
    */
