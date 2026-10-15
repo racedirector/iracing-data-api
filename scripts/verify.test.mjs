@@ -37,6 +37,29 @@ test("build selection follows policy and includes dependency closure", () => {
   ]);
 });
 
+test("repository lint and policy tests run after all npm workspace builds", () => {
+  const plan = verificationPlan("repo", policy);
+  const buildIndex = plan.findIndex((step) => step.args.at(-1) === "build");
+  assert.ok(buildIndex >= 0);
+  assert.deepEqual(plan[buildIndex].args, [
+    "--filter",
+    "schema...",
+    "--filter",
+    "tool...",
+    "--filter",
+    "demo...",
+    "--filter",
+    "sdk...",
+    "--fail-if-no-match",
+    "build",
+  ]);
+  for (const script of ["test:verification", "lint"]) {
+    assert.ok(
+      plan.findIndex((step) => step.args.includes(script)) > buildIndex,
+    );
+  }
+});
+
 test("unknown or empty build selection fails closed", () => {
   assert.throws(() => verificationPlan("typo", policy), /Unknown/);
   assert.throws(

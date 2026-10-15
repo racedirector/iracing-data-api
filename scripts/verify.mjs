@@ -65,6 +65,14 @@ export function verificationPlan(subsystem, policy) {
           "repo: modeled-service boundary tests",
           "test:service-client-boundary",
         ),
+        // Typed lint and import resolution consume workspace exports and test
+        // imports from dist, so a clean checkout must build before linting.
+        build([
+          "public-release-target",
+          "internal-tool",
+          "generated-public-client",
+          "example",
+        ]),
         pnpm("repo: verification tests", "test:verification"),
         pnpm("repo: compatibility audit tests", "test:compatibility-audits"),
         pnpm("repo: impact tests", "test:impact"),

@@ -26,6 +26,8 @@ Use [change impact](CHANGE-IMPACT.md) for planning. Guidance, skills, ownership 
 
 For coverage details, descend directly to [schema compatibility tests](../tests/schema-compatibility/compatibility.test.cjs), [offline generated wire tests](../tests/data-contract), [OAuth tests](../packages/oauth/client/test) and [MCP tests](../apps/iracing-data-mcp/test). Synthetic fixtures do not establish live authentication or upstream compatibility.
 
+Repository verification builds all npm workspaces and their dependencies before running ESLint policy tests and lint. Typed lint reads package exports and tests import built `dist` files, so this ordering is required on a clean checkout as well as in CI.
+
 ## Offline Docker recovery
 
 ```bash
