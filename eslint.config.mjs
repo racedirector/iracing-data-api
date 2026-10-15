@@ -380,15 +380,16 @@ export default defineConfig([
     linterOptions: { noInlineConfig: true },
   },
   // PUBLIC API DOCUMENTATION: require descriptive JSDoc on exported declarations
-  // in authored apps/packages TypeScript. The selectors above define the covered
-  // declarations and exempt direct Zod type projections. Comments are checked for
+  // in authored apps/packages TypeScript and the ESLint configuration itself.
+  // The selectors above define covered declarations and exempt direct Zod type
+  // projections. Comments are checked for
   // presence, a body description, and empty/placeholder wording; missing comments
   // are not automatically inserted by ESLint's fixer.
   // Tests, fixtures, nested examples, and vendor files use the exclusions above;
   // top-level examples do not match this block. Internal helpers need no JSDoc.
   {
     name: "authored-api-documentation",
-    files: ["apps/**/*.ts", "packages/**/*.ts"],
+    files: ["apps/**/*.ts", "packages/**/*.ts", "eslint.config.mjs"],
     ignores: authoredTypeScriptExclusions,
     plugins: {
       jsdoc: jsdocPlugin,

@@ -74,6 +74,25 @@ export function run(input: string): number {
   assert.deepEqual(messages, []);
 });
 
+test("ESLint configuration uses the authored documentation rules", async () => {
+  const filePath = "eslint.config.mjs";
+  const source = "export function configure() {}";
+  await expectRule(source, "jsdoc/require-jsdoc", filePath);
+  await expectRule(`/** */\n${source}`, "jsdoc/require-description", filePath);
+  await expectRule(
+    `/** Returns the result. */\n${source}`,
+    "jsdoc/match-description",
+    filePath,
+  );
+  assert.deepEqual(
+    await jsdocMessages(
+      `/** Builds the shared lint configuration. */\n${source}`,
+      filePath,
+    ),
+    [],
+  );
+});
+
 test("empty and placeholder JSDoc are rejected", async (t) => {
   await t.test("empty", () =>
     expectRule(

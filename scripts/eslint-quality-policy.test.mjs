@@ -22,6 +22,20 @@ async function rejects(source, ruleId, filePath) {
   );
 }
 
+test("ESLint configuration lints itself with shared correctness rules", async () => {
+  const filePath = "eslint.config.mjs";
+  assert.equal(await eslint.isPathIgnored(filePath), false);
+  await rejects(
+    'const unusedConfigValue = "unused";',
+    "@typescript-eslint/no-unused-vars",
+    filePath,
+  );
+  await rejects("fabricatedGlobal();", "no-undef", filePath);
+  const [result] = await eslint.lintFiles([filePath]);
+  assert.equal(result.errorCount, 0, JSON.stringify(result.messages));
+  assert.equal(result.warningCount, 0, JSON.stringify(result.messages));
+});
+
 test("runtime structural limits are errors", async () => {
   await rejects(
     `function oversized() {\n${Array.from({ length: 61 }, () => 'console.info("line");').join("\n")}\n}`,

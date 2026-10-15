@@ -29,6 +29,10 @@ and nested switches. Core control-flow rules and typed correctness rules apply
 alongside the presets. Public API JSDoc coverage, meaningful descriptions,
 placeholder rejection, and direct Zod projection handling remain unchanged.
 
+The same public API documentation rules apply to `eslint.config.mjs`: exported
+functions and classes require descriptive JSDoc, including rejection of empty or
+placeholder descriptions. Internal helpers remain outside public API coverage.
+
 Tests, fixtures, nested verification examples, and vendor paths retain their
 runtime-policy exclusions. Tests still receive baseline correctness, import,
 Unicorn, and formatting checks. JavaScript/CommonJS receives non-type-aware
