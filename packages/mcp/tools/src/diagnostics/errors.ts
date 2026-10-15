@@ -96,7 +96,7 @@ export const ErrorEnvelopeSchema = z
       retryable: z.boolean(),
       request_id: z.uuid(),
       reason: z.string().max(40).optional(),
-      retry_after_seconds: z.number().int().min(0).max(3600).optional(),
+      retry_after_seconds: z.int().min(0).max(3600).optional(),
     }),
   })
   .superRefine(({ error }, ctx) => {

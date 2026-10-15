@@ -48,10 +48,10 @@ const diagnosticFields = z.object({
     .enum(["ready", "authorization_required", "configuration_error"])
     .optional(),
   elapsed_ms: z.number().min(0).max(86400000).optional(),
-  bytes: z.number().int().min(0).max(1073741824).optional(),
-  items: z.number().int().min(0).max(1000000).optional(),
-  status: z.number().int().min(100).max(599).optional(),
-  retry_attempt: z.number().int().min(0).max(100).optional(),
+  bytes: z.int().min(0).max(1073741824).optional(),
+  items: z.int().min(0).max(1000000).optional(),
+  status: z.int().min(100).max(599).optional(),
+  retry_attempt: z.int().min(0).max(100).optional(),
   error_code: ApplicationErrorCodeSchema.optional(),
 });
 

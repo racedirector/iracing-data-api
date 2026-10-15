@@ -2,7 +2,7 @@
 
 [eslint.config.mjs](../eslint.config.mjs) uses ESLint flat config and the
 `typescript-eslint` presets. Run `pnpm lint` for the complete configured surface,
-`pnpm test:lint-policy` for the configuration/JSDoc regression tests, and
+`pnpm test:lint-policy` for the configuration, JSDoc, and Zod regression tests, and
 `pnpm verify` for the repository's full pre-merge contract.
 
 ## Authored runtime TypeScript
@@ -37,6 +37,25 @@ Tests, fixtures, nested verification examples, and vendor paths retain their
 runtime-policy exclusions. Tests still receive baseline correctness, import,
 Unicorn, and formatting checks. JavaScript/CommonJS receives non-type-aware
 rules, with CommonJS globals and require imports enabled only for `.cjs` files.
+
+## Zod schemas
+
+Authored code, including tests and examples, receives curated `eslint-plugin-zod`
+checks as errors. They reject weak `any`/empty custom validators, truthiness-based
+boolean coercion, contradictory constraints, throwing refinements and transformed
+record keys. Use `z.int()`, top-level string formats, explicit v4 object
+constructors and `.meta()` descriptions. Explicit `zod/v3` imports are errors.
+
+The existing typed `@typescript-eslint/no-deprecated` remains responsible for
+resolved deprecated APIs in authored runtime; equivalent Zod deprecation rules
+apply only outside that typed policy to avoid duplicate diagnostics. Generated
+TypeScript retains only its existing architecture checks.
+
+Unknown wire data, intentional preprocessors/codecs/refinements, inner-schema
+metadata and throwing parse boundaries remain supported. There is no blanket
+schema naming, trimming, `safeParse`, metadata-presence or canonical-reuse rule.
+See the [Zod audit](ZOD-LINT-AUDIT.md) for exact rules, scope, candidate evaluation,
+repairs, contract evidence and enforcement limits.
 
 ## Imports and architecture
 

@@ -44,10 +44,10 @@ export const TrackAssetEntrySchema = z.object({
   // Seen as strings like "90deg" / "160deg" and also null in some entries.
   north: z.string().nullable(),
 
-  num_svg_images: z.number().int(),
+  num_svg_images: z.int(),
   small_image: z.string(),
 
-  track_id: z.number().int(),
+  track_id: z.int(),
 
   // URL string
   track_map: z.string(),

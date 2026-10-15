@@ -25,13 +25,13 @@ export function registerGetSeriesSchedule(
 export const SeriesScheduleInput = z.union([
   z.strictObject({
     season_id: Id,
-    race_week_num: z.number().int().min(0).max(52).optional(),
+    race_week_num: z.int().min(0).max(52).optional(),
     limit,
   }),
   ContinuationInput,
 ]);
 export const SeriesScheduleProjection = z.object({
-  race_week_num: z.number().int().min(0).max(52),
+  race_week_num: z.int().min(0).max(52),
   start_date: z.iso.date(),
   week_end_time: z.iso
     .datetime({ offset: true })
@@ -48,7 +48,7 @@ export const SeriesScheduleProjection = z.object({
 function outputSchema() {
   return pageOutput(
     z.object({
-      race_week_num: z.number().int(),
+      race_week_num: z.int(),
       start_date: z.iso.date(),
       week_end_time: z.iso.datetime(),
       series_id: Id,
