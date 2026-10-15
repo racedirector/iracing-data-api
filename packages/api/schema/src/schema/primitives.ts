@@ -107,7 +107,9 @@ export const CarIdSchema = z.number();
 export const CarIdParameterSchema = z.coerce.number().pipe(CarIdSchema);
 
 export const CarClassIdSchema = z.number();
-export const CarClassIdParameterSchema = z.coerce.number().pipe(CarClassIdSchema);
+export const CarClassIdParameterSchema = z.coerce
+  .number()
+  .pipe(CarClassIdSchema);
 
 export const TeamIdSchema = z.number();
 export const TeamIdParameterSchema = z.coerce.number().pipe(TeamIdSchema);
