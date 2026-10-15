@@ -73,14 +73,18 @@ export const BooleanParameterSchema = z
   )
   .meta({ override: { type: "boolean" } });
 
-const NonBlankNumericParameterInputSchema = z.union([
-  z.number(),
-  z.string().trim().min(1),
-]);
+const NonBlankNumericParameterInputSchema = z
+  .union([z.number(), z.string().trim().min(1)])
+  .meta({
+    override: ({ jsonSchema }) => {
+      delete jsonSchema.anyOf;
+      jsonSchema.type = "number";
+    },
+  });
 
 const NumericParameterSchema = NonBlankNumericParameterInputSchema.pipe(
   z.coerce.number(),
-).meta({ override: { type: "number" } });
+);
 
 /**
  * CustomerIdSchema predates the domain/wire split below and intentionally remains
