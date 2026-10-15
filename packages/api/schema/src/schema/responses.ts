@@ -15,7 +15,11 @@
  * Historical aliases below retain canonical value/type identity and metadata IDs.
  */
 import { z } from "zod";
-import { BooleanParameterSchema } from "./primitives";
+import {
+  BooleanParameterSchema,
+  CarIdSchema,
+  TrackIdSchema,
+} from "./primitives";
 
 export const ErrorResponseSchema = z
   .object({
@@ -48,9 +52,9 @@ export const ResultsSearchSeriesResponseSchema = z
     data: z.object({
       success: z.boolean(),
       chunk_info: z.object({
-        chunk_size: z.number().int().nonnegative(),
-        num_chunks: z.number().int().nonnegative(),
-        rows: z.number().int().nonnegative(),
+        chunk_size: z.int().nonnegative(),
+        num_chunks: z.int().nonnegative(),
+        rows: z.int().nonnegative(),
         base_download_url: z.url(),
         chunk_file_names: z.array(z.string()),
       }),
@@ -114,14 +118,14 @@ export const GetCarAssetsResponseSchema = z.record(z.number(), z.unknown());
 
 export const GetCarResponseSchema = z.array(
   z.object({
-    car_id: z.number(),
+    car_id: CarIdSchema,
   }),
 );
 
 export const GetTrackAssetsResponseSchema = z.record(
   z.number(),
   z.object({
-    track_id: z.number(),
+    track_id: TrackIdSchema,
     track_map: z.string(),
     track_map_layers: z.record(z.string(), z.string()),
   }),
@@ -129,7 +133,7 @@ export const GetTrackAssetsResponseSchema = z.record(
 
 export const GetTrackResponseSchema = z.array(
   z.object({
-    track_id: z.number(),
+    track_id: TrackIdSchema,
   }),
 );
 
