@@ -42,6 +42,25 @@ Spectator filters are typed arrays: `event_types` accepts the existing numeric I
 
 Boolean query parameters accept native booleans and the exact strings `"true"`/`"false"`. `"false"` now parses as false; arbitrary strings, numbers and null fail validation instead of being converted by JavaScript truthiness. Correct an invalid input using the field path in the Zod error. Recap `year` accepts calendar-year numbers and numeric strings; omission retains the upstream default.
 
+Semantic numeric primitives separate domain values from query conversion. For example, `SubsessionIdSchema` accepts numbers, while `SubsessionIdParameterSchema` also accepts numeric strings. The same split covers league/season, car/track, team, race-week and numeric enum concepts. `SeasonIdSchema` and `LeagueSeasonIdSchema` describe distinct concepts even though both currently accept numbers.
+
+```typescript
+import {
+  SubsessionIdParameterSchema,
+  RaceWeekNumParameterSchema,
+  SimSessionNumberParameterSchema,
+} from "@iracing-data/api-schema";
+
+SubsessionIdParameterSchema.parse("42"); // 42
+RaceWeekNumParameterSchema.parse("0"); // 0
+SimSessionNumberParameterSchema.parse("-1"); // -1
+SubsessionIdParameterSchema.safeParse("   ").success; // false
+```
+
+These query adapters reject blank or nonnumeric strings and non-query values such as null, booleans and arrays. Correct the field identified in the Zod error; omit an optional filter instead of sending an empty string. Team IDs accept numeric strings consistently across result searches. The legacy `CustomerIdSchema` retains its existing coercion behavior, including blank-to-zero conversion. Comma-separated ID filters and typed spectator arrays retain their existing serialization.
+
+Query conversion preserves the existing OpenAPI and generated-client contract: EventType and Division retain named enum references. CategoryId and ChartType query schemas retain their historical numeric wire projection while validating enum values at runtime. No SDK migration is required for this primitive refactor.
+
 `ConstantsResponseSchema` describes a direct array of objects for the three constants endpoints. It preserves object fields without assuming their detailed contract. Generated clients now return that array instead of a cache-link envelope. The time-trial operations retain their existing method names while requesting `/data/stats/season_tt_results` and `/data/stats/season_tt_standings`.
 
 These corrections require migrating code that assumes documentation parameters always exist or expects a cache-link response from constants endpoints. Schema and SDK packages remain independently versioned; release the schema before affected SDKs.

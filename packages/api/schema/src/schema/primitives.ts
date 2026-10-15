@@ -73,17 +73,107 @@ export const BooleanParameterSchema = z
   )
   .meta({ override: { type: "boolean" } });
 
+const NonBlankNumericParameterInputSchema = z.union([
+  z.number(),
+  z.string().trim().min(1),
+]);
+
+// Preprocessing keeps coercion at the query boundary. Unlike a pipe with a
+// numeric input override, its OpenAPI projection uses the target schema, keeping
+// named enums/references and constraints intact. The input guard also rejects
+// non-query values (null/booleans/arrays) and blanks before Number can turn them
+// into zero. Its string | number input type matches the accepted wire values.
+const numericParameter = <T extends z.ZodType<number>>(schema: T) => {
+  const parameter = z.preprocess((value: string | number, ctx) => {
+    const input = NonBlankNumericParameterInputSchema.safeParse(value);
+    if (!input.success) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Expected a number or a non-blank numeric string.",
+      });
+      return z.NEVER;
+    }
+    return Number(input.data);
+  }, schema);
+
+  if (!(schema instanceof z.ZodNumber)) return parameter;
+  // Match the historical scalar schema's field order as well as its content.
+  // Only reorder description; never replace the target's type/constraints/ref.
+  return parameter.meta({
+    override: ({ jsonSchema }) => {
+      const { description } = jsonSchema;
+      if (description === undefined) return;
+      delete jsonSchema.description;
+      jsonSchema.description = description;
+    },
+  });
+};
+
+/**
+ * CustomerIdSchema predates the domain/wire split below and intentionally remains
+ * coercive for compatibility. New numeric concepts expose a value schema plus a
+ * parameter schema so response/domain validation does not inherit query coercion.
+ */
 export const CustomerIdSchema = z.coerce.number().meta({
   description: "Numeric ID of a customer on iRacing.",
   id: "customerId",
 });
 
-export const CommaSeparatedNumberString = z.coerce
-  .string()
-  .regex(/^\d+(?:,\d+)*$/, {
-    message:
-      "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
+export const PackageIdSchema = z.number();
+export const PackageIdParameterSchema = numericParameter(PackageIdSchema);
+
+export const LeagueIdSchema = z.number();
+export const LeagueIdParameterSchema = numericParameter(LeagueIdSchema);
+
+export const LeagueSeasonIdSchema = z.number();
+export const LeagueSeasonIdParameterSchema =
+  numericParameter(LeagueSeasonIdSchema);
+
+export const SeasonIdSchema = z.number();
+export const SeasonIdParameterSchema = numericParameter(SeasonIdSchema);
+
+export const SeriesIdSchema = z.number();
+export const SeriesIdParameterSchema = numericParameter(SeriesIdSchema);
+
+export const TrackIdSchema = z.number();
+export const TrackIdParameterSchema = numericParameter(TrackIdSchema);
+
+export const CarIdSchema = z.number();
+export const CarIdParameterSchema = numericParameter(CarIdSchema);
+
+export const CarClassIdSchema = z.number();
+export const CarClassIdParameterSchema = numericParameter(CarClassIdSchema);
+
+export const TeamIdSchema = z.number();
+export const TeamIdParameterSchema = numericParameter(TeamIdSchema);
+
+export const SubsessionIdSchema = z.number();
+export const SubsessionIdParameterSchema = numericParameter(SubsessionIdSchema);
+
+export const RaceWeekNumSchema = z.number();
+export const RaceWeekNumParameterSchema = numericParameter(RaceWeekNumSchema);
+
+export const SeasonYearSchema = z.number();
+export const SeasonYearParameterSchema = numericParameter(SeasonYearSchema);
+
+export const SeasonQuarterSchema = z.number();
+export const SeasonQuarterParameterSchema =
+  numericParameter(SeasonQuarterSchema);
+
+export const SimSessionNumberSchema = z.number();
+export const SimSessionNumberParameterSchema = numericParameter(
+  SimSessionNumberSchema,
+);
+
+const commaSeparatedNumberString = () =>
+  z.coerce.string().regex(/^\d+(?:,\d+)*$/, {
+    error: "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
   });
+
+export const CommaSeparatedNumberString = commaSeparatedNumberString();
+export const CustomerIdsParameterSchema = commaSeparatedNumberString();
+export const CategoryIdsParameterSchema = commaSeparatedNumberString();
+export const EventTypesParameterSchema = commaSeparatedNumberString();
 
 export const EventTypePracticeSchema = z
   .literal(2)
@@ -111,6 +201,8 @@ export const EventTypeSchema = z
     description: "iRacing Event Type",
   });
 
+export const EventTypeParameterSchema = numericParameter(EventTypeSchema);
+
 export const ChartTypeSchema = z
   .union([
     z.literal(1).meta({ description: "iRating" }),
@@ -122,7 +214,11 @@ export const ChartTypeSchema = z
     description: "iRacing Chart Type",
   });
 
-export const ChartTypeParameterSchema = z.coerce.number().pipe(ChartTypeSchema);
+// These established adapters expose a number input in OpenAPI while validating
+// enum outputs. Keep that historical projection inside the preprocessing step.
+export const ChartTypeParameterSchema = numericParameter(
+  z.number().pipe(ChartTypeSchema),
+);
 
 export const CategorySchema = z
   .union([
@@ -155,9 +251,9 @@ export const CategoryIdSchema = z
     id: "iracingCategoryId",
   });
 
-export const CategoryIdParameterSchema = z.coerce
-  .number()
-  .pipe(CategoryIdSchema);
+export const CategoryIdParameterSchema = numericParameter(
+  z.number().pipe(CategoryIdSchema),
+);
 
 export const DivisionSchema = z
   .union([
@@ -201,6 +297,8 @@ export const DivisionSchema = z
     id: "iracingDivision",
   });
 
+export const DivisionParameterSchema = numericParameter(DivisionSchema);
+
 /**
  * Types
  */
@@ -213,7 +311,22 @@ export type RateLimitRemainingHeader = z.infer<
 export type RateLimitResetHeader = z.infer<typeof RateLimitResetHeaderSchema>;
 export type RateLimitHeaders = z.infer<typeof RateLimitHeadersSchema>;
 export type CustomerId = z.infer<typeof CustomerIdSchema>;
+export type PackageId = z.infer<typeof PackageIdSchema>;
+export type LeagueId = z.infer<typeof LeagueIdSchema>;
+export type LeagueSeasonId = z.infer<typeof LeagueSeasonIdSchema>;
+export type SeasonId = z.infer<typeof SeasonIdSchema>;
+export type SeriesId = z.infer<typeof SeriesIdSchema>;
+export type TrackId = z.infer<typeof TrackIdSchema>;
+export type CarId = z.infer<typeof CarIdSchema>;
+export type CarClassId = z.infer<typeof CarClassIdSchema>;
+export type TeamId = z.infer<typeof TeamIdSchema>;
+export type SubsessionId = z.infer<typeof SubsessionIdSchema>;
+export type RaceWeekNum = z.infer<typeof RaceWeekNumSchema>;
+export type SeasonYear = z.infer<typeof SeasonYearSchema>;
+export type SeasonQuarter = z.infer<typeof SeasonQuarterSchema>;
+export type SimSessionNumber = z.infer<typeof SimSessionNumberSchema>;
 export type Category = z.infer<typeof CategorySchema>;
+export type CategoryId = z.infer<typeof CategoryIdSchema>;
 export type Division = z.infer<typeof DivisionSchema>;
 export type EventTypePractice = z.infer<typeof EventTypePracticeSchema>;
 export type EventTypeQualifying = z.infer<typeof EventTypeQualifyingSchema>;
