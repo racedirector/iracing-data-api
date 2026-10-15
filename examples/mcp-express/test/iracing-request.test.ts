@@ -115,6 +115,7 @@ test("requests without cache policy perform no cache IO", async () => {
   const controller = new AbortController();
   const calls: string[] = [];
   const request = createRequest(calls);
+
   delete request.cache;
 
   const resolver = createIRacingRequestResolver({
