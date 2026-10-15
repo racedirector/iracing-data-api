@@ -8,6 +8,7 @@ import {
   CarIdSchema,
   CategoryIdParameterSchema,
   CategoryIdsParameterSchema,
+  ChartTypeParameterSchema,
   CommaSeparatedNumberString,
   CustomerIdSchema,
   CustomerIdsParameterSchema,
@@ -69,6 +70,8 @@ describe("semantic numeric primitives", () => {
       assert.equal(parameterSchema.parse("42"), 42);
       assert.equal(parameterSchema.parse(42), 42);
       assert.equal(parameterSchema.safeParse("invalid").success, false);
+      assert.equal(parameterSchema.safeParse("").success, false);
+      assert.equal(parameterSchema.safeParse("   ").success, false);
     });
   }
 
@@ -88,10 +91,22 @@ describe("semantic parameter primitives", () => {
     assert.equal(CategoryIdParameterSchema.parse("5"), 5);
     assert.equal(EventTypeParameterSchema.parse("5"), 5);
     assert.equal(DivisionParameterSchema.parse("10"), 10);
+    assert.equal(ChartTypeParameterSchema.parse("1"), 1);
 
     assert.equal(CategoryIdParameterSchema.safeParse("7").success, false);
     assert.equal(EventTypeParameterSchema.safeParse("1").success, false);
     assert.equal(DivisionParameterSchema.safeParse("11").success, false);
+    assert.equal(ChartTypeParameterSchema.safeParse("4").success, false);
+
+    for (const schema of [
+      CategoryIdParameterSchema,
+      EventTypeParameterSchema,
+      DivisionParameterSchema,
+      ChartTypeParameterSchema,
+    ]) {
+      assert.equal(schema.safeParse("").success, false);
+      assert.equal(schema.safeParse("   ").success, false);
+    }
   });
 
   it("keeps CSV wire formats semantic without changing serialization", () => {
