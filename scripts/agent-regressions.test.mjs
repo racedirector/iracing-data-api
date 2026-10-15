@@ -117,7 +117,9 @@ test("prompt output withholds grading rubrics; invalid CLI requests fail", () =>
 });
 
 test("canonical repo verification validates fixtures and validator without running models", () => {
-  const plan = verificationPlan("repo", { workspaces: [] });
+  const plan = verificationPlan("repo", {
+    workspaces: [{ name: "tool", ecosystem: "npm", kind: "internal-tool" }],
+  });
   assert.ok(plan.some(({ args }) => args[0] === "check:agent-regressions"));
   assert.ok(plan.some(({ args }) => args[0] === "test:agent-regressions"));
 });
