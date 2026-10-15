@@ -15,11 +15,7 @@
  * Historical aliases below retain canonical value/type identity and metadata IDs.
  */
 import { z } from "zod";
-import {
-  BooleanParameterSchema,
-  CarIdSchema,
-  TrackIdSchema,
-} from "./primitives";
+import { BooleanParameterSchema } from "./primitives";
 
 export const ErrorResponseSchema = z
   .object({
@@ -110,34 +106,6 @@ export const ServicesDocsResponseSchema = z
   });
 
 /**
- * Route link responses.
- * These are provided as a convenience and are non-exhaustive.
- */
-
-export const GetCarAssetsResponseSchema = z.record(z.number(), z.unknown());
-
-export const GetCarResponseSchema = z.array(
-  z.object({
-    car_id: CarIdSchema,
-  }),
-);
-
-export const GetTrackAssetsResponseSchema = z.record(
-  z.number(),
-  z.object({
-    track_id: TrackIdSchema,
-    track_map: z.string(),
-    track_map_layers: z.record(z.string(), z.string()),
-  }),
-);
-
-export const GetTrackResponseSchema = z.array(
-  z.object({
-    track_id: TrackIdSchema,
-  }),
-);
-
-/**
  * Types
  */
 
@@ -157,13 +125,6 @@ export type ServiceMethodDocsResponse = z.infer<
 export type ServiceDocsResponse = z.infer<typeof ServiceDocsResponseSchema>;
 export type ServicesDocsResponse = z.infer<typeof ServicesDocsResponseSchema>;
 
-export type GetCarAssetsResponse = z.infer<typeof GetCarAssetsResponseSchema>;
-export type GetCarResponse = z.infer<typeof GetCarResponseSchema>;
-export type GetTrackAssetsResponse = z.infer<
-  typeof GetTrackAssetsResponseSchema
->;
-export type GetTrackResponse = z.infer<typeof GetTrackResponseSchema>;
-
 // Historical exports stay in their original module for import compatibility.
 /** @deprecated Use ErrorResponseSchema instead. */
 export const IRacingErrorResponseSchema = ErrorResponseSchema;
@@ -179,14 +140,6 @@ export const IRacingServiceMethodDocsResponseSchema =
 export const IRacingServiceDocsResponseSchema = ServiceDocsResponseSchema;
 /** @deprecated Use ServicesDocsResponseSchema instead. */
 export const IRacingServicesDocsResponseSchema = ServicesDocsResponseSchema;
-/** @deprecated Use GetCarAssetsResponseSchema instead. */
-export const IRacingGetCarAssetsResponseSchema = GetCarAssetsResponseSchema;
-/** @deprecated Use GetCarResponseSchema instead. */
-export const IRacingGetCarResponseSchema = GetCarResponseSchema;
-/** @deprecated Use GetTrackAssetsResponseSchema instead. */
-export const IRacingGetTrackAssetsResponseSchema = GetTrackAssetsResponseSchema;
-/** @deprecated Use GetTrackResponseSchema instead. */
-export const IRacingGetTrackResponseSchema = GetTrackResponseSchema;
 /** @deprecated Use ErrorResponse instead. */
 export type IRacingErrorResponse = ErrorResponse;
 /** @deprecated Use APIResponse instead. */
@@ -200,11 +153,3 @@ export type IRacingServiceMethodDocsResponse = ServiceMethodDocsResponse;
 export type IRacingServiceDocsResponse = ServiceDocsResponse;
 /** @deprecated Use ServicesDocsResponse instead. */
 export type IRacingServicesDocsResponse = ServicesDocsResponse;
-/** @deprecated Use GetCarAssetsResponse instead. */
-export type IRacingGetCarAssetsResponse = GetCarAssetsResponse;
-/** @deprecated Use GetCarResponse instead. */
-export type IRacingGetCarResponse = GetCarResponse;
-/** @deprecated Use GetTrackAssetsResponse instead. */
-export type IRacingGetTrackAssetsResponse = GetTrackAssetsResponse;
-/** @deprecated Use GetTrackResponse instead. */
-export type IRacingGetTrackResponse = GetTrackResponse;
