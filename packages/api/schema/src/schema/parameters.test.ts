@@ -1,11 +1,19 @@
 import { strict as assert } from "node:assert";
 import { describe, it } from "node:test";
 import {
-  MemberGetParametersSchema,
   LeagueDirectoryParametersSchema,
-  StatsMemberRecapParametersSchema,
+  LeagueSeasonStandingsParametersSchema,
+  MemberGetParametersSchema,
+  ResultsGetParametersSchema,
+  ResultsLapDataParametersSchema,
+  ResultsSearchHostedParametersSchema,
+  ResultsSearchSeriesParametersSchema,
+  ResultsSeasonResultsParametersSchema,
   SeasonSpectatorSubsessionidsParametersSchema,
   SeasonSpectatorSubsessionidsDetailParametersSchema,
+  StatsMemberRecapParametersSchema,
+  StatsSeasonDriverStandingsParametersSchema,
+  StatsWorldRecordsParametersSchema,
 } from "./parameters";
 
 describe("MemberGetParameters", () => {
@@ -37,6 +45,104 @@ describe("MemberGetParameters", () => {
   });
 });
 
+describe("semantic endpoint parameters", () => {
+  it("coerces canonical result identifiers at the query boundary", () => {
+    assert.deepEqual(
+      ResultsGetParametersSchema.parse({ subsession_id: "12345" }),
+      { subsession_id: 12345 },
+    );
+    assert.deepEqual(
+      ResultsLapDataParametersSchema.parse({
+        subsession_id: "12345",
+        simsession_number: "-1",
+        team_id: "88",
+      }),
+      {
+        subsession_id: 12345,
+        simsession_number: -1,
+        team_id: 88,
+      },
+    );
+    assert.equal(
+      ResultsGetParametersSchema.safeParse({ subsession_id: "invalid" }).success,
+      false,
+    );
+  });
+
+  it("keeps league season identity distinct while preserving wire coercion", () => {
+    assert.deepEqual(
+      LeagueSeasonStandingsParametersSchema.parse({
+        league_id: "9",
+        season_id: "10",
+        car_class_id: "11",
+        car_id: "12",
+      }),
+      { league_id: 9, season_id: 10, car_class_id: 11, car_id: 12 },
+    );
+  });
+
+  it("normalizes the previously inconsistent team ID search parameter", () => {
+    assert.equal(
+      ResultsSearchSeriesParametersSchema.parse({ team_id: "42" }).team_id,
+      42,
+    );
+    assert.equal(
+      ResultsSearchHostedParametersSchema.parse({ team_id: "42" }).team_id,
+      42,
+    );
+  });
+
+  it("coerces shared season, series, car, track, and race-week concepts", () => {
+    const series = ResultsSearchSeriesParametersSchema.parse({
+      season_year: "2026",
+      season_quarter: "4",
+      series_id: "321",
+      race_week_num: "0",
+      event_types: "2,5",
+      category_ids: "1,5",
+    });
+    assert.deepEqual(series, {
+      season_year: 2026,
+      season_quarter: 4,
+      series_id: 321,
+      race_week_num: 0,
+      event_types: "2,5",
+      category_ids: "1,5",
+    });
+
+    const worldRecords = StatsWorldRecordsParametersSchema.parse({
+      car_id: "7",
+      track_id: "8",
+      season_year: "2026",
+      season_quarter: "4",
+    });
+    assert.deepEqual(worldRecords, {
+      car_id: 7,
+      track_id: 8,
+      season_year: 2026,
+      season_quarter: 4,
+    });
+  });
+
+  it("coerces enum query concepts through their canonical value schemas", () => {
+    assert.equal(
+      ResultsSeasonResultsParametersSchema.parse({
+        season_id: "513",
+        event_type: "5",
+      }).event_type,
+      5,
+    );
+    assert.equal(
+      StatsSeasonDriverStandingsParametersSchema.parse({
+        season_id: "513",
+        car_class_id: "1",
+        division: "10",
+      }).division,
+      10,
+    );
+  });
+});
+
 describe("documented query wire inputs", () => {
   it("accepts calendar years and optional recap defaults", () => {
     assert.equal(
@@ -49,6 +155,7 @@ describe("documented query wire inputs", () => {
       false,
     );
   });
+
   it("keeps spectator filters as validated numeric arrays", () => {
     const filters: import("./parameters").SeasonSpectatorSubsessionidsDetailParameters =
       {
@@ -75,7 +182,14 @@ describe("documented query wire inputs", () => {
       }).success,
       false,
     );
+    assert.equal(
+      SeasonSpectatorSubsessionidsDetailParametersSchema.safeParse({
+        season_ids: ["513"],
+      }).success,
+      false,
+    );
   });
+
   it("interprets true/false query strings deliberately instead of truthiness", () => {
     assert.equal(
       LeagueDirectoryParametersSchema.parse({ restrict_to_member: "false" })
