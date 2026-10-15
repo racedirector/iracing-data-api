@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { afterEach, beforeEach, test } from "node:test";
-import runtime from "../dist/index.js";
-import utils from "../dist/utils.js";
+import * as runtime from "../dist/index.js";
+import * as utils from "../dist/utils.js";
 
 const {
   OAuthClient,
@@ -262,6 +262,34 @@ test("expired session refresh rotates tokens before making a protected request",
   );
   assert.deepEqual(sessionStore.get("session"), rotated);
   assert.equal(calls, 2);
+});
+
+test("protected requests forward grouped headers, body, and protocol options", async () => {
+  const { client, sessionStore } = setup();
+  sessionStore.set("session", token());
+  const signal = new AbortController().signal;
+  let calls = 0;
+  mockFetch(async (url, options) => {
+    calls++;
+    assert.equal(String(url), "https://members-ng.iracing.com/data/example");
+    assert.equal(options.method, "POST");
+    assert.equal(new Headers(options.headers).get("x-fixture"), "present");
+    assert.equal(options.body, "payload");
+    assert.equal(options.signal, signal);
+    return json({ ok: true });
+  });
+  const response = await client.makeProtectedRequest(
+    "session",
+    "POST",
+    "/data/example",
+    {
+      headers: new Headers({ "x-fixture": "present" }),
+      body: "payload",
+      options: { signal },
+    },
+  );
+  assert.deepEqual(await response.json(), { ok: true });
+  assert.equal(calls, 1);
 });
 
 test("valid and missing sessions require no refresh", async () => {

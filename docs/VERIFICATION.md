@@ -11,6 +11,8 @@ pnpm verify
 
 For a failed step, correct its owning source and rerun the focused command: `verify:repo`, `verify:js`, `verify:examples`, `verify:generated` or `verify:rust`. Finish with `pnpm verify`. Report missing tools and skipped checks accurately. Do not patch generated output to bypass checks; [check-generated.mjs](../scripts/check-generated.mjs) owns temporary regeneration and freshness enforcement.
 
+The [ESLint quality policy](LINT-POLICY.md) documents authored-runtime limits, import and architectural checks, generated-file handling, and retained exceptions. `pnpm test:lint-policy` runs the focused ESLint/JSDoc regression tests; they also participate in repository verification.
+
 Repository verification also runs the [modeled-service client boundary](../scripts/check-service-client-boundary.mjs). Authored runtime/root tooling may not bypass generated ownership for modeled Data API/OAuth calls, while application-owned resolution of dynamic opaque URLs returned by typed Data API responses remains allowed.
 
 For focused OAuth and OpenAPI coverage, build before declared tests:

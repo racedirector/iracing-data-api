@@ -48,7 +48,7 @@ export function validateSuite(suite, directory = root) {
         resolved = fs.realpathSync(absolute);
       } catch (error) {
         if (error.code === "ENOENT")
-          throw new Error(`${label}: missing file ${value}`);
+          throw new Error(`${label}: missing file ${value}`, { cause: error });
         throw error;
       }
       const relative = path.relative(fs.realpathSync(directory), resolved);

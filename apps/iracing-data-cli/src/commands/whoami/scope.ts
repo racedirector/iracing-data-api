@@ -39,27 +39,34 @@ export function createOAuthIdentityClient(
 ): IdentityClient {
   return {
     async getProfile(): Promise<WhoamiProfile> {
-      let profile;
+      let profile: Awaited<ReturnType<OAuthProfileApi["getProfile"]>>;
+
       try {
         profile = await api.getProfile();
       } catch (error) {
         if (error instanceof OAuthApiHttpError) {
+          // eslint-disable-next-line preserve-caught-error -- Identity diagnostics intentionally discard upstream response objects to avoid retaining secrets.
           throw new Error(
-            `Identity request failed: HTTP ${error.response.status}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
+            `Identity request failed: HTTP ${String(error.response.status)}. The profile endpoint requires iracing.profile; auth-only credentials are valid for Data API access but cannot be used with whoami. Run iracing-data auth login --scope iracing.auth iracing.profile to obtain profile-capable credentials.`,
           );
         }
 
         if (error instanceof OAuthApiContractError) {
           if (error.kind === "transport") {
+            // eslint-disable-next-line preserve-caught-error -- Identity diagnostics intentionally discard upstream response objects to avoid retaining secrets.
             throw new Error(
               "Identity request failed (network, timeout, or redirect). Check connectivity and retry.",
             );
           }
+
           if (error.kind === "not_json") {
+            // eslint-disable-next-line preserve-caught-error -- Identity diagnostics intentionally discard upstream response objects to avoid retaining secrets.
             throw new Error(
               "Identity response was not JSON. No response body logged.",
             );
           }
+
+          // eslint-disable-next-line preserve-caught-error -- Identity diagnostics intentionally discard upstream response objects to avoid retaining secrets.
           throw new Error(
             "Identity response did not match the expected profile. No response body logged.",
           );
@@ -97,6 +104,7 @@ export function createWhoamiCommandScopeFactory(
 ): CreateWhoamiCommandScope {
   return async (options: WhoamiOptions) => {
     const accessToken = await dependencies.resolveAccessToken(options);
+
     const identity = dependencies.createIdentityClient(accessToken);
 
     return {

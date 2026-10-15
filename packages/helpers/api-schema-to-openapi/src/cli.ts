@@ -28,7 +28,10 @@ function resolveFormat(
   fileName: string,
   format?: "json" | "yaml",
 ): "json" | "yaml" {
-  if (format !== undefined) return format;
+  if (format !== undefined) {
+    return format;
+  }
+
   return /\.ya?ml$/i.test(fileName) ? "yaml" : "json";
 }
 
@@ -61,7 +64,7 @@ export async function generateOpenAPISpec({
   console.log(`Writing to ${outputPath}`);
   const outputFormat = resolveFormat(fileName, format);
 
-  fs.writeFileSync(
+  await fs.promises.writeFile(
     outputPath,
     outputFormat === "yaml"
       ? stringifyYAML(document)

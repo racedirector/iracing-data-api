@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const http = require("node:http");
+const test = require("node:test");
 
 function timers() {
   const jobs = new Set();
@@ -11,7 +11,7 @@ function timers() {
       return () => jobs.delete(job);
     },
     fire(ms) {
-      for (const job of [...jobs])
+      for (const job of jobs)
         if (job.ms === ms) {
           jobs.delete(job);
           job.fn();
@@ -198,7 +198,7 @@ test("official MCP client initializes, lists and calls stateless JSON tools", as
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
   let seenServices;
-  const { app, request } = await fixture(t, (server, services) => {
+  const { request } = await fixture(t, (server, services) => {
     seenServices = services;
     server.registerTool("probe", {}, () => ({
       content: [{ type: "text", text: "ok" }],
@@ -366,7 +366,7 @@ test("shutdown forcibly cancels remaining work at ten seconds", async (t) => {
 
 test("disconnect aborts SDK tool work and ignores late failures", async (t) => {
   let signal, rejectTool;
-  const { app, port, logs } = await fixture(t, (server) =>
+  const { port, logs } = await fixture(t, (server) =>
     server.registerTool("probe", {}, (ctx) => {
       signal = ctx.mcpReq.signal;
       return new Promise((_resolve, reject) => {
@@ -397,7 +397,7 @@ test("disconnect aborts SDK tool work and ignores late failures", async (t) => {
 });
 
 test("safe application envelopes survive host error sanitization", async (t) => {
-  const { request, app, api } = await fixture(t, (server) =>
+  const { request, api } = await fixture(t, (server) =>
     server.registerTool("probe", {}, () =>
       api.toolError(
         new api.ApplicationFailure("AUTHORIZATION_REQUIRED", {

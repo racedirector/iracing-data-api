@@ -18,9 +18,9 @@
  */
 
 const assert = require("node:assert/strict");
+const { execFileSync } = require("node:child_process");
 const fs = require("node:fs");
 const path = require("node:path");
-const { execFileSync } = require("node:child_process");
 const { test } = require("node:test");
 const ts = require("typescript");
 const { retained: baseline } = require("./retained-exports.cjs");

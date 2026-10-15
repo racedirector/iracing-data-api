@@ -47,7 +47,7 @@ function exactList(value: string, origin: boolean) {
     !values.length ||
     values.some((entry) => {
       try {
-        if (!entry || entry !== entry.trim() || /[\s*]/.test(entry)) {
+        if (entry !== entry.trim() || /[\s*]/.test(entry)) {
           return true;
         }
 
@@ -95,16 +95,7 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
     throw configurationError();
   }
 
-  const secretFile = env.IRACING_MCP_CLIENT_SECRET_FILE || undefined;
-
-  if (
-    secretFile !== undefined &&
-    (!path.isAbsolute(secretFile) ||
-      path.dirname(secretFile) !== path.dirname(MCP_CREDENTIAL_FILE) ||
-      path.basename(secretFile) === "credentials.json")
-  ) {
-    throw configurationError();
-  }
+  const secretFile = productionSecretFile(env);
 
   const allowedHosts = exactList(
     env.IRACING_MCP_ALLOWED_HOSTS ?? "127.0.0.1:3000,localhost:3000",
@@ -264,4 +255,22 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
     await app.shutdown();
     throw configurationError();
   }
+}
+
+function productionSecretFile(env: NodeJS.ProcessEnv) {
+  const secretFile =
+    env.IRACING_MCP_CLIENT_SECRET_FILE === ""
+      ? undefined
+      : env.IRACING_MCP_CLIENT_SECRET_FILE;
+
+  if (
+    secretFile !== undefined &&
+    (!path.isAbsolute(secretFile) ||
+      path.dirname(secretFile) !== path.dirname(MCP_CREDENTIAL_FILE) ||
+      path.basename(secretFile) === "credentials.json")
+  ) {
+    throw configurationError();
+  }
+
+  return secretFile;
 }

@@ -14,7 +14,6 @@
  */
 import crypto from "node:crypto";
 import {
-  OAuthJWTAccessToken,
   OAuthJWTAccessTokenAlgorithmValues,
   OAuthJWTAccessTokenHeaderSchema,
   OAuthJWTAccessTokenPayloadSchema,
@@ -27,6 +26,7 @@ import {
   jwtVerify,
 } from "jose";
 import { OAuthClaimsError } from "./errors";
+import type { OAuthJWTAccessToken } from "@iracing-data/oauth-schema";
 
 /**
  * Mask a secret (client_secret or password) using iRacing's masking algorithm.
@@ -50,13 +50,13 @@ export function maskSecret(secret: string, identifier: string): string {
  * Optional audience, issuer, scope, environment, clock, and skew constraints applied by
  * access-token validation in addition to fixed cryptographic policy.
  */
-export type AccessTokenValidationOptions = {
+export interface AccessTokenValidationOptions {
   clientId?: string;
   issuer?: string;
   requiredScopes?: readonly string[];
   expectedEnvironment?: string | null;
   clockSkewSeconds?: number;
-};
+}
 
 type RemoteJWKSet = ReturnType<typeof createRemoteJWKSet>;
 
@@ -64,12 +64,15 @@ const jwksCache = new Map<string, RemoteJWKSet>();
 
 function getRemoteJWKSet(jku: string): RemoteJWKSet {
   const cached = jwksCache.get(jku);
+
   if (cached) {
     return cached;
   }
 
   const jwks = createRemoteJWKSet(new URL(jku));
+
   jwksCache.set(jku, jwks);
+
   return jwks;
 }
 
@@ -84,6 +87,7 @@ export function decodeAccessToken(accessToken: string): OAuthJWTAccessToken {
   const header = OAuthJWTAccessTokenHeaderSchema.parse(
     decodeProtectedHeader(accessToken),
   );
+
   const payload = OAuthJWTAccessTokenPayloadSchema.parse(
     decodeJwt(accessToken),
   );
@@ -102,13 +106,16 @@ export async function verifyAccessToken(
   accessToken: string,
 ): Promise<OAuthJWTAccessToken> {
   const decoded = decodeAccessToken(accessToken);
+
   const jwks = getRemoteJWKSet(decoded.header.jku);
+
   const { protectedHeader, payload } = await jwtVerify(accessToken, jwks, {
     algorithms: [...OAuthJWTAccessTokenAlgorithmValues],
     clockTolerance: 5,
   });
 
   const header = OAuthJWTAccessTokenHeaderSchema.parse(protectedHeader);
+
   const parsedPayload = OAuthJWTAccessTokenPayloadSchema.parse(payload);
 
   return OAuthJWTAccessTokenSchema.parse({
@@ -132,24 +139,8 @@ export async function validateAccessToken(
   options: AccessTokenValidationOptions = {},
 ): Promise<OAuthJWTAccessToken> {
   const token = await verifyAccessToken(accessToken);
-  const now = Math.floor(Date.now() / 1000);
-  const tolerance = options.clockSkewSeconds ?? 5;
 
-  if (token.payload.exp <= now - tolerance) {
-    throw OAuthClaimsError.tokenExpired();
-  }
-
-  if (token.payload.iat > now + tolerance) {
-    throw OAuthClaimsError.tokenIssuedInFuture();
-  }
-
-  if (token.payload.auth_time > now + tolerance) {
-    throw OAuthClaimsError.tokenAuthenticationInFuture();
-  }
-
-  if (token.payload.iat < token.payload.auth_time) {
-    throw OAuthClaimsError.issueTimeBeforeAuthenticationTime();
-  }
+  validateTokenTimes(token, options);
 
   if (options.issuer && token.payload.iss !== options.issuer) {
     throw OAuthClaimsError.issuerMismatch(token.payload.iss, options.issuer);
@@ -182,27 +173,16 @@ export async function validateAccessToken(
     );
   }
 
-  if (options.requiredScopes?.length) {
-    const grantedScopes = new Set(
-      (token.payload.scope ?? "")
-        .split(/\s+/)
-        .map((scope) => scope.trim())
-        .filter(Boolean),
-    );
-
-    for (const scope of options.requiredScopes) {
-      if (!grantedScopes.has(scope)) {
-        throw OAuthClaimsError.scopeMissing(scope);
-      }
-    }
-  }
+  validateRequiredScopes(token, options.requiredScopes);
 
   return token;
 }
 
 function isJWTExpired(token: string) {
   const { exp } = decodeJwt<{ exp?: number }>(token);
+
   const expiry = new Date((exp ?? 0) * 1000);
+
   return Date.now() > expiry.getTime();
 }
 
@@ -240,4 +220,49 @@ export function isRefreshTokenExpired(refreshToken: string) {
  */
 export function isRefreshTokenValid(refreshToken: string) {
   return !isRefreshTokenExpired(refreshToken);
+}
+
+function validateTokenTimes(
+  token: OAuthJWTAccessToken,
+  options: AccessTokenValidationOptions,
+) {
+  const now = Math.floor(Date.now() / 1000);
+
+  const tolerance = options.clockSkewSeconds ?? 5;
+
+  if (token.payload.exp <= now - tolerance) {
+    throw OAuthClaimsError.tokenExpired();
+  }
+
+  if (token.payload.iat > now + tolerance) {
+    throw OAuthClaimsError.tokenIssuedInFuture();
+  }
+
+  if (token.payload.auth_time > now + tolerance) {
+    throw OAuthClaimsError.tokenAuthenticationInFuture();
+  }
+
+  if (token.payload.iat < token.payload.auth_time) {
+    throw OAuthClaimsError.issueTimeBeforeAuthenticationTime();
+  }
+}
+
+function validateRequiredScopes(
+  token: OAuthJWTAccessToken,
+  requiredScopes: readonly string[] | undefined,
+) {
+  if (requiredScopes?.length) {
+    const grantedScopes = new Set(
+      (token.payload.scope ?? "")
+        .split(/\s+/)
+        .map((scope) => scope.trim())
+        .filter(Boolean),
+    );
+
+    for (const scope of requiredScopes) {
+      if (!grantedScopes.has(scope)) {
+        throw OAuthClaimsError.scopeMissing(scope);
+      }
+    }
+  }
 }

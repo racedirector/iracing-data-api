@@ -337,7 +337,7 @@ export const COLLECTION_FORMATS = {
   pipes: "|",
 };
 
-export type FetchAPI = WindowOrWorkerGlobalScope["fetch"];
+export type FetchAPI = typeof globalThis.fetch;
 
 export type Json = any;
 export type HTTPMethod =

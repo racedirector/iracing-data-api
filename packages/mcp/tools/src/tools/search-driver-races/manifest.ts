@@ -3,21 +3,27 @@ import { z } from "zod";
 import { ApplicationFailure } from "../../diagnostics/errors.js";
 import { parse, linkedUrl } from "../../linked-response.js";
 const objectPayload = z.record(z.string(), z.unknown());
+
 function invalidData(): never {
   throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
     reason: "invalid_data",
   });
 }
+
 /**
  * Validate an HTTPS URL without embedded credentials. Directory URLs must end in
  * a slash and have no query or fragment. Rejections throw DATA_RESOLUTION_FAILED.
  */
 function cacheUrl(input: string, directory = false): URL {
   const url = linkedUrl(input);
-  if (directory && (!url.pathname.endsWith("/") || url.search || url.hash))
+
+  if (directory && (!url.pathname.endsWith("/") || url.search || url.hash)) {
     invalidData();
+  }
+
   return url;
 }
+
 /**
  * Resolve a filename of at most 255 characters within the API-provided HTTPS directory.
  * Reject invalid directories, unsupported filename characters, or paths outside that
@@ -25,16 +31,26 @@ function cacheUrl(input: string, directory = false): URL {
  */
 export function chunkUrl(base: string, filename: string): URL {
   const url = cacheUrl(base, true);
+
   if (
     !/^[A-Za-z0-9][A-Za-z0-9_-]*(?:\.[A-Za-z0-9_-]+)*$/.test(filename) ||
     filename.length > 255
-  )
+  ) {
     invalidData();
+  }
+
   const child = new URL(filename, url);
-  if (child.origin !== url.origin || child.pathname !== url.pathname + filename)
+
+  if (
+    child.origin !== url.origin ||
+    child.pathname !== url.pathname + filename
+  ) {
     invalidData();
+  }
+
   return child;
 }
+
 /**
  * Return chunk metadata for a successful search with consistent counts and safe URLs.
  * Allows at most 1,000 chunks and 500,000 rows; an empty result must have no chunks.
@@ -87,45 +103,6 @@ export function validateSearchEcho(
     parse(objectPayload, parse(objectPayload, value).data).params,
   );
 
-  const normalize = (key: string, input: unknown): unknown => {
-    if (key.endsWith("_begin") || key.endsWith("_end")) {
-      return typeof input === "string" && Number.isFinite(Date.parse(input))
-        ? Date.parse(input)
-        : input;
-    }
-
-    if (key === "event_types" || key === "category_ids") {
-      const values = Array.isArray(input)
-        ? input
-        : typeof input === "string"
-          ? input.split(",")
-          : [input];
-
-      return values.map(String).sort().join(",");
-    }
-
-    if (key === "official_only") {
-      if (input === true || input === "true" || input === 1 || input === "1") {
-        return true;
-      }
-
-      if (
-        input === false ||
-        input === "false" ||
-        input === 0 ||
-        input === "0"
-      ) {
-        return false;
-      }
-
-      return input;
-    }
-
-    return typeof input === "string" && /^\d+$/.test(input)
-      ? Number(input)
-      : input;
-  };
-
   for (const [key, wanted] of Object.entries(expected)) {
     if (
       wanted !== undefined &&
@@ -144,4 +121,50 @@ export function validateSearchEcho(
   ) {
     invalidData();
   }
+}
+
+function normalize(key: string, input: unknown): unknown {
+  if (key.endsWith("_begin") || key.endsWith("_end")) {
+    return typeof input === "string" && Number.isFinite(Date.parse(input))
+      ? Date.parse(input)
+      : input;
+  }
+
+  if (key === "event_types" || key === "category_ids") {
+    const values = listValues(input);
+
+    return values.map(String).sort().join(",");
+  }
+
+  if (key === "official_only") {
+    return normalizeBoolean(input);
+  }
+
+  return typeof input === "string" && /^\d+$/.test(input)
+    ? Number(input)
+    : input;
+}
+
+function normalizeBoolean(input: unknown): unknown {
+  if (input === true || input === "true" || input === 1 || input === "1") {
+    return true;
+  }
+
+  if (input === false || input === "false" || input === 0 || input === "0") {
+    return false;
+  }
+
+  return input;
+}
+
+function listValues(input: unknown): unknown[] {
+  if (Array.isArray(input)) {
+    return input;
+  }
+
+  if (typeof input === "string") {
+    return input.split(",");
+  }
+
+  return [input];
 }

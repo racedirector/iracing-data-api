@@ -81,7 +81,7 @@ export class OAuthTokenDocumentError extends Error {
  * Injectable filesystem surface used by the secure token-document owner so host behavior and
  * failure cases can be tested deterministically.
  */
-export type OAuthTokenDocumentFileSystem = {
+export interface OAuthTokenDocumentFileSystem {
   chmod(path: string, mode: number): Promise<void>;
   link(existingPath: string, newPath: string): Promise<void>;
   lstat(path: string): ReturnType<typeof lstat>;
@@ -92,7 +92,7 @@ export type OAuthTokenDocumentFileSystem = {
   open(path: string, flags: string, mode: number): Promise<FileHandle>;
   rename(oldPath: string, newPath: string): Promise<void>;
   unlink(path: string): Promise<void>;
-};
+}
 
 export const oauthTokenDocumentFileSystem: OAuthTokenDocumentFileSystem = {
   chmod,
@@ -105,9 +105,9 @@ export const oauthTokenDocumentFileSystem: OAuthTokenDocumentFileSystem = {
 };
 
 /** Read-time filesystem seam for hardened credential loading. */
-export type OAuthTokenDocumentReadOptions = {
+export interface OAuthTokenDocumentReadOptions {
   fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
-};
+}
 
 /** Credential-write policy extending secure reads with overwrite and durability controls. */
 export type OAuthTokenDocumentWriteOptions = OAuthTokenDocumentReadOptions & {
@@ -119,12 +119,12 @@ export type OAuthTokenDocumentWriteOptions = OAuthTokenDocumentReadOptions & {
  * Configuration for binding the hardened single-document token store to exactly one logical
  * OAuth session key.
  */
-export type OAuthTokenDocumentSessionStoreOptions = {
+export interface OAuthTokenDocumentSessionStoreOptions {
   filePath: string;
   sessionKey: string;
   durability?: OAuthTokenDocumentDurability;
   fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
-};
+}
 
 type FileStats = Awaited<ReturnType<typeof lstat>>;
 
@@ -139,7 +139,10 @@ function isErrno(error: unknown, code: string) {
 }
 
 function ioError(message: string, cause: unknown) {
-  if (cause instanceof OAuthTokenDocumentError) return cause;
+  if (cause instanceof OAuthTokenDocumentError) {
+    return cause;
+  }
+
   return new OAuthTokenDocumentError("io_error", message, cause);
 }
 
@@ -151,7 +154,10 @@ async function inspectPath(
   try {
     return await fileSystem.lstat(target);
   } catch (error) {
-    if (isErrno(error, "ENOENT")) return undefined;
+    if (isErrno(error, "ENOENT")) {
+      return undefined;
+    }
+
     throw ioError(`Unable to inspect ${description}: ${target}`, error);
   }
 }
@@ -162,10 +168,13 @@ function assertPosixOwnershipAndMode(
   expectedMode: number,
   description: string,
 ) {
-  if (process.platform === "win32") return;
+  if (process.platform === "win32") {
+    return;
+  }
 
   const uid =
     typeof process.getuid === "function" ? process.getuid() : undefined;
+
   if (uid !== undefined && stats.uid !== uid) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
@@ -174,6 +183,7 @@ function assertPosixOwnershipAndMode(
   }
 
   const mode = Number(stats.mode) & 0o777;
+
   if (mode !== expectedMode) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
@@ -189,12 +199,14 @@ function assertSecureDirectory(stats: FileStats, target: string) {
       `OAuth token document directory must not be a symbolic link: ${target}`,
     );
   }
+
   if (!stats.isDirectory()) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
       `OAuth token document parent is not a directory: ${target}`,
     );
   }
+
   assertPosixOwnershipAndMode(
     stats,
     target,
@@ -210,18 +222,21 @@ function assertSecureFile(stats: FileStats, target: string) {
       `OAuth token document must not be a symbolic link: ${target}`,
     );
   }
+
   if (!stats.isFile()) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
       `OAuth token document is not a regular file: ${target}`,
     );
   }
+
   if (stats.size > OAUTH_TOKEN_DOCUMENT_MAX_BYTES) {
     throw new OAuthTokenDocumentError(
       "too_large",
-      `OAuth token document exceeds ${OAUTH_TOKEN_DOCUMENT_MAX_BYTES} bytes: ${target}`,
+      `OAuth token document exceeds ${String(OAUTH_TOKEN_DOCUMENT_MAX_BYTES)} bytes: ${target}`,
     );
   }
+
   assertPosixOwnershipAndMode(stats, target, 0o600, "OAuth token document");
 }
 
@@ -234,8 +249,10 @@ async function ensureSecureParent(
     parent,
     "OAuth token document directory",
   );
+
   if (existing) {
     assertSecureDirectory(existing, parent);
+
     return;
   }
 
@@ -264,17 +281,20 @@ async function ensureSecureParent(
     parent,
     "OAuth token document directory",
   );
+
   if (!created) {
     throw new OAuthTokenDocumentError(
       "io_error",
       `OAuth token document directory was not created: ${parent}`,
     );
   }
+
   assertSecureDirectory(created, parent);
 }
 
 function validateTokenDocument(value: unknown): OAuthTokenResponse {
   const parsed = OAuthTokenResponseSchema.safeParse(value);
+
   if (!parsed.success) {
     throw new OAuthTokenDocumentError(
       "invalid_document",
@@ -284,24 +304,28 @@ function validateTokenDocument(value: unknown): OAuthTokenResponse {
   }
 
   const token = parsed.data;
+
   if (!token.access_token.trim()) {
     throw new OAuthTokenDocumentError(
       "invalid_document",
       "OAuth token document access_token must be nonempty.",
     );
   }
+
   if (token.refresh_token !== undefined && !token.refresh_token.trim()) {
     throw new OAuthTokenDocumentError(
       "invalid_document",
       "OAuth token document refresh_token must be nonempty when present.",
     );
   }
+
   if (!Number.isFinite(token.expires_in) || token.expires_in <= 0) {
     throw new OAuthTokenDocumentError(
       "invalid_document",
       "OAuth token document expires_in must be finite and positive.",
     );
   }
+
   if (
     token.refresh_token_expires_in !== undefined &&
     (!Number.isFinite(token.refresh_token_expires_in) ||
@@ -322,13 +346,16 @@ function validateTokenDocument(value: unknown): OAuthTokenResponse {
  */
 export function serializeOAuthTokenDocument(token: OAuthTokenResponse): string {
   const normalized = validateTokenDocument(token);
+
   const serialized = `${JSON.stringify(normalized, null, 2)}\n`;
+
   if (Buffer.byteLength(serialized, "utf8") > OAUTH_TOKEN_DOCUMENT_MAX_BYTES) {
     throw new OAuthTokenDocumentError(
       "too_large",
-      `OAuth token document exceeds ${OAUTH_TOKEN_DOCUMENT_MAX_BYTES} bytes.`,
+      `OAuth token document exceeds ${String(OAUTH_TOKEN_DOCUMENT_MAX_BYTES)} bytes.`,
     );
   }
+
   return serialized;
 }
 
@@ -338,11 +365,15 @@ async function syncDirectory(
   durability: OAuthTokenDocumentDurability,
 ) {
   let handle: FileHandle | undefined;
+
   try {
     handle = await fileSystem.open(directory, "r", 0o700);
     await handle.sync();
   } catch (error) {
-    if (durability === "best-effort") return;
+    if (durability === "best-effort") {
+      return;
+    }
+
     throw new OAuthTokenDocumentError(
       "durability_unsupported",
       `Unable to durably synchronize OAuth token document directory: ${directory}`,
@@ -362,33 +393,43 @@ export async function readOAuthTokenDocument(
   options: OAuthTokenDocumentReadOptions = {},
 ): Promise<OAuthTokenResponse | undefined> {
   const destination = path.resolve(filePath);
+
   const parent = path.dirname(destination);
+
   const fileSystem = resolveFileSystem(options.fileSystem);
+
   const before = await inspectPath(
     fileSystem,
     destination,
     "OAuth token document",
   );
-  if (!before) return undefined;
+
+  if (!before) {
+    return undefined;
+  }
 
   const parentStats = await inspectPath(
     fileSystem,
     parent,
     "OAuth token document directory",
   );
+
   if (!parentStats) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
       `OAuth token document parent is missing: ${parent}`,
     );
   }
+
   assertSecureDirectory(parentStats, parent);
   assertSecureFile(before, destination);
 
   let handle: FileHandle | undefined;
+
   try {
     handle = await fileSystem.open(destination, "r", 0o600);
     const opened = await handle.stat();
+
     assertSecureFile(opened, destination);
     if (before.dev !== opened.dev || before.ino !== opened.ino) {
       throw new OAuthTokenDocumentError(
@@ -398,26 +439,13 @@ export async function readOAuthTokenDocument(
     }
 
     const raw = await handle.readFile({ encoding: "utf8" });
-    if (Buffer.byteLength(raw, "utf8") > OAUTH_TOKEN_DOCUMENT_MAX_BYTES) {
-      throw new OAuthTokenDocumentError(
-        "too_large",
-        `OAuth token document exceeds ${OAUTH_TOKEN_DOCUMENT_MAX_BYTES} bytes: ${destination}`,
-      );
+
+    return parseTokenDocument(raw, destination);
+  } catch (error) {
+    if (error instanceof OAuthTokenDocumentError) {
+      throw error;
     }
 
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(raw);
-    } catch (error) {
-      throw new OAuthTokenDocumentError(
-        "invalid_document",
-        `OAuth token document is not valid JSON: ${destination}`,
-        error,
-      );
-    }
-    return validateTokenDocument(parsed);
-  } catch (error) {
-    if (error instanceof OAuthTokenDocumentError) throw error;
     throw ioError(`Unable to read OAuth token document: ${destination}`, error);
   } finally {
     await handle?.close().catch(() => undefined);
@@ -434,36 +462,29 @@ export async function writeOAuthTokenDocument(
   options: OAuthTokenDocumentWriteOptions = {},
 ): Promise<void> {
   const destination = path.resolve(filePath);
+
   const parent = path.dirname(destination);
+
   const fileSystem = resolveFileSystem(options.fileSystem);
+
   const durability = options.durability ?? "required";
+
   const serialized = serializeOAuthTokenDocument(token);
 
   await ensureSecureParent(fileSystem, parent);
 
-  const existing = await inspectPath(
-    fileSystem,
-    destination,
-    "OAuth token document",
-  );
-  if (existing) {
-    assertSecureFile(existing, destination);
-    if (!options.overwrite) {
-      throw new OAuthTokenDocumentError(
-        "io_error",
-        `OAuth token document already exists: ${destination}`,
-      );
-    }
-  }
+  await checkTokenDestination(fileSystem, destination, options.overwrite);
 
   const temporary = path.join(
     parent,
-    `.${path.basename(destination)}.${process.pid}.${randomUUID()}.tmp`,
+    `.${path.basename(destination)}.${String(process.pid)}.${randomUUID()}.tmp`,
   );
+
   let temporaryExists = false;
 
   try {
     let handle: FileHandle;
+
     try {
       handle = await fileSystem.open(temporary, "wx", 0o600);
       temporaryExists = true;
@@ -474,41 +495,9 @@ export async function writeOAuthTokenDocument(
       );
     }
 
-    try {
-      await handle.writeFile(serialized, { encoding: "utf8" });
-      await handle.sync();
-    } catch (error) {
-      throw ioError(
-        `Unable to write temporary OAuth token document for: ${destination}`,
-        error,
-      );
-    } finally {
-      await handle.close();
-    }
+    await writeAndSyncDocument(handle, serialized, destination);
 
-    if (process.platform !== "win32") {
-      try {
-        await fileSystem.chmod(temporary, 0o600);
-      } catch (error) {
-        throw ioError(
-          `Unable to secure temporary OAuth token document for: ${destination}`,
-          error,
-        );
-      }
-    }
-
-    const temporaryStats = await inspectPath(
-      fileSystem,
-      temporary,
-      "temporary OAuth token document",
-    );
-    if (!temporaryStats) {
-      throw new OAuthTokenDocumentError(
-        "io_error",
-        `Temporary OAuth token document disappeared before publication: ${destination}`,
-      );
-    }
-    assertSecureFile(temporaryStats, temporary);
+    await secureTemporaryDocument(fileSystem, temporary, destination);
 
     try {
       if (options.overwrite) {
@@ -527,6 +516,7 @@ export async function writeOAuthTokenDocument(
           error,
         );
       }
+
       throw ioError(
         `Unable to atomically publish OAuth token document: ${destination}`,
         error,
@@ -535,6 +525,7 @@ export async function writeOAuthTokenDocument(
 
     await syncDirectory(fileSystem, parent, durability);
   } finally {
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- Exceptional write and publication paths reach finally before the temporary-file flag is cleared.
     if (temporaryExists) {
       await fileSystem.unlink(temporary).catch(() => undefined);
     }
@@ -546,27 +537,36 @@ async function removeOAuthTokenDocument(
   options: OAuthTokenDocumentWriteOptions,
 ) {
   const destination = path.resolve(filePath);
+
   const parent = path.dirname(destination);
+
   const fileSystem = resolveFileSystem(options.fileSystem);
+
   const durability = options.durability ?? "required";
+
   const existing = await inspectPath(
     fileSystem,
     destination,
     "OAuth token document",
   );
-  if (!existing) return;
+
+  if (!existing) {
+    return;
+  }
 
   const parentStats = await inspectPath(
     fileSystem,
     parent,
     "OAuth token document directory",
   );
+
   if (!parentStats) {
     throw new OAuthTokenDocumentError(
       "unsafe_path",
       `OAuth token document parent is missing: ${parent}`,
     );
   }
+
   assertSecureDirectory(parentStats, parent);
   assertSecureFile(existing, destination);
 
@@ -580,6 +580,7 @@ async function removeOAuthTokenDocument(
       );
     }
   }
+
   await syncDirectory(fileSystem, parent, durability);
 }
 
@@ -601,6 +602,7 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
     if (!options.sessionKey.trim()) {
       throw new Error("OAuth token document session key must be nonempty.");
     }
+
     this.filePath = path.resolve(options.filePath);
     this.sessionKey = options.sessionKey;
     this.durability = options.durability ?? "required";
@@ -627,18 +629,17 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
 
   private async ensureLoaded() {
     this.assertHealthy();
-    if (!this.loadPromise) {
-      this.loadPromise = readOAuthTokenDocument(this.filePath, {
-        fileSystem: this.fileSystem,
+    this.loadPromise ??= readOAuthTokenDocument(this.filePath, {
+      fileSystem: this.fileSystem,
+    })
+      .then((value) => {
+        this.value = value;
       })
-        .then((value) => {
-          this.value = value;
-        })
-        .catch((error) => {
-          this.quarantinedCause = error;
-          throw error;
-        });
-    }
+      .catch((error: unknown) => {
+        this.quarantinedCause = error;
+        throw error;
+      });
+
     await this.loadPromise;
     this.assertHealthy();
   }
@@ -654,10 +655,12 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
         throw error;
       }
     });
+
     this.mutationTail = result.then(
       () => undefined,
       () => undefined,
     );
+
     return result;
   }
 
@@ -665,12 +668,14 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
     this.assertKey(key);
     await this.mutationTail;
     await this.ensureLoaded();
+
     return this.value ? { ...this.value } : undefined;
   }
 
   set(key: string, value: OAuthTokenResponse) {
     this.assertKey(key);
     const normalized = validateTokenDocument(value);
+
     return this.enqueueMutation(async () => {
       await writeOAuthTokenDocument(this.filePath, normalized, {
         overwrite: true,
@@ -683,6 +688,7 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
 
   del(key: string) {
     this.assertKey(key);
+
     return this.enqueueMutation(async () => {
       await removeOAuthTokenDocument(this.filePath, {
         durability: this.durability,
@@ -700,5 +706,100 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
       });
       this.value = undefined;
     });
+  }
+}
+
+async function secureTemporaryDocument(
+  fileSystem: OAuthTokenDocumentFileSystem,
+  temporary: string,
+  destination: string,
+) {
+  if (process.platform !== "win32") {
+    try {
+      await fileSystem.chmod(temporary, 0o600);
+    } catch (error) {
+      throw ioError(
+        `Unable to secure temporary OAuth token document for: ${destination}`,
+        error,
+      );
+    }
+  }
+
+  const temporaryStats = await inspectPath(
+    fileSystem,
+    temporary,
+    "temporary OAuth token document",
+  );
+
+  if (!temporaryStats) {
+    throw new OAuthTokenDocumentError(
+      "io_error",
+      `Temporary OAuth token document disappeared before publication: ${destination}`,
+    );
+  }
+
+  assertSecureFile(temporaryStats, temporary);
+}
+
+async function checkTokenDestination(
+  fileSystem: OAuthTokenDocumentFileSystem,
+  destination: string,
+  overwrite: boolean | undefined,
+) {
+  const existing = await inspectPath(
+    fileSystem,
+    destination,
+    "OAuth token document",
+  );
+
+  if (existing) {
+    assertSecureFile(existing, destination);
+    if (!overwrite) {
+      throw new OAuthTokenDocumentError(
+        "io_error",
+        `OAuth token document already exists: ${destination}`,
+      );
+    }
+  }
+}
+
+function parseTokenDocument(raw: string, destination: string) {
+  if (Buffer.byteLength(raw, "utf8") > OAUTH_TOKEN_DOCUMENT_MAX_BYTES) {
+    throw new OAuthTokenDocumentError(
+      "too_large",
+      `OAuth token document exceeds ${String(OAUTH_TOKEN_DOCUMENT_MAX_BYTES)} bytes: ${destination}`,
+    );
+  }
+
+  let parsed: unknown;
+
+  try {
+    parsed = JSON.parse(raw);
+  } catch (error) {
+    throw new OAuthTokenDocumentError(
+      "invalid_document",
+      `OAuth token document is not valid JSON: ${destination}`,
+      error,
+    );
+  }
+
+  return validateTokenDocument(parsed);
+}
+
+async function writeAndSyncDocument(
+  handle: FileHandle,
+  serialized: string,
+  destination: string,
+) {
+  try {
+    await handle.writeFile(serialized, { encoding: "utf8" });
+    await handle.sync();
+  } catch (error) {
+    throw ioError(
+      `Unable to write temporary OAuth token document for: ${destination}`,
+      error,
+    );
+  } finally {
+    await handle.close();
   }
 }

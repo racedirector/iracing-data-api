@@ -73,7 +73,9 @@ export function createDocsCommand({ createScope }: DocsCommandDependencies) {
     .option("--force", "Replace an existing output file")
     .action(async (options) => {
       const { docs, output, diagnostics } = await createScope(options);
+
       const document = await docs.get();
+
       await output.write(document);
       diagnostics.info("Data API documentation fetched.");
     });

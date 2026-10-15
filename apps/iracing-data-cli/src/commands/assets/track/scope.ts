@@ -28,6 +28,7 @@ export interface TrackAssetsScopeDependencies {
 
 const defaultDependencies: TrackAssetsScopeDependencies = {
   resolveAccessToken,
+
   /** Construct the generated client that owns the modeled Data API request. */
   createTrackAssetsClient(accessToken) {
     return new TrackApi(new Configuration({ accessToken }));
@@ -39,12 +40,18 @@ const defaultDependencies: TrackAssetsScopeDependencies = {
 };
 
 function responseStatus(error: unknown): number | undefined {
-  if (!(error instanceof Error) || error.name !== "ResponseError")
+  if (!(error instanceof Error) || error.name !== "ResponseError") {
     return undefined;
+  }
+
   const response = (error as Error & { response?: unknown }).response;
-  if (!response || typeof response !== "object" || !("status" in response))
+
+  if (!response || typeof response !== "object" || !("status" in response)) {
     return undefined;
+  }
+
   const { status } = response as { status?: unknown };
+
   return typeof status === "number" ? status : undefined;
 }
 
@@ -53,22 +60,25 @@ function mapTrackAssetsRequestError(error: unknown): Error {
 
   if (status === 401 || status === 403) {
     return new Error(
-      `Track assets request failed with HTTP ${status}. Credentials may be invalid, expired, or unauthorized; run iracing-data auth login and retry.`,
+      `Track assets request failed with HTTP ${String(status)}. Credentials may be invalid, expired, or unauthorized; run iracing-data auth login and retry.`,
     );
   }
+
   if (status === 429) {
     return new Error(
       "Track assets request failed with HTTP 429. iRacing rate limited the request; retry later.",
     );
   }
+
   if (status === 503) {
     return new Error(
       "Track assets request failed with HTTP 503. The iRacing Data API is unavailable or under maintenance; retry later.",
     );
   }
+
   if (status !== undefined) {
     return new Error(
-      `Track assets request failed with HTTP ${status}. Retry; if the failure persists, check iRacing service availability.`,
+      `Track assets request failed with HTTP ${String(status)}. Retry; if the failure persists, check iRacing service availability.`,
     );
   }
 
@@ -87,12 +97,14 @@ export function createTrackAssetsCommandScopeFactory(
 ): CreateTrackAssetsCommandScope {
   return async (options: TrackAssetsOptions) => {
     const accessToken = await dependencies.resolveAccessToken(options);
+
     const api = dependencies.createTrackAssetsClient(accessToken);
 
     return {
       assets: {
         async get(): Promise<unknown> {
           let envelope: IracingAPIResponse;
+
           try {
             envelope = await api.getTrackAssets();
           } catch (error) {
@@ -105,11 +117,14 @@ export function createTrackAssetsCommandScopeFactory(
       output: {
         write(payload) {
           const serialized = JSON.stringify(payload, null, 2);
+
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- JSON.stringify can return undefined for runtime payloads despite its declared string return type.
           if (serialized === undefined) {
             throw new Error(
               "Track asset payload could not be serialized as JSON.",
             );
           }
+
           dependencies.writeStdout(`${serialized}\n`);
         },
       },

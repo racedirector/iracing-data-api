@@ -13,12 +13,10 @@ export const optionalId = Id.nullish().transform((value) => value ?? null);
 export const optionalInteger = z
   .number()
   .int()
-  .safe()
   .nullish()
   .transform((value) => value ?? null);
 export const optionalNumber = z
   .number()
-  .finite()
   .nullish()
   .transform((value) => value ?? null);
 export const optionalBoolean = z
@@ -28,7 +26,6 @@ export const optionalBoolean = z
 export const position = z
   .number()
   .int()
-  .safe()
   .max(Number.MAX_SAFE_INTEGER - 1)
   .nullish()
   .transform((value) => (value == null || value < 0 ? null : value + 1));

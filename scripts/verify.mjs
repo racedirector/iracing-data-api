@@ -25,6 +25,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+const pnpm = (label, ...args) => ({ label, command: "pnpm", args });
+
 export const root = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "..",
@@ -38,7 +40,6 @@ export const subsystems = ["repo", "js", "examples", "generated", "rust"];
  * or a build selection with no matching workspaces.
  */
 export function verificationPlan(subsystem, policy) {
-  const pnpm = (label, ...args) => ({ label, command: "pnpm", args });
   const build = (kind) => {
     const packages = policy.workspaces.filter(
       (entry) => entry.ecosystem === "npm" && kind.includes(entry.kind),

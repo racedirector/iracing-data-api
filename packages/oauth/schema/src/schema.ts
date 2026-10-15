@@ -448,114 +448,162 @@ export type OAuthRevokeSessionsParameters = z.infer<
 // Historical exports stay in their original module for import compatibility.
 /** @deprecated Use OAuthClientIdSchema instead. */
 export const IRacingOAuthClientIdSchema = OAuthClientIdSchema;
+
 /** @deprecated Use OAuthClientSecretSchema instead. */
 export const IRacingOAuthClientSecretSchema = OAuthClientSecretSchema;
+
 /** @deprecated Use OAuthScopeAuthSchema instead. */
 export const IRacingOAuthScopeAuthSchema = OAuthScopeAuthSchema;
+
 /** @deprecated Use OAuthScopeProfileSchema instead. */
 export const IRacingOAuthScopeProfileSchema = OAuthScopeProfileSchema;
+
 /** @deprecated Use OAuthScopesSchema instead. */
 export const IRacingOAuthScopesSchema = OAuthScopesSchema;
+
 /** @deprecated Use OAuthScopesStringSchema instead. */
 export const IRacingOAuthScopesStringSchema = OAuthScopesStringSchema;
+
 /** @deprecated Use OAuthRequestIdHeaderKey instead. */
 export const IRacingOAuthRequestIdHeaderKey = OAuthRequestIdHeaderKey;
+
 /** @deprecated Use OAuthRequestIdHeaderSchema instead. */
 export const IRacingOAuthRequestIdHeaderSchema = OAuthRequestIdHeaderSchema;
+
 /** @deprecated Use OAuthHeadersSchema instead. */
 export const IRacingOAuthHeadersSchema = OAuthHeadersSchema;
+
 /** @deprecated Use OAuthErrorResponseSchema instead. */
 export const IRacingOAuthErrorResponseSchema = OAuthErrorResponseSchema;
+
 /** @deprecated Use OAuthAuthorizeParametersSchema instead. */
 export const IRacingOAuthAuthorizeParametersSchema =
   OAuthAuthorizeParametersSchema;
+
 /** @deprecated Use OAuthCallbackParametersSchema instead. */
 export const IRacingOAuthCllbackParametersSchema =
   OAuthCallbackParametersSchema;
+
 /** @deprecated Use OAuthTokenAuthorizationCodeGrantParametersSchema instead. */
 export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema =
   OAuthTokenAuthorizationCodeGrantParametersSchema;
+
 /** @deprecated Use OAuthTokenRefreshGrantParametersSchema instead. */
 export const IRacingOAuthTokenRefreshGrantParametersSchema =
   OAuthTokenRefreshGrantParametersSchema;
+
 /** @deprecated Use OAuthPasswordLimitedGrantParametersSchema instead. */
 export const IRacingOAuthPasswordLimitedGrantParametersSchema =
   OAuthPasswordLimitedGrantParametersSchema;
+
 /** @deprecated Use OAuthTokenParametersSchema instead. */
 export const IRacingOAuthTokenParametersSchema = OAuthTokenParametersSchema;
+
 /** @deprecated Use OAuthTokenResponseSchema instead. */
 export const IRacingOAuthTokenResponseSchema = OAuthTokenResponseSchema;
+
 /** @deprecated Use OAuthJWTAccessTokenAlgorithmValues instead. */
 export const IRacingOAuthJWTAccessTokenAlgorithmValues =
   OAuthJWTAccessTokenAlgorithmValues;
+
 /** @deprecated Use OAuthJWTAccessTokenAlgorithmSchema instead. */
 export const IRacingOAuthJWTAccessTokenAlgorithmSchema =
   OAuthJWTAccessTokenAlgorithmSchema;
+
 /** @deprecated Use OAuthJWTAccessTokenHeaderSchema instead. */
 export const IRacingOAuthJWTAccessTokenHeaderSchema =
   OAuthJWTAccessTokenHeaderSchema;
+
 /** @deprecated Use OAuthJWTAccessTokenPayloadSchema instead. */
 export const IRacingOAuthJWTAccessTokenPayloadSchema =
   OAuthJWTAccessTokenPayloadSchema;
+
 /** @deprecated Use OAuthJWTAccessTokenSchema instead. */
 export const IRacingOAuthJWTAccessTokenSchema = OAuthJWTAccessTokenSchema;
+
 /** @deprecated Use OAuthSessionSchema instead. */
 export const IRacingOAuthSessionSchema = OAuthSessionSchema;
+
 /** @deprecated Use OAuthSessionsSchema instead. */
 export const IRacingOAuthSessionsSchema = OAuthSessionsSchema;
+
 /** @deprecated Use OAuthProfileResponseSchema instead. */
 export const IRacingOAuthProfileResponseSchema = OAuthProfileResponseSchema;
+
 /** @deprecated Use OAuthRevokeCurrentSessionInputSchema instead. */
 export const IRacingOAuthRevokeCurrentSessionInputSchema =
   OAuthRevokeCurrentSessionInputSchema;
+
 /** @deprecated Use OAuthRevokeSessionsInputSchema instead. */
 export const IRacingOAuthRevokeSessionsInputSchema =
   OAuthRevokeSessionsInputSchema;
+
 /** @deprecated Use OAuthClientId instead. */
 export type IRacingOAuthClientId = OAuthClientId;
+
 /** @deprecated Use OAuthClientSecret instead. */
 export type IRacingOAuthClientSecret = OAuthClientSecret;
+
 /** @deprecated Use OAuthScopeAuth instead. */
 export type IRacingOAuthScopeAuth = OAuthScopeAuth;
+
 /** @deprecated Use OAuthScopeProfile instead. */
 export type IRacingOAuthScopeProfile = OAuthScopeProfile;
+
 /** @deprecated Use OAuthScopes instead. */
 export type IRacingOAuthScopes = OAuthScopes;
+
 /** @deprecated Use OAuthScopesString instead. */
 export type IRacingOAuthScopesString = OAuthScopesString;
+
 /** @deprecated Use OAuthRequestIdHeader instead. */
 export type IRacingOAuthRequestIdHeader = OAuthRequestIdHeader;
+
 /** @deprecated Use OAuthHeaders instead. */
 export type IRacingOAuthHeaders = OAuthHeaders;
+
 /** @deprecated Use OAuthAuthorizeParameters instead. */
 export type IRacingOAuthAuthorizeParameters = OAuthAuthorizeParameters;
+
 /** @deprecated Use OAuthTokenAuthorizationCodeGrantParameters instead. */
 export type IRacingOAuthTokenAuthorizationCodeGrantParameters =
   OAuthTokenAuthorizationCodeGrantParameters;
+
 /** @deprecated Use OAuthTokenRefreshGrantParameters instead. */
 export type IRacingOAuthTokenRefreshGrantParameters =
   OAuthTokenRefreshGrantParameters;
+
 /** @deprecated Use OAuthTokenParameters instead. */
 export type IRacingOAuthTokenParameters = OAuthTokenParameters;
+
 /** @deprecated Use OAuthTokenResponse instead. */
 export type IRacingOAuthTokenResponse = OAuthTokenResponse;
+
 /** @deprecated Use OAuthJWTAccessTokenAlgorithm instead. */
 export type IRacingOAuthJWTAccessTokenAlgorithm = OAuthJWTAccessTokenAlgorithm;
+
 /** @deprecated Use OAuthJWTAccessTokenHeader instead. */
 export type IRacingOAuthJWTAccessTokenHeader = OAuthJWTAccessTokenHeader;
+
 /** @deprecated Use OAuthJWTAccessTokenPayload instead. */
 export type IRacingOAuthJWTAccessTokenPayload = OAuthJWTAccessTokenPayload;
+
 /** @deprecated Use OAuthJWTAccessToken instead. */
 export type IRacingOAuthJWTAccessToken = OAuthJWTAccessToken;
+
 /** @deprecated Use OAuthSession instead. */
 export type IRacingOAuthSession = OAuthSession;
+
 /** @deprecated Use OAuthSessions instead. */
 export type IRacingOAuthSessions = OAuthSessions;
+
 /** @deprecated Use OAuthProfileResponse instead. */
 export type IRacingOAuthProfileResponse = OAuthProfileResponse;
+
 /** @deprecated Use OAuthRevokeCurrentSessionParameters instead. */
 export type IRacingOAuthRevokeCurrentSessionParameters =
   OAuthRevokeCurrentSessionParameters;
+
 /** @deprecated Use OAuthRevokeSessionsParameters instead. */
 export type IRacingOAuthRevokeSessionsParameters =
   OAuthRevokeSessionsParameters;

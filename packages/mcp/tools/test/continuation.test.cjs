@@ -1,6 +1,10 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
+const expired = (error) =>
+  error.message.includes("cursor") ||
+  error.constructor.name === "ApplicationFailure";
+
 test("collection and search continuations share token capacity and expiry reclamation", async () => {
   const { Configuration } = require("@iracing-data/api-client-fetch");
   const { CollectionCursors } = await import("../dist/tools/collections.js");
@@ -105,9 +109,7 @@ test("opaque collections enforce TTL, immutable input/results, scope, restart, r
       .items[0].id,
     2,
   );
-  const expired = (error) =>
-    error.message.includes("cursor") ||
-    error.constructor.name === "ApplicationFailure";
+
   assert.throws(
     () =>
       new CollectionCursors(() => now).resume(

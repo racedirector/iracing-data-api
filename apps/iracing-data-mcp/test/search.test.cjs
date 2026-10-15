@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const http = require("node:http");
+const test = require("node:test");
 const { Configuration } = require("@iracing-data/api-client-fetch");
 const race = (id, track = 30, changes = {}) => ({
   subsession_id: id,

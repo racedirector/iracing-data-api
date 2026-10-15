@@ -101,7 +101,7 @@ export async function importClientSecret(
 
   const temporary = path.join(
     directory,
-    `.${path.basename(destination)}.${process.pid}.${randomUUID()}.tmp`,
+    `.${path.basename(destination)}.${String(process.pid)}.${randomUUID()}.tmp`,
   );
 
   let temporaryExists = false;

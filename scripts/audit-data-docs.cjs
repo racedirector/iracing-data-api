@@ -194,7 +194,7 @@ if (require.main === module) {
       path.join(root, "packages/helpers/api-schema-to-openapi/src"),
     );
     const report = audit(content, document, ServicesDocsResponseSchema);
-    console.log(JSON.stringify(report, null, 2));
+    process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
     process.exitCode =
       !report.docsSchema.success ||
       report.findings.length ||

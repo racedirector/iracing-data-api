@@ -1,9 +1,9 @@
 const assert = require("node:assert/strict");
-const { test } = require("node:test");
 const fs = require("node:fs/promises");
+const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
-const http = require("node:http");
+const { test } = require("node:test");
 const oauth = require("@iracing-data/oauth-client");
 const jwt = (exp) =>
   `${Buffer.from('{"alg":"RS256"}').toString("base64url")}.${Buffer.from(JSON.stringify({ exp, synthetic_secret: "CUSTOMER_SECRET" })).toString("base64url")}.SECRET`;
@@ -142,23 +142,22 @@ for (const mode of ["corrupt", "unreadable", "unsafe", "unsupported"])
     await f.write(token());
     if (mode === "corrupt") await fs.writeFile(f.file, "{SECRET");
     if (mode === "unsafe") await fs.chmod(f.file, 0o644);
-    const fileSystem =
-      mode === "unreadable"
-        ? {
-            open: async () => {
-              throw new Error("SECRET EACCES");
-            },
-          }
-        : mode === "unsupported"
-          ? {
-              lstat: async () => {
-                throw new oauth.OAuthTokenDocumentError(
-                  "durability_unsupported",
-                  "SECRET",
-                );
-              },
-            }
-          : undefined;
+    const failureSystems = {
+      unreadable: {
+        open: async () => {
+          throw new Error("SECRET EACCES");
+        },
+      },
+      unsupported: {
+        lstat: async () => {
+          throw new oauth.OAuthTokenDocumentError(
+            "durability_unsupported",
+            "SECRET",
+          );
+        },
+      },
+    };
+    const fileSystem = failureSystems[mode];
     const services = await f.start({ fileSystem });
     await assert.rejects(access(services), failure(f.api, "invalid_session"));
     assert.doesNotMatch(f.logs.join(""), /SECRET|credentials.json/);

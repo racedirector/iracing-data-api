@@ -705,258 +705,354 @@ export type TimeAttackMemberSeasonResultsParameters = z.infer<
 // Historical exports stay in their original module for import compatibility.
 /** @deprecated Use AuthParametersSchema instead. */
 export const IRacingAuthParametersSchema = AuthParametersSchema;
+
 /** @deprecated Use DriverStatsByCategoryPathSchema instead. */
 export const IRacingDriverStatsByCategoryPathSchema =
   DriverStatsByCategoryPathSchema;
+
 /** @deprecated Use HostedCombinedSessionsParametersSchema instead. */
 export const IRacingHostedCombinedSessionsParametersSchema =
   HostedCombinedSessionsParametersSchema;
+
 /** @deprecated Use LeagueCustomerSessionsParametersSchema instead. */
 export const IRacingLeagueCustomerSessionsParametersSchema =
   LeagueCustomerSessionsParametersSchema;
+
 /** @deprecated Use LeagueDirectoryParametersSchema instead. */
 export const IRacingLeagueDirectoryParametersSchema =
   LeagueDirectoryParametersSchema;
+
 /** @deprecated Use LeagueGetParametersSchema instead. */
 export const IRacingLeagueGetParametersSchema = LeagueGetParametersSchema;
+
 /** @deprecated Use LeagueGetPointsSystemsParametersSchema instead. */
 export const IRacingLeagueGetPointsSystemsParametersSchema =
   LeagueGetPointsSystemsParametersSchema;
+
 /** @deprecated Use LeagueMembershipParametersSchema instead. */
 export const IRacingLeagueMembershipParametersSchema =
   LeagueMembershipParametersSchema;
+
 /** @deprecated Use LeagueRosterParametersSchema instead. */
 export const IRacingLeagueRosterParametersSchema = LeagueRosterParametersSchema;
+
 /** @deprecated Use LeagueSeasonsParametersSchema instead. */
 export const IRacingLeagueSeasonsParametersSchema =
   LeagueSeasonsParametersSchema;
+
 /** @deprecated Use LeagueSeasonStandingsParametersSchema instead. */
 export const IRacingLeagueSeasonStandingsParametersSchema =
   LeagueSeasonStandingsParametersSchema;
+
 /** @deprecated Use LeagueSeasonSessionsParametersSchema instead. */
 export const IRacingLeagueSeasonSessionsParametersSchema =
   LeagueSeasonSessionsParametersSchema;
+
 /** @deprecated Use LookupDriversParametersSchema instead. */
 export const IRacingLookupDriversParametersSchema =
   LookupDriversParametersSchema;
+
 /** @deprecated Use MemberAwardsParametersSchema instead. */
 export const IRacingMemberAwardsParametersSchema = MemberAwardsParametersSchema;
+
 /** @deprecated Use MemberAwardInstancesParametersSchema instead. */
 export const IRacingMemberAwardInstancesParametersSchema =
   MemberAwardInstancesParametersSchema;
+
 /** @deprecated Use MemberChartDataParametersSchema instead. */
 export const IRacingMemberChartDataParametersSchema =
   MemberChartDataParametersSchema;
+
 /** @deprecated Use MemberGetParametersSchema instead. */
 export const IRacingMemberGetParametersSchema = MemberGetParametersSchema;
+
 /** @deprecated Use MemberProfileParametersSchema instead. */
 export const IRacingMemberProfileParametersSchema =
   MemberProfileParametersSchema;
+
 /** @deprecated Use ResultsGetParametersSchema instead. */
 export const IRacingResultsGetParametersSchema = ResultsGetParametersSchema;
+
 /** @deprecated Use ResultsEventLogParametersSchema instead. */
 export const IRacingResultsEventLogParametersSchema =
   ResultsEventLogParametersSchema;
+
 /** @deprecated Use ResultsLapChartDataParametersSchema instead. */
 export const IRacingResultsLapChartDataParametersSchema =
   ResultsLapChartDataParametersSchema;
+
 /** @deprecated Use ResultsLapDataParametersSchema instead. */
 export const IRacingResultsLapDataParametersSchema =
   ResultsLapDataParametersSchema;
+
 /** @deprecated Use ResultsSearchHostedParametersSchema instead. */
 export const IRacingResultsSearchHostedParametersSchema =
   ResultsSearchHostedParametersSchema;
+
 /** @deprecated Use ResultsSearchSeriesParametersSchema instead. */
 export const IRacingResultsSearchSeriesParametersSchema =
   ResultsSearchSeriesParametersSchema;
+
 /** @deprecated Use ResultsSeasonResultsParametersSchema instead. */
 export const IRacingResultsSeasonResultsParametersSchema =
   ResultsSeasonResultsParametersSchema;
+
 /** @deprecated Use SeasonListParametersSchema instead. */
 export const IRacingSeasonListParametersSchema = SeasonListParametersSchema;
+
 /** @deprecated Use SeasonRaceGuideParametersSchema instead. */
 export const IRacingSeasonRaceGuideParametersSchema =
   SeasonRaceGuideParametersSchema;
+
 /** @deprecated Use SeasonSpectatorSubsessionidsParametersSchema instead. */
 export const IRacingSeasonSpectatorSubsessionidsParametersSchema =
   SeasonSpectatorSubsessionidsParametersSchema;
+
 /** @deprecated Use SeasonSpectatorSubsessionidsDetailParametersSchema instead. */
 export const IRacingSeasonSpectatorSubsessionidsDetailParametersSchema =
   SeasonSpectatorSubsessionidsDetailParametersSchema;
+
 /** @deprecated Use SeriesPastSeasonsParametersSchema instead. */
 export const IRacingSeriesPastSeasonsParametersSchema =
   SeriesPastSeasonsParametersSchema;
+
 /** @deprecated Use SeriesSeasonsParametersSchema instead. */
 export const IRacingSeriesSeasonsParametersSchema =
   SeriesSeasonsParametersSchema;
+
 /** @deprecated Use SeriesSeasonListParametersSchema instead. */
 export const IRacingSeriesSeasonListParametersSchema =
   SeriesSeasonListParametersSchema;
+
 /** @deprecated Use SeriesSeasonScheduleParametersSchema instead. */
 export const IRacingSeriesSeasonScheduleParametersSchema =
   SeriesSeasonScheduleParametersSchema;
+
 /** @deprecated Use StatsMemberBestsParametersSchema instead. */
 export const IRacingStatsMemberBestsParametersSchema =
   StatsMemberBestsParametersSchema;
+
 /** @deprecated Use StatsMemberCareerParametersSchema instead. */
 export const IRacingStatsMemberCareerParametersSchema =
   StatsMemberCareerParametersSchema;
+
 /** @deprecated Use StatsMemberDivisionParametersSchema instead. */
 export const IRacingStatsMemberDivisionParametersSchema =
   StatsMemberDivisionParametersSchema;
+
 /** @deprecated Use StatsMemberRecapParametersSchema instead. */
 export const IRacingStatsMemberRecapParametersSchema =
   StatsMemberRecapParametersSchema;
+
 /** @deprecated Use StatsMemberRecentRacesParametersSchema instead. */
 export const IRacingStatsMemberRecentRacesParametersSchema =
   StatsMemberRecentRacesParametersSchema;
+
 /** @deprecated Use StatsMemberSummaryParametersSchema instead. */
 export const IRacingStatsMemberSummaryParametersSchema =
   StatsMemberSummaryParametersSchema;
+
 /** @deprecated Use StatsMemberYearlyParametersSchema instead. */
 export const IRacingStatsMemberYearlyParametersSchema =
   StatsMemberYearlyParametersSchema;
+
 /** @deprecated Use StatsSeasonDriverStandingsParametersSchema instead. */
 export const IRacingStatsSeasonDriverStandingsParametersSchema =
   StatsSeasonDriverStandingsParametersSchema;
+
 /** @deprecated Use StatsSeasonSupersessionStandingsParametersSchema instead. */
 export const IRacingStatsSeasonSupersessionStandingsParametersSchema =
   StatsSeasonSupersessionStandingsParametersSchema;
+
 /** @deprecated Use StatsSeasonTeamStandingsParametersSchema instead. */
 export const IRacingStatsSeasonTeamStandingsParametersSchema =
   StatsSeasonTeamStandingsParametersSchema;
+
 /** @deprecated Use StatsSeasonTTStandingsParametersSchema instead. */
 export const IRacingStatsSeasonTTStandingsParametersSchema =
   StatsSeasonTTStandingsParametersSchema;
+
 /** @deprecated Use StatsSeasonTTResultsParametersSchema instead. */
 export const IRacingStatsSeasonTTResultsParametersSchema =
   StatsSeasonTTResultsParametersSchema;
+
 /** @deprecated Use StatsSeasonQualifyResultsParametersSchema instead. */
 export const IRacingStatsSeasonQualifyResultsParametersSchema =
   StatsSeasonQualifyResultsParametersSchema;
+
 /** @deprecated Use StatsWorldRecordsParametersSchema instead. */
 export const IRacingStatsWorldRecordsParametersSchema =
   StatsWorldRecordsParametersSchema;
+
 /** @deprecated Use TeamGetParametersSchema instead. */
 export const IRacingTeamGetParametersSchema = TeamGetParametersSchema;
+
 /** @deprecated Use TimeAttackMemberSeasonResultsParametersSchema instead. */
 export const IRacingTimeAttackMemberSeasonResultsParametersSchema =
   TimeAttackMemberSeasonResultsParametersSchema;
+
 /** @deprecated Use DriverStatsByCategoryPath instead. */
 export type IRacingDriverStatsByCategoryPath = DriverStatsByCategoryPath;
+
 /** @deprecated Use HostedCombinedSessionsParameters instead. */
 export type IRacingHostedCombinedSessionsParameters =
   HostedCombinedSessionsParameters;
+
 /** @deprecated Use LeagueCustomerSessionsParameters instead. */
 export type IRacingLeagueCustomerSessionsParameters =
   LeagueCustomerSessionsParameters;
+
 /** @deprecated Use LeagueDirectoryParameters instead. */
 export type IRacingLeagueDirectoryParameters = LeagueDirectoryParameters;
+
 /** @deprecated Use LeagueGetParameters instead. */
 export type IRacingLeagueGetParameters = LeagueGetParameters;
+
 /** @deprecated Use LeagueGetPointsSystemsParameters instead. */
 export type IRacingLeagueGetPointsSystemsParameters =
   LeagueGetPointsSystemsParameters;
+
 /** @deprecated Use LeagueMembershipParameters instead. */
 export type IRacingLeagueMembershipParameters = LeagueMembershipParameters;
+
 /** @deprecated Use LeagueRosterParameters instead. */
 export type IRacingLeagueRosterParameters = LeagueRosterParameters;
+
 /** @deprecated Use LeagueSeasonsParameters instead. */
 export type IRacingLeagueSeasonsParameters = LeagueSeasonsParameters;
+
 /** @deprecated Use LeagueSeasonStandingsParameters instead. */
 export type IRacingLeagueSeasonStandingsParameters =
   LeagueSeasonStandingsParameters;
+
 /** @deprecated Use LeagueSeasonSessionsParameters instead. */
 export type IRacingLeagueSeasonSessionsParameters =
   LeagueSeasonSessionsParameters;
+
 /** @deprecated Use LookupDriversParameters instead. */
 export type IRacingLookupDriversParameters = LookupDriversParameters;
+
 /** @deprecated Use MemberAwardsParameters instead. */
 export type IRacingMemberAwardsParameters = MemberAwardsParameters;
+
 /** @deprecated Use MemberAwardInstancesParameters instead. */
 export type IRacingMemberAwardInstancesParameters =
   MemberAwardInstancesParameters;
+
 /** @deprecated Use MemberChartDataParameters instead. */
 export type IRacingMemberChartDataParameters = MemberChartDataParameters;
+
 /** @deprecated Use MemberGetParameters instead. */
 export type IRacingMemberGetParameters = MemberGetParameters;
+
 /** @deprecated Use MemberProfileParameters instead. */
 export type IRacingMemberProfileParameters = MemberProfileParameters;
+
 /** @deprecated Use ResultsGetParameters instead. */
 export type IRacingResultsGetParameters = ResultsGetParameters;
+
 /** @deprecated Use ResultsEventLogParameters instead. */
 export type IRacingResultsEventLogParameters = ResultsEventLogParameters;
+
 /** @deprecated Use ResultsLapChartDataParameters instead. */
 export type IRacingResultsLapChartDataParameters =
   ResultsLapChartDataParameters;
+
 /** @deprecated Use ResultsLapDataParameters instead. */
 export type IRacingResultsLapDataParameters = ResultsLapDataParameters;
+
 /** @deprecated Use ResultsSearchHostedParameters instead. */
 export type IRacingResultsSearchHostedParameters =
   ResultsSearchHostedParameters;
+
 /** @deprecated Use ResultsSearchSeriesParameters instead. */
 export type IRacingResultsSearchSeriesParameters =
   ResultsSearchSeriesParameters;
+
 /** @deprecated Use ResultsSeasonResultsParameters instead. */
 export type IRacingResultsSeasonResultsParameters =
   ResultsSeasonResultsParameters;
+
 /** @deprecated Use SeasonListParameters instead. */
 export type IRacingSeasonListParameters = SeasonListParameters;
+
 /** @deprecated Use SeasonRaceGuideParameters instead. */
 export type IRacingSeasonRaceGuideParameters = SeasonRaceGuideParameters;
+
 /** @deprecated Use SeasonSpectatorSubsessionidsParameters instead. */
 export type IRacingSeasonSpectatorSubsessionidsParameters =
   SeasonSpectatorSubsessionidsParameters;
+
 /** @deprecated Use SeasonSpectatorSubsessionidsDetailParameters instead. */
 export type IRacingSeasonSpectatorSubsessionidsDetailParameters =
   SeasonSpectatorSubsessionidsDetailParameters;
+
 /** @deprecated Use SeriesPastSeasonsParameters instead. */
 export type IRacingSeriesPastSeasonsParameters = SeriesPastSeasonsParameters;
+
 /** @deprecated Use SeriesSeasonsParameters instead. */
 export type IRacingSeriesSeasonsParameters = SeriesSeasonsParameters;
+
 /** @deprecated Use SeriesSeasonListParameters instead. */
 export type IRacingSeriesSeasonListParameters = SeriesSeasonListParameters;
+
 /** @deprecated Use SeriesSeasonScheduleParameters instead. */
 export type IRacingSeriesSeasonScheduleParameters =
   SeriesSeasonScheduleParameters;
+
 /** @deprecated Use StatsMemberBestsParameters instead. */
 export type IRacingStatsMemberBestsParameters = StatsMemberBestsParameters;
+
 /** @deprecated Use StatsMemberCareerParameters instead. */
 export type IRacingStatsMemberCareerParameters = StatsMemberCareerParameters;
+
 /** @deprecated Use StatsMemberDivisionParameters instead. */
 export type IRacingStatsMemberDivisionParameters =
   StatsMemberDivisionParameters;
+
 /** @deprecated Use StatsMemberRecapParameters instead. */
 export type IRacingStatsMemberRecapParameters = StatsMemberRecapParameters;
+
 /** @deprecated Use StatsMemberRecentRacesParameters instead. */
 export type IRacingStatsMemberRecentRacesParameters =
   StatsMemberRecentRacesParameters;
+
 /** @deprecated Use StatsMemberSummaryParameters instead. */
 export type IRacingStatsMemberSummaryParameters = StatsMemberSummaryParameters;
+
 /** @deprecated Use StatsMemberYearlyParameters instead. */
 export type IRacingStatsMemberYearlyParameters = StatsMemberYearlyParameters;
+
 /** @deprecated Use StatsSeasonDriverStandingsParameters instead. */
 export type IRacingStatsSeasonDriverStandingsParameters =
   StatsSeasonDriverStandingsParameters;
+
 /** @deprecated Use StatsSeasonSupersessionStandingsParameters instead. */
 export type IRacingStatsSeasonSupersessionStandingsParameters =
   StatsSeasonSupersessionStandingsParameters;
+
 /** @deprecated Use StatsSeasonTeamStandingsParameters instead. */
 export type IRacingStatsSeasonTeamStandingsParameters =
   StatsSeasonTeamStandingsParameters;
+
 /** @deprecated Use StatsSeasonTTStandingsParameters instead. */
 export type IRacingStatsSeasonTTStandingsParameters =
   StatsSeasonTTStandingsParameters;
+
 /** @deprecated Use StatsSeasonTTResultsParameters instead. */
 export type IRacingStatsSeasonTTResultsParameters =
   StatsSeasonTTResultsParameters;
+
 /** @deprecated Use StatsSeasonQualifyResultsParameters instead. */
 export type IRacingStatsSeasonQualifyResultsParameters =
   StatsSeasonQualifyResultsParameters;
+
 /** @deprecated Use StatsWorldRecordsParameters instead. */
 export type IRacingStatsWorldRecordsParameters = StatsWorldRecordsParameters;
+
 /** @deprecated Use TeamGetParameters instead. */
 export type IRacingTeamGetParameters = TeamGetParameters;
+
 /** @deprecated Use TimeAttackMemberSeasonResultsParameters instead. */
 export type IRacingTimeAttackMemberSeasonResultsParameters =
   TimeAttackMemberSeasonResultsParameters;

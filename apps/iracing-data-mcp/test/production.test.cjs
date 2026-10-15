@@ -1,9 +1,9 @@
 const assert = require("node:assert/strict");
-const { test } = require("node:test");
 const fs = require("node:fs/promises");
 const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
+const { test } = require("node:test");
 
 function request(url, options = {}) {
   return new Promise((resolve, reject) => {

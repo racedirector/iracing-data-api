@@ -99,6 +99,23 @@ See the [repository package chooser](https://github.com/racedirector/iracing-dat
 
 Canonical schema exports omit the leading `IRacing` and retain `OAuth` where present. All historical schema names remain as deprecated aliases with identical values and equivalent types, including OAuth-client re-exports. See the [complete migration map and compatibility policy](../../../docs/SCHEMA-MIGRATION.md).
 
+## Protected requests
+
+`makeProtectedRequest(sessionId, method, path, request?)` restores the stored
+session, refreshes it when necessary, and sends the protected request. Optional
+headers, body, and OAuth request controls belong in the fourth argument:
+
+```ts
+await client.makeProtectedRequest("session-id", "POST", "/data/example", {
+  headers: new Headers({ "content-type": "application/json" }),
+  body: JSON.stringify({ example: true }),
+  options: { signal: AbortSignal.timeout(5_000) },
+});
+```
+
+Migrate older calls that passed headers, body, and options as separate positional
+arguments to this options object. Three-argument calls are unchanged.
+
 ## Low-level OAuth API
 
 `OAuthApiClient` adapts the generated `@iracing-data/oauth-client-fetch` wire client.

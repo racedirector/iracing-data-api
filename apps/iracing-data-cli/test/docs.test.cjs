@@ -1,8 +1,15 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const { mkdtemp, readFile, rm, stat, writeFile } = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
+const test = require("node:test");
+
+const responseError = (status) => {
+  const error = new Error("upstream secret body");
+  error.name = "ResponseError";
+  error.response = new Response("secret", { status });
+  return error;
+};
 
 const DOCS = {
   car: {
@@ -126,12 +133,6 @@ test("scope validates output format before resolving credentials", async () => {
 
 test("scope maps generated client failures without exposing upstream content", async () => {
   const { createDocsCommandScopeFactory } = await loadScope();
-  const responseError = (status) => {
-    const error = new Error("upstream secret body");
-    error.name = "ResponseError";
-    error.response = new Response("secret", { status });
-    return error;
-  };
 
   for (const [error, expected] of [
     [responseError(401), /HTTP 401.*Check token expiry/],

@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const http = require("node:http");
+const test = require("node:test");
 const { Configuration } = require("@iracing-data/api-client-fetch");
 const names = [
   "get_my_driver",
@@ -85,15 +85,13 @@ async function fixture(t, data = {}, options = {}) {
     requests.push({ url, init });
     if (options.transport) return options.transport(url, init, sources);
     if (url.hostname === "members-ng.iracing.com") {
-      const key = url.pathname.includes("member/info")
-        ? "member"
-        : url.pathname.includes("lookup/drivers")
-          ? "drivers"
-          : url.pathname.includes("stats/member_recent_races")
-            ? "recent"
-            : url.pathname.includes("/car/get")
-              ? "cars"
-              : "tracks";
+      const key =
+        [
+          ["member/info", "member"],
+          ["lookup/drivers", "drivers"],
+          ["stats/member_recent_races", "recent"],
+          ["/car/get", "cars"],
+        ].find(([part]) => url.pathname.includes(part))?.[1] ?? "tracks";
       return Response.json({
         link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,
         expires: new Date(now + (options.expiryMs ?? 900000)).toISOString(),

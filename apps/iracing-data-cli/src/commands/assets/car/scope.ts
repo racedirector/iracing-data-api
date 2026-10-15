@@ -28,6 +28,7 @@ export interface CarAssetsScopeDependencies {
 
 const defaultDependencies: CarAssetsScopeDependencies = {
   resolveAccessToken,
+
   /** Construct the generated client that owns the modeled Data API request. */
   createCarAssetsClient(accessToken) {
     return new CarApi(new Configuration({ accessToken }));
@@ -40,12 +41,18 @@ const defaultDependencies: CarAssetsScopeDependencies = {
 
 /** Read a numeric HTTP status from generated-client ResponseError values. */
 function responseStatus(error: unknown): number | undefined {
-  if (!(error instanceof Error) || error.name !== "ResponseError")
+  if (!(error instanceof Error) || error.name !== "ResponseError") {
     return undefined;
+  }
+
   const response = (error as Error & { response?: unknown }).response;
-  if (!response || typeof response !== "object" || !("status" in response))
+
+  if (!response || typeof response !== "object" || !("status" in response)) {
     return undefined;
+  }
+
   const { status } = response as { status?: unknown };
+
   return typeof status === "number" ? status : undefined;
 }
 
@@ -55,7 +62,7 @@ function mapCarAssetsRequestError(error: unknown): Error {
 
   if (status === 401 || status === 403) {
     return new Error(
-      `Car assets request failed with HTTP ${status}. Credentials may be invalid, expired, or unauthorized; run iracing-data auth login and retry.`,
+      `Car assets request failed with HTTP ${String(status)}. Credentials may be invalid, expired, or unauthorized; run iracing-data auth login and retry.`,
     );
   }
 
@@ -73,7 +80,7 @@ function mapCarAssetsRequestError(error: unknown): Error {
 
   if (status !== undefined) {
     return new Error(
-      `Car assets request failed with HTTP ${status}. Retry; if the failure persists, check iRacing service availability.`,
+      `Car assets request failed with HTTP ${String(status)}. Retry; if the failure persists, check iRacing service availability.`,
     );
   }
 
@@ -92,12 +99,14 @@ export function createCarAssetsCommandScopeFactory(
 ): CreateCarAssetsCommandScope {
   return async (options: CarAssetsOptions) => {
     const accessToken = await dependencies.resolveAccessToken(options);
+
     const api = dependencies.createCarAssetsClient(accessToken);
 
     return {
       assets: {
         async get(): Promise<unknown> {
           let envelope: IracingAPIResponse;
+
           try {
             envelope = await api.getCarAssets();
           } catch (error) {
@@ -110,11 +119,14 @@ export function createCarAssetsCommandScopeFactory(
       output: {
         write(payload) {
           const serialized = JSON.stringify(payload, null, 2);
+
+          // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition -- JSON.stringify can return undefined for runtime payloads despite its declared string return type.
           if (serialized === undefined) {
             throw new Error(
               "Car asset payload could not be serialized as JSON.",
             );
           }
+
           dependencies.writeStdout(`${serialized}\n`);
         },
       },

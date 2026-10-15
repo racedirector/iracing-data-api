@@ -34,6 +34,7 @@ export interface DocsScopeDependencies {
 
 const defaultDependencies: DocsScopeDependencies = {
   resolveAccessToken,
+
   /** Create a documentation client using a token without the Bearer prefix. */
   createDocumentationClient(accessToken) {
     return new DocApi(new Configuration({ accessToken }));
@@ -46,12 +47,18 @@ const defaultDependencies: DocsScopeDependencies = {
  * undefined for other error shapes.
  */
 function responseStatus(error: unknown): number | undefined {
-  if (!(error instanceof Error) || error.name !== "ResponseError")
+  if (!(error instanceof Error) || error.name !== "ResponseError") {
     return undefined;
+  }
+
   const response = (error as Error & { response?: unknown }).response;
-  if (!response || typeof response !== "object" || !("status" in response))
+
+  if (!response || typeof response !== "object" || !("status" in response)) {
     return undefined;
+  }
+
   const { status } = response as { status?: unknown };
+
   return typeof status === "number" ? status : undefined;
 }
 
@@ -65,13 +72,13 @@ function mapDocumentationError(error: unknown): Error {
 
   if (status === 401 || status === 403) {
     return new Error(
-      `Data API documentation request failed with HTTP ${status}. Check token expiry, iracing.auth scope and account access; obtain a new token with auth login.`,
+      `Data API documentation request failed with HTTP ${String(status)}. Check token expiry, iracing.auth scope and account access; obtain a new token with auth login.`,
     );
   }
 
   if (status !== undefined) {
     return new Error(
-      `Data API documentation request failed with HTTP ${status}. Try again; if the failure persists, check iRacing service availability.`,
+      `Data API documentation request failed with HTTP ${String(status)}. Try again; if the failure persists, check iRacing service availability.`,
     );
   }
 
@@ -99,6 +106,7 @@ export function createDocsCommandScopeFactory(
   return async (options: DocsOptions) => {
     resolveTokenFormat(options.output, options.format);
     const accessToken = await dependencies.resolveAccessToken(options);
+
     const api = dependencies.createDocumentationClient(accessToken);
 
     return {

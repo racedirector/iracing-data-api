@@ -49,12 +49,11 @@ export const SearchProjection = z.object({
     track_name: optionalText,
     config_name: optionalText,
   }),
-  event_type: z.number().int().safe(),
+  event_type: z.number().int(),
   num_drivers: z
     .number()
     .int()
     .nonnegative()
-    .safe()
     .nullish()
     .transform((v) => v ?? null),
   official_session: optionalBoolean,

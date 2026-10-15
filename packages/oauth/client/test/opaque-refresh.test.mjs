@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { afterEach, beforeEach, test } from "node:test";
-import runtime from "../dist/index.js";
-import utils from "../dist/utils.js";
+import * as runtime from "../dist/index.js";
+import * as utils from "../dist/utils.js";
 
 const { OAuthClient, InMemoryStore, OAuthRefreshError } = runtime;
 const { isRefreshTokenExpired } = utils;

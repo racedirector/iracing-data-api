@@ -38,7 +38,8 @@ export function compareVersions(left, right) {
     b = semver(right);
   for (let i = 0; i < 3; i++)
     if (a.core[i] !== b.core[i]) return a.core[i] > b.core[i] ? 1 : -1;
-  if (!a.pre || !b.pre) return a.pre ? -1 : b.pre ? 1 : 0;
+  if (!a.pre) return b.pre ? 1 : 0;
+  if (!b.pre) return -1;
   for (let i = 0; i < Math.max(a.pre.length, b.pre.length); i++) {
     const x = a.pre[i],
       y = b.pre[i];
@@ -67,7 +68,7 @@ export function previousTag(tags, name, version) {
     .sort(
       (a, b) =>
         compareVersions(b.slice(prefix.length), a.slice(prefix.length)) ||
-        (a < b ? -1 : a > b ? 1 : 0),
+        compareTags(a, b),
     )[0];
 }
 
@@ -152,7 +153,7 @@ export function releaseNotes(
   ];
   for (const sha of relevant) {
     const subject = git("show", "-s", "--format=%s", sha).replace(
-      /[\\`*_\[\]<>]/g,
+      /[\\`*_[\]<>]/g,
       "\\$&",
     );
     lines.push(`- ${subject} ([${sha.slice(0, 7)}](${url}/commit/${sha}))`);
@@ -195,4 +196,9 @@ if (
     console.error(error.message);
     process.exitCode = 1;
   }
+}
+
+function compareTags(a, b) {
+  if (a === b) return 0;
+  return a < b ? -1 : 1;
 }

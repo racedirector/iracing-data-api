@@ -12,6 +12,8 @@ interface CreateAuthCommandOptions {
  */
 export function createAuthCommand({ diagnostics }: CreateAuthCommandOptions) {
   const auth = new Command("auth").description("Authentication commands");
+
   auth.addCommand(createLoginCommand({ diagnostics }));
+
   return auth;
 }

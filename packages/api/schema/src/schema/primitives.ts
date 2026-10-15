@@ -67,10 +67,17 @@ export const RateLimitHeadersSchema = z
 
 // HTTP query strings need explicit boolean parsing; Boolean("false") is true.
 export const BooleanParameterSchema = z
-  .preprocess(
-    (value) => (value === "true" ? true : value === "false" ? false : value),
-    z.boolean(),
-  )
+  .preprocess((value) => {
+    if (value === "true") {
+      return true;
+    }
+
+    if (value === "false") {
+      return false;
+    }
+
+    return value;
+  }, z.boolean())
   .meta({ override: { type: "boolean" } });
 
 const NonBlankNumericParameterInputSchema = z.union([
@@ -86,23 +93,33 @@ const NonBlankNumericParameterInputSchema = z.union([
 const numericParameter = <T extends z.ZodType<number>>(schema: T) => {
   const parameter = z.preprocess((value: string | number, ctx) => {
     const input = NonBlankNumericParameterInputSchema.safeParse(value);
+
     if (!input.success) {
       ctx.addIssue({
         code: "custom",
         message: "Expected a number or a non-blank numeric string.",
       });
+
       return z.NEVER;
     }
+
     return Number(input.data);
   }, schema);
 
-  if (!(schema instanceof z.ZodNumber)) return parameter;
+  if (!(schema instanceof z.ZodNumber)) {
+    return parameter;
+  }
+
   // Match the historical scalar schema's field order as well as its content.
   // Only reorder description; never replace the target's type/constraints/ref.
   return parameter.meta({
-    override: ({ jsonSchema }) => {
+    override: ({ jsonSchema }: { jsonSchema: Record<string, unknown> }) => {
       const { description } = jsonSchema;
-      if (description === undefined) return;
+
+      if (description === undefined) {
+        return;
+      }
+
       delete jsonSchema.description;
       jsonSchema.description = description;
     },
@@ -339,70 +356,103 @@ export type ChartType = z.infer<typeof ChartTypeSchema>;
 // Historical exports stay in their original module for import compatibility.
 /** @deprecated Use AccessTokenSchema instead. */
 export const IRacingAccessTokenSchema = AccessTokenSchema;
+
 /** @deprecated Use RateLimitLimitHeaderKey instead. */
 export const IRacingRateLimitLimitHeaderKey = RateLimitLimitHeaderKey;
+
 /** @deprecated Use RateLimitLimitHeaderSchema instead. */
 export const IRacingRateLimitLimitHeaderSchema = RateLimitLimitHeaderSchema;
+
 /** @deprecated Use RateLimitRemainingHeaderKey instead. */
 export const IRacingRateLimitRemainingHeaderKey = RateLimitRemainingHeaderKey;
+
 /** @deprecated Use RateLimitRemainingHeaderSchema instead. */
 export const IRacingRateLimitRemainingHeaderSchema =
   RateLimitRemainingHeaderSchema;
+
 /** @deprecated Use RateLimitResetHeaderKey instead. */
 export const IRacingRateLimitResetHeaderKey = RateLimitResetHeaderKey;
+
 /** @deprecated Use RateLimitResetHeaderSchema instead. */
 export const IRacingRateLimitResetHeaderSchema = RateLimitResetHeaderSchema;
+
 /** @deprecated Use RateLimitHeadersSchema instead. */
 export const IRacingRateLimitHeadersSchema = RateLimitHeadersSchema;
+
 /** @deprecated Use CustomerIdSchema instead. */
 export const IRacingCustomerIdSchema = CustomerIdSchema;
+
 /** @deprecated Use EventTypePracticeSchema instead. */
 export const IRacingEventTypePracticeSchema = EventTypePracticeSchema;
+
 /** @deprecated Use EventTypeQualifyingSchema instead. */
 export const IRacingEventTypeQualifyingSchema = EventTypeQualifyingSchema;
+
 /** @deprecated Use EventTypeTimeTrialSchema instead. */
 export const IRacingEventTypeTimeTrialSchema = EventTypeTimeTrialSchema;
+
 /** @deprecated Use EventTypeRaceSchema instead. */
 export const IRacingEventTypeRaceSchema = EventTypeRaceSchema;
+
 /** @deprecated Use EventTypeSchema instead. */
 export const IRacingEventTypeSchema = EventTypeSchema;
+
 /** @deprecated Use ChartTypeSchema instead. */
 export const IRacingChartTypeSchema = ChartTypeSchema;
+
 /** @deprecated Use ChartTypeParameterSchema instead. */
 export const IRacingChartTypeParameterSchema = ChartTypeParameterSchema;
+
 /** @deprecated Use CategorySchema instead. */
 export const IRacingCategorySchema = CategorySchema;
+
 /** @deprecated Use CategoryIdSchema instead. */
 export const IRacingCategoryIdSchema = CategoryIdSchema;
+
 /** @deprecated Use CategoryIdParameterSchema instead. */
 export const IRacingCategoryIdParameterSchema = CategoryIdParameterSchema;
+
 /** @deprecated Use DivisionSchema instead. */
 export const IRacingDivisionSchema = DivisionSchema;
+
 /** @deprecated Use AccessToken instead. */
 export type IRacingAccessToken = AccessToken;
+
 /** @deprecated Use RateLimitLimitHeader instead. */
 export type IRacingRateLimitLimitHeader = RateLimitLimitHeader;
+
 /** @deprecated Use RateLimitRemainingHeader instead. */
 export type IRacingRateLimitRemainingHeader = RateLimitRemainingHeader;
+
 /** @deprecated Use RateLimitResetHeader instead. */
 export type IRacingRateLimitResetHeader = RateLimitResetHeader;
+
 /** @deprecated Use RateLimitHeaders instead. */
 export type IRacingRateLimitHeaders = RateLimitHeaders;
+
 /** @deprecated Use CustomerId instead. */
 export type IRacingCustomerId = CustomerId;
+
 /** @deprecated Use Category instead. */
 export type IRacingCategory = Category;
+
 /** @deprecated Use Division instead. */
 export type IRacingDivision = Division;
+
 /** @deprecated Use EventTypePractice instead. */
 export type IRacingEventTypePractice = EventTypePractice;
+
 /** @deprecated Use EventTypeQualifying instead. */
 export type IRacingEventTypeQualifying = EventTypeQualifying;
+
 /** @deprecated Use EventTypeTimeTrial instead. */
 export type IRacingEventTypeTimeTrial = EventTypeTimeTrial;
+
 /** @deprecated Use EventTypeRace instead. */
 export type IRacingEventTypeRace = EventTypeRace;
+
 /** @deprecated Use EventType instead. */
 export type IRacingEventType = EventType;
+
 /** @deprecated Use ChartType instead. */
 export type IRacingChartType = ChartType;

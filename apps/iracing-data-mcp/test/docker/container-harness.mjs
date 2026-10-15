@@ -194,4 +194,5 @@ process.on("SIGTERM", () => {
     fixture.closeIdleConnections();
   }
 });
+// eslint-disable-next-line import-x/no-unresolved -- This fixture runs inside the Docker image, whose application entrypoint is /app/dist/main.js.
 await import("/app/dist/main.js");

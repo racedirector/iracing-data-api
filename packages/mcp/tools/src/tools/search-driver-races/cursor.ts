@@ -13,8 +13,9 @@ import {
 } from "../../diagnostics/errors.js";
 import { parse, materialize, fetchLinkedJson } from "../../linked-response.js";
 import { collectionExpired, completeResult } from "../collections.js";
-import { SearchInitialInput, SearchProjection } from "./contracts.js";
+import { SearchProjection } from "./contracts.js";
 import { parseManifest, validateSearchEcho, chunkUrl } from "./manifest.js";
+import type { SearchInitialInput } from "./contracts.js";
 import type { RetentionBudget } from "../../retention.js";
 import type { IracingDataAccess } from "../../services.js";
 
@@ -41,19 +42,23 @@ interface Cursor {
 /** Immutable offsets and retained replay responses make retries deterministic. */
 export class SearchCursors {
   readonly #entries = new Map<string, Cursor>();
+
   /** Register search expiry cleanup with the budget; now returns Unix milliseconds. */
   constructor(
     readonly budget: RetentionBudget,
     readonly now: () => number = Date.now,
   ) {
-    budget.registerPruner(() => this.#prune());
+    budget.registerPruner(() => {
+      this.#prune();
+    });
   }
+
   /** Release retained searches whose snapshots are disposed or have expired. */
   #prune() {
     const expired = new Set<Snapshot>();
 
     for (const entry of this.#entries.values()) {
-      if (entry.snapshot.disposed || entry.snapshot.expiresAt <= this.now()) {
+      if (this.#expired(entry.snapshot)) {
         expired.add(entry.snapshot);
       }
     }
@@ -62,6 +67,7 @@ export class SearchCursors {
       this.#drop(snapshot);
     }
   }
+
   /** Dispose a snapshot and release its retained bytes and cursor reservations once. */
   #drop(snapshot: Snapshot) {
     if (snapshot.disposed) {
@@ -78,6 +84,7 @@ export class SearchCursors {
 
     this.budget.release(snapshot.bytes);
   }
+
   /**
    * Fetch a search manifest for validated filters and return its first bounded page.
    * An omitted cust_id resolves to the authenticated member. Continuations expire
@@ -95,36 +102,28 @@ export class SearchCursors {
       filters.cust_id === undefined
         ? await materialize(
             await new MemberApi(access.configuration).getMemberInfo({ signal }),
-            z.object({ cust_id: z.number().int().positive().safe() }),
+            z.object({ cust_id: z.number().int().positive() }),
             signal,
             access.configuration.fetchApi,
           )
         : undefined;
-    const custId = filters.cust_id ?? member!.data.cust_id;
 
-    const range = filters.range;
+    const custId = filters.cust_id ?? member?.data.cust_id;
 
-    const request = {
-      cust_id: custId,
-      event_types: "5",
-      ...(filters.series_id === undefined
-        ? {}
-        : { series_id: filters.series_id }),
-      ...(filters.official_only === undefined
-        ? {}
-        : { official_only: filters.official_only }),
-      ...("start" in range
-        ? {
-            start_range_begin: new Date(range.start),
-            start_range_end: new Date(range.start_end),
-          }
-        : range),
-    };
+    if (custId === undefined) {
+      throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+    }
+
+    const request = searchRequest(filters, custId);
+
     const manifest = await new ResultsApi(
       access.configuration,
     ).getResultsSearchSeries(request, { signal });
+
     const wire = ResultsSearchSeriesResponseToJSON(manifest);
+
     const info = parseManifest(wire);
+
     validateSearchEcho(
       wire,
       Object.fromEntries(
@@ -144,11 +143,7 @@ export class SearchCursors {
       bytes: Buffer.byteLength(JSON.stringify({ filters, custId, info })),
     };
 
-    try {
-      this.budget.reserve(snapshot.bytes);
-    } catch (error) {
-      throw error;
-    }
+    this.budget.reserve(snapshot.bytes);
 
     try {
       const result = await this.#page(
@@ -167,6 +162,7 @@ export class SearchCursors {
       throw error;
     }
   }
+
   /**
    * Resume a retained token, returning a clone of a cached or concurrently pending page.
    * Pending replay shares the first caller's access and signal. Unknown or expired
@@ -201,6 +197,81 @@ export class SearchCursors {
       delete entry.pending;
     }
   }
+
+  async #chunk(
+    snapshot: Snapshot,
+    chunk: number,
+    access: IracingDataAccess,
+    signal: AbortSignal,
+  ): Promise<readonly Record<string, unknown>[]> {
+    const cached = snapshot.chunks.get(chunk);
+
+    if (cached) {
+      return cached;
+    }
+
+    let rows: readonly Record<string, unknown>[];
+
+    try {
+      rows = await fetchLinkedJson(
+        chunkUrl(
+          snapshot.info.base_download_url,
+          snapshot.info.chunk_file_names[chunk],
+        ).href,
+        z.array(z.record(z.string(), z.unknown())),
+        signal,
+        access.configuration.fetchApi,
+      );
+    } catch (error) {
+      if (
+        error instanceof ApplicationFailure &&
+        errorEnvelope(error, createRequestContext()).error.code ===
+          "CURSOR_EXPIRED"
+      ) {
+        this.#drop(snapshot);
+      }
+
+      throw error;
+    }
+
+    const expected = Math.min(
+      snapshot.info.chunk_size,
+      snapshot.info.rows - chunk * snapshot.info.chunk_size,
+    );
+
+    if (rows.length !== expected) {
+      throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+    }
+
+    const bytes = Buffer.byteLength(JSON.stringify(rows));
+
+    signal.throwIfAborted();
+    if (this.#expired(snapshot)) {
+      collectionExpired();
+    }
+
+    const concurrent = snapshot.chunks.get(chunk);
+
+    if (concurrent) {
+      return concurrent;
+    }
+
+    this.budget.reserve(bytes);
+    if (isDisposed(snapshot)) {
+      this.budget.release(bytes);
+      collectionExpired();
+    }
+
+    snapshot.bytes += bytes;
+    snapshot.chunks.set(chunk, rows);
+
+    return rows;
+  }
+
+  #expired(snapshot: Snapshot) {
+    return snapshot.disposed === true || snapshot.expiresAt <= this.now();
+  }
+
   /**
    * Scan at most four chunks from the saved offset, applying track filters locally.
    * Preserve source order; source_total includes filtered-out rows, and an empty page
@@ -223,93 +294,33 @@ export class SearchCursors {
 
     const token = randomBytes(32).toString("base64url");
 
-    const { limit: _limit, ...filters } = snapshot.filters;
-
-    const value = (complete: boolean) => ({
-      cust_id: snapshot.custId,
-      filters: { ...filters, cust_id: snapshot.custId },
-      order: "subsession_id",
-      items,
-      returned_count: items.length,
-      complete,
-      next_cursor: complete ? null : token,
-      source_total: snapshot.info.rows,
-    });
+    const value = (complete: boolean) =>
+      searchPageValue(snapshot, items, complete, token);
 
     while (
       chunk < snapshot.info.num_chunks &&
       scanned < 4 &&
       items.length < snapshot.filters.limit
     ) {
-      let rows = snapshot.chunks.get(chunk);
-      if (!rows) {
-        try {
-          rows = await fetchLinkedJson(
-            chunkUrl(
-              snapshot.info.base_download_url,
-              snapshot.info.chunk_file_names[chunk],
-            ).href,
-            z.array(z.record(z.string(), z.unknown())),
-            signal,
-            access.configuration.fetchApi,
-          );
-        } catch (error) {
-          if (
-            error instanceof ApplicationFailure &&
-            errorEnvelope(error, createRequestContext()).error.code ===
-              "CURSOR_EXPIRED"
-          )
-            this.#drop(snapshot);
-          throw error;
-        }
-        const expected = Math.min(
-          snapshot.info.chunk_size,
-          snapshot.info.rows - chunk * snapshot.info.chunk_size,
-        );
-        if (rows.length !== expected)
-          throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
-        const bytes = Buffer.byteLength(JSON.stringify(rows));
-        signal.throwIfAborted();
-        if (snapshot.disposed || snapshot.expiresAt <= this.now())
-          collectionExpired();
-        if (!snapshot.chunks.has(chunk)) {
-          this.budget.reserve(bytes);
-          if (snapshot.disposed) {
-            this.budget.release(bytes);
-            collectionExpired();
-          }
-          snapshot.bytes += bytes;
-          snapshot.chunks.set(chunk, rows);
-        } else {
-          rows = snapshot.chunks.get(chunk)!;
-        }
-      }
+      const rows = await this.#chunk(snapshot, chunk, access, signal);
 
       scanned++;
-      while (row < rows.length && items.length < snapshot.filters.limit) {
-        const projected = parse(SearchProjection, rows[row]);
+      const scannedRows = this.#scanRows(snapshot, rows, {
+        row,
+        items,
+        value: () => value(false),
+      });
 
-        if (
-          snapshot.filters.track_ids &&
-          !snapshot.filters.track_ids.includes(projected.track.track_id)
-        ) {
-          row++;
-          continue;
-        }
-
-        if (!this.#append(items, projected, () => value(false))) {
-          return this.#publish(
-            entry,
-            chunk,
-            row,
-            completeResult(value(false)),
-            token,
-            replay,
-            signal,
-          );
-        }
-
-        row++;
+      row = scannedRows.row;
+      if (scannedRows.full) {
+        return this.#publish(entry, {
+          chunk,
+          row,
+          result: completeResult(value(false)),
+          token,
+          replay,
+          signal,
+        });
       }
 
       if (row === rows.length) {
@@ -320,16 +331,45 @@ export class SearchCursors {
 
     const complete = chunk === snapshot.info.num_chunks;
 
-    return this.#publish(
-      entry,
+    return this.#publish(entry, {
       chunk,
       row,
-      completeResult(value(complete)),
+      result: completeResult(value(complete)),
       token,
       replay,
       signal,
-    );
+    });
   }
+
+  #scanRows(
+    snapshot: Snapshot,
+    rows: readonly Record<string, unknown>[],
+    state: {
+      row: number;
+      items: Record<string, unknown>[];
+      value: () => Record<string, unknown>;
+    },
+  ) {
+    let row = state.row;
+
+    while (row < rows.length && state.items.length < snapshot.filters.limit) {
+      const projected = parse(SearchProjection, rows[row]);
+
+      if (
+        !snapshot.filters.track_ids ||
+        snapshot.filters.track_ids.includes(projected.track.track_id)
+      ) {
+        if (!this.#append(state.items, projected, state.value)) {
+          return { row, full: true };
+        }
+      }
+
+      row++;
+    }
+
+    return { row, full: false };
+  }
+
   #append(
     items: Record<string, unknown>[],
     projected: Record<string, unknown>,
@@ -349,21 +389,31 @@ export class SearchCursors {
       return false;
     }
   }
+
   /**
    * Reserve capacity and publish the next offset, optionally caching this replay result.
    * Return a clone; abort, expiry, and capacity failures propagate before publication.
    */
   #publish(
     entry: Cursor,
-    chunk: number,
-    row: number,
-    result: Result,
-    token: string,
-    replay: boolean,
-    signal: AbortSignal,
+    {
+      chunk,
+      row,
+      result,
+      token,
+      replay,
+      signal,
+    }: {
+      chunk: number;
+      row: number;
+      result: Result;
+      token: string;
+      replay: boolean;
+      signal: AbortSignal;
+    },
   ): Result {
     signal.throwIfAborted();
-    if (entry.snapshot.disposed || entry.snapshot.expiresAt <= this.now()) {
+    if (this.#expired(entry.snapshot)) {
       collectionExpired();
     }
 
@@ -372,7 +422,7 @@ export class SearchCursors {
     const bytes = replay ? Buffer.byteLength(JSON.stringify(result)) : 0;
 
     this.budget.reserve(bytes, more ? 1 : 0);
-    if (entry.snapshot.disposed || entry.snapshot.expiresAt <= this.now()) {
+    if (this.#expired(entry.snapshot)) {
       this.budget.release(bytes, more ? 1 : 0);
       collectionExpired();
     }
@@ -391,12 +441,62 @@ export class SearchCursors {
 }
 
 const owners = new WeakMap<object, SearchCursors>();
+
 /** Share bounded search state only within the opaque continuation scope. */
 export function searchCursors(scope: object): SearchCursors {
   let owner = owners.get(scope);
+
   if (!owner) {
     owner = new SearchCursors(continuation(scope).budget);
     owners.set(scope, owner);
   }
+
   return owner;
+}
+
+function searchRequest(filters: Filters, custId: number) {
+  const range = filters.range;
+
+  const request = {
+    cust_id: custId,
+    event_types: "5",
+    ...(filters.series_id === undefined
+      ? {}
+      : { series_id: filters.series_id }),
+    ...(filters.official_only === undefined
+      ? {}
+      : { official_only: filters.official_only }),
+    ...("start" in range
+      ? {
+          start_range_begin: new Date(range.start),
+          start_range_end: new Date(range.start_end),
+        }
+      : range),
+  };
+
+  return request;
+}
+
+function isDisposed(snapshot: Snapshot) {
+  return snapshot.disposed;
+}
+
+function searchPageValue(
+  snapshot: Snapshot,
+  items: Record<string, unknown>[],
+  complete: boolean,
+  token: string,
+) {
+  const { limit: _limit, ...filters } = snapshot.filters;
+
+  return {
+    cust_id: snapshot.custId,
+    filters: { ...filters, cust_id: snapshot.custId },
+    order: "subsession_id",
+    items,
+    returned_count: items.length,
+    complete,
+    next_cursor: complete ? null : token,
+    source_total: snapshot.info.rows,
+  };
 }

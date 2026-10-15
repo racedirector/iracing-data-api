@@ -14,33 +14,33 @@ import {
   CarApi,
   Configuration,
   DocApi,
-  IracingAPIResponse,
   LookupApi,
-  MemberApi,
   SeriesApi,
   TrackApi,
 } from "@iracing-data/api-client-fetch";
 import {
   InMemoryStore,
-  InternalState,
   DiskStore,
   OAuthRefreshError,
-} from "@iracing-data/oauth-client";
-import {
-  OAuthTokenResponse,
   OAuthClient,
-} from "@iracing-data/oauth-client/dist/client";
+} from "@iracing-data/oauth-client";
 import { fetchConstants } from "./constants";
-import {
-  TrackAssetEntryType,
-  TrackAssetJSONFileSchema,
-} from "./schema/trackAssets";
+import { TrackAssetJSONFileSchema } from "./schema/trackAssets";
+import type { TrackAssetEntryType } from "./schema/trackAssets";
+import type { IracingAPIResponse } from "@iracing-data/api-client-fetch";
+import type {
+  InternalState,
+  OAuthTokenResponse,
+} from "@iracing-data/oauth-client";
 
 const __filename = fileURLToPath(import.meta.url);
+
 const __dirname = dirname(__filename);
 
 const projectRootDir = path.join(__dirname, "..");
+
 const outputPath = path.join(projectRootDir, "output");
+
 const credentialsPath = path.join(outputPath, "credentials.json");
 
 function makeOutputPath(...paths: string[]) {
@@ -55,6 +55,7 @@ function makeOutputPath(...paths: string[]) {
 const exists = async (path: string) => {
   try {
     await access(path, constants.F_OK);
+
     return true;
   } catch {
     return false;
@@ -65,7 +66,9 @@ async function fetchIRacingLink({
   link,
   expires,
 }: Partial<IracingAPIResponse>) {
-  if (!expires) return;
+  if (!expires) {
+    return undefined;
+  }
 
   if (new Date() >= expires) {
     throw new Error("Data is expired. Try fetching again.");
@@ -73,8 +76,13 @@ async function fetchIRacingLink({
 
   if (link) {
     const response = await fetch(link);
-    return await response.json();
+
+    const value: unknown = await response.json();
+
+    return value;
   }
+
+  return undefined;
 }
 
 async function writeResponseDataToFile(
@@ -85,9 +93,7 @@ async function writeResponseDataToFile(
 
   const data = await fetchIRacingLink(response);
 
-  if (data) {
-    await writeFile(outputPath, JSON.stringify(data));
-  }
+  await writeFile(outputPath, JSON.stringify(data));
 }
 
 async function fetchSeries(configuration: Configuration) {
@@ -104,7 +110,9 @@ async function fetchSeries(configuration: Configuration) {
 
 async function fetchCars(configuration: Configuration) {
   const car = new CarApi(configuration);
+
   const carAssetsResponse = await car.getCarAssets();
+
   const carResponse = await car.getCar();
 
   await Promise.all([
@@ -137,19 +145,12 @@ async function fetchLookup(configuration: Configuration) {
 
 async function fetchDocs(configuration: Configuration) {
   const docs = new DocApi(configuration);
-  const outputPath = makeOutputPath("docs.json");
-  const data = await docs.getDocs();
-  if (data) {
-    await writeFile(outputPath, JSON.stringify(data));
-  }
-}
 
-async function fetchTrackSVGLayer(url: URL, outputPath: string) {
-  const response = await fetch(url);
-  const data = await response.text();
-  await writeFile(outputPath, data, {
-    encoding: "utf-8",
-  });
+  const outputPath = makeOutputPath("docs.json");
+
+  const data = await docs.getDocs();
+
+  await writeFile(outputPath, JSON.stringify(data));
 }
 
 async function fetchTrackSVGs(
@@ -160,19 +161,23 @@ async function fetchTrackSVGs(
   const trackOutputDir = path.join(outputDir, track.track_id.toString());
 
   const outputExists = await exists(trackOutputDir);
+
   if (!outputExists) {
     await mkdir(trackOutputDir, { recursive: true });
   }
 
   const trackMapURLPath = track.track_map;
+
   const fetchLayers = Object.values(track.track_map_layers).map(
     async (layer) => {
       const response = await fetch(new URL(layer, trackMapURLPath), {
         headers: {
-          Authorization: `Bearer ${accessToken}`,
+          Authorization: `Bearer ${String(accessToken)}`,
         },
       });
+
       const data = await response.text();
+
       await writeFile(path.join(trackOutputDir, layer), data, {
         encoding: "utf-8",
       });
@@ -188,9 +193,10 @@ async function fetchTracksSVGAssets(accessToken?: string) {
     { encoding: "utf-8" },
   );
 
-  const trackAssetsJson = JSON.parse(trackAssetsContents);
+  const trackAssetsJson: unknown = JSON.parse(trackAssetsContents);
 
   const result = TrackAssetJSONFileSchema.safeParse(trackAssetsJson);
+
   if (!result.success) {
     throw result.error;
   }
@@ -198,6 +204,7 @@ async function fetchTracksSVGAssets(accessToken?: string) {
   console.log("Fetching SVG assets for tracks...");
 
   const trackSVGOutputDir = path.join(outputPath, "tracks");
+
   const tracks = Object.values(result.data);
 
   // This will fetch all of a tracks layers asynchronously, one track at a time.
@@ -213,6 +220,7 @@ async function fetchData(configuration: Configuration, accessToken?: string) {
    * Create the output dir if it doesn't exist
    */
   const outputExists = await exists(outputPath);
+
   if (!outputExists) {
     await mkdir(outputPath, { recursive: true });
   }
@@ -230,18 +238,23 @@ async function fetchData(configuration: Configuration, accessToken?: string) {
   if (docs.status === "rejected") {
     console.log("Could not fetch docs. Reason:", docs.reason);
   }
+
   if (cars.status === "rejected") {
     console.log("Could not fetch cars. Reason:", cars.reason);
   }
+
   if (tracks.status === "rejected") {
     console.log("Could not fetch tracks. Reason:", tracks.reason);
   }
+
   if (series.status === "rejected") {
     console.log("Could not fetch series. Reason:", series.reason);
   }
+
   if (lookup.status === "rejected") {
     console.log("Could not fetch lookup. Reason:", lookup.reason);
   }
+
   if (constants.status === "rejected") {
     console.log("Could not fetch constants. Reason:", constants.reason);
   }
@@ -253,6 +266,7 @@ async function fetchData(configuration: Configuration, accessToken?: string) {
 
 async function runPasswordLimitedOAuthExample() {
   const stateStore = new InMemoryStore<string, InternalState>();
+
   const sessionStore = new DiskStore<string, OAuthTokenResponse>(
     credentialsPath,
   );
@@ -261,7 +275,7 @@ async function runPasswordLimitedOAuthExample() {
 
   const client = new OAuthClient({
     clientMetadata: {
-      clientId: process.env.IRACING_AUTH_CLIENT!,
+      clientId: process.env.IRACING_AUTH_CLIENT ?? "",
       clientSecret: process.env.IRACING_AUTH_SECRET,
       username,
       password: process.env.IRACING_AUTH_PASSWORD,
@@ -272,8 +286,9 @@ async function runPasswordLimitedOAuthExample() {
   });
 
   let session: OAuthTokenResponse | undefined;
+
   try {
-    session = await client.restoreSessionForId(username!);
+    session = await client.restoreSessionForId(username ?? "");
     if (!session) {
       console.log("Could not find existing session. Authenticating...");
       session = await client.passwordLimitedAuthorization();
@@ -288,7 +303,7 @@ async function runPasswordLimitedOAuthExample() {
     }
 
     if (!session) {
-      throw new Error("Failed to restore session!");
+      throw new Error("Failed to restore session!", { cause: error });
     }
   }
 
@@ -309,7 +324,7 @@ const program = new Command("oauth-password-limited")
     await runPasswordLimitedOAuthExample();
   });
 
-program.parseAsync().catch((error) => {
+program.parseAsync().catch((error: unknown) => {
   console.error("oauth-password-limited failed.");
   console.error(error);
   process.exitCode = 1;
