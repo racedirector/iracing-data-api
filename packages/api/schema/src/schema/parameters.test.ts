@@ -64,7 +64,9 @@ describe("semantic endpoint parameters", () => {
       },
     );
     assert.equal(
-      ResultsGetParametersSchema.safeParse({ subsession_id: "invalid" }).success,
+      ResultsGetParametersSchema.safeParse({
+        subsession_id: "invalid",
+      }).success,
       false,
     );
   });
