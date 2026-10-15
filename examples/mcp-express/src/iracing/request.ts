@@ -1,13 +1,13 @@
-import type { Configuration } from "@iracing-data/api-client-fetch";
 import { z } from "zod";
 import type { CacheStore } from "../services/cache";
+import type { Configuration } from "@iracing-data/api-client-fetch";
 
 /** Request-scoped state shared by every iRacing request stage. */
 export interface IRacingRequestContext {
   signal: AbortSignal;
 }
 
-/** Materialized upstream data plus an authoritative cache expiration when available. */
+/** Materialized upstream data */
 export interface IRacingResolvedResponse {
   value: unknown;
   expiresAt?: number;
@@ -112,12 +112,10 @@ export function createIRacingRequestResolver({
 
       const value = request.schema.parse(resolved.value);
 
-      if (
-        cache &&
-        request.cache &&
-        resolved.expiresAt !== undefined
-      ) {
-        await cache.set(request.cache.key, value, resolved.expiresAt, { signal });
+      if (cache && request.cache && resolved.expiresAt !== undefined) {
+        await cache.set(request.cache.key, value, resolved.expiresAt, {
+          signal,
+        });
 
         signal.throwIfAborted();
       }
