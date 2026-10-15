@@ -1,7 +1,7 @@
 const assert = require("node:assert/strict");
-const { test } = require("node:test");
 const { spawn } = require("node:child_process");
 const path = require("node:path");
+const { test } = require("node:test");
 
 test(
   "independent composed MCP contracts run offline in an isolated process",

@@ -11,6 +11,8 @@ pnpm verify
 
 For a failed step, correct its owning source and rerun the focused command: `verify:repo`, `verify:js`, `verify:examples`, `verify:generated` or `verify:rust`. Finish with `pnpm verify`. Report missing tools and skipped checks accurately. Do not patch generated output to bypass checks; [check-generated.mjs](../scripts/check-generated.mjs) owns temporary regeneration and freshness enforcement.
 
+The [ESLint quality policy](LINT-POLICY.md) documents authored-runtime limits, import and architectural checks, generated-file handling, and retained exceptions. `pnpm test:lint-policy` runs the focused ESLint/JSDoc regression tests; they also participate in repository verification.
+
 Repository verification also runs the [modeled-service client boundary](../scripts/check-service-client-boundary.mjs). Authored runtime/root tooling may not bypass generated ownership for modeled Data API/OAuth calls, while application-owned resolution of dynamic opaque URLs returned by typed Data API responses remains allowed.
 
 For focused OAuth and OpenAPI coverage, build before declared tests:
@@ -23,6 +25,8 @@ pnpm --filter @iracing-data/oauth-client --filter @iracing-data/api-schema-to-op
 Use [change impact](CHANGE-IMPACT.md) for planning. Guidance, skills, ownership or workflow changes also require the five manual [agent regression scenarios](../agent-regressions/README.md); CI validates fixtures, not model reasoning. Live [compatibility auditing](UPSTREAM-CONTRACT.md) is opt-in and separate from service-free verification. [Repository protection](REPOSITORY-PROTECTION.md) describes required-check recovery.
 
 For coverage details, descend directly to [schema compatibility tests](../tests/schema-compatibility/compatibility.test.cjs), [offline generated wire tests](../tests/data-contract), [OAuth tests](../packages/oauth/client/test) and [MCP tests](../apps/iracing-data-mcp/test). Synthetic fixtures do not establish live authentication or upstream compatibility.
+
+Repository verification builds all npm workspaces and their dependencies before running ESLint policy tests and lint. Typed lint reads package exports and tests import built `dist` files, so this ordering is required on a clean checkout as well as in CI.
 
 ## Offline Docker recovery
 

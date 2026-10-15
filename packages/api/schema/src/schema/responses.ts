@@ -128,28 +128,39 @@ export type ServicesDocsResponse = z.infer<typeof ServicesDocsResponseSchema>;
 // Historical exports stay in their original module for import compatibility.
 /** @deprecated Use ErrorResponseSchema instead. */
 export const IRacingErrorResponseSchema = ErrorResponseSchema;
+
 /** @deprecated Use APIResponseSchema instead. */
 export const IRacingAPIResponseSchema = APIResponseSchema;
+
 /** @deprecated Use ServiceMethodParametersDocsResponseSchema instead. */
 export const IRacingServiceMethodParametersDocsResponseSchema =
   ServiceMethodParametersDocsResponseSchema;
+
 /** @deprecated Use ServiceMethodDocsResponseSchema instead. */
 export const IRacingServiceMethodDocsResponseSchema =
   ServiceMethodDocsResponseSchema;
+
 /** @deprecated Use ServiceDocsResponseSchema instead. */
 export const IRacingServiceDocsResponseSchema = ServiceDocsResponseSchema;
+
 /** @deprecated Use ServicesDocsResponseSchema instead. */
 export const IRacingServicesDocsResponseSchema = ServicesDocsResponseSchema;
+
 /** @deprecated Use ErrorResponse instead. */
 export type IRacingErrorResponse = ErrorResponse;
+
 /** @deprecated Use APIResponse instead. */
 export type IRacingAPIResponse = APIResponse;
+
 /** @deprecated Use ServiceMethodParametersDocsResponse instead. */
 export type IRacingServiceMethodParametersDocsResponse =
   ServiceMethodParametersDocsResponse;
+
 /** @deprecated Use ServiceMethodDocsResponse instead. */
 export type IRacingServiceMethodDocsResponse = ServiceMethodDocsResponse;
+
 /** @deprecated Use ServiceDocsResponse instead. */
 export type IRacingServiceDocsResponse = ServiceDocsResponse;
+
 /** @deprecated Use ServicesDocsResponse instead. */
 export type IRacingServicesDocsResponse = ServicesDocsResponse;

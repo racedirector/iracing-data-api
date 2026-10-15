@@ -12,8 +12,8 @@
 
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const { z } = require("../../packages/oauth/schema/node_modules/zod");
 const api = require("../../packages/api/schema/src");
+const { z } = require("../../packages/oauth/schema/node_modules/zod");
 const oauth = require("../../packages/oauth/schema/src");
 const { retained: baseline } = require("./retained-exports.cjs");
 test("intentionally removed linked-payload contracts stay outside the schema package", () => {

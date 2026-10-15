@@ -3,9 +3,9 @@
 // and official MCP client remain composed. Only external wire boundaries are synthetic.
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
+const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
-const http = require("node:http");
 const oauth = require("@iracing-data/oauth-client");
 const outputFields = require("./output-fields.json");
 function assertFields(value, fields) {

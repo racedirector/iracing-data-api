@@ -1,6 +1,6 @@
 import { createEndpoint } from "better-call";
 import { z } from "zod";
-import client from "@/oauth-client";
+import { client } from "@/oauth-client";
 
 // TODO: Add routes for session management
 
@@ -11,6 +11,7 @@ export const oauthSignIn = createEndpoint(
   },
   async (context) => {
     const { url } = await client.authorize();
+
     return context.redirect(url.toString());
   },
 );
@@ -67,6 +68,7 @@ export const oauthSignOut = createEndpoint(
   {
     method: "GET",
   },
+  // eslint-disable-next-line @typescript-eslint/require-await -- EndpointHandler requires a Promise even though logout only expires a local cookie.
   async (context) => {
     context.setCookie("iracing-token", "", {
       httpOnly: true,

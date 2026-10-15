@@ -35,10 +35,12 @@ export function browserLaunchCommand(platform: NodeJS.Platform, url: string) {
 export async function openUrlInBrowser(url: string): Promise<void> {
   await new Promise<void>((resolve, reject) => {
     const { command, args } = browserLaunchCommand(process.platform, url);
+
     const child = spawn(command, args, {
       detached: true,
       stdio: "ignore",
     });
+
     child.once("error", reject);
     child.once("spawn", () => {
       child.unref();

@@ -85,218 +85,36 @@ function validateSession(token: OAuthTokenResponse | undefined) {
 export async function createMcpServices(
   options: SessionCompositionOptions,
 ): Promise<McpServices> {
-  const logger = options.logger ?? createDiagnosticLogger();
+  const owner = new SessionOwner(options);
 
-  const context = createRequestContext();
-
-  let state: AuthorizationState = "authorization_required";
-
-  let terminal: ApplicationFailure | undefined;
-
-  // Covers grant submission through durable replacement, not just the HTTP response.
-  let rotationPending = false;
-
-  let ownerClosing = false;
-
-  let ownerShutdown: Promise<void> | undefined;
-
-  const store = new OAuthTokenDocumentSessionStore({
-    filePath: options.credentialFile ?? MCP_CREDENTIAL_FILE,
-    sessionKey: MCP_LOCAL_SESSION_KEY,
-    durability: "required",
-    fileSystem: options.fileSystem,
-  });
-
-  function transition(next: AuthorizationState) {
-    const previous = state;
-
-    state = next;
-    if (previous !== next) {
-      logger.log("info", context, {
-        operation: "session_restore",
-        previous_auth_state: previous,
-        auth_state: next,
-      });
-    }
-  }
-
-  function quarantine(failure: ApplicationFailure) {
-    terminal ??= failure;
-    transition("authorization_required");
-    logger.failure(context, terminal, { operation: "session_restore" });
-
-    return terminal;
-  }
-
-  async function discardCredential() {
-    // A fresh store can delete after the original store quarantines a failed write.
-    // It performs no grant and uses only the existing secure persistence API.
-    return await new OAuthTokenDocumentSessionStore({
-      filePath: options.credentialFile ?? MCP_CREDENTIAL_FILE,
-      sessionKey: MCP_LOCAL_SESSION_KEY,
-      durability: "required",
-      fileSystem: options.fileSystem,
-    })
-      .del(MCP_LOCAL_SESSION_KEY)
-      .then(
-        () => true,
-        () => false,
-      );
-  }
-
-  // App policy wraps the shared store; all filesystem persistence stays in OAuth.
-  const sessionStore: OAuthClientOptions["sessionStore"] = {
-    get: (key) => {
-      if (terminal) {
-        throw terminal;
-      }
-
-      return store.get(key);
-    },
-    del: (key) => store.del(key),
-    async set(key, token) {
-      if (terminal) {
-        throw terminal;
-      }
-
-      try {
-        validateSession(token);
-      } catch (error) {
-        const failure = quarantine(
-          error instanceof ApplicationFailure
-            ? error
-            : authorization("invalid_session"),
-        );
-
-        await discardCredential();
-        throw failure;
-      }
-
-      try {
-        await store.set(key, token);
-
-        // A write that was already underway during shutdown can publish after deletion.
-        // Never allow that late publication or restoration to revive this owner.
-        if (terminal) {
-          await discardCredential();
-          throw terminal;
-        }
-
-        rotationPending = false;
-      } catch {
-        const failure = quarantine(authorization("persistence_failed"));
-
-        await discardCredential();
-        throw failure;
-      }
-    },
-  };
-
-  class OwnedOAuthClient extends OAuthClient {
-    override async refresh(token: string) {
-      if (terminal) {
-        throw terminal;
-      }
-
-      rotationPending = true;
-      try {
-        return await super.refresh(token);
-      } catch (error) {
-        // Only structured OAuth rejection is evidence of nonconsumption.
-        const cause =
-          error instanceof OAuthRefreshError
-            ? Object.getOwnPropertyDescriptor(error, "cause")?.value
-            : undefined;
-
-        const code =
-          error instanceof OAuthRefreshError &&
-          error.code === "OAUTH_RESPONSE_BODY_ERROR" &&
-          cause !== null &&
-          typeof cause === "object"
-            ? Object.getOwnPropertyDescriptor(cause, "error")?.value
-            : undefined;
-
-        if (code === "temporarily_unavailable" || code === "server_error") {
-          rotationPending = false;
-          const failure = new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-            reason: "transient_refresh",
-          });
-
-          logger.failure(context, failure, { operation: "refresh" });
-          throw failure;
-        }
-
-        const failure =
-          code === "invalid_grant"
-            ? authorization("revoked_authorization")
-            : new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-                reason: "rotation_uncertain",
-              });
-
-        // Remove a possibly consumed credential so a normal restart cannot reuse it.
-        // Deletion failure remains terminal; recovery must replace it with stopped login.
-        quarantine(failure);
-        await discardCredential();
-        throw terminal;
-      }
-    }
-    override async restoreSessionForId(key: string) {
-      if (key !== MCP_LOCAL_SESSION_KEY) {
-        throw authorization("invalid_session");
-      }
-
-      if (terminal) {
-        throw terminal;
-      }
-
-      if (ownerClosing) {
-        throw authorization("invalid_session");
-      }
-
-      try {
-        const token = validateSession(await super.restoreSessionForId(key));
-
-        if (terminal) {
-          throw terminal;
-        }
-
-        transition("ready");
-
-        return token;
-      } catch (error) {
-        if (error instanceof ApplicationFailure) {
-          throw error;
-        }
-
-        throw quarantine(authorization("invalid_session"));
-      }
-    }
-  }
   let oauthClient: OAuthClient;
 
   try {
-    oauthClient = new OwnedOAuthClient({
-      clientMetadata: { ...options.clientMetadata, scopes: ["iracing.auth"] },
+    oauthClient = new OwnedOAuthClient(
+      {
+        clientMetadata: { ...options.clientMetadata, scopes: ["iracing.auth"] },
 
-      // No browser authorization is composed into the server.
-      stateStore: {
-        get: () => undefined,
-        set: () => {
-          throw new ApplicationFailure("CONFIGURATION_ERROR");
+        // No browser authorization is composed into the server.
+        stateStore: {
+          get: () => undefined,
+          set: () => {
+            throw new ApplicationFailure("CONFIGURATION_ERROR");
+          },
+          del: () => undefined,
         },
-        del: () => undefined,
+        sessionStore: owner.sessionStore,
       },
-      sessionStore,
-    });
+      owner,
+    );
   } catch {
     throw new ApplicationFailure("CONFIGURATION_ERROR");
   }
 
   try {
-    validateSession(await store.get(MCP_LOCAL_SESSION_KEY));
-    transition("ready");
+    validateSession(await owner.store.get(MCP_LOCAL_SESSION_KEY));
+    owner.transition("ready");
   } catch (error) {
-    quarantine(
+    owner.quarantine(
       error instanceof ApplicationFailure
         ? error
         : authorization("invalid_session"),
@@ -305,54 +123,264 @@ export async function createMcpServices(
 
   const dataApiConfiguration = new Configuration({
     accessToken: async () =>
-      (await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY))!
-        .access_token,
+      validateSession(
+        await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
+      ).access_token,
   });
 
   const continuationScope = {};
 
-  /**
-   * Stop new access and return the same shutdown promise on repeated calls.
-   * If rotation is pending, quarantine the owner and remove uncertain credentials;
-   * reject with CONFIGURATION_ERROR when removal cannot be confirmed.
-   */
-  function shutdownAuthorizationOwner() {
-    ownerShutdown ??= (async () => {
-      ownerClosing = true;
-      if (!rotationPending) {
-        return;
-      }
-
-      quarantine(
-        new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-          reason: "rotation_uncertain",
-        }),
-      );
-      logger.failure(context, terminal, { operation: "shutdown" });
-      if (!(await discardCredential())) {
-        // Do not report a clean stop when secure deletion could not be confirmed.
-        throw new ApplicationFailure("CONFIGURATION_ERROR");
-      }
-    })();
-
-    return ownerShutdown;
-  }
-
   return Object.freeze({
-    shutdownAuthorizationOwner,
+    shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
     oauthClient,
-    authorizationState: () => state,
+    authorizationState: () => owner.state,
     dataApiConfiguration,
     getDataApiAccess: () => {
-      if (terminal) {
+      if (owner.terminal) {
         throw authorization("invalid_session");
       }
 
-      if (ownerClosing) {
+      if (owner.ownerClosing) {
         throw authorization("invalid_session");
       }
 
       return { configuration: dataApiConfiguration, continuationScope };
     },
   });
+}
+
+class SessionOwner {
+  readonly logger: ReturnType<typeof createDiagnosticLogger>;
+  readonly context = createRequestContext();
+  state: AuthorizationState = "authorization_required";
+  terminal: ApplicationFailure | undefined;
+
+  // Covers grant submission through durable replacement, not just the HTTP response.
+  rotationPending = false;
+  ownerClosing = false;
+  ownerShutdown: Promise<void> | undefined;
+  readonly store: OAuthTokenDocumentSessionStore;
+  readonly sessionStore: OAuthClientOptions["sessionStore"];
+
+  constructor(readonly options: SessionCompositionOptions) {
+    this.logger = options.logger ?? createDiagnosticLogger();
+    this.store = new OAuthTokenDocumentSessionStore({
+      filePath: options.credentialFile ?? MCP_CREDENTIAL_FILE,
+      sessionKey: MCP_LOCAL_SESSION_KEY,
+      durability: "required",
+      fileSystem: options.fileSystem,
+    });
+    this.sessionStore = {
+      get: (key) => {
+        if (this.terminal) {
+          throw this.terminal;
+        }
+
+        return this.store.get(key);
+      },
+      del: (key) => this.store.del(key),
+      set: (key, token) => this.set(key, token),
+    };
+  }
+  transition(next: AuthorizationState) {
+    const previous = this.state;
+
+    this.state = next;
+    if (previous !== next) {
+      this.logger.log("info", this.context, {
+        operation: "session_restore",
+        previous_auth_state: previous,
+        auth_state: next,
+      });
+    }
+  }
+
+  quarantine(failure: ApplicationFailure) {
+    this.terminal ??= failure;
+    this.transition("authorization_required");
+    this.logger.failure(this.context, this.terminal, {
+      operation: "session_restore",
+    });
+
+    return this.terminal;
+  }
+
+  async discardCredential() {
+    // A fresh store can delete after the original store quarantines a failed write.
+    // It performs no grant and uses only the existing secure persistence API.
+    return await new OAuthTokenDocumentSessionStore({
+      filePath: this.options.credentialFile ?? MCP_CREDENTIAL_FILE,
+      sessionKey: MCP_LOCAL_SESSION_KEY,
+      durability: "required",
+      fileSystem: this.options.fileSystem,
+    })
+      .del(MCP_LOCAL_SESSION_KEY)
+      .then(
+        () => true,
+        () => false,
+      );
+  }
+
+  currentFailure(): ApplicationFailure | undefined {
+    return this.terminal;
+  }
+
+  async set(key: string, token: OAuthTokenResponse) {
+    if (this.terminal) {
+      throw this.terminal;
+    }
+
+    try {
+      validateSession(token);
+    } catch (error) {
+      const failure = this.quarantine(
+        error instanceof ApplicationFailure
+          ? error
+          : authorization("invalid_session"),
+      );
+
+      await this.discardCredential();
+      throw failure;
+    }
+
+    try {
+      await this.store.set(key, token);
+
+      // A write that was already underway during shutdown can publish after deletion.
+      // Never allow that late publication or restoration to revive this owner.
+      const terminal = this.currentFailure();
+
+      if (terminal) {
+        await this.discardCredential();
+        throw terminal;
+      }
+
+      this.rotationPending = false;
+    } catch {
+      const failure = this.quarantine(authorization("persistence_failed"));
+
+      await this.discardCredential();
+      throw failure;
+    }
+  }
+  shutdownAuthorizationOwner() {
+    this.ownerShutdown ??= (async () => {
+      this.ownerClosing = true;
+      if (!this.rotationPending) {
+        return;
+      }
+
+      this.quarantine(
+        new ApplicationFailure("TOKEN_REFRESH_FAILED", {
+          reason: "rotation_uncertain",
+        }),
+      );
+      this.logger.failure(this.context, this.terminal, {
+        operation: "shutdown",
+      });
+      if (!(await this.discardCredential())) {
+        // Do not report a clean stop when secure deletion could not be confirmed.
+        throw new ApplicationFailure("CONFIGURATION_ERROR");
+      }
+    })();
+
+    return this.ownerShutdown;
+  }
+}
+class OwnedOAuthClient extends OAuthClient {
+  constructor(
+    options: OAuthClientOptions,
+    readonly owner: SessionOwner,
+  ) {
+    super(options);
+  }
+  override async refresh(token: string) {
+    if (this.owner.terminal) {
+      throw this.owner.terminal;
+    }
+
+    this.owner.rotationPending = true;
+    try {
+      return await super.refresh(token);
+    } catch (error) {
+      const code: unknown = refreshRejectionCode(error);
+
+      if (code === "temporarily_unavailable" || code === "server_error") {
+        this.owner.rotationPending = false;
+        const failure = new ApplicationFailure("TOKEN_REFRESH_FAILED", {
+          reason: "transient_refresh",
+        });
+
+        this.owner.logger.failure(this.owner.context, failure, {
+          operation: "refresh",
+        });
+        throw failure;
+      }
+
+      const failure =
+        code === "invalid_grant"
+          ? authorization("revoked_authorization")
+          : new ApplicationFailure("TOKEN_REFRESH_FAILED", {
+              reason: "rotation_uncertain",
+            });
+
+      // Remove a possibly consumed credential so a normal restart cannot reuse it.
+      // Deletion failure remains terminal; recovery must replace it with stopped login.
+      const terminal = this.owner.quarantine(failure);
+
+      await this.owner.discardCredential();
+      throw terminal;
+    }
+  }
+  override async restoreSessionForId(key: string) {
+    if (key !== MCP_LOCAL_SESSION_KEY) {
+      throw authorization("invalid_session");
+    }
+
+    if (this.owner.terminal) {
+      throw this.owner.terminal;
+    }
+
+    if (this.owner.ownerClosing) {
+      throw authorization("invalid_session");
+    }
+
+    try {
+      const token = validateSession(await super.restoreSessionForId(key));
+
+      const terminal = this.owner.currentFailure();
+
+      if (terminal) {
+        throw terminal;
+      }
+
+      this.owner.transition("ready");
+
+      return token;
+    } catch (error) {
+      if (error instanceof ApplicationFailure) {
+        throw error;
+      }
+
+      throw this.owner.quarantine(authorization("invalid_session"));
+    }
+  }
+}
+
+function refreshRejectionCode(error: unknown): unknown {
+  // Only structured OAuth rejection is evidence of nonconsumption.
+  const cause: unknown =
+    error instanceof OAuthRefreshError
+      ? Object.getOwnPropertyDescriptor(error, "cause")?.value
+      : undefined;
+
+  const code: unknown =
+    error instanceof OAuthRefreshError &&
+    error.code === "OAUTH_RESPONSE_BODY_ERROR" &&
+    cause !== null &&
+    typeof cause === "object"
+      ? Object.getOwnPropertyDescriptor(cause, "error")?.value
+      : undefined;
+
+  return code;
 }

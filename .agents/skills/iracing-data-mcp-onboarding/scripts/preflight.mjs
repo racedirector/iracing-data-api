@@ -118,7 +118,7 @@ const volume = dockerDaemon.ok
     ])
   : { ok: false, reason: "docker_unavailable" };
 
-let health = { reachable: false };
+let health;
 
 try {
   const response = await fetch("http://127.0.0.1:3000/healthz", {

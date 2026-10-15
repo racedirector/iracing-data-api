@@ -17,9 +17,8 @@ import path from "node:path";
 import { test } from "node:test";
 import { fileURLToPath } from "node:url";
 import { parse } from "yaml";
-import generator from "../dist/index.js";
+import generator, { document as exportedDocument } from "../dist/index.js";
 
-const { document: exportedDocument } = generator;
 const cli = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 
 async function generate(t) {

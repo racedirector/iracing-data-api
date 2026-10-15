@@ -8,7 +8,7 @@ import { z } from "zod";
 
 const httpsUrl = z
   .string()
-  .url()
+  .pipe(z.url())
   .refine((value) => {
     const url = new URL(value);
 

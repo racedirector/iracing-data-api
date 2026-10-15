@@ -16,6 +16,7 @@ const defaultDependencies: ReturnedDataApiLinkDependencies = {
 /** Validate that an opaque Data API data-plane link is an absolute HTTPS URL. */
 function validateReturnedLink(link: string): void {
   let url: URL;
+
   try {
     url = new URL(link);
   } catch {
@@ -44,6 +45,7 @@ export async function materializeReturnedDataApiLink(
   validateReturnedLink(link);
 
   let response: Response;
+
   try {
     response = await dependencies.fetch(link, {
       method: "GET",
@@ -58,11 +60,12 @@ export async function materializeReturnedDataApiLink(
 
   if (!response.ok) {
     throw new Error(
-      `Asset payload request failed with HTTP ${response.status}. Retry the command to obtain a fresh link.`,
+      `Asset payload request failed with HTTP ${String(response.status)}. Retry the command to obtain a fresh link.`,
     );
   }
 
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
+
   if (
     !contentType.includes("application/json") &&
     !contentType.includes("+json")

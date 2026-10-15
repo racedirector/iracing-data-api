@@ -1,5 +1,5 @@
-import { OAuthTokenResponse } from "@iracing-data/oauth-schema";
-import { SimpleStore } from "../storage";
+import type { SimpleStore } from "../storage";
+import type { OAuthTokenResponse } from "@iracing-data/oauth-schema";
 
 /**
  * Transient authorization state persisted between authorize and callback, including PKCE
@@ -16,5 +16,6 @@ export interface InternalState {
  * state value.
  */
 export type StateStore = SimpleStore<string, InternalState>;
+
 /** Store contract for OAuth token sessions keyed by the application-defined session identifier. */
 export type SessionStore = SimpleStore<string, OAuthTokenResponse>;

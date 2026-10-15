@@ -9,7 +9,10 @@
  * Do not log/serialize raw errors: parameters, provider text and causes can be
  * sensitive. CLI/MCP own safe projections and application retry/quarantine policy.
  */
-import { AuthorizationResponseError, ResponseBodyError } from "oauth4webapi";
+import type {
+  AuthorizationResponseError,
+  ResponseBodyError,
+} from "oauth4webapi";
 
 /**
  * Authorization-callback failure that retains callback evidence for trusted callers while
@@ -17,8 +20,12 @@ import { AuthorizationResponseError, ResponseBodyError } from "oauth4webapi";
  */
 export class OAuthCallbackError extends Error {
   static from(err: unknown, params: URLSearchParams, state?: string) {
-    if (err instanceof OAuthCallbackError) return err;
+    if (err instanceof OAuthCallbackError) {
+      return err;
+    }
+
     const message = err instanceof Error ? err.message : undefined;
+
     return new OAuthCallbackError(params, message, state, err);
   }
 
@@ -45,7 +52,7 @@ export class OAuthCallbackError extends Error {
   ) {
     return new OAuthCallbackError(
       params,
-      `Unknown authorization session "${stateParam}"`,
+      `Unknown authorization session "${String(stateParam)}"`,
     );
   }
 
@@ -59,7 +66,7 @@ export class OAuthCallbackError extends Error {
 
   private constructor(
     public readonly params: URLSearchParams,
-    message = params.get("error_description") || "OAuth callback error",
+    message = callbackErrorDescription(params),
     public readonly state?: string,
     cause?: unknown,
   ) {
@@ -178,7 +185,7 @@ export class OAuthClaimsError extends Error {
     expectedEnvironment: string | null,
   ) {
     return new OAuthClaimsError(
-      `Access token environment mismatch. Expected "${expectedEnvironment}" but received "${environment}".`,
+      `Access token environment mismatch. Expected "${String(expectedEnvironment)}" but received "${String(environment)}".`,
     );
   }
 
@@ -187,4 +194,12 @@ export class OAuthClaimsError extends Error {
       `Access token is missing required scope "${expectedScope}".`,
     );
   }
+}
+
+function callbackErrorDescription(params: URLSearchParams) {
+  const description = params.get("error_description");
+
+  return description === ""
+    ? "OAuth callback error"
+    : (description ?? "OAuth callback error");
 }

@@ -28,6 +28,7 @@ export function createLoginCommand({
   const commandDependencies: LoginCommandDependencies = {
     createScope: createLoginCommandScopeFactory(diagnostics, dependencies),
   };
+
   return createCommand(commandDependencies);
 }
 

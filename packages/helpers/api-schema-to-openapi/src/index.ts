@@ -86,6 +86,7 @@ import { createDocument } from "zod-openapi";
 
 // Array values remain typed; their HTTP query representation is one CSV value.
 const csvParameter = { style: "form" as const, explode: false };
+
 const spectatorQuery = SeasonSpectatorSubsessionidsParametersSchema.extend({
   event_types:
     SeasonSpectatorSubsessionidsParametersSchema.shape.event_types.meta({
@@ -93,6 +94,7 @@ const spectatorQuery = SeasonSpectatorSubsessionidsParametersSchema.extend({
       param: csvParameter,
     }),
 });
+
 const spectatorDetailQuery =
   SeasonSpectatorSubsessionidsDetailParametersSchema.extend({
     event_types: spectatorQuery.shape.event_types,
@@ -1506,6 +1508,7 @@ export const document = createDocument({
     "/data/lookup/get": {
       get: {
         operationId: "getLookup",
+
         // requestParams: {
         // query: z.record(z.string(), z.string()),
         // },

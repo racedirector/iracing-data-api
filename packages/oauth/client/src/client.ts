@@ -29,27 +29,27 @@
  */
 import {
   OAuthTokenResponseSchema,
-  OAuthTokenResponse,
   OAuthPasswordLimitedGrantParametersSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
 import { OAuthApiClient, type OAuthApiClientFactory } from "./api-client";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
+import { IRacingOAuthClientMetadataSchema } from "./schema";
 import {
-  IRacingOAuthClientMetadata,
-  IRacingOAuthClientMetadataInput,
-  IRacingOAuthClientMetadataSchema,
-  SessionStore,
-  StateStore,
-} from "./schema";
-import {
-  AccessTokenValidationOptions,
   decodeAccessToken,
   isAccessTokenExpired,
   maskSecret,
   validateAccessToken as validateDecodedAccessToken,
 } from "./utils";
+import type {
+  IRacingOAuthClientMetadata,
+  IRacingOAuthClientMetadataInput,
+  SessionStore,
+  StateStore,
+} from "./schema";
+import type { AccessTokenValidationOptions } from "./utils";
+import type { OAuthTokenResponse } from "@iracing-data/oauth-schema";
 
 // oauth4webapi validates token_type and normalizes it to lowercase. Restore
 // the public schema representation only after dependency processing.
@@ -63,9 +63,9 @@ function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
 /**
  * Composition inputs for the OAuth lifecycle owner, including immutable client metadata,
  * transient-state storage, session storage, and API construction.
+ * clientMetadata supplies the client registration used by the OAuth lifecycle.
  */
-export type OAuthClientOptions = {
-  // Config
+export interface OAuthClientOptions {
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
 
   // Stores
@@ -75,7 +75,7 @@ export type OAuthClientOptions = {
   // Low-level iRacing OAuth API dependency. The default uses the generated
   // wire client while tests or applications may inject a compatible boundary.
   createOAuthApi?: OAuthApiClientFactory;
-};
+}
 
 /**
  * The `OAuthClient` is responsible for coordinating access and refresh tokens
@@ -118,6 +118,7 @@ export class OAuthClient {
       issuer: this.clientMetadata.issuer,
       authorization_endpoint: this.clientMetadata.authorizationUrl,
       token_endpoint: this.clientMetadata.tokenUrl,
+
       // userinfo_endpoint: this.clientMetadata.userInfoUrl,
     };
 
@@ -147,12 +148,14 @@ export class OAuthClient {
     }
 
     const verifier = oauth.generateRandomCodeVerifier();
+
     const challenge = await oauth.calculatePKCECodeChallenge(verifier);
+
     const state = oauth.generateRandomState();
 
     await this.stateStore.set(state, {
       verifier,
-      iss: this.clientMetadata.issuer!,
+      iss: this.clientMetadata.issuer,
       appState: state,
     });
 
@@ -168,7 +171,7 @@ export class OAuthClient {
       this.clientMetadata.redirectUri,
     );
 
-    if (this.clientMetadata.scopes) {
+    if (this.clientMetadata.scopes.length) {
       authorizationUrl.searchParams.set(
         "scope",
         this.clientMetadata.scopes.join(" "),
@@ -196,6 +199,7 @@ export class OAuthClient {
     if (!username) {
       throw ClientMetadataError.missingCredentials("username");
     }
+
     if (!password) {
       throw ClientMetadataError.missingCredentials("password");
     }
@@ -257,6 +261,7 @@ export class OAuthClient {
     }
 
     const stateParam = params.get("state");
+
     const codeParam = params.get("code");
 
     if (!stateParam) {
@@ -264,6 +269,7 @@ export class OAuthClient {
     }
 
     const stateData = await this.stateStore.get(stateParam);
+
     if (stateData) {
       // Prevent replay
       await this.stateStore.del(stateParam);
@@ -272,6 +278,7 @@ export class OAuthClient {
     }
 
     let codeGrantParams: URLSearchParams;
+
     try {
       codeGrantParams = oauth.validateAuthResponse(
         this.authorizationServer,
@@ -291,13 +298,17 @@ export class OAuthClient {
       throw OAuthCallbackError.codeMissing(params, stateData.appState);
     }
 
+    if (!stateData.verifier) {
+      throw OAuthCallbackError.unknownAuthorizationState(stateParam, params);
+    }
+
     const response = await oauth.authorizationCodeGrantRequest(
       this.authorizationServer,
       this.authorizationClient,
       this.clientAuthorization,
       codeGrantParams,
       this.clientMetadata.redirectUri,
-      stateData.verifier!,
+      stateData.verifier,
     );
 
     const result = await oauth.processAuthorizationCodeResponse(
@@ -310,6 +321,7 @@ export class OAuthClient {
 
     if (sessionId) {
       await this.storeSession(sessionId, token);
+
       return token;
     }
 
@@ -368,9 +380,8 @@ export class OAuthClient {
    *
    * @param sessionId — The id of the session to use for the request.
    * @param method — The HTTP method for the request.
-   * @param url — The path for the request, relative to the iRacing API URL.
-   * @param headers — Headers for the request.
-   * @param body — Request body compatible with the Fetch API and the request's method.
+   * @param path — The path for the request, relative to the iRacing API URL.
+   * @param request — Optional headers, body, and protocol controls for the request.
    * @returns Resolves with a {@link !Response} instance. WWW-Authenticate HTTP Header challenges are
    *   rejected with {@link WWWAuthenticateChallengeError}.
    *
@@ -382,23 +393,15 @@ export class OAuthClient {
     sessionId: string,
     method: string,
     path: string,
-    headers?: Headers,
-    body?: oauth.ProtectedResourceRequestBody,
-    options?: oauth.ProtectedResourceRequestOptions,
+    request: ProtectedRequestOptions = {},
   ) {
     const session = await this.restoreSessionForId(sessionId);
+
     if (session) {
-      return this._makeProtectedRequest(
-        session,
-        method,
-        path,
-        headers,
-        body,
-        options,
-      );
-    } else {
-      throw new SessionNotFoundError(sessionId);
+      return this._makeProtectedRequest(session, method, path, request);
     }
+
+    throw new SessionNotFoundError(sessionId);
   }
 
   /**
@@ -409,9 +412,7 @@ export class OAuthClient {
    * @param session - The session to use for the request.
    * @param method - The HTTP method for the request.
    * @param path - The path for the request, relative to the iRacing API URL.
-   * @param headers - Headers for the request.
-   * @param body - Request body compatible with the Fetch API and the request's method.
-   * @param options - Additional request options passed through to the OAuth helper.
+   * @param request - Headers, body, and protocol options for this request.
    * @returns Resolves with a {@link !Response} instance.
    * @throws {Error} If the protected resource request fails.
    */
@@ -419,17 +420,15 @@ export class OAuthClient {
     session: OAuthTokenResponse,
     method: string,
     path: string,
-    headers?: Headers,
-    body?: oauth.ProtectedResourceRequestBody,
-    options?: oauth.ProtectedResourceRequestOptions,
+    request: ProtectedRequestOptions = {},
   ) {
     return await oauth.protectedResourceRequest(
       session.access_token,
       method,
       new URL(path, "https://members-ng.iracing.com"),
-      headers,
-      body,
-      options,
+      request.headers,
+      request.body,
+      request.options,
     );
   }
 
@@ -484,6 +483,7 @@ export class OAuthClient {
       ...session,
       ...refreshed,
     };
+
     await this.storeSession(sessionId, updatedSession);
 
     return updatedSession;
@@ -513,11 +513,14 @@ export class OAuthClient {
   ): Promise<OAuthTokenResponse | undefined> {
     // Get the session
     const session = await this.getSession(sessionId);
+
     if (session) {
       // Check if the session is expired
       const isExpired = isAccessTokenExpired(session.access_token);
+
       if (isExpired) {
         let refresh = this.sessionRefreshes.get(sessionId);
+
         if (!refresh) {
           refresh = this.refreshSessionForSessionId(sessionId).finally(() => {
             // Keep coordination through persistence, and clear failures so a
@@ -528,6 +531,7 @@ export class OAuthClient {
           });
           this.sessionRefreshes.set(sessionId, refresh);
         }
+
         return await refresh;
       }
 
@@ -565,4 +569,12 @@ export class OAuthClient {
 export type { OAuthTokenResponse };
 
 /** @deprecated Use OAuthTokenResponse instead. */
+// eslint-disable-next-line @typescript-eslint/no-deprecated -- Preserve the historical public re-export; consumers can migrate independently.
 export type { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";
+
+/** Optional headers, body, and protocol controls for one protected resource request. */
+export interface ProtectedRequestOptions {
+  headers?: Headers;
+  body?: oauth.ProtectedResourceRequestBody;
+  options?: oauth.ProtectedResourceRequestOptions;
+}

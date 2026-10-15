@@ -9,7 +9,7 @@ async function readStdin() {
   let value = "";
 
   for await (const chunk of process.stdin) {
-    value += chunk;
+    value += String(chunk);
   }
 
   return value;
@@ -23,7 +23,7 @@ async function runImport() {
     throw new Error("Owner must be stopped.");
   }
 
-  const source = process.argv[2]!;
+  const source = process.argv[2];
 
   if (source === "--credentials-stdin") {
     await importCredentialsJson(await readStdin());

@@ -38,7 +38,9 @@ export function createSeriesAssetsCommand({
     )
     .action(async (options) => {
       const { assets, output, diagnostics } = await createScope(options);
+
       const payload = await assets.get();
+
       output.write(payload);
       diagnostics.info("Series assets fetched.");
     });

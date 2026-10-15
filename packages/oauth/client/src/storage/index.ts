@@ -6,17 +6,20 @@ export type Awaitable<V> = V | PromiseLike<V>;
 
 /** Supported storage-key domain for generic injected stores. */
 export type Key = string | number;
+
 /**
  * Stored-value domain that reserves undefined for a missing entry while still allowing null as
  * intentional data.
  */
-export type Value = NonNullable<unknown> | null;
+export type Value = object | string | number | boolean | symbol | bigint | null;
 
 /**
  * Read controls shared by injected stores; abort signals allow callers to cancel storage work
  * cooperatively.
  */
-export type GetOptions = { signal?: AbortSignal };
+export interface GetOptions {
+  signal?: AbortSignal;
+}
 
 /**
  * Minimal storage abstraction used by OAuth state/session owners, with optional bulk clearing

@@ -64,18 +64,22 @@ interface Cursor {
 export class CollectionCursors {
   readonly #entries = new Map<string, Cursor>();
   readonly #now: () => number;
+
   /** Register expiry cleanup with the shared budget; now returns Unix milliseconds. */
   constructor(
     now: () => number = Date.now,
     readonly budget = new RetentionBudget(),
   ) {
     this.#now = now;
-    budget.registerPruner(() => this.#prune());
+    budget.registerPruner(() => {
+      this.#prune();
+    });
   }
   invalidate(): void {
     this.budget.release(this.#bytes(), this.#entries.size);
     this.#entries.clear();
   }
+
   /** Remove expired cursors and release their snapshot, replay, and token reservations. */
   #prune() {
     const before = this.#bytes(),
@@ -105,6 +109,7 @@ export class CollectionCursors {
 
     return bytes;
   }
+
   /**
    * Clone a collection and return its first page, retaining continuation state as needed.
    * expiresAt is in Unix milliseconds and is capped at five minutes from now.
@@ -165,6 +170,7 @@ export class CollectionCursors {
 
     return this.#page(snapshot, 0);
   }
+
   /**
    * Return a cloned page for this owner's tool-bound token, caching successful replay.
    * Unknown, expired, or wrong-tool tokens throw CURSOR_EXPIRED. Page or retention
@@ -174,7 +180,7 @@ export class CollectionCursors {
     this.#prune();
     const entry = this.#entries.get(token);
 
-    if (!entry || entry.snapshot.tool !== tool) {
+    if (entry?.snapshot.tool !== tool) {
       collectionExpired();
     }
 
@@ -186,23 +192,13 @@ export class CollectionCursors {
 
     return structuredClone(result);
   }
-  /**
-   * Build a page from a zero-based item offset, shrinking it to the response byte cap.
-   * Reserve continuation/replay capacity before publication; capacity and expiry
-   * failures propagate without publishing a new token or cached replay result.
-   */
-  #page(snapshot: Snapshot, offset: number, current?: Cursor): Result {
-    let token: string;
 
-    do {
-      token = randomBytes(32).toString("base64url");
-    } while (this.#entries.has(token));
-
+  #boundedPage(snapshot: Snapshot, offset: number, token: string) {
     let count = Math.min(snapshot.limit, snapshot.items.length - offset);
 
     let result: Result;
 
-    while (true) {
+    for (;;) {
       const complete = offset + count === snapshot.items.length;
 
       const value = {
@@ -226,15 +222,36 @@ export class CollectionCursors {
       }
     }
 
-    const more = offset + count < snapshot.items.length;
+    return { count, result };
+  }
 
-    const resultBytes = current ? Buffer.byteLength(JSON.stringify(result)) : 0;
-
+  #additionalBytes(snapshot: Snapshot, more: boolean, resultBytes: number) {
     const retained = [...this.#entries.values()].some(
       (entry) => entry.snapshot === snapshot,
     );
 
-    const additional = (!retained && more ? snapshot.bytes : 0) + resultBytes;
+    return (!retained && more ? snapshot.bytes : 0) + resultBytes;
+  }
+
+  /**
+   * Build a page from a zero-based item offset, shrinking it to the response byte cap.
+   * Reserve continuation/replay capacity before publication; capacity and expiry
+   * failures propagate without publishing a new token or cached replay result.
+   */
+  #page(snapshot: Snapshot, offset: number, current?: Cursor): Result {
+    let token: string;
+
+    do {
+      token = randomBytes(32).toString("base64url");
+    } while (this.#entries.has(token));
+
+    const { count, result } = this.#boundedPage(snapshot, offset, token);
+
+    const more = offset + count < snapshot.items.length;
+
+    const resultBytes = current ? Buffer.byteLength(JSON.stringify(result)) : 0;
+
+    const additional = this.#additionalBytes(snapshot, more, resultBytes);
 
     if (
       (more && this.#entries.size >= COLLECTION_LIMITS.cursors) ||

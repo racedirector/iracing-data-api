@@ -1,8 +1,8 @@
 const assert = require("node:assert/strict");
-const fs = require("node:fs");
-const path = require("node:path");
-const os = require("node:os");
 const { spawnSync } = require("node:child_process");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
 const test = require("node:test");
 const root = path.resolve(__dirname, "..");
 
@@ -85,7 +85,7 @@ for (const scenario of [
           path.join(directory, ".env"),
           template.replace(
             "IRACING_ACCESS_TOKEN=",
-            `IRACING_ACCESS_TOKEN=${scenario === "empty-file" ? "" : scenario === "environment-override" ? "file-token" : "synthetic-token"}`,
+            `IRACING_ACCESS_TOKEN=${{ "empty-file": "", "environment-override": "file-token" }[scenario] ?? "synthetic-token"}`,
           ),
         );
       }

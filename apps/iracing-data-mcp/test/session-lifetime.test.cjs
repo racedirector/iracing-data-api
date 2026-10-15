@@ -59,7 +59,7 @@ function headers(sessionId) {
   };
 }
 
-async function toolServices(api) {
+async function toolServices(_api) {
   const now = Date.now();
   const driver = {
     cust_id: 1,
@@ -80,7 +80,7 @@ async function toolServices(api) {
       price: 99,
     },
   ];
-  let continuationScope = {};
+  const continuationScope = {};
   const transport = async (url, init) => {
     if (url.hostname === "members-ng.iracing.com") {
       const key = url.pathname.includes("member/info") ? "member" : "cars";
@@ -98,9 +98,6 @@ async function toolServices(api) {
     fetchApi: (url, init) => transport(new URL(url), init),
   });
   const access = () => ({ configuration, continuationScope });
-  const changeScope = () => {
-    continuationScope = {};
-  };
 
   return Object.freeze({
     oauthClient: {},

@@ -1,12 +1,14 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { Configuration, ConstantsApi } from "@iracing-data/api-client-fetch";
+import { ConstantsApi } from "@iracing-data/api-client-fetch";
+import type { Configuration } from "@iracing-data/api-client-fetch";
 
 export async function fetchConstants(
   configuration: Configuration,
   outputDirectory: string,
 ) {
   const constants = new ConstantsApi(configuration);
+
   // These endpoints return data directly, without a cache-link envelope.
   await Promise.all([
     constants

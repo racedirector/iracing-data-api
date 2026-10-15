@@ -26,10 +26,10 @@ export interface LoginEnvironment {
   IRACING_AUTH_PASSWORD?: string;
 }
 
-type PasswordLimitedCredentials = {
+interface PasswordLimitedCredentials {
   username: string;
   password: string;
-};
+}
 
 type PasswordLimitedAuthenticationOptions = PasswordLimitedCredentials & {
   clientId: string;
@@ -94,114 +94,138 @@ export function createLoginCommandScopeFactory(
   diagnostics: Diagnostics,
   dependencies: LoginScopeDependencies = defaultDependencies,
 ): CreateLoginCommandScope {
-  return async (invocation: LoginInvocation) => {
-    const authOnly = invocation.scopes.length === 1;
-    const destination =
-      invocation.output ??
-      invocation.credentials ??
-      (authOnly ? defaultMcpCredentialsPath : defaultCredentialsPath);
+  return async (invocation: LoginInvocation) =>
+    await Promise.resolve(
+      createLoginScope(invocation, diagnostics, dependencies),
+    );
+}
 
-    resolveTokenFormat(destination, invocation.format);
-    if (
-      !invocation.output &&
-      !invocation.credentials &&
-      invocation.format === "yaml"
-    ) {
-      throw new Error(
-        "The shared credential file uses JSON. Pass --credentials with a .yaml path for YAML output.",
-      );
-    }
+function createLoginScope(
+  invocation: LoginInvocation,
+  diagnostics: Diagnostics,
+  dependencies: LoginScopeDependencies,
+): Awaited<ReturnType<CreateLoginCommandScope>> {
+  const authOnly = invocation.scopes.length === 1;
 
-    return {
-      authentication: {
-        /**
-         * Return the selected method's OAuth token without writing a credential file.
-         * Browser login uses the invocation's callback timeout in seconds and may open
-         * a browser. Its failures propagate; browser-opening failure allows manual login.
-         *
-         * Password-limited login requires nonempty client ID, client secret, username,
-         * and password from the scoped environment. Trim the username but preserve the
-         * password verbatim. Missing values reject before any grant attempt; otherwise
-         * invoke authentication once, without retrying. Grant failures become a fixed
-         * Error that omits the original cause. Browser options do not apply to this method.
-         */
-        async authenticate() {
-          const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
-          const clientSecret =
-            dependencies.environment.IRACING_AUTH_SECRET || undefined;
+  const destination =
+    invocation.output ??
+    invocation.credentials ??
+    (authOnly ? defaultMcpCredentialsPath : defaultCredentialsPath);
 
-          if (invocation.method === "browser") {
-            return await dependencies.authenticate({
-              clientId,
-              clientSecret,
-              redirectUri:
-                dependencies.environment.IRACING_AUTH_REDIRECT_URI || undefined,
-              scopes: invocation.scopes,
-              timeoutSeconds: Number(invocation.timeoutSeconds),
-              openBrowser: invocation.open,
-              diagnostics,
-            });
-          }
+  resolveTokenFormat(destination, invocation.format);
+  if (
+    !invocation.output &&
+    !invocation.credentials &&
+    invocation.format === "yaml"
+  ) {
+    throw new Error(
+      "The shared credential file uses JSON. Pass --credentials with a .yaml path for YAML output.",
+    );
+  }
 
-          if (!clientId) {
-            throw new Error(
-              "Missing required environment variable: IRACING_AUTH_CLIENT",
-            );
-          }
-          if (!clientSecret) {
-            throw new Error(
-              "Password-limited authentication requires IRACING_AUTH_SECRET for an eligible confidential client.",
-            );
-          }
-
-          const username =
-            dependencies.environment.IRACING_AUTH_USERNAME?.trim();
-          const password = dependencies.environment.IRACING_AUTH_PASSWORD;
-          if (!username) {
-            throw new Error(
-              "Password-limited authentication requires IRACING_AUTH_USERNAME.",
-            );
-          }
-          if (!password) {
-            throw new Error(
-              "Password-limited authentication requires IRACING_AUTH_PASSWORD.",
-            );
-          }
-
-          const authenticate =
-            dependencies.authenticatePasswordLimited ??
-            authenticateWithPasswordLimited;
-
-          try {
-            return await authenticate({
-              clientId,
-              clientSecret,
-              scopes: invocation.scopes,
-              username,
-              password,
-            });
-          } catch {
-            throw new Error(
-              "Password-limited OAuth authentication failed. Verify client eligibility, registered user access, credentials, and requested scope before trying again.",
-            );
-          }
-        },
+  return {
+    authentication: {
+      /**
+       * Return the selected method's OAuth token without writing a credential file.
+       * Browser login uses the invocation's callback timeout in seconds and may open
+       * a browser. Its failures propagate; browser-opening failure allows manual login.
+       *
+       * Password-limited login requires nonempty client ID, client secret, username,
+       * and password from the scoped environment. Trim the username but preserve the
+       * password verbatim. Missing values reject before any grant attempt; otherwise
+       * invoke authentication once, without retrying. Grant failures become a fixed
+       * Error that omits the original cause. Browser options do not apply to this method.
+       */
+      async authenticate() {
+        return authenticateInvocation(invocation, diagnostics, dependencies);
       },
-      credentials: {
-        destination,
-        /**
-         * Persist the token, propagating writer failures. Unless force is set,
-         * allow replacement for credential destinations but protect --output.
-         */
-        write(token) {
-          return dependencies.writeOutput(token, {
-            output: destination,
-            format: invocation.format,
-            force: invocation.force ?? !invocation.output,
-          });
-        },
+    },
+    credentials: {
+      destination,
+
+      /**
+       * Persist the token, propagating writer failures. Unless force is set,
+       * allow replacement for credential destinations but protect --output.
+       */
+      write(token) {
+        return dependencies.writeOutput(token, {
+          output: destination,
+          format: invocation.format,
+          force: invocation.force ?? !invocation.output,
+        });
       },
-      diagnostics,
-    };
+    },
+    diagnostics,
   };
+}
+
+async function authenticateInvocation(
+  invocation: LoginInvocation,
+  diagnostics: Diagnostics,
+  dependencies: LoginScopeDependencies,
+) {
+  const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
+
+  const clientSecret = nonempty(dependencies.environment.IRACING_AUTH_SECRET);
+
+  if (invocation.method === "browser") {
+    return await dependencies.authenticate({
+      clientId,
+      clientSecret,
+      redirectUri: nonempty(dependencies.environment.IRACING_AUTH_REDIRECT_URI),
+      scopes: invocation.scopes,
+      timeoutSeconds: Number(invocation.timeoutSeconds),
+      openBrowser: invocation.open,
+      diagnostics,
+    });
+  }
+
+  if (!clientId) {
+    throw new Error(
+      "Missing required environment variable: IRACING_AUTH_CLIENT",
+    );
+  }
+
+  if (!clientSecret) {
+    throw new Error(
+      "Password-limited authentication requires IRACING_AUTH_SECRET for an eligible confidential client.",
+    );
+  }
+
+  const username = dependencies.environment.IRACING_AUTH_USERNAME?.trim();
+
+  const password = dependencies.environment.IRACING_AUTH_PASSWORD;
+
+  if (!username) {
+    throw new Error(
+      "Password-limited authentication requires IRACING_AUTH_USERNAME.",
+    );
+  }
+
+  if (!password) {
+    throw new Error(
+      "Password-limited authentication requires IRACING_AUTH_PASSWORD.",
+    );
+  }
+
+  const authenticate =
+    dependencies.authenticatePasswordLimited ?? authenticateWithPasswordLimited;
+
+  try {
+    return await authenticate({
+      clientId,
+      clientSecret,
+      scopes: invocation.scopes,
+      username,
+      password,
+    });
+  } catch {
+    throw new Error(
+      "Password-limited OAuth authentication failed. Verify client eligibility, registered user access, credentials, and requested scope before trying again.",
+    );
+  }
+}
+
+function nonempty(value: string | undefined) {
+  return value === "" ? undefined : value;
 }

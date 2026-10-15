@@ -20,8 +20,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { parse as parseToml } from "smol-toml";
-import ts from "typescript";
+import * as ts from "typescript";
 import { parse as parseYaml } from "yaml";
+
+const normalize = (value) => path.posix.normalize(value).replace(/\/$/, "");
 
 export const repositoryRoot = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -35,7 +37,7 @@ export function checkTopology(root = repositoryRoot, releaseName) {
   };
   const read = (file) => fs.readFileSync(path.join(root, file), "utf8");
   const json = (file) => JSON.parse(read(file));
-  const normalize = (value) => path.posix.normalize(value).replace(/\/$/, "");
+
   const sameSet = (actual, expected, label) => {
     check(
       new Set(actual).size === actual.length,

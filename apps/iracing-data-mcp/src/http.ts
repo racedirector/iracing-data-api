@@ -14,6 +14,7 @@ import {
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
 import express, {
+  json,
   type ErrorRequestHandler,
   type RequestHandler,
 } from "express";
@@ -38,7 +39,9 @@ export type Schedule = (
 const schedule: Schedule = (callback, milliseconds) => {
   const timer = setTimeout(callback, milliseconds);
 
-  return () => clearTimeout(timer);
+  return () => {
+    clearTimeout(timer);
+  };
 };
 
 /**
@@ -148,9 +151,8 @@ function installTransportLifecycle(
         : undefined;
 
     if ("error" in message) {
-      operation?.release();
-      if (operation && (typeof id === "string" || typeof id === "number")) {
-        session.tools.delete(id);
+      if (operation) {
+        releaseOperation(session, id, operation);
       }
 
       safe = {
@@ -169,92 +171,14 @@ function installTransportLifecycle(
 
       operation.settled = true;
 
-      const result = message.result;
-
-      if (result.isError) {
-        const parsed = ErrorEnvelopeSchema.safeParse(result.structuredContent);
-
-        safe = {
-          ...message,
-          result: parsed.success
-            ? toolError(
-                new ApplicationFailure(
-                  parsed.data.error.code,
-                  parsed.data.error,
-                ),
-                operation.context,
-              )
-            : failure(operation.context),
-        };
-      }
-
-      operation.release();
-      if (typeof id === "string" || typeof id === "number") {
-        session.tools.delete(id);
-      }
+      safe = sanitizeToolResult(message, operation, failure);
+      releaseOperation(session, id, operation);
     }
 
     await send(safe, extra);
   };
 
-  const receive = session.transport.onmessage!;
-
-  session.transport.onmessage = (message, extra) => {
-    if (
-      "method" in message &&
-      "id" in message &&
-      message.method === "tools/call" &&
-      (typeof message.id === "string" || typeof message.id === "number")
-    ) {
-      const binding = session.requests.get(message.id) ?? {
-        context: createRequestContext(),
-        cancel: () => {},
-        signal: new AbortController().signal,
-      };
-
-      let released = false;
-
-      const operation: ToolOperation = {
-        ...binding,
-        settled: false,
-        release: () => {
-          if (!released) {
-            released = true;
-            binding.signal.removeEventListener("abort", cancelOperation);
-          }
-        },
-      };
-
-      session.tools.set(message.id, operation);
-      const cancelOperation = () => {
-        receive({
-          jsonrpc: "2.0",
-          method: "notifications/cancelled",
-          params: {
-            requestId: message.id,
-            reason: "HTTP request aborted.",
-          },
-        });
-        operation.release();
-        session.tools.delete(message.id);
-        logger.failure(
-          binding.context,
-          new ApplicationFailure("INTERNAL_ERROR"),
-          { operation: "tool_call", stage: "failed" },
-        );
-      };
-
-      if (binding.signal.aborted) {
-        cancelOperation();
-      } else {
-        binding.signal.addEventListener("abort", cancelOperation, {
-          once: true,
-        });
-      }
-    }
-
-    receive(message, extra);
-  };
+  installIncomingLifecycle(session, logger);
 }
 
 /**
@@ -331,38 +255,16 @@ async function createMcpSession(
   const session: McpSession = {
     mcp,
     transport,
-    handleRequest: toNodeHandler(
-      {
-        async fetch(request, requestOptions) {
-          const response = await transport.handleRequest(
-            request,
-            requestOptions,
-          );
-
-          // SDK errors can echo untrusted headers; retain status without exposing them.
-          if (response.status >= 400) {
-            await response.body?.cancel();
-
-            return new Response("Protocol request rejected.", {
-              status: response.status,
-              headers: { "Content-Type": "text/plain" },
-            });
-          }
-
-          return response;
-        },
-      },
-      {
-        maxRequestBodySize: transportLimits.bodyBytes,
-        onerror: (error) => logger.failure(createRequestContext(), error),
-      },
-    ),
+    handleRequest: createNodeRequestHandler(transport, logger),
     requests: new Map(),
     tools: new Map(),
     stateful,
   };
 
-  mcp.server.onerror = (error) => logger.failure(createRequestContext(), error);
+  mcp.server.onerror = (error) => {
+    logger.failure(createRequestContext(), error);
+  };
+
   await mcp.connect(transport);
   installTransportLifecycle(session, logger);
 
@@ -385,69 +287,15 @@ async function createMcpSession(
  * allowed when present. Rejected hosts or origins receive HTTP 403.
  */
 export function createHttpApplication(options: HttpApplicationOptions) {
-  const logger = options.logger ?? createDiagnosticLogger();
+  const owner = new HttpOwner(options);
 
-  const clock = options.schedule ?? schedule;
-
-  const active = new Set<() => void>();
-
-  const sessions = new Map<string, McpSession>();
-
-  let stopping = false;
-
-  let shutdownPromise: Promise<void> | undefined;
-
-  const app = express();
-
-  const server = createServer(app);
+  const { app, logger } = owner;
 
   app.disable("x-powered-by");
 
   // SDK Host/Origin middleware is port-agnostic. Keep the established exact
   // authority/origin policy (including duplicate Host rejection) for this host.
-  app.use((req, res, next) => {
-    const hostCount = req.rawHeaders.filter(
-      (header, index) => index % 2 === 0 && header.toLowerCase() === "host",
-    ).length;
-
-    if (
-      hostCount !== 1 ||
-      !(options.allowedHosts ?? ["127.0.0.1:3000", "localhost:3000"]).includes(
-        req.headers.host ?? "",
-      )
-    ) {
-      res.status(403).type("text").send("Host rejected.");
-
-      return;
-    }
-
-    if (
-      req.headers.origin !== undefined &&
-      !(
-        options.allowedOrigins ?? [
-          "http://127.0.0.1:3000",
-          "http://localhost:3000",
-        ]
-      ).includes(req.headers.origin)
-    ) {
-      res.status(403).type("text").send("Origin rejected.");
-
-      return;
-    }
-
-    res.once("finish", () => {
-      if (stopping) {
-        server.closeIdleConnections();
-      }
-    });
-    if (stopping) {
-      res.status(503).type("text").send("Server is shutting down.");
-
-      return;
-    }
-
-    next();
-  });
+  app.use(hostBoundary(options, owner));
 
   app.get("/healthz", (_req, res) => {
     // Cached local state only; health never restores or refreshes credentials.
@@ -467,96 +315,8 @@ export function createHttpApplication(options: HttpApplicationOptions) {
 
   // Authentication precedes parsing. Express owns buffering, byte limits and JSON
   // errors; compressed uploads are disabled so they cannot bypass the wire bound.
-  app.all(
-    "/mcp",
-    express.json({ limit: transportLimits.bodyBytes, inflate: false }),
-  );
-  const handleMcpRequest: RequestHandler = async (req, res) => {
-    if (stopping) {
-      res.status(503).type("text").send("Server is shutting down.");
-
-      return;
-    }
-
-    // One RPC operation binds to one HTTP cancellation scope.
-    // The legacy SDK accepts batches, but this host has never admitted them.
-    if (Array.isArray(req.body)) {
-      res.status(400).type("text").send("Batch requests are unsupported.");
-
-      return;
-    }
-
-    const context = createRequestContext();
-
-    const controller = new AbortController();
-
-    const cancel = () => controller.abort();
-
-    const disconnected = () => {
-      if (!res.writableFinished) {
-        cancel();
-      }
-    };
-
-    active.add(cancel);
-    res.on("close", disconnected);
-    req.on("aborted", cancel);
-    let session: McpSession | undefined;
-
-    const requestId = jsonRpcId(req.body);
-
-    try {
-      const sessionId = requestSessionId(req);
-
-      session = sessionId ? sessions.get(sessionId) : undefined;
-
-      if (sessionId && !session) {
-        res.status(404).type("text").send("Session not found.");
-
-        return;
-      }
-
-      if (!session && req.method !== "POST") {
-        res.status(400).type("text").send("Mcp-Session-Id header is required.");
-
-        return;
-      }
-
-      session ??= await createMcpSession(
-        options,
-        logger,
-        sessions,
-        options.sessionIdGenerator !== undefined,
-      );
-      if (requestId !== undefined) {
-        session.requests.set(requestId, {
-          context,
-          cancel,
-          signal: controller.signal,
-        });
-      }
-
-      await Promise.race([
-        session.handleRequest(req, res, req.body),
-        new Promise<void>((resolve) => {
-          controller.signal.addEventListener("abort", () => resolve(), {
-            once: true,
-          });
-        }),
-      ]);
-    } finally {
-      if (requestId !== undefined) {
-        session?.requests.delete(requestId);
-      }
-
-      active.delete(cancel);
-      res.off("close", disconnected);
-      req.off("aborted", cancel);
-      if (session && (!session.stateful || session.id === undefined)) {
-        await closeMcpSession(session, sessions);
-      }
-    }
-  };
+  app.all("/mcp", json({ limit: transportLimits.bodyBytes, inflate: false }));
+  const handleMcpRequest = mcpRequestHandler(options, owner);
 
   app.post("/mcp", handleMcpRequest);
   if (options.sessionIdGenerator) {
@@ -565,91 +325,13 @@ export function createHttpApplication(options: HttpApplicationOptions) {
   }
 
   // Keep parser/async failures sanitized; Express 5 forwards rejected handlers here.
-  const errors: ErrorRequestHandler = (error: unknown, _req, res, next) => {
-    const status =
-      typeof error === "object" &&
-      error !== null &&
-      "status" in error &&
-      typeof error.status === "number" &&
-      Number.isInteger(error.status) &&
-      error.status >= 400 &&
-      error.status <= 599
-        ? error.status
-        : 500;
-
-    logger.log("error", createRequestContext(), { status });
-    if (res.headersSent) {
-      next(new Error("Request failed."));
-
-      return;
-    }
-
-    res.status(status).type("text").send("Request failed.");
-  };
+  const errors = errorHandler(logger);
 
   app.use(errors);
 
   // Node owns ordinary HTTP header/upload timeouts; no tool deadline is imposed.
 
-  return {
-    server,
-
-    /** Counts initialized sessions still registered, excluding stateless exchanges. */
-    get activeSessions() {
-      return sessions.size;
-    },
-    get stopping() {
-      return stopping;
-    },
-    listen(port = 3000, host = "127.0.0.1") {
-      return new Promise<void>((resolve, reject) => {
-        server.once("error", reject);
-        server.listen(port, host, () => {
-          server.off("error", reject);
-          resolve();
-        });
-      });
-    },
-
-    /**
-     * Stops new HTTP work and drains active exchanges, canceling remaining requests and
-     * connections after 10 seconds. Closes registered MCP sessions before invoking
-     * the authorization owner's shutdown hook. Returns the same promise on repeat
-     * calls; cleanup failures reject it, and session close failure skips the hook.
-     */
-    shutdown() {
-      if (shutdownPromise) {
-        return shutdownPromise;
-      }
-
-      stopping = true;
-      shutdownPromise = new Promise<void>((resolve) => {
-        const clear = clock(() => {
-          for (const abort of active) {
-            abort();
-          }
-
-          server.closeAllConnections();
-        }, transportLimits.drainMs);
-
-        server.close(() => {
-          clear();
-          resolve();
-        });
-        server.closeIdleConnections();
-      })
-        .then(async () => {
-          await Promise.all(
-            [...sessions.values()].map((session) =>
-              closeMcpSession(session, sessions),
-            ),
-          );
-        })
-        .then(() => options.services.shutdownAuthorizationOwner?.());
-
-      return shutdownPromise;
-    },
-  };
+  return applicationControls(owner);
 }
 
 /**
@@ -688,4 +370,420 @@ export function installTerminationHandlers(
     process.off("SIGTERM", terminate);
     process.off("SIGINT", terminate);
   };
+}
+
+function installIncomingLifecycle(
+  session: McpSession,
+  logger: DiagnosticLogger,
+) {
+  const receive = session.transport.onmessage;
+
+  if (!receive) {
+    throw new Error("MCP transport has no message receiver.");
+  }
+
+  session.transport.onmessage = (message, extra) => {
+    if (
+      "method" in message &&
+      "id" in message &&
+      message.method === "tools/call" &&
+      (typeof message.id === "string" || typeof message.id === "number")
+    ) {
+      const binding = session.requests.get(message.id) ?? {
+        context: createRequestContext(),
+        cancel: () => undefined,
+        signal: new AbortController().signal,
+      };
+
+      let released = false;
+
+      const operation: ToolOperation = {
+        ...binding,
+        settled: false,
+        release: () => {
+          if (!released) {
+            released = true;
+            binding.signal.removeEventListener("abort", cancelOperation);
+          }
+        },
+      };
+
+      session.tools.set(message.id, operation);
+      const cancelOperation = () => {
+        receive({
+          jsonrpc: "2.0",
+          method: "notifications/cancelled",
+          params: {
+            requestId: message.id,
+            reason: "HTTP request aborted.",
+          },
+        });
+        operation.release();
+        session.tools.delete(message.id);
+        logger.failure(
+          binding.context,
+          new ApplicationFailure("INTERNAL_ERROR"),
+          { operation: "tool_call", stage: "failed" },
+        );
+      };
+
+      if (binding.signal.aborted) {
+        cancelOperation();
+      } else {
+        binding.signal.addEventListener("abort", cancelOperation, {
+          once: true,
+        });
+      }
+    }
+
+    receive(message, extra);
+  };
+}
+
+function sanitizeToolResult(
+  message: Extract<JSONRPCMessage, { result: unknown }>,
+  operation: ToolOperation,
+  failure: (context: RequestContext) => ReturnType<typeof toolError>,
+): JSONRPCMessage {
+  let safe: JSONRPCMessage = message;
+
+  const result = message.result;
+
+  if (result.isError) {
+    const parsed = ErrorEnvelopeSchema.safeParse(result.structuredContent);
+
+    safe = {
+      ...message,
+      result: parsed.success
+        ? toolError(
+            new ApplicationFailure(parsed.data.error.code, parsed.data.error),
+            operation.context,
+          )
+        : failure(operation.context),
+    };
+  }
+
+  return safe;
+}
+
+function hostBoundary(
+  options: HttpApplicationOptions,
+  owner: HttpOwner,
+): RequestHandler {
+  return (req, res, next) => {
+    const hostCount = req.rawHeaders.filter(
+      (header, index) => index % 2 === 0 && header.toLowerCase() === "host",
+    ).length;
+
+    if (
+      hostCount !== 1 ||
+      !(options.allowedHosts ?? ["127.0.0.1:3000", "localhost:3000"]).includes(
+        req.headers.host ?? "",
+      )
+    ) {
+      res.status(403).type("text").send("Host rejected.");
+
+      return;
+    }
+
+    if (
+      req.headers.origin !== undefined &&
+      !(
+        options.allowedOrigins ?? [
+          "http://127.0.0.1:3000",
+          "http://localhost:3000",
+        ]
+      ).includes(req.headers.origin)
+    ) {
+      res.status(403).type("text").send("Origin rejected.");
+
+      return;
+    }
+
+    res.once("finish", () => {
+      if (owner.stopping) {
+        owner.server.closeIdleConnections();
+      }
+    });
+    if (owner.stopping) {
+      res.status(503).type("text").send("Server is shutting down.");
+
+      return;
+    }
+
+    next();
+  };
+}
+
+function mcpRequestHandler(
+  options: HttpApplicationOptions,
+  owner: HttpOwner,
+): RequestHandler {
+  return async (req, res) => {
+    if (owner.stopping) {
+      res.status(503).type("text").send("Server is shutting down.");
+
+      return;
+    }
+
+    // One RPC operation binds to one HTTP cancellation scope.
+    // The legacy SDK accepts batches, but this host has never admitted them.
+    if (Array.isArray(req.body)) {
+      res.status(400).type("text").send("Batch requests are unsupported.");
+
+      return;
+    }
+
+    const context = createRequestContext();
+
+    const { controller, cancel, disconnected } = bindRequestCancellation(
+      req,
+      res,
+      owner,
+    );
+
+    let session: McpSession | undefined;
+
+    const requestId = jsonRpcId(req.body);
+
+    try {
+      session = await requestMcpSession(req, res, options, owner);
+      if (!session) {
+        return;
+      }
+
+      if (requestId !== undefined) {
+        session.requests.set(requestId, {
+          context,
+          cancel,
+          signal: controller.signal,
+        });
+      }
+
+      await Promise.race([
+        session.handleRequest(req, res, req.body),
+        new Promise<void>((resolve) => {
+          controller.signal.addEventListener(
+            "abort",
+            () => {
+              resolve();
+            },
+            {
+              once: true,
+            },
+          );
+        }),
+      ]);
+    } finally {
+      if (requestId !== undefined) {
+        session?.requests.delete(requestId);
+      }
+
+      owner.active.delete(cancel);
+      res.off("close", disconnected);
+      req.off("aborted", cancel);
+      if (session && (!session.stateful || session.id === undefined)) {
+        await closeMcpSession(session, owner.sessions);
+      }
+    }
+  };
+}
+
+function errorHandler(logger: DiagnosticLogger): ErrorRequestHandler {
+  return (error: unknown, _req, res, next) => {
+    const status =
+      typeof error === "object" &&
+      error !== null &&
+      "status" in error &&
+      typeof error.status === "number" &&
+      Number.isInteger(error.status) &&
+      error.status >= 400 &&
+      error.status <= 599
+        ? error.status
+        : 500;
+
+    logger.log("error", createRequestContext(), { status });
+    if (res.headersSent) {
+      next(new Error("Request failed."));
+
+      return;
+    }
+
+    res.status(status).type("text").send("Request failed.");
+  };
+}
+
+class HttpOwner {
+  readonly logger: DiagnosticLogger;
+  readonly clock: Schedule;
+  readonly active = new Set<() => void>();
+  readonly sessions = new Map<string, McpSession>();
+  stopping = false;
+  shutdownPromise: Promise<void> | undefined;
+  readonly app = express();
+  readonly server = createServer(this.app);
+  constructor(readonly options: HttpApplicationOptions) {
+    this.logger = options.logger ?? createDiagnosticLogger();
+    this.clock = options.schedule ?? schedule;
+  }
+}
+
+function applicationControls(owner: HttpOwner) {
+  return {
+    server: owner.server,
+
+    /** Counts initialized sessions still registered, excluding stateless exchanges. */
+    get activeSessions() {
+      return owner.sessions.size;
+    },
+    get stopping() {
+      return owner.stopping;
+    },
+    listen(port = 3000, host = "127.0.0.1") {
+      return new Promise<void>((resolve, reject) => {
+        owner.server.once("error", reject);
+        owner.server.listen(port, host, () => {
+          owner.server.off("error", reject);
+          resolve();
+        });
+      });
+    },
+
+    /**
+     * Stops new HTTP work and drains active exchanges, canceling remaining requests and
+     * connections after 10 seconds. Closes registered MCP sessions before invoking
+     * the authorization owner's shutdown hook. Returns the same promise on repeat
+     * calls; cleanup failures reject it, and session close failure skips the hook.
+     */
+    shutdown() {
+      if (owner.shutdownPromise) {
+        return owner.shutdownPromise;
+      }
+
+      owner.stopping = true;
+      owner.shutdownPromise = new Promise<void>((resolve) => {
+        const clear = owner.clock(() => {
+          for (const abort of owner.active) {
+            abort();
+          }
+
+          owner.server.closeAllConnections();
+        }, transportLimits.drainMs);
+
+        owner.server.close(() => {
+          clear();
+          resolve();
+        });
+        owner.server.closeIdleConnections();
+      })
+        .then(async () => {
+          await Promise.all(
+            [...owner.sessions.values()].map((session) =>
+              closeMcpSession(session, owner.sessions),
+            ),
+          );
+        })
+        .then(() => owner.options.services.shutdownAuthorizationOwner?.());
+
+      return owner.shutdownPromise;
+    },
+  };
+}
+
+async function requestMcpSession(
+  req: Parameters<RequestHandler>[0],
+  res: Parameters<RequestHandler>[1],
+  options: HttpApplicationOptions,
+  owner: HttpOwner,
+): Promise<McpSession | undefined> {
+  const sessionId = requestSessionId(req);
+
+  let session = sessionId ? owner.sessions.get(sessionId) : undefined;
+
+  if (sessionId && !session) {
+    res.status(404).type("text").send("Session not found.");
+
+    return undefined;
+  }
+
+  if (!session && req.method !== "POST") {
+    res.status(400).type("text").send("Mcp-Session-Id header is required.");
+
+    return undefined;
+  }
+
+  session ??= await createMcpSession(
+    options,
+    owner.logger,
+    owner.sessions,
+    options.sessionIdGenerator !== undefined,
+  );
+
+  return session;
+}
+
+function releaseOperation(
+  session: McpSession,
+  id: unknown,
+  operation: ToolOperation,
+) {
+  operation.release();
+  if (typeof id === "string" || typeof id === "number") {
+    session.tools.delete(id);
+  }
+}
+
+function createNodeRequestHandler(
+  transport: WebStandardStreamableHTTPServerTransport,
+  logger: DiagnosticLogger,
+) {
+  return toNodeHandler(
+    {
+      async fetch(request, requestOptions) {
+        const response = await transport.handleRequest(request, requestOptions);
+
+        // SDK errors can echo untrusted headers; retain status without exposing them.
+        if (response.status >= 400) {
+          await response.body?.cancel();
+
+          return new Response("Protocol request rejected.", {
+            status: response.status,
+            headers: { "Content-Type": "text/plain" },
+          });
+        }
+
+        return response;
+      },
+    },
+    {
+      maxRequestBodySize: transportLimits.bodyBytes,
+      onerror: (error) => {
+        logger.failure(createRequestContext(), error);
+      },
+    },
+  );
+}
+
+function bindRequestCancellation(
+  req: Parameters<RequestHandler>[0],
+  res: Parameters<RequestHandler>[1],
+  owner: HttpOwner,
+) {
+  const controller = new AbortController();
+
+  const cancel = () => {
+    controller.abort();
+  };
+
+  const disconnected = () => {
+    if (!res.writableFinished) {
+      cancel();
+    }
+  };
+
+  owner.active.add(cancel);
+  res.on("close", disconnected);
+  req.on("aborted", cancel);
+
+  return { controller, cancel, disconnected };
 }

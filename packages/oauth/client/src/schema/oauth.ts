@@ -2,9 +2,13 @@ import { OAuthScopesSchema } from "@iracing-data/oauth-schema";
 import { z } from "zod";
 
 const BASE_URL = "https://oauth.iracing.com";
+
 const DEFAULT_OAUTH_URL = `${BASE_URL}/oauth2`;
+
 const DEFAULT_AUTH_URL = `${DEFAULT_OAUTH_URL}/authorize`;
+
 const DEFAULT_TOKEN_URL = `${DEFAULT_OAUTH_URL}/token`;
+
 const DEFAULT_USER_INFO_URL = `${DEFAULT_OAUTH_URL}/iracing/profile`;
 
 export const IRacingOAuthBaseURL = z.literal(DEFAULT_OAUTH_URL).meta({
@@ -117,11 +121,15 @@ export const IRacingOAuthClientMetadataSchema = z
   })
   .superRefine((value, ctx) => {
     const hasRedirectUri = Boolean(value.redirectUri);
+
     const hasUsername = value.username !== undefined;
+
     const hasPassword = value.password !== undefined;
+
     const hasClientSecret = value.clientSecret !== undefined;
 
     const passwordLimitedFieldsProvided = hasUsername || hasPassword;
+
     const passwordLimitedFlowReady =
       hasUsername && hasPassword && hasClientSecret;
 

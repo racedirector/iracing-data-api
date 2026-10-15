@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const http = require("node:http");
+const test = require("node:test");
 const { Configuration } = require("@iracing-data/api-client-fetch");
 
 const hidden = {
@@ -60,11 +60,11 @@ async function fixture(t, data = {}, options = {}) {
     (async (url, init) => {
       requests.push({ url, init });
       if (url.hostname === "members-ng.iracing.com") {
-        const key = url.pathname.endsWith("/series/season_list")
-          ? "seasons"
-          : url.pathname.endsWith("/series/season_schedule")
-            ? "schedule"
-            : null;
+        const key =
+          [
+            ["/series/season_list", "seasons"],
+            ["/series/season_schedule", "schedule"],
+          ].find(([suffix]) => url.pathname.endsWith(suffix))?.[1] ?? null;
         assert.ok(key, `unexpected API path ${url.pathname}`);
         return Response.json({
           link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}?secret=SIGNED_SECRET`,

@@ -23,8 +23,8 @@ export class DiskStore<
   K extends Key = string,
   V extends Value = Value,
 > implements SimpleStore<K, V> {
-  private state = new Map<K, V>();
-  private filePath: string;
+  private readonly state = new Map<K, V>();
+  private readonly filePath: string;
 
   constructor(filePath: string) {
     this.filePath = filePath;
@@ -33,10 +33,13 @@ export class DiskStore<
 
   /** Load existing state from disk if present. */
   private load() {
-    if (!existsSync(this.filePath)) return;
+    if (!existsSync(this.filePath)) {
+      return;
+    }
 
     try {
       const raw = readFileSync(this.filePath, "utf8");
+
       const data = JSON.parse(raw) as Record<string, V>;
 
       for (const [k, v] of Object.entries(data)) {
@@ -54,9 +57,11 @@ export class DiskStore<
   private persist() {
     try {
       const obj: Record<string, V> = {};
+
       for (const [k, v] of this.state.entries()) {
         obj[String(k)] = v;
       }
+
       writeFileSync(this.filePath, JSON.stringify(obj, null, 2), "utf8");
     } catch (err) {
       console.warn(

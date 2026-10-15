@@ -32,11 +32,12 @@ export const defaultMcpCredentialsPath = fileURLToPath(
  * Credential-selection policy for CLI commands, including explicit token/file overrides and
  * injectable filesystem access.
  */
-export type CredentialOptions = {
+export interface CredentialOptions {
   credentials?: string;
   accessToken?: string;
   readCredentials?: (path: string) => Promise<string>;
-};
+}
+
 /**
  * Resolves one access token according to CLI precedence and validates the selected credential
  * document before returning it.
@@ -45,34 +46,47 @@ export async function resolveAccessToken(
   options: CredentialOptions = {},
 ): Promise<string> {
   let token = options.accessToken ?? process.env.IRACING_ACCESS_TOKEN;
+
   const credentialPath =
     options.credentials ?? (!token ? defaultCredentialsPath : undefined);
+
   if (credentialPath) {
-    let value: unknown;
-    try {
-      const text = await (
-        options.readCredentials ?? ((path: string) => readFile(path, "utf8"))
-      )(credentialPath);
-      value = /\.ya?ml$/i.test(credentialPath)
-        ? parseYaml(text)
-        : JSON.parse(text);
-    } catch {
-      throw new Error(
-        "Unable to read credentials. Run iracing-data auth login, set IRACING_ACCESS_TOKEN, or provide --credentials with a JSON or YAML token file.",
-      );
-    }
-    token =
-      typeof value === "object" &&
-      value !== null &&
-      "access_token" in value &&
-      typeof value.access_token === "string"
-        ? value.access_token
-        : undefined;
+    token = await readAccessToken(credentialPath, options);
   }
+
   if (!token?.trim() || /[\r\n]/.test(token) || token.startsWith("Bearer ")) {
     throw new Error(
       "Set IRACING_ACCESS_TOKEN without a Bearer prefix, or pass --credentials with an auth login token file.",
     );
   }
+
   return token;
+}
+
+async function readAccessToken(
+  credentialPath: string,
+  options: CredentialOptions,
+): Promise<string | undefined> {
+  let value: unknown;
+
+  try {
+    const text = await (
+      options.readCredentials ?? ((path: string) => readFile(path, "utf8"))
+    )(credentialPath);
+
+    value = /\.ya?ml$/i.test(credentialPath)
+      ? parseYaml(text)
+      : JSON.parse(text);
+  } catch {
+    throw new Error(
+      "Unable to read credentials. Run iracing-data auth login, set IRACING_ACCESS_TOKEN, or provide --credentials with a JSON or YAML token file.",
+    );
+  }
+
+  return typeof value === "object" &&
+    value !== null &&
+    "access_token" in value &&
+    typeof value.access_token === "string"
+    ? value.access_token
+    : undefined;
 }

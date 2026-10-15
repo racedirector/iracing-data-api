@@ -38,7 +38,9 @@ export function createTrackAssetsCommand({
     )
     .action(async (options) => {
       const { assets, output, diagnostics } = await createScope(options);
+
       const payload = await assets.get();
+
       output.write(payload);
       diagnostics.info("Track assets fetched.");
     });

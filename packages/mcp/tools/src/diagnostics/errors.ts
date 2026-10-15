@@ -212,12 +212,7 @@ export class ApplicationFailure extends Error {
       Object.freeze({
         code: safeCode,
         ...(reason ? { reason } : {}),
-        ...(retryable &&
-        typeof seconds === "number" &&
-        Number.isFinite(seconds) &&
-        seconds >= 0
-          ? { retry_after_seconds: Math.min(3600, Math.ceil(seconds)) }
-          : {}),
+        ...retryMetadata(retryable, seconds),
       }),
     );
     Object.freeze(this);
@@ -291,4 +286,17 @@ export class ProtocolFailure extends Error {
     this.name = "ProtocolFailure";
     Object.freeze(this);
   }
+}
+
+function retryMetadata(retryable: boolean, seconds: unknown) {
+  if (
+    !retryable ||
+    typeof seconds !== "number" ||
+    !Number.isFinite(seconds) ||
+    seconds < 0
+  ) {
+    return {};
+  }
+
+  return { retry_after_seconds: Math.min(3600, Math.ceil(seconds)) };
 }

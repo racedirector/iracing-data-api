@@ -6,10 +6,10 @@ import type { Diagnostics } from "../../diagnostics.js";
  * Minimal identity projection safe for CLI presentation; protocol-specific profile fields
  * remain behind the identity client.
  */
-export type WhoamiProfile = {
+export interface WhoamiProfile {
   iracing_cust_id: number;
   iracing_name: string;
-};
+}
 
 /** Credential-selection options accepted by the identity command. */
 export type WhoamiOptions = CredentialOptions;
@@ -61,7 +61,9 @@ export function createWhoamiCommand({
     )
     .action(async (options) => {
       const { identity, output, diagnostics } = await createScope(options);
+
       const profile = await identity.getProfile();
+
       output.write(profile);
       diagnostics.info("iRacing identity verified.");
     });

@@ -7,6 +7,7 @@ import { registerListSeriesSeasons } from "./tools/list-series-seasons.js";
 import { registerLookupContent } from "./tools/lookup-content.js";
 import { registerSearchDriverRaces } from "./tools/search-driver-races.js";
 import type { IracingToolRegistry, IracingToolServices } from "./services.js";
+
 /** Register the eight iRacing tools without configuring or creating the server. */
 export function registerIracingTools(
   server: IracingToolRegistry,

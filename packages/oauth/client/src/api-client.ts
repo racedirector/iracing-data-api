@@ -1,9 +1,4 @@
 import {
-  Configuration,
-  DefaultApi,
-  type ExchangeTokenRequest as GeneratedExchangeTokenRequest,
-} from "@iracing-data/oauth-client-fetch";
-import {
   OAuthProfileResponseSchema,
   OAuthSessionsSchema,
   OAuthTokenResponseSchema,
@@ -14,6 +9,11 @@ import {
   type OAuthTokenParameters,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-schema";
+import {
+  Configuration,
+  DefaultApi,
+  type ExchangeTokenRequest as GeneratedExchangeTokenRequest,
+} from "@iracing-data/oauth-client-fetch";
 
 /**
  * Lazy or eager bearer-token provider accepted by the authored OAuth API facade and generated
@@ -41,7 +41,7 @@ export class OAuthApiHttpError extends Error {
   readonly requestId?: string;
 
   constructor(readonly response: Response) {
-    super(`OAuth API request failed with HTTP ${response.status}.`);
+    super(`OAuth API request failed with HTTP ${String(response.status)}.`);
     this.name = "OAuthApiHttpError";
     this.requestId = response.headers.get("x-request-id") ?? undefined;
   }
@@ -75,6 +75,7 @@ export class OAuthApiClient {
 
   constructor(options: OAuthApiClientOptions = {}) {
     const fetchApi = options.fetchApi ?? fetch;
+
     const requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
 
     this.api = new DefaultApi(
@@ -82,14 +83,19 @@ export class OAuthApiClient {
         accessToken: options.accessToken,
         basePath: options.basePath,
         headers: { Accept: "application/json" },
-        fetchApi: async (input, init: RequestInit = {}) => {
+        fetchApi: async (
+          input: string | URL | Request,
+          init: RequestInit = {},
+        ) => {
           const headers = new Headers(init.headers);
+
           if (
             init.body instanceof URLSearchParams &&
             !headers.has("content-type")
           ) {
             headers.set("content-type", "application/x-www-form-urlencoded");
           }
+
           return await fetchApi(input, {
             ...init,
             headers,
@@ -106,10 +112,15 @@ export class OAuthApiClient {
       const response = await this.api.exchangeTokenRaw(
         parameters as unknown as GeneratedExchangeTokenRequest,
       );
+
       return response.raw;
     } catch (error) {
       const response = this.errorResponse(error);
-      if (response) return response;
+
+      if (response) {
+        return response;
+      }
+
       throw this.contractError(error);
     }
   }
@@ -118,16 +129,22 @@ export class OAuthApiClient {
     parameters: OAuthTokenParameters,
   ): Promise<OAuthTokenResponse> {
     const response = await this.exchangeTokenRaw(parameters);
-    if (!response.ok) throw new OAuthApiHttpError(response);
-    return await this.parseJson(response, OAuthTokenResponseSchema.parse);
+
+    if (!response.ok) {
+      throw new OAuthApiHttpError(response);
+    }
+
+    return await this.parseJson(response, (value) =>
+      OAuthTokenResponseSchema.parse(value),
+    );
   }
 
   async getProfile(): Promise<OAuthProfileResponse> {
     try {
       const response = await this.api.getProfileRaw();
-      return await this.parseJson(
-        response.raw,
-        OAuthProfileResponseSchema.parse,
+
+      return await this.parseJson(response.raw, (value) =>
+        OAuthProfileResponseSchema.parse(value),
       );
     } catch (error) {
       throw this.normalizeError(error);
@@ -137,7 +154,10 @@ export class OAuthApiClient {
   async getSessions(): Promise<OAuthSessions> {
     try {
       const response = await this.api.getSessionsRaw();
-      return await this.parseJson(response.raw, OAuthSessionsSchema.parse);
+
+      return await this.parseJson(response.raw, (value) =>
+        OAuthSessionsSchema.parse(value),
+      );
     } catch (error) {
       throw this.normalizeError(error);
     }
@@ -170,9 +190,16 @@ export class OAuthApiClient {
   }
 
   private normalizeError(error: unknown): Error {
-    if (error instanceof OAuthApiHttpError) return error;
+    if (error instanceof OAuthApiHttpError) {
+      return error;
+    }
+
     const response = this.errorResponse(error);
-    if (response) return new OAuthApiHttpError(response);
+
+    if (response) {
+      return new OAuthApiHttpError(response);
+    }
+
     return this.contractError(error);
   }
 
@@ -185,18 +212,24 @@ export class OAuthApiClient {
     ) {
       return error.response;
     }
+
     return undefined;
   }
 
   private contractError(error: unknown) {
-    if (error instanceof OAuthApiContractError) return error;
+    if (error instanceof OAuthApiContractError) {
+      return error;
+    }
+
     if (error instanceof Error && error.name === "FetchError") {
       return new OAuthApiContractError(
         "OAuth API request failed before a response was received.",
         "transport",
       );
     }
+
     const reason = error instanceof Error ? error.name : "unknown error";
+
     return new OAuthApiContractError(
       `OAuth API request or response did not match the maintained contract: ${reason}.`,
     );
@@ -214,6 +247,7 @@ export class OAuthApiClient {
     }
 
     let value: unknown;
+
     try {
       value = await response.json();
     } catch {
@@ -238,6 +272,7 @@ export class OAuthApiClient {
  * lookup.
  */
 export type OAuthProfileApi = Pick<OAuthApiClient, "getProfile">;
+
 /**
  * Protocol-facing OAuth capabilities consumed by the higher-level lifecycle client for token
  * exchange and profile validation.
@@ -246,6 +281,7 @@ export type OAuthProtocolApi = Pick<
   OAuthApiClient,
   "exchangeTokenRaw" | "getProfile"
 >;
+
 /**
  * Factory seam for constructing the protocol facade from endpoint, transport, and access-token
  * policy.

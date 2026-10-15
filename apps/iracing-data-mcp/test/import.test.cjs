@@ -1,8 +1,8 @@
 const assert = require("node:assert/strict");
-const { test } = require("node:test");
 const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
+const { test } = require("node:test");
 
 test("stdin credential import validates and durably writes a secure token document", async (t) => {
   const oauth = require("@iracing-data/oauth-client");

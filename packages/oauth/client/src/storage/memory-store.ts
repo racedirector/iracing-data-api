@@ -17,7 +17,7 @@ export class InMemoryStore<
   K extends Key = string,
   V extends Value = Value,
 > implements SimpleStore<K, V> {
-  private state = new Map<K, V>();
+  private readonly state = new Map<K, V>();
 
   constructor(entries?: Iterable<readonly [K, V]>) {
     if (entries) {

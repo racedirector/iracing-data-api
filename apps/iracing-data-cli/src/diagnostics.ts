@@ -4,11 +4,11 @@
  * boundaries must choose safe text and never pass raw token/response/error dumps.
  * Authorization URLs may be printed for explicit manual browser completion.
  */
-export type Diagnostics = {
+export interface Diagnostics {
   info(message: string): void;
   warn(message: string): void;
   error(message: string): void;
-};
+}
 
 /**
  * Creates the CLI diagnostic sink over a single writer, keeping user output separate while

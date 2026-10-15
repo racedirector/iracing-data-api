@@ -45,8 +45,8 @@ export const TrackDetailsSchema = z.object({
   corners_per_lap: z.number().int(),
 
   // ISO datetime w/ Z or offset
-  created: z.string().datetime({ offset: true }),
-  first_sale: z.string().datetime({ offset: true }),
+  created: z.iso.datetime({ offset: true }),
+  first_sale: z.iso.datetime({ offset: true }),
 
   folder: z.string(),
   free_with_subscription: z.boolean(),

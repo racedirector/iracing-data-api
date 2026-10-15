@@ -11,7 +11,7 @@ import type { Diagnostics } from "../../../diagnostics.js";
 export type LoginMethod = "browser" | "password-limited";
 
 /** Raw Commander values accepted by the login leaf before method, scope, and timeout normalization. */
-export type LoginOptions = {
+export interface LoginOptions {
   output?: string;
   credentials?: string;
   scope?: string[];
@@ -20,7 +20,7 @@ export type LoginOptions = {
   open: boolean;
   timeoutSeconds: string;
   method: string;
-};
+}
 
 /**
  * Normalized login request passed into the invocation scope after method and repeated scope
@@ -61,6 +61,7 @@ export interface LoginCommandDependencies {
 
 const INVALID_SCOPE_MESSAGE =
   "--scope must be either 'iracing.auth' or 'iracing.auth iracing.profile'.";
+
 const INVALID_METHOD_MESSAGE =
   "--method must be either 'browser' or 'password-limited'.";
 
@@ -71,7 +72,11 @@ const INVALID_METHOD_MESSAGE =
  */
 export function resolveLoginMethod(value: string | undefined): LoginMethod {
   const method = value ?? "browser";
-  if (method === "browser" || method === "password-limited") return method;
+
+  if (method === "browser" || method === "password-limited") {
+    return method;
+  }
+
   throw new Error(INVALID_METHOD_MESSAGE);
 }
 
@@ -83,19 +88,29 @@ export function resolveLoginMethod(value: string | undefined): LoginMethod {
 export function resolveLoginScopes(
   values: string[] | undefined,
 ): OAuthScopeList {
-  if (!values) return DEFAULT_SCOPES;
+  if (!values) {
+    return DEFAULT_SCOPES;
+  }
 
   const parsed = OAuthScopeListCodec.safeParse(values.join(" "));
-  if (!parsed.success) throw new Error(INVALID_SCOPE_MESSAGE);
+
+  if (!parsed.success) {
+    throw new Error(INVALID_SCOPE_MESSAGE);
+  }
 
   const scopes = parsed.data;
+
   const authOnly = scopes.length === 1 && scopes[0] === "iracing.auth";
+
   const authAndProfile =
     scopes.length === 2 &&
     scopes[0] === "iracing.auth" &&
     scopes[1] === "iracing.profile";
 
-  if (!authOnly && !authAndProfile) throw new Error(INVALID_SCOPE_MESSAGE);
+  if (!authOnly && !authAndProfile) {
+    throw new Error(INVALID_SCOPE_MESSAGE);
+  }
+
   return scopes;
 }
 
@@ -139,13 +154,17 @@ export function createLoginCommand({ createScope }: LoginCommandDependencies) {
       }
 
       const method = resolveLoginMethod(options.method);
+
       const scopes = resolveLoginScopes(options.scope);
+
       const { authentication, credentials, diagnostics } = await createScope({
         ...options,
         method,
         scopes,
       });
+
       const token = await authentication.authenticate();
+
       await credentials.write(token);
       diagnostics.info(
         `OAuth authentication complete. Credentials updated: ${credentials.destination}`,

@@ -1,9 +1,9 @@
 const assert = require("node:assert/strict");
 const { test } = require("node:test");
-const fetchClient = require("../../packages/api/client/fetch/dist");
 const axiosClient = require("../../packages/api/client/axios/dist");
 const axios =
   require("../../packages/api/client/axios/node_modules/axios").default;
+const fetchClient = require("../../packages/api/client/fetch/dist");
 const docs = {
   car: {
     assets: {

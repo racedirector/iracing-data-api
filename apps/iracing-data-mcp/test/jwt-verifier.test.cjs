@@ -1,6 +1,6 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
 const http = require("node:http");
+const test = require("node:test");
 const base = {
   resourceUrl: "https://mcp.example/services/mcp",
   issuer: "https://issuer.example/tenant",

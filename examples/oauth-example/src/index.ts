@@ -1,15 +1,22 @@
 import { toNodeHandler } from "better-call/node";
 import cookieParser from "cookie-parser";
-import express from "express";
+import express, { urlencoded } from "express";
 import { PORT } from "./config";
 import { page } from "./page";
-import router from "./router";
+import { router } from "./router";
 
 const app = express();
-app.use(express.urlencoded({ extended: true }), cookieParser());
+
+app.use(urlencoded({ extended: true }), cookieParser());
 
 app.get("/", (req, res) => {
-  const hasToken = req.cookies?.["iracing-token"];
+  const cookies: unknown = req.cookies;
+
+  const hasToken =
+    typeof cookies === "object" &&
+    cookies !== null &&
+    "iracing-token" in cookies &&
+    cookies["iracing-token"];
 
   res
     .type("html")

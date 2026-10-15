@@ -61,135 +61,163 @@ export function mapFailure(
   }
 
   if (context.domain === "oauth_session") {
-    if (context.refreshOutcome === "persistence_failed") {
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "persistence_failed",
-      });
-    }
-
-    if (context.refreshOutcome === "rotation_uncertain") {
-      return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-        reason: "rotation_uncertain",
-      });
-    }
-
-    if (error instanceof SessionNotFoundError) {
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "missing_session",
-      });
-    }
-
-    if (
-      error instanceof OAuthClaimsError ||
-      error instanceof OAuthTokenDocumentError
-    ) {
-      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-        reason: "invalid_session",
-      });
-    }
-
-    if (error instanceof OAuthRefreshError) {
-      // OAuthRefreshError.from retains oauth4webapi's library code, not its
-      // OAuth error identifier. Inspect only the exact retained discriminator.
-      const cause = Object.getOwnPropertyDescriptor(error, "cause")?.value;
-
-      const oauthCode =
-        error.code === "OAUTH_RESPONSE_BODY_ERROR" &&
-        cause !== null &&
-        typeof cause === "object"
-          ? Object.getOwnPropertyDescriptor(cause, "error")?.value
-          : undefined;
-
-      if (
-        [
-          "invalid_grant",
-          "MISSING_REFRESH_TOKEN",
-          "REFRESH_TOKEN_EXPIRED",
-        ].includes(error.code ?? "") ||
-        oauthCode === "invalid_grant"
-      ) {
-        return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-          reason: "revoked_authorization",
-        });
-      }
-    }
-
-    return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
-      reason:
-        context.refreshOutcome === "safe_to_retry"
-          ? "transient_refresh"
-          : "rotation_uncertain",
-    });
+    return mapSessionFailure(error, context);
   }
 
   if (context.domain === "upstream") {
-    if (
-      error instanceof RequiredError ||
-      (error instanceof Error && error.name === "RequiredError")
-    ) {
-      return new ApplicationFailure("INVALID_INPUT");
-    }
+    return mapUpstreamFailure(error, context);
+  }
+
+  return new ApplicationFailure("INTERNAL_ERROR");
+}
+
+function mapSessionFailure(
+  error: unknown,
+  context: MappingContext,
+): ApplicationFailure {
+  if (context.refreshOutcome === "persistence_failed") {
+    return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+      reason: "persistence_failed",
+    });
+  }
+
+  if (context.refreshOutcome === "rotation_uncertain") {
+    return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
+      reason: "rotation_uncertain",
+    });
+  }
+
+  if (error instanceof SessionNotFoundError) {
+    return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+      reason: "missing_session",
+    });
+  }
+
+  if (
+    error instanceof OAuthClaimsError ||
+    error instanceof OAuthTokenDocumentError
+  ) {
+    return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+      reason: "invalid_session",
+    });
+  }
+
+  if (error instanceof OAuthRefreshError) {
+    const oauthCode: unknown = refreshErrorCode(error);
 
     if (
-      error instanceof FetchError ||
-      (error instanceof Error && error.name === "FetchError")
+      [
+        "invalid_grant",
+        "MISSING_REFRESH_TOKEN",
+        "REFRESH_TOKEN_EXPIRED",
+      ].includes(error.code ?? "") ||
+      oauthCode === "invalid_grant"
     ) {
-      return new ApplicationFailure("UPSTREAM_UNAVAILABLE");
-    }
-
-    // The generated ES5 Error subclasses lose their subclass prototype at runtime.
-    // Use their stable discriminator plus a real Response; never inspect a body/cause.
-    const response =
-      error instanceof Error && error.name === "ResponseError"
-        ? Object.getOwnPropertyDescriptor(error, "response")?.value
-        : undefined;
-
-    if (error instanceof ResponseError || response instanceof Response) {
-      const upstreamResponse: Response =
-        response ?? (error as ResponseError).response;
-
-      const status = upstreamResponse.status;
-
-      if (status === 401 || status === 403) {
-        return new ApplicationFailure("UPSTREAM_UNAUTHORIZED", {
-          reason:
-            context.upstreamAuthorization === "account_entitlement"
-              ? "account_entitlement"
-              : "upstream_access_denied",
-        });
-      }
-
-      if (status === 404) {
-        return new ApplicationFailure("NOT_FOUND");
-      }
-
-      if (status === 429) {
-        const header = upstreamResponse.headers.get("retry-after");
-
-        // Delta seconds only. HTTP dates require a clock and are not inferred here.
-        const seconds =
-          header && /^\d{1,6}$/.test(header) ? Number(header) : undefined;
-
-        return new ApplicationFailure("RATE_LIMITED", {
-          retry_after_seconds: seconds,
-        });
-      }
-
-      if (status >= 500 || status === 408) {
-        return new ApplicationFailure("UPSTREAM_UNAVAILABLE");
-      }
-
-      return new ApplicationFailure("DATA_RESOLUTION_FAILED", {
-        reason: "invalid_data",
-      });
-    }
-
-    if (error instanceof SyntaxError) {
-      return new ApplicationFailure("DATA_RESOLUTION_FAILED", {
-        reason: "invalid_data",
+      return new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+        reason: "revoked_authorization",
       });
     }
   }
 
+  return new ApplicationFailure("TOKEN_REFRESH_FAILED", {
+    reason:
+      context.refreshOutcome === "safe_to_retry"
+        ? "transient_refresh"
+        : "rotation_uncertain",
+  });
+}
+
+function mapUpstreamFailure(
+  error: unknown,
+  context: MappingContext,
+): ApplicationFailure {
+  if (error instanceof RequiredError || namedError(error, "RequiredError")) {
+    return new ApplicationFailure("INVALID_INPUT");
+  }
+
+  if (error instanceof FetchError || namedError(error, "FetchError")) {
+    return new ApplicationFailure("UPSTREAM_UNAVAILABLE");
+  }
+
+  // The generated ES5 Error subclasses lose their subclass prototype at runtime.
+  // Use their stable discriminator plus a real Response; never inspect a body/cause.
+  const response: unknown = namedError(error, "ResponseError")
+    ? Object.getOwnPropertyDescriptor(error, "response")?.value
+    : undefined;
+
+  if (error instanceof ResponseError || response instanceof Response) {
+    const upstreamResponse: Response =
+      response instanceof Response
+        ? response
+        : (error as ResponseError).response;
+
+    return mapResponseFailure(upstreamResponse, context);
+  }
+
+  if (error instanceof SyntaxError) {
+    return new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+      reason: "invalid_data",
+    });
+  }
+
   return new ApplicationFailure("INTERNAL_ERROR");
+}
+
+function mapResponseFailure(
+  upstreamResponse: Response,
+  context: MappingContext,
+): ApplicationFailure {
+  const status = upstreamResponse.status;
+
+  if (status === 401 || status === 403) {
+    return new ApplicationFailure("UPSTREAM_UNAUTHORIZED", {
+      reason:
+        context.upstreamAuthorization === "account_entitlement"
+          ? "account_entitlement"
+          : "upstream_access_denied",
+    });
+  }
+
+  if (status === 404) {
+    return new ApplicationFailure("NOT_FOUND");
+  }
+
+  if (status === 429) {
+    const header = upstreamResponse.headers.get("retry-after");
+
+    // Delta seconds only. HTTP dates require a clock and are not inferred here.
+    const seconds =
+      header && /^\d{1,6}$/.test(header) ? Number(header) : undefined;
+
+    return new ApplicationFailure("RATE_LIMITED", {
+      retry_after_seconds: seconds,
+    });
+  }
+
+  if (status >= 500 || status === 408) {
+    return new ApplicationFailure("UPSTREAM_UNAVAILABLE");
+  }
+
+  return new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+    reason: "invalid_data",
+  });
+}
+
+function refreshErrorCode(error: OAuthRefreshError): unknown {
+  // OAuthRefreshError.from retains oauth4webapi's library code, not its
+  // OAuth error identifier. Inspect only the exact retained discriminator.
+  const cause: unknown = Object.getOwnPropertyDescriptor(error, "cause")?.value;
+
+  const oauthCode: unknown =
+    error.code === "OAUTH_RESPONSE_BODY_ERROR" &&
+    cause !== null &&
+    typeof cause === "object"
+      ? Object.getOwnPropertyDescriptor(cause, "error")?.value
+      : undefined;
+
+  return oauthCode;
+}
+
+function namedError(error: unknown, name: string): error is Error {
+  return error instanceof Error && error.name === name;
 }
