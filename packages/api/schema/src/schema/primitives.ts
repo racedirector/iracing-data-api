@@ -73,17 +73,79 @@ export const BooleanParameterSchema = z
   )
   .meta({ override: { type: "boolean" } });
 
+/**
+ * CustomerIdSchema predates the domain/wire split below and intentionally remains
+ * coercive for compatibility. New numeric concepts expose a value schema plus a
+ * parameter schema so response/domain validation does not inherit query coercion.
+ */
 export const CustomerIdSchema = z.coerce.number().meta({
   description: "Numeric ID of a customer on iRacing.",
   id: "customerId",
 });
 
-export const CommaSeparatedNumberString = z.coerce
-  .string()
-  .regex(/^\d+(?:,\d+)*$/, {
-    message:
-      "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
+export const PackageIdSchema = z.number();
+export const PackageIdParameterSchema = z.coerce.number().pipe(PackageIdSchema);
+
+export const LeagueIdSchema = z.number();
+export const LeagueIdParameterSchema = z.coerce.number().pipe(LeagueIdSchema);
+
+export const LeagueSeasonIdSchema = z.number();
+export const LeagueSeasonIdParameterSchema = z.coerce
+  .number()
+  .pipe(LeagueSeasonIdSchema);
+
+export const SeasonIdSchema = z.number();
+export const SeasonIdParameterSchema = z.coerce.number().pipe(SeasonIdSchema);
+
+export const SeriesIdSchema = z.number();
+export const SeriesIdParameterSchema = z.coerce.number().pipe(SeriesIdSchema);
+
+export const TrackIdSchema = z.number();
+export const TrackIdParameterSchema = z.coerce.number().pipe(TrackIdSchema);
+
+export const CarIdSchema = z.number();
+export const CarIdParameterSchema = z.coerce.number().pipe(CarIdSchema);
+
+export const CarClassIdSchema = z.number();
+export const CarClassIdParameterSchema = z.coerce.number().pipe(CarClassIdSchema);
+
+export const TeamIdSchema = z.number();
+export const TeamIdParameterSchema = z.coerce.number().pipe(TeamIdSchema);
+
+export const SubsessionIdSchema = z.number();
+export const SubsessionIdParameterSchema = z.coerce
+  .number()
+  .pipe(SubsessionIdSchema);
+
+export const RaceWeekNumSchema = z.number();
+export const RaceWeekNumParameterSchema = z.coerce
+  .number()
+  .pipe(RaceWeekNumSchema);
+
+export const SeasonYearSchema = z.number();
+export const SeasonYearParameterSchema = z.coerce
+  .number()
+  .pipe(SeasonYearSchema);
+
+export const SeasonQuarterSchema = z.number();
+export const SeasonQuarterParameterSchema = z.coerce
+  .number()
+  .pipe(SeasonQuarterSchema);
+
+export const SimSessionNumberSchema = z.number();
+export const SimSessionNumberParameterSchema = z.coerce
+  .number()
+  .pipe(SimSessionNumberSchema);
+
+const commaSeparatedNumberString = () =>
+  z.coerce.string().regex(/^\d+(?:,\d+)*$/, {
+    error: "Parameter must be a comma-separated list of numbers, e.g. '2,3,4'",
   });
+
+export const CommaSeparatedNumberString = commaSeparatedNumberString();
+export const CustomerIdsParameterSchema = commaSeparatedNumberString();
+export const CategoryIdsParameterSchema = commaSeparatedNumberString();
+export const EventTypesParameterSchema = commaSeparatedNumberString();
 
 export const EventTypePracticeSchema = z
   .literal(2)
@@ -110,6 +172,8 @@ export const EventTypeSchema = z
     id: "iracingEventType",
     description: "iRacing Event Type",
   });
+
+export const EventTypeParameterSchema = z.coerce.number().pipe(EventTypeSchema);
 
 export const ChartTypeSchema = z
   .union([
@@ -201,6 +265,8 @@ export const DivisionSchema = z
     id: "iracingDivision",
   });
 
+export const DivisionParameterSchema = z.coerce.number().pipe(DivisionSchema);
+
 /**
  * Types
  */
@@ -213,7 +279,22 @@ export type RateLimitRemainingHeader = z.infer<
 export type RateLimitResetHeader = z.infer<typeof RateLimitResetHeaderSchema>;
 export type RateLimitHeaders = z.infer<typeof RateLimitHeadersSchema>;
 export type CustomerId = z.infer<typeof CustomerIdSchema>;
+export type PackageId = z.infer<typeof PackageIdSchema>;
+export type LeagueId = z.infer<typeof LeagueIdSchema>;
+export type LeagueSeasonId = z.infer<typeof LeagueSeasonIdSchema>;
+export type SeasonId = z.infer<typeof SeasonIdSchema>;
+export type SeriesId = z.infer<typeof SeriesIdSchema>;
+export type TrackId = z.infer<typeof TrackIdSchema>;
+export type CarId = z.infer<typeof CarIdSchema>;
+export type CarClassId = z.infer<typeof CarClassIdSchema>;
+export type TeamId = z.infer<typeof TeamIdSchema>;
+export type SubsessionId = z.infer<typeof SubsessionIdSchema>;
+export type RaceWeekNum = z.infer<typeof RaceWeekNumSchema>;
+export type SeasonYear = z.infer<typeof SeasonYearSchema>;
+export type SeasonQuarter = z.infer<typeof SeasonQuarterSchema>;
+export type SimSessionNumber = z.infer<typeof SimSessionNumberSchema>;
 export type Category = z.infer<typeof CategorySchema>;
+export type CategoryId = z.infer<typeof CategoryIdSchema>;
 export type Division = z.infer<typeof DivisionSchema>;
 export type EventTypePractice = z.infer<typeof EventTypePracticeSchema>;
 export type EventTypeQualifying = z.infer<typeof EventTypeQualifyingSchema>;
