@@ -46,6 +46,27 @@ describe("MemberGetParameters", () => {
 });
 
 describe("semantic endpoint parameters", () => {
+  it("rejects blank required and optional numbers without losing field paths", () => {
+    for (const [schema, valid, field] of [
+      [ResultsGetParametersSchema, { subsession_id: 42 }, "subsession_id"],
+      [ResultsSearchSeriesParametersSchema, {}, "team_id"],
+      [ResultsSeasonResultsParametersSchema, { season_id: 42 }, "event_type"],
+      [
+        StatsSeasonDriverStandingsParametersSchema,
+        { season_id: 42, car_class_id: 1 },
+        "division",
+      ],
+    ] as const) {
+      assert.equal(schema.safeParse(valid).success, true);
+      for (const value of ["", "   ", "foo"]) {
+        const result = schema.safeParse({ ...valid, [field]: value });
+        assert.equal(result.success, false);
+        if (!result.success)
+          assert.deepEqual(result.error.issues[0].path, [field]);
+      }
+    }
+  });
+
   it("coerces canonical result identifiers at the query boundary", () => {
     assert.deepEqual(
       ResultsGetParametersSchema.parse({ subsession_id: "12345" }),

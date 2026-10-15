@@ -73,18 +73,41 @@ export const BooleanParameterSchema = z
   )
   .meta({ override: { type: "boolean" } });
 
-const NonBlankNumericParameterInputSchema = z
-  .union([z.number(), z.string().trim().min(1)])
-  .meta({
+const NonBlankNumericParameterInputSchema = z.union([
+  z.number(),
+  z.string().trim().min(1),
+]);
+
+// Preprocessing keeps coercion at the query boundary. Unlike a pipe with a
+// numeric input override, its OpenAPI projection uses the target schema, keeping
+// named enums/references and constraints intact. The input guard also rejects
+// non-query values (null/booleans/arrays) and blanks before Number can turn them
+// into zero. Its string | number input type matches the accepted wire values.
+const numericParameter = <T extends z.ZodType<number>>(schema: T) => {
+  const parameter = z.preprocess((value: string | number, ctx) => {
+    const input = NonBlankNumericParameterInputSchema.safeParse(value);
+    if (!input.success) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Expected a number or a non-blank numeric string.",
+      });
+      return z.NEVER;
+    }
+    return Number(input.data);
+  }, schema);
+
+  if (!(schema instanceof z.ZodNumber)) return parameter;
+  // Match the historical scalar schema's field order as well as its content.
+  // Only reorder description; never replace the target's type/constraints/ref.
+  return parameter.meta({
     override: ({ jsonSchema }) => {
-      delete jsonSchema.anyOf;
-      jsonSchema.type = "number";
+      const { description } = jsonSchema;
+      if (description === undefined) return;
+      delete jsonSchema.description;
+      jsonSchema.description = description;
     },
   });
-
-const NumericParameterSchema = NonBlankNumericParameterInputSchema.pipe(
-  z.coerce.number(),
-);
+};
 
 /**
  * CustomerIdSchema predates the domain/wire split below and intentionally remains
@@ -97,57 +120,48 @@ export const CustomerIdSchema = z.coerce.number().meta({
 });
 
 export const PackageIdSchema = z.number();
-export const PackageIdParameterSchema =
-  NumericParameterSchema.pipe(PackageIdSchema);
+export const PackageIdParameterSchema = numericParameter(PackageIdSchema);
 
 export const LeagueIdSchema = z.number();
-export const LeagueIdParameterSchema =
-  NumericParameterSchema.pipe(LeagueIdSchema);
+export const LeagueIdParameterSchema = numericParameter(LeagueIdSchema);
 
 export const LeagueSeasonIdSchema = z.number();
 export const LeagueSeasonIdParameterSchema =
-  NumericParameterSchema.pipe(LeagueSeasonIdSchema);
+  numericParameter(LeagueSeasonIdSchema);
 
 export const SeasonIdSchema = z.number();
-export const SeasonIdParameterSchema =
-  NumericParameterSchema.pipe(SeasonIdSchema);
+export const SeasonIdParameterSchema = numericParameter(SeasonIdSchema);
 
 export const SeriesIdSchema = z.number();
-export const SeriesIdParameterSchema =
-  NumericParameterSchema.pipe(SeriesIdSchema);
+export const SeriesIdParameterSchema = numericParameter(SeriesIdSchema);
 
 export const TrackIdSchema = z.number();
-export const TrackIdParameterSchema =
-  NumericParameterSchema.pipe(TrackIdSchema);
+export const TrackIdParameterSchema = numericParameter(TrackIdSchema);
 
 export const CarIdSchema = z.number();
-export const CarIdParameterSchema = NumericParameterSchema.pipe(CarIdSchema);
+export const CarIdParameterSchema = numericParameter(CarIdSchema);
 
 export const CarClassIdSchema = z.number();
-export const CarClassIdParameterSchema =
-  NumericParameterSchema.pipe(CarClassIdSchema);
+export const CarClassIdParameterSchema = numericParameter(CarClassIdSchema);
 
 export const TeamIdSchema = z.number();
-export const TeamIdParameterSchema = NumericParameterSchema.pipe(TeamIdSchema);
+export const TeamIdParameterSchema = numericParameter(TeamIdSchema);
 
 export const SubsessionIdSchema = z.number();
-export const SubsessionIdParameterSchema =
-  NumericParameterSchema.pipe(SubsessionIdSchema);
+export const SubsessionIdParameterSchema = numericParameter(SubsessionIdSchema);
 
 export const RaceWeekNumSchema = z.number();
-export const RaceWeekNumParameterSchema =
-  NumericParameterSchema.pipe(RaceWeekNumSchema);
+export const RaceWeekNumParameterSchema = numericParameter(RaceWeekNumSchema);
 
 export const SeasonYearSchema = z.number();
-export const SeasonYearParameterSchema =
-  NumericParameterSchema.pipe(SeasonYearSchema);
+export const SeasonYearParameterSchema = numericParameter(SeasonYearSchema);
 
 export const SeasonQuarterSchema = z.number();
 export const SeasonQuarterParameterSchema =
-  NumericParameterSchema.pipe(SeasonQuarterSchema);
+  numericParameter(SeasonQuarterSchema);
 
 export const SimSessionNumberSchema = z.number();
-export const SimSessionNumberParameterSchema = NumericParameterSchema.pipe(
+export const SimSessionNumberParameterSchema = numericParameter(
   SimSessionNumberSchema,
 );
 
@@ -187,8 +201,7 @@ export const EventTypeSchema = z
     description: "iRacing Event Type",
   });
 
-export const EventTypeParameterSchema =
-  NumericParameterSchema.pipe(EventTypeSchema);
+export const EventTypeParameterSchema = numericParameter(EventTypeSchema);
 
 export const ChartTypeSchema = z
   .union([
@@ -201,8 +214,11 @@ export const ChartTypeSchema = z
     description: "iRacing Chart Type",
   });
 
-export const ChartTypeParameterSchema =
-  NumericParameterSchema.pipe(ChartTypeSchema);
+// These established adapters expose a number input in OpenAPI while validating
+// enum outputs. Keep that historical projection inside the preprocessing step.
+export const ChartTypeParameterSchema = numericParameter(
+  z.number().pipe(ChartTypeSchema),
+);
 
 export const CategorySchema = z
   .union([
@@ -235,8 +251,9 @@ export const CategoryIdSchema = z
     id: "iracingCategoryId",
   });
 
-export const CategoryIdParameterSchema =
-  NumericParameterSchema.pipe(CategoryIdSchema);
+export const CategoryIdParameterSchema = numericParameter(
+  z.number().pipe(CategoryIdSchema),
+);
 
 export const DivisionSchema = z
   .union([
@@ -280,8 +297,7 @@ export const DivisionSchema = z
     id: "iracingDivision",
   });
 
-export const DivisionParameterSchema =
-  NumericParameterSchema.pipe(DivisionSchema);
+export const DivisionParameterSchema = numericParameter(DivisionSchema);
 
 /**
  * Types

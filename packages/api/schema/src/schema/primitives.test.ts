@@ -69,9 +69,23 @@ describe("semantic numeric primitives", () => {
       assert.equal(valueSchema.safeParse("42").success, false);
       assert.equal(parameterSchema.parse("42"), 42);
       assert.equal(parameterSchema.parse(42), 42);
-      assert.equal(parameterSchema.safeParse("invalid").success, false);
-      assert.equal(parameterSchema.safeParse("").success, false);
-      assert.equal(parameterSchema.safeParse("   ").success, false);
+      for (const invalid of [
+        "foo",
+        "",
+        "   ",
+        "\t\n",
+        null,
+        undefined,
+        true,
+        false,
+        [],
+        ["42"],
+        {},
+        NaN,
+        Infinity,
+      ]) {
+        assert.equal(parameterSchema.safeParse(invalid).success, false);
+      }
     });
   }
 
@@ -82,6 +96,8 @@ describe("semantic numeric primitives", () => {
 
   it("keeps the historical customer ID coercion contract", () => {
     assert.equal(CustomerIdSchema.parse("42"), 42);
+    assert.equal(CustomerIdSchema.parse(""), 0);
+    assert.equal(CustomerIdSchema.parse("   "), 0);
     assert.equal(CustomerIdSchema.safeParse("invalid").success, false);
   });
 });
@@ -104,8 +120,18 @@ describe("semantic parameter primitives", () => {
       DivisionParameterSchema,
       ChartTypeParameterSchema,
     ]) {
-      assert.equal(schema.safeParse("").success, false);
-      assert.equal(schema.safeParse("   ").success, false);
+      for (const invalid of [
+        "foo",
+        "",
+        "   ",
+        null,
+        undefined,
+        true,
+        [],
+        ["1"],
+      ]) {
+        assert.equal(schema.safeParse(invalid).success, false);
+      }
     }
   });
 

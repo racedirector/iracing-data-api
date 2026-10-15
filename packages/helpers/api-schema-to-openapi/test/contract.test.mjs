@@ -11,6 +11,7 @@
 
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
@@ -103,6 +104,85 @@ function dereference(document, schema) {
         .reduce((node, key) => node[key], document)
     : schema;
 }
+
+test("numeric query adapters preserve named event and division contracts", () => {
+  const document = exportedDocument;
+  for (const [component, values, endpoints, parameterName] of [
+    [
+      "iracingEventType",
+      [2, 3, 4, 5],
+      ["/data/results/season_results"],
+      "event_type",
+    ],
+    [
+      "iracingDivision",
+      [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+      [
+        "/data/stats/season_driver_standings",
+        "/data/stats/season_supersession_standings",
+        "/data/stats/season_tt_standings",
+        "/data/stats/season_tt_results",
+        "/data/stats/season_qualify_results",
+      ],
+      "division",
+    ],
+  ]) {
+    assert.deepEqual(
+      document.components.schemas[component]?.anyOf.map((entry) => entry.const),
+      values,
+      component,
+    );
+    for (const endpoint of endpoints) {
+      const parameter = document.paths[endpoint].get.parameters.find(
+        (entry) => entry.name === parameterName,
+      );
+      assert.equal(
+        parameter.schema.$ref,
+        `#/components/schemas/${component}`,
+        endpoint,
+      );
+      assert.equal(parameter.schema.type, undefined, endpoint);
+      assert.equal(parameter.required, undefined, endpoint);
+    }
+  }
+
+  // These two adapters historically projected the numeric wire input, rather
+  // than the enum output. Naming them now would also change the public contract.
+  for (const name of ["category_id", "chart_type"]) {
+    const parameter = document.paths[
+      "/data/member/chart_data"
+    ].get.parameters.find((entry) => entry.name === name);
+    assert.equal(parameter.schema.type, "number");
+    assert.equal(parameter.schema.$ref, undefined);
+    assert.equal(parameter.required, true);
+  }
+});
+
+test("semantic primitive refactoring preserves the complete public document", () => {
+  // Frozen from 9b4daaf, the parent of the semantic primitive expansion.
+  // Its authored schemas/helper were independently regenerated and matched its
+  // checked-in OpenAPI. Ignore object key order, but preserve array order and
+  // every contract field (including constraints, descriptions and serialization).
+  // Intentional contract changes require reviewing the delta before updating this
+  // fingerprint; never derive the expected value from the current generated file.
+  function canonical(value) {
+    if (Array.isArray(value)) return value.map(canonical);
+    if (value && typeof value === "object")
+      return Object.fromEntries(
+        Object.keys(value)
+          .sort()
+          .map((key) => [key, canonical(value[key])]),
+      );
+    return value;
+  }
+  assert.equal(
+    createHash("sha256")
+      .update(JSON.stringify(canonical(exportedDocument)))
+      .digest("hex"),
+    "5d87a5445a2ca89edc02d39d93ba7b87d036c5a529e12434793bed3fbde5d874",
+    "Public OpenAPI differs from the pre-refactor contract; audit the full delta before updating the fingerprint",
+  );
+});
 
 test("Data API JSON/YAML preserve query mapping, authentication, and response envelopes", async (t) => {
   const document = await generate(t);

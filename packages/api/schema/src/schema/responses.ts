@@ -52,9 +52,9 @@ export const ResultsSearchSeriesResponseSchema = z
     data: z.object({
       success: z.boolean(),
       chunk_info: z.object({
-        chunk_size: z.int().nonnegative(),
-        num_chunks: z.int().nonnegative(),
-        rows: z.int().nonnegative(),
+        chunk_size: z.number().int().nonnegative(),
+        num_chunks: z.number().int().nonnegative(),
+        rows: z.number().int().nonnegative(),
         base_download_url: z.url(),
         chunk_file_names: z.array(z.string()),
       }),
