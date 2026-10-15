@@ -59,11 +59,16 @@ it("validates direct constant object arrays without inventing their field contra
 });
 
 it("uses numeric domain identifiers in maintained car and track responses", () => {
-  assert.deepEqual(GetCarResponseSchema.parse([{ car_id: 7 }]), [{ car_id: 7 }]);
+  assert.deepEqual(GetCarResponseSchema.parse([{ car_id: 7 }]), [
+    { car_id: 7 },
+  ]);
   assert.deepEqual(GetTrackResponseSchema.parse([{ track_id: 8 }]), [
     { track_id: 8 },
   ]);
-  assert.equal(GetCarResponseSchema.safeParse([{ car_id: "7" }]).success, false);
+  assert.equal(
+    GetCarResponseSchema.safeParse([{ car_id: "7" }]).success,
+    false,
+  );
   assert.equal(
     GetTrackResponseSchema.safeParse([{ track_id: "8" }]).success,
     false,
