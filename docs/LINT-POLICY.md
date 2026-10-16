@@ -2,7 +2,7 @@
 
 [eslint.config.mjs](../eslint.config.mjs) uses ESLint flat config and the
 `typescript-eslint` presets. Run `pnpm lint` for the complete configured surface,
-`pnpm test:lint-policy` for the configuration/JSDoc regression tests, and
+`pnpm test:lint-policy` for the configuration, JSDoc, and Zod regression tests, and
 `pnpm verify` for the repository's full pre-merge contract.
 
 ## Authored runtime TypeScript
@@ -36,6 +36,25 @@ Tests, fixtures, nested verification examples, and vendor paths retain their
 runtime-policy exclusions. Tests still receive baseline correctness, import,
 Unicorn, and formatting checks. JavaScript/CommonJS receives non-type-aware
 rules, with CommonJS globals and require imports enabled only for `.cjs` files.
+
+## Zod schemas
+
+Authored code, including tests and examples, receives curated `eslint-plugin-zod`
+checks as errors. They reject weak `any`/empty custom validators, truthiness-based
+boolean coercion, contradictory constraints, throwing refinements and transformed
+record keys. Use `z.int()`, top-level string formats, explicit v4 object
+constructors and `.meta()` descriptions. Explicit `zod/v3` imports are errors.
+
+The existing typed `@typescript-eslint/no-deprecated` remains responsible for
+resolved deprecated APIs in authored runtime; equivalent Zod deprecation rules
+apply only outside that typed policy to avoid duplicate diagnostics. Generated
+TypeScript retains only its existing architecture checks.
+
+Unknown wire data, intentional preprocessors/codecs/refinements, inner-schema
+metadata and throwing parse boundaries remain supported. There is no blanket
+schema naming, trimming, `safeParse`, metadata-presence or canonical-reuse rule.
+See the [Zod audit](ZOD-LINT-AUDIT.md) for exact rules, scope, candidate evaluation,
+repairs, contract evidence and enforcement limits.
 
 ## Imports and architecture
 
@@ -106,7 +125,10 @@ The authored documentation block uses `eslint-plugin-jsdoc` 65.3.4 directly,
 with TypeScript parsing but without a preset that removes JSDoc types. Authored
 production TypeScript under `apps/**` and `packages/**` requires documentation
 for exported functions, callable values, classes, interfaces, enums, type aliases,
-public constants, and directly declared public class and interface members.
+public constants, and directly declared public class and interface members,
+including abstract methods/properties and interface/type-literal call signatures.
+For nodes omitted by the plugin's runtime export map,
+`require-public-member-jsdoc` reuses its presence rule with exported-only selectors.
 Private, protected, and ECMAScript private class members are outside presence
 checks. Direct `z.infer` and `z.input` aliases remain owned by their source schema;
 wrappers around those aliases still need their own documentation.
@@ -114,10 +136,12 @@ wrappers around those aliases still need their own documentation.
 `require-param`, `check-param-names`, and `require-param-name/type/description`
 check parameter coverage and explicit annotations. `require-returns` and
 `require-returns-type/description` check value-returning functions, async functions,
-and interface call signatures. `require-throws` detects explicit throw statements;
+and interface/type-literal call signatures and abstract callable members.
+`require-tags` enforces return-tag presence for bodyless declarations that the
+plugin's return analysis does not recognize. `require-throws` detects explicit throw statements;
 `valid-types` requires a type for every throws tag, and `match-description` requires
 an error condition. Property tags have corresponding presence, name, type, and
-description checks. Void interface signatures currently require an explicit
+description checks. Void bodyless signatures currently require an explicit
 `@returns {void}` tag as well.
 
 `require-description`, `informative-docs`, and `match-description` reject empty,

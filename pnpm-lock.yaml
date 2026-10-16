@@ -223,6 +223,9 @@ importers:
       eslint-plugin-unicorn:
         specifier: ^78.0.0
         version: 78.0.0(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      eslint-plugin-zod:
+        specifier: 5.0.1
+        version: 5.0.1(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)(zod@4.6.5)
       globals:
         specifier: ^17.13.0
         version: 17.13.0
@@ -767,6 +770,10 @@ packages:
   '@eslint-community/regexpp@4.12.2':
     resolution: {integrity: sha512-EriSTlt5OC9/7SXkRSCAhfSxxoSUgBm33OH+IkwbdpgoqsSsUg7y3uh+IICI/Qg4BBWr3U2i39RpmycbxMq4ew==}
     engines: {node: ^12.0.0 || ^14.0.0 || >=16.0.0}
+
+  '@eslint-zod/utils@6.0.1':
+    resolution: {integrity: sha512-uPhYzXnkQQFTEOmi2MVqBV7sjbIEZY0qJxri1sDvvb7MXX4GXdEWmGTSOGnTA8z33OOTpWVljzpdqq4XLy7oyw==}
+    engines: {node: ^20.19 || ^22.12 || >=24}
 
   '@eslint/config-array@0.23.5':
     resolution: {integrity: sha512-Y3kKLvC1dvTOT+oGlqNQ1XLqK6D1HU2YXPc52NmAlJZbMMWDzGYXMiPRJ8TYD39muD/OTjlZmNJ4ib7dvSrMBA==}
@@ -1924,6 +1931,21 @@ packages:
       typescript: '*'
     peerDependenciesMeta:
       typescript:
+        optional: true
+
+  eslint-plugin-zod@5.0.1:
+    resolution: {integrity: sha512-eqfoLjcSMgzVU3lnOX0P0wguUr5qm9vdrT/Y3wKQ8tX8khv2SVd+oyjzUhinI739WkkaUfXeQ81Vs1ZQgRneCQ==}
+    engines: {node: ^20.19 || ^22.12 || >=24}
+    peerDependencies:
+      eslint: ^9 || ^10
+      oxlint: ^1.59.0
+      zod: ^4
+    peerDependenciesMeta:
+      eslint:
+        optional: true
+      oxlint:
+        optional: true
+      zod:
         optional: true
 
   eslint-scope@9.1.2:
@@ -3439,6 +3461,15 @@ snapshots:
 
   '@eslint-community/regexpp@4.12.2': {}
 
+  '@eslint-zod/utils@6.0.1(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)':
+    dependencies:
+      '@typescript-eslint/utils': 8.71.2(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      esquery: 1.7.0
+    transitivePeerDependencies:
+      - eslint
+      - supports-color
+      - typescript
+
   '@eslint/config-array@0.23.5(supports-color@10.2.2)':
     dependencies:
       '@eslint/object-schema': 3.0.5
@@ -4618,6 +4649,17 @@ snapshots:
       typescript: 5.9.3
     transitivePeerDependencies:
       - supports-color
+
+  eslint-plugin-zod@5.0.1(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)(zod@4.6.5):
+    dependencies:
+      '@eslint-zod/utils': 6.0.1(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+      '@typescript-eslint/utils': 8.71.2(eslint@10.12.0(supports-color@10.2.2))(supports-color@10.2.2)(typescript@5.9.3)
+    optionalDependencies:
+      eslint: 10.12.0(supports-color@10.2.2)
+      zod: 4.6.5
+    transitivePeerDependencies:
+      - supports-color
+      - typescript
 
   eslint-scope@9.1.2:
     dependencies:

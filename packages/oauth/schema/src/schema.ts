@@ -309,7 +309,7 @@ export const OAuthJWTAccessTokenPayloadSchema = z
     iss: z.url().meta({
       description: "The issuer of the access token; the authorization server.",
     }),
-    exp: z.number().int().nonnegative().meta({
+    exp: z.int().nonnegative().meta({
       description:
         "The expiration time of the access token in seconds since the Unix epoch.",
     }),
@@ -322,14 +322,14 @@ export const OAuthJWTAccessTokenPayloadSchema = z
     client_id: z.string().min(1).meta({
       description: "The identifier of the client application.",
     }),
-    iat: z.number().int().nonnegative().meta({
+    iat: z.int().nonnegative().meta({
       description:
         "The time of issue of the access token in seconds since the Unix epoch.",
     }),
     jti: z.uuid().meta({
       description: "A UUID identifying this access token.",
     }),
-    auth_time: z.number().int().nonnegative().meta({
+    auth_time: z.int().nonnegative().meta({
       description:
         "The time the authentication and authorization process completed.",
     }),
@@ -341,11 +341,11 @@ export const OAuthJWTAccessTokenPayloadSchema = z
       description:
         "The iRacing environment associated with the token. This claim may be null.",
     }),
-    iracing_cust_id: z.number().int().nonnegative().nullable().meta({
+    iracing_cust_id: z.int().nonnegative().nullable().meta({
       description:
         "The numeric iRacing customer identifier of the subject. This claim may be null.",
     }),
-    iracing_group_ids: z.array(z.number().int().nonnegative()).nullable().meta({
+    iracing_group_ids: z.array(z.int().nonnegative()).nullable().meta({
       description:
         "The numeric iRacing group identifiers assigned to the subject. This claim may be null.",
     }),

@@ -110,7 +110,7 @@ export class SearchCursors {
       filters.cust_id === undefined
         ? await materialize(
             await new MemberApi(access.configuration).getMemberInfo({ signal }),
-            z.object({ cust_id: z.number().int().positive() }),
+            z.object({ cust_id: z.int().positive() }),
             signal,
             access.configuration.fetchApi,
           )

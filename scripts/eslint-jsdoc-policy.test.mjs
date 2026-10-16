@@ -358,3 +358,113 @@ test("placeholder parameter descriptions are rejected", async () => {
     "jsdoc/match-description",
   );
 });
+
+test("public abstract contracts require documentation", async (t) => {
+  for (const member of [
+    "abstract read(id: string): Promise<string>;",
+    "abstract name: string;",
+    "abstract read: (id: string) => Promise<string>;",
+  ]) {
+    await t.test(member, () =>
+      expectRule(
+        `/** Supplies caller-owned lookup behavior. */ export abstract class Reader {
+  ${member}
+}`,
+        "jsdoc/require-public-member-jsdoc",
+      ),
+    );
+  }
+  assert.deepEqual(
+    await jsdocMessages(`
+/** Supplies caller-owned lookup behavior. */
+export abstract class Reader {
+  protected abstract read(id: string): Promise<string>;
+  protected abstract name: string;
+}
+`),
+    [],
+  );
+});
+
+test("abstract and callable shape contracts check parameter and return tags", async (t) => {
+  const comment = `/** Looks up the exact caller-supplied key.
+   * @param {string} id - Exact key sent to the backing lookup.
+   * @returns {Promise<string>} Matching text resolved by the lookup.
+   */`;
+  const shapes = [
+    (docs) =>
+      `/** Supplies asynchronous lookup behavior. */ export abstract class Reader {
+  ${docs}
+  abstract read(id: string): Promise<string>;
+}`,
+    (docs) =>
+      `/** Supplies asynchronous lookup behavior. */ export abstract class Reader {
+  ${docs}
+  abstract read: (id: string) => Promise<string>;
+}`,
+    (docs) =>
+      `/** Supplies asynchronous lookup behavior. */ export interface Reader {
+  ${docs}
+  (id: string): Promise<string>;
+}`,
+    (docs) =>
+      `/** Supplies asynchronous lookup behavior. */ export type Reader = {
+  ${docs}
+  (id: string): Promise<string>;
+};`,
+    (docs) =>
+      `/** Supplies asynchronous lookup behavior. */ export type Reader = {
+  ${docs}
+  read(id: string): Promise<string>;
+};`,
+  ];
+  for (const [index, shape] of shapes.entries()) {
+    await t.test(String(index), async () => {
+      await expectRule(
+        shape(""),
+        index === 4
+          ? "jsdoc/require-jsdoc"
+          : "jsdoc/require-public-member-jsdoc",
+      );
+      await expectRule(
+        shape(comment.replace(/^ +\* @param[^\n]*\n/mu, "")),
+        "jsdoc/require-param",
+      );
+      await expectRule(
+        shape(comment.replace(/^ +\* @returns[^\n]*\n/mu, "")),
+        index === 4 ? "jsdoc/require-returns" : "jsdoc/require-tags",
+      );
+      await expectRule(
+        shape(comment.replace("@param {string}", "@param")),
+        "jsdoc/require-param-type",
+      );
+      await expectRule(
+        shape(comment.replace("@returns {Promise<string>}", "@returns")),
+        "jsdoc/require-returns-type",
+      );
+      assert.deepEqual(await jsdocMessages(shape(comment)), []);
+    });
+  }
+});
+
+test("bodyless contract checks exclude internal and protected declarations", async () => {
+  assert.deepEqual(
+    await jsdocMessages(`
+/** Supplies public orchestration with protected implementation hooks. */
+export abstract class Reader {
+  /** Lets subclasses resolve backing text. */
+  protected abstract read(id: string): Promise<string>;
+  /** Lets subclasses replace the lookup hook. */
+  protected abstract lookup: (id: string) => Promise<string>;
+}
+abstract class InternalReader {
+  abstract read(id: string): Promise<string>;
+}
+interface InternalCallable {
+  (id: string): Promise<string>;
+}
+type InternalShape = { (id: string): Promise<string> };
+`),
+    [],
+  );
+});

@@ -86,7 +86,7 @@ export const RaceResultInput = z.union([
       .max(10)
       .refine((ids) => new Set(ids).size === ids.length)
       .optional(),
-    simsession_number: z.number().int().min(-20).max(20).default(0),
+    simsession_number: z.int().min(-20).max(20).default(0),
     limit,
   }),
   ContinuationInput,
@@ -111,7 +111,7 @@ export const RaceContextProjection = z.object({
 
 /** Validates session identity and raw participant rows before local projection. */
 export const RaceSessionProjection = z.object({
-  simsession_number: z.number().int(),
+  simsession_number: z.int(),
   results: z.array(z.record(z.string(), z.unknown())),
 });
 
@@ -143,14 +143,14 @@ function outputSchema() {
       display_name: z.string(),
       car_id: Id.nullable(),
       car_class_id: Id.nullable(),
-      starting_position: z.number().int().nullable(),
-      finish_position: z.number().int().nullable(),
-      finish_position_in_class: z.number().int().nullable(),
-      laps_complete: z.number().int().nullable(),
-      incidents: z.number().int().nullable(),
+      starting_position: z.int().nullable(),
+      finish_position: z.int().nullable(),
+      finish_position_in_class: z.int().nullable(),
+      laps_complete: z.int().nullable(),
+      incidents: z.int().nullable(),
       champ_points: z.number().nullable(),
-      oldi_rating: z.number().int().nullable(),
-      newi_rating: z.number().int().nullable(),
+      oldi_rating: z.int().nullable(),
+      newi_rating: z.int().nullable(),
       reason_out: z.string().nullable(),
       attribution: z.enum(["team", "driver"]),
     }),
@@ -165,7 +165,7 @@ function outputSchema() {
         track_name: z.string().nullable(),
         config_name: z.string().nullable(),
       }),
-      simsession_number: z.number().int(),
+      simsession_number: z.int(),
       position_basis: z.literal("one_based"),
     },
   );
@@ -192,11 +192,9 @@ const definition = {
         },
         { signal: context.signal },
       ),
-      z
-        .object({
-          session_results: z.array(z.record(z.string(), z.unknown())),
-        })
-        .loose(),
+      z.looseObject({
+        session_results: z.array(z.record(z.string(), z.unknown())),
+      }),
       context.signal,
       access.configuration.fetchApi,
     );

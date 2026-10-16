@@ -9,10 +9,11 @@ import boundaries from "eslint-plugin-boundaries";
 import importPlugin, {
   flatConfigs as importConfigs,
 } from "eslint-plugin-import-x";
-import jsdocPlugin from "eslint-plugin-jsdoc";
+import jsdocPlugin, { rules as jsdocRules } from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
 import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
+import zod from "eslint-plugin-zod";
 import globals from "globals";
 import {
   configs as tsConfigs,
@@ -170,23 +171,31 @@ const exportedClassContexts = [
 ];
 const publicClassMemberContexts = exportedClassContexts.map(
   (context) =>
-    `${context} > ClassBody > :matches(MethodDefinition, PropertyDefinition):not([accessibility=private]):not([accessibility=protected]):not([key.type=PrivateIdentifier])`,
+    `${context} > ClassBody > :matches(MethodDefinition, PropertyDefinition, TSAbstractMethodDefinition, TSAbstractPropertyDefinition):not([accessibility=private]):not([accessibility=protected]):not([key.type=PrivateIdentifier])`,
 );
 const publicShapeMemberContexts = [
-  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > :matches(TSPropertySignature, TSMethodSignature)",
-  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > :matches(TSPropertySignature, TSMethodSignature)",
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > :matches(TSPropertySignature, TSMethodSignature, TSCallSignatureDeclaration)",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > :matches(TSPropertySignature, TSMethodSignature, TSCallSignatureDeclaration)",
 ];
 const documentedExportContexts = [
   "ExportNamedDeclaration:has(> :matches(FunctionDeclaration, ClassDeclaration, TSInterfaceDeclaration, TSEnumDeclaration, VariableDeclaration))",
   `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
   "ExportDefaultDeclaration:has(> :matches(FunctionDeclaration, ClassDeclaration, ArrowFunctionExpression, FunctionExpression, ClassExpression))",
   ...publicClassMemberContexts.map(
-    (context) => `${context} > FunctionExpression`,
+    (context) =>
+      `${context} > :matches(FunctionExpression, TSEmptyBodyFunctionExpression)`,
   ),
   ...publicClassMemberContexts.map(
-    (context) => `${context}[type=PropertyDefinition]`,
+    (context) =>
+      `${context}:matches(PropertyDefinition, TSAbstractPropertyDefinition)`,
   ),
   ...publicShapeMemberContexts,
+];
+// Tag-context matching in the plugin cannot follow selector combinators.
+// Parent attributes retain the same exported ownership for bodyless contracts.
+const bodylessCallableContexts = [
+  ":matches(TSAbstractMethodDefinition, TSAbstractPropertyDefinition[typeAnnotation.typeAnnotation.type=TSFunctionType]):not([accessibility=private]):not([accessibility=protected]):matches([parent.parent.parent.type=ExportNamedDeclaration], [parent.parent.parent.type=ExportDefaultDeclaration], [parent.parent.parent.parent.parent.type=ExportNamedDeclaration])",
+  "TSCallSignatureDeclaration[parent.parent.parent.type=ExportNamedDeclaration]",
 ];
 const documentedCallableContexts = [
   ":matches(ExportNamedDeclaration, ExportDefaultDeclaration) > FunctionDeclaration",
@@ -196,7 +205,11 @@ const documentedCallableContexts = [
     (context) =>
       `${context} > :matches(FunctionExpression, ArrowFunctionExpression)`,
   ),
+  ...bodylessCallableContexts,
   "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > TSMethodSignature",
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > TSCallSignatureDeclaration",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > TSMethodSignature",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > TSCallSignatureDeclaration",
   "ExportNamedDeclaration > TSTypeAliasDeclaration > TSFunctionType",
   ...publicShapeMemberContexts.map(
     (context) => `${context} > TSTypeAnnotation > TSFunctionType`,
@@ -206,7 +219,55 @@ const documentedCallableContexts = [
 const contractDescriptionPattern =
   "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value|customer id|the configuration)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu";
 
+// Type-aware runtime lint already rejects these deprecated APIs. Keep the Zod
+// equivalents for JavaScript, tests and other files outside that typed policy.
+const zodDeprecatedApiRules = {
+  "zod/no-native-enum": "error",
+  "zod/no-number-schema-with-finite": "error",
+  "zod/no-number-schema-with-is-finite": "error",
+  "zod/no-number-schema-with-is-int": "error",
+  "zod/no-number-schema-with-safe": "error",
+  "zod/no-number-schema-with-step": "error",
+  "zod/no-schema-with-is-nullable": "error",
+  "zod/no-schema-with-is-optional": "error",
+  "zod/prefer-top-level-string-formats": "error",
+};
+
 export default defineConfig([
+  {
+    // Zod rules track imports; do not apply presets with unrelated naming/style policies.
+    name: "authored-zod-v4",
+    files: ["**/*.{ts,js,mjs,cjs}"],
+    ignores: generatedTypeScript,
+    plugins: { zod },
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["zod/v3", "zod/v3/*"],
+              message: "Use the workspace Zod v4 API.",
+            },
+          ],
+        },
+      ],
+      ...zodDeprecatedApiRules,
+      "zod/no-any-schema": "error",
+      "zod/no-coerce-boolean": "error",
+      "zod/no-empty-custom-schema": "error",
+      "zod/no-number-schema-with-int": "error",
+      "zod/no-promise-schema": "error",
+      "zod/no-throw-in-refine": "error",
+      "zod/no-transform-in-record-key": "error",
+      "zod/require-brand-type-parameter": "error",
+      "zod/prefer-meta": "error",
+      "zod/prefer-loose-object": "error",
+      "zod/prefer-strict-object": "error",
+      "zod/no-conflicting-checks": "error",
+    },
+  },
+
   {
     linterOptions: {
       reportUnusedDisableDirectives: "error",
@@ -409,7 +470,13 @@ export default defineConfig([
     files: ["apps/**/*.ts", "packages/**/*.ts", "eslint.config.mjs"],
     ignores: authoredTypeScriptExclusions,
     plugins: {
-      jsdoc: jsdocPlugin,
+      jsdoc: {
+        ...jsdocPlugin,
+        rules: {
+          ...jsdocRules,
+          "require-public-member-jsdoc": jsdocRules["require-jsdoc"],
+        },
+      },
     },
     settings: {
       jsdoc: {
@@ -448,15 +515,42 @@ export default defineConfig([
             "Program > VariableDeclaration > VariableDeclarator > *.init",
             ...publicClassMemberContexts.map(
               (context) =>
-                `${context} > :matches(FunctionExpression, ArrowFunctionExpression)`,
+                `${context} > :matches(FunctionExpression, ArrowFunctionExpression, TSEmptyBodyFunctionExpression)`,
             ),
             ...publicClassMemberContexts.map(
-              (context) => `${context}[type=PropertyDefinition]`,
+              (context) =>
+                `${context}:matches(PropertyDefinition, TSAbstractPropertyDefinition)`,
             ),
             ...publicShapeMemberContexts,
             "TSEnumDeclaration",
             "TSInterfaceDeclaration",
             authoredTypeAliasContext,
+          ],
+        },
+      ],
+      // The plugin's runtime export map omits abstract members and call
+      // signatures. These selectors establish public ownership directly, so
+      // reuse its presence rule without applying that export-map filter.
+      "jsdoc/require-public-member-jsdoc": [
+        "error",
+        {
+          enableFixer: false,
+          publicOnly: false,
+          require: {
+            ArrowFunctionExpression: false,
+            ClassDeclaration: false,
+            ClassExpression: false,
+            FunctionDeclaration: false,
+            FunctionExpression: false,
+          },
+          contexts: [
+            ...publicClassMemberContexts.map(
+              (context) =>
+                `${context}:matches(TSAbstractMethodDefinition, TSAbstractPropertyDefinition)`,
+            ),
+            ...publicShapeMemberContexts.map(
+              (context) => `${context}[type=TSCallSignatureDeclaration]`,
+            ),
           ],
         },
       ],
@@ -475,8 +569,8 @@ export default defineConfig([
         { contexts: documentedCallableContexts },
       ],
       "jsdoc/require-param-name": "error",
-      "jsdoc/require-param-type": "error",
-      "jsdoc/require-param-description": "error",
+      "jsdoc/require-param-type": ["error", { contexts: ["any"] }],
+      "jsdoc/require-param-description": ["error", { contexts: ["any"] }],
       "jsdoc/require-returns": [
         "error",
         {
@@ -489,8 +583,20 @@ export default defineConfig([
           forceReturnsWithAsync: true,
         },
       ],
-      "jsdoc/require-returns-type": "error",
-      "jsdoc/require-returns-description": "error",
+      // require-returns recognizes runtime functions but not these bodyless
+      // declarations. Require their return tag directly; the shared type and
+      // description rules validate its contents.
+      "jsdoc/require-tags": [
+        "error",
+        {
+          tags: bodylessCallableContexts.map((context) => ({
+            tag: "returns",
+            context,
+          })),
+        },
+      ],
+      "jsdoc/require-returns-type": ["error", { contexts: ["any"] }],
+      "jsdoc/require-returns-description": ["error", { contexts: ["any"] }],
       "jsdoc/require-throws": [
         "error",
         { contexts: documentedCallableContexts },
@@ -626,6 +732,10 @@ export default defineConfig([
       },
     },
     rules: {
+      // no-deprecated checks resolved symbols here; avoid duplicate Zod diagnostics.
+      ...Object.fromEntries(
+        Object.keys(zodDeprecatedApiRules).map((rule) => [rule, "off"]),
+      ),
       // The presets already enforce floating/misused promises, unnecessary
       // conditions/assertions, and Error-only throws. These are additional rules.
       "@typescript-eslint/switch-exhaustiveness-check": "error",

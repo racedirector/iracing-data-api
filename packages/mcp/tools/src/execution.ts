@@ -28,10 +28,10 @@ export function pageOutput(items: z.ZodType, context: z.ZodRawShape = {}) {
   return z.object({
     ...context,
     items: z.array(items),
-    returned_count: z.number().int().nonnegative(),
+    returned_count: z.int().nonnegative(),
     complete: z.boolean(),
     next_cursor: z.string().nullable(),
-    source_total: z.number().int().nonnegative(),
+    source_total: z.int().nonnegative(),
   });
 }
 

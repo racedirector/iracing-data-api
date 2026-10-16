@@ -54,9 +54,8 @@ export const SearchProjection = z.object({
     track_name: optionalText,
     config_name: optionalText,
   }),
-  event_type: z.number().int(),
+  event_type: z.int(),
   num_drivers: z
-    .number()
     .int()
     .nonnegative()
     .nullish()
