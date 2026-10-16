@@ -8,7 +8,7 @@
  * parsing here extracts access_token only, not a durable OAuth session or refresh
  * operation. Reject empty tokens, CR/LF and an existing Bearer prefix.
  *
- * Default paths are repository-relative with equal source/dist depth. Login.ts
+ * Default paths are repository-relative with equal source/dist depth. `login.ts`
  * selects a separate auth-only MCP document so independent refreshing consumers do
  * not share one rotating credential. Callers selecting that document must observe
  * stopped-owner discipline; resolution does not lock or watch the file.
@@ -36,7 +36,7 @@ export const defaultMcpCredentialsPath = fileURLToPath(
  * injectable filesystem access.
  */
 export interface CredentialOptions {
-  /** Credential-file selection or writer owned by this command scope. */
+  /** Path to a JSON or YAML credential file containing access_token. */
   credentials?: string;
 
   /** Bearer credential or provider used to authorize API calls. */

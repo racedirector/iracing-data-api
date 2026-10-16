@@ -40,10 +40,18 @@ test("every built alias retains identity and replacement-specific declaration do
     );
     const alias = source.statements.find(
       (statement) =>
-        statement.name?.text === entry.old ||
-        statement.declarationList?.declarations.some(
-          (item) => item.name.text === entry.old,
-        ),
+        statement.modifiers?.some(
+          (modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword,
+        ) &&
+        (entry.kind === "type"
+          ? ts.isTypeAliasDeclaration(statement) &&
+            statement.name.text === entry.old
+          : ts.isVariableStatement(statement) &&
+            (statement.declarationList.flags & ts.NodeFlags.Const) !== 0 &&
+            statement.declarationList.declarations.some(
+              (item) =>
+                ts.isIdentifier(item.name) && item.name.text === entry.old,
+            )),
     );
     assert.ok(alias, entry.old);
     const deprecations = ts.getJSDocDeprecatedTag(alias);

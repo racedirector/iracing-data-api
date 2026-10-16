@@ -50,7 +50,7 @@ export interface WhoamiScopeDependencies {
  * its safe failures into CLI diagnostics. The generated client owns the request.
  * @param {string} accessToken - Bearer credential used to authorize the generated endpoint client.
  * @param {OAuthProfileApi} api - OAuth endpoint facade used to retrieve the authenticated profile.
- * @returns {IdentityClient} Endpoint client bound to the resolved bearer credential.
+ * @returns {IdentityClient} Identity facade providing access to the authenticated profile.
  */
 export function createOAuthIdentityClient(
   accessToken: string,

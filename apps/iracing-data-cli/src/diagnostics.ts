@@ -7,19 +7,19 @@
 export interface Diagnostics {
   /**
    * Writes a secret-safe informational diagnostic.
-   * @param {string} message - Human-readable explanation retained on the failure.
+   * @param {string} message - Secret-free message to emit.
    */
   info(message: string): void;
 
   /**
    * Writes a secret-safe warning diagnostic.
-   * @param {string} message - Human-readable explanation retained on the failure.
+   * @param {string} message - Secret-free message to emit.
    */
   warn(message: string): void;
 
   /**
    * Writes a secret-safe failure diagnostic.
-   * @param {string} message - Human-readable explanation retained on the failure.
+   * @param {string} message - Secret-free message to emit.
    */
   error(message: string): void;
 }

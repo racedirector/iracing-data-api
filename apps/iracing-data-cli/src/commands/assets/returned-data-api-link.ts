@@ -4,7 +4,7 @@ const DEFAULT_RETURNED_LINK_TIMEOUT_MS = 15_000;
 export interface ReturnedDataApiLinkDependencies {
   /**
    * Performs the injected HTTP request with caller-supplied transport controls.
-   * @param {string} input - Untrusted input to validate or project.
+   * @param {string} input - Absolute URL of the linked data requested by this fetch dependency.
    * @param {RequestInit} init - Transport controls forwarded to the HTTP request.
    * @returns {Promise<Response>} HTTP response returned by the injected transport.
    */

@@ -9,11 +9,11 @@
  * provenance of generated endpoint/model documentation.
  *
  * The exported document is constructed in memory on import without filesystem writes
- * or logging. Cli.ts alone selects serialization and destination. JSON and YAML are
+ * or logging. The cli.ts entry point alone selects serialization and destination. JSON and YAML are
  * representations of this same document. Build this helper's dependency closure before
  * invoking its CLI so generation reads current compiled schemas/mappings.
  *
- * Openapi/iracing.json then feeds the pinned Fetch/Axios/Rust generator wrappers;
+ * The openapi/iracing.json document then feeds the pinned Fetch/Axios/Rust generator wrappers;
  * never fix contracts by editing specs, SDKs or generated docs. Direct constants,
  * documentation and search-manifest responses differ from generic cache-link success.
  * CSV query metadata preserves typed array inputs with one HTTP query value.

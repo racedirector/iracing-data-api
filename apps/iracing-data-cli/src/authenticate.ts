@@ -60,7 +60,7 @@ export interface OAuthClientLike {
   /**
    * Exchanges the callback code and stores the resulting OAuth session.
    * @param {URLSearchParams} params - Query parameters received on the authorization callback.
-   * @param {string} sessionId - Key identifying the stored OAuth session.
+   * @param {string} [sessionId] - Key identifying the stored OAuth session when provided; otherwise, the profile is fetched and its iRacing customer ID is used.
    * @returns {Promise<OAuthTokenResponse>} OAuth session obtained by exchanging the callback code.
    */
   callback(
@@ -88,7 +88,7 @@ export interface OAuthClientConfig {
 export interface SignalSource {
   /**
    * Registers a one-time listener for a process signal.
-   * @param {NodeJS.Signals} signal - Abort signal governing request-local work.
+   * @param {NodeJS.Signals} signal - Process signal name, such as SIGINT.
    * @param {() => void} listener - Callback invoked when the selected process signal fires.
    * @returns {unknown} Host-specific listener registration result.
    */
@@ -96,7 +96,7 @@ export interface SignalSource {
 
   /**
    * Removes a previously registered process-signal listener.
-   * @param {NodeJS.Signals} signal - Abort signal governing request-local work.
+   * @param {NodeJS.Signals} signal - Process signal name, such as SIGINT.
    * @param {() => void} listener - Callback invoked when the selected process signal fires.
    * @returns {unknown} Host-specific listener removal result.
    */
@@ -139,7 +139,7 @@ export interface BrowserLoginOptions {
   /**
    * Constructs the OAuth lifecycle owner for the selected registration.
    * @param {OAuthClientConfig} config - Validated registration, transport, or verification settings.
-   * @returns {OAuthClientLike} Classified OAuth failure retaining the relevant operation context.
+   * @returns {OAuthClientLike} OAuth lifecycle owner configured for the selected registration.
    */
   clientFactory?: (config: OAuthClientConfig) => OAuthClientLike;
 

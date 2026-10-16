@@ -43,7 +43,7 @@ export interface CarAssetsScopeDependencies {
 
   /**
    * Writes serialized command output to standard output.
-   * @param {string} value - Input value to validate, store, or serialize.
+   * @param {string} value - Serialized text written directly to standard output.
    */
   writeStdout(value: string): void;
 }

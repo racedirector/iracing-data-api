@@ -47,7 +47,7 @@ export const tokenOutputFileSystem = oauthTokenDocumentFileSystem;
  * commands.
  */
 export interface TokenOutputOptions {
-  /** Writes the command result to the configured destination. */
+  /** Optional destination file path; writeTokenOutput uses standard output when omitted. */
   output?: string;
 
   /** Explicit JSON or YAML serialization choice. */

@@ -7,7 +7,7 @@
  * Preserve stable operation/schema IDs and investigate official evidence for changes.
  *
  * Import exports one in-memory document without logging or filesystem mutation.
- * Cli.ts owns JSON/YAML serialization and writes from that same document. Build
+ * The cli.ts entry point owns JSON/YAML serialization and writes from that same document. Build
  * this helper's dependencies first so codegen reads current compiled schemas.
  * OAuth wire generation reads oauth.json into @iracing-data/oauth-client-fetch.
  * The authored OAuthApiClient adapter validates responses and applies request policy;

@@ -10,7 +10,7 @@
  * and reports filesystem failures through normal CLI rejection. These are build
  * artifacts, not secret token documents or atomic credential persistence.
  *
- * Invoke only after dependency-aware build. Scripts/check-generated.mjs uses fresh
+ * Invoke only after dependency-aware build. The scripts/check-generated.mjs script uses fresh
  * temporary destinations for deterministic byte/file comparison; reviewed --write
  * mode intentionally replaces generator-owned output. Do not hand-edit output.
  */
