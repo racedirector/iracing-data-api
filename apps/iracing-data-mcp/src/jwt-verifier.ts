@@ -49,7 +49,11 @@ export type McpRemoteAuthorizationConfig = Readonly<
   }
 >;
 
-/** Validates production policy without normalizing OAuth identifiers. */
+/**
+ * Validates production policy without normalizing OAuth identifiers.
+ * @param {unknown} input - Untrusted input to validate or project.
+ * @returns {McpRemoteAuthorizationConfig} Frozen validated remote-authorization settings.
+ */
 export function parseMcpRemoteAuthorizationConfig(
   input: unknown,
 ): McpRemoteAuthorizationConfig {
@@ -61,7 +65,11 @@ export function parseMcpRemoteAuthorizationConfig(
   });
 }
 
-/** Space-delimited, opaque and case-sensitive OAuth scopes; '*' is a literal token. */
+/**
+ * Space-delimited, opaque and case-sensitive OAuth scopes; '*' is a literal token.
+ * @param {string} value - Input value to validate, store, or serialize.
+ * @returns {string[]} Validated nonempty scope tokens from the space-separated input.
+ */
 export function parseOAuthScopes(value: string): string[] {
   return value
     .split(" ")
@@ -69,7 +77,11 @@ export function parseOAuthScopes(value: string): string[] {
     .map((token) => scopeToken.parse(token));
 }
 
-/** Absence preserves local mode; any remote setting requires resource and issuer. */
+/**
+ * Absence preserves local mode; any remote setting requires resource and issuer.
+ * @param {NodeJS.ProcessEnv} env - Process environment containing the host configuration inputs.
+ * @returns {McpRemoteAuthorizationConfig | undefined} Remote-authorization settings, or undefined when none are configured.
+ */
 export function remoteAuthorizationFromEnv(
   env: NodeJS.ProcessEnv,
 ): McpRemoteAuthorizationConfig | undefined {
@@ -97,7 +109,12 @@ export function remoteAuthorizationFromEnv(
   });
 }
 
-/** Resolves JWT keys from explicit configuration, then RFC 8414 / OIDC metadata. */
+/**
+ * Resolves JWT keys from explicit configuration, then RFC 8414 / OIDC metadata.
+ * @param {McpRemoteAuthorizationConfig} config - Validated registration, transport, or verification settings.
+ * @param {typeof fetch} fetchMetadata - Fetch implementation used to retrieve authorization-server metadata.
+ * @returns {Promise<URL>} Configured or metadata-discovered JWKS URL.
+ */
 export async function resolveMcpJwksUrl(
   config: McpRemoteAuthorizationConfig,
   fetchMetadata: typeof fetch = fetch,
@@ -153,7 +170,12 @@ export async function resolveMcpJwksUrl(
   throw new Error("MCP authorization metadata has no usable JWKS URI.");
 }
 
-/** JOSE owns signature, exact issuer/audience and temporal claim validation. */
+/**
+ * JOSE owns signature, exact issuer/audience and temporal claim validation.
+ * @param {McpRemoteAuthorizationConfig} config - Validated registration, transport, or verification settings.
+ * @param {JWTVerifyGetKey} keySet - Signing-key resolver used for JWT verification.
+ * @returns {OAuthTokenVerifier} Bearer-token verifier enforcing the configured issuer, audience, and scopes.
+ */
 export function createMcpJwtVerifier(
   config: McpRemoteAuthorizationConfig,
   keySet: JWTVerifyGetKey,
@@ -194,7 +216,11 @@ export function createMcpJwtVerifier(
   };
 }
 
-/** Resolves trusted verifier material before production starts accepting requests. */
+/**
+ * Resolves trusted verifier material before production starts accepting requests.
+ * @param {McpRemoteAuthorizationConfig} config - Validated registration, transport, or verification settings.
+ * @returns {Promise<OAuthTokenVerifier>} Bearer-token verifier backed by the remote signing-key set.
+ */
 export async function createDefaultMcpJwtVerifier(
   config: McpRemoteAuthorizationConfig,
 ): Promise<OAuthTokenVerifier> {

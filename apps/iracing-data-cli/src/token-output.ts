@@ -38,6 +38,8 @@ export type TokenFormat = "json" | "yaml";
  * injectable host and test I/O.
  */
 export type TokenOutputFileSystem = OAuthTokenDocumentFileSystem;
+
+/** Default filesystem implementation shared with durable OAuth token documents. */
 export const tokenOutputFileSystem = oauthTokenDocumentFileSystem;
 
 /**
@@ -45,18 +47,38 @@ export const tokenOutputFileSystem = oauthTokenDocumentFileSystem;
  * commands.
  */
 export interface TokenOutputOptions {
+  /** Writes the command result to the configured destination. */
   output?: string;
+
+  /** Explicit JSON or YAML serialization choice. */
   format?: string;
+
+  /** Whether an existing output file may be replaced. */
   force?: boolean;
+
+  /** Human-readable document kind used in output errors. */
   outputLabel?: "Credential" | "Documentation";
+
+  /** Directory used to resolve relative output paths. */
   cwd?: string;
+
+  /**
+   * Injected writer for serialized standard output.
+   * @param {string} value - Input value to validate, store, or serialize.
+   */
   writeStdout?: (value: string) => void;
+
+  /** Filesystem operations supplied by the host for persistence. */
   fileSystem?: TokenOutputFileSystem;
 }
 
 /**
  * Resolves an explicit format first, then infers YAML from the destination extension and
  * otherwise defaults to JSON.
+ * @param {string} output - Output path used to infer the default serialization format.
+ * @param {string} explicit - Explicit output format selected on the command line.
+ * @returns {TokenFormat} Selected JSON or YAML format.
+ * @throws {Error} If an explicit format is neither JSON nor YAML.
  */
 export function resolveTokenFormat(
   output?: string,
@@ -84,6 +106,9 @@ export function resolveTokenFormat(
 /**
  * Serializes non-secret command documents deterministically with a trailing newline for stdout
  * and file output.
+ * @param {unknown} token - OAuth credential or command document to serialize.
+ * @param {TokenFormat} format - JSON or YAML serialization selected by the caller.
+ * @returns {string} Serialized document ending with a newline.
  */
 export function serializeDocument(token: unknown, format: TokenFormat): string {
   if (format === "json") {
@@ -187,6 +212,9 @@ async function writeFileOutput(
 /**
  * Writes a generic command document to stdout or through the atomic file-output path without
  * applying token-secret policy.
+ * @param {unknown} token - OAuth credential or command document to serialize.
+ * @param {TokenOutputOptions} options - Destination, serialization format, overwrite policy, and output capabilities.
+ * @returns {Promise<void>} Completion after the document has been written.
  */
 export async function writeDocumentOutput(
   token: unknown,
@@ -219,6 +247,9 @@ export async function writeDocumentOutput(
 /**
  * Serializes OAuth credentials, delegating JSON validation and canonicalization to the
  * hardened token-document owner.
+ * @param {OAuthTokenResponse} token - OAuth credential or command document to serialize.
+ * @param {TokenFormat} format - JSON or YAML serialization selected by the caller.
+ * @returns {string} Serialized credential document ending with a newline.
  */
 export function serializeToken(
   token: OAuthTokenResponse,
@@ -263,6 +294,9 @@ async function writeJsonTokenOutput(
 /**
  * Persists OAuth credentials using the hardened JSON token writer when possible, while
  * preserving explicit alternate-format output behavior.
+ * @param {OAuthTokenResponse} token - OAuth credential or command document to serialize.
+ * @param {TokenOutputOptions} options - Destination, serialization format, overwrite policy, and output capabilities.
+ * @returns {Promise<void>} Completion of the requested operation.
  */
 export async function writeTokenOutput(
   token: OAuthTokenResponse,

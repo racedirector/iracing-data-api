@@ -78,6 +78,9 @@ function exactList(value: string, origin: boolean) {
  * Host/origin lists use exact localhost or 127.0.0.1 entries, defaulting to port
  * 3000 and HTTP origins; every origin's authority must appear in the host list.
  * Throws a configuration error for invalid settings.
+ * @param {NodeJS.ProcessEnv} env - Process environment containing the host configuration inputs.
+ * @returns {Readonly<{ clientId: string; secretFile: string | undefined; allowedHosts: readonly string[]; allowedOrigins: readonly string[]; listenHost: string; remoteAuthorization: Readonly<Omit<{ audience: string; resourceUrl: string; issuer: string; requiredScopes: string[]; jwksUrl?: string | undefined; }, "requiredScopes"> & { readonly requiredScopes: readonly string[]; }> | undefined; }>} Frozen production settings validated against local hosting constraints.
+ * @throws {ApplicationFailure} If environment settings violate the production configuration policy.
  */
 export function parseProductionConfig(env: NodeJS.ProcessEnv) {
   const clientId = z
@@ -134,6 +137,8 @@ export function parseProductionConfig(env: NodeJS.ProcessEnv) {
  * user with mode 0700. Requires nonzero process UID and GID; does not create or
  * repair the directory. Rejects with a configuration error on validation or I/O
  * failure, replacing the underlying error.
+ * @param {string} directory - Credential directory whose ownership and permissions must be checked.
+ * @returns {Promise<void>} Completion after the directory passes ownership and permission checks.
  */
 export async function checkProductionDirectory(directory: string) {
   try {
@@ -162,6 +167,8 @@ export async function checkProductionDirectory(directory: string) {
  * Returns the trimmed value, which must be nonempty and contain no CR, LF, or NUL.
  * Validation and file open, read, stat, or close failures reject with a
  * configuration error that replaces the underlying error.
+ * @param {string} file - Secret-file path whose contents and permissions must be checked.
+ * @returns {Promise<string>} Validated client-secret contents.
  */
 export async function readProductionSecret(file: string) {
   try {
@@ -207,6 +214,8 @@ export async function readProductionSecret(file: string) {
  * construction errors propagate. Listen or signal-handler setup failures shut
  * down the application and reject with a configuration error unless shutdown
  * itself rejects, in which case its error propagates.
+ * @param {NodeJS.ProcessEnv} env - Process environment containing the host configuration inputs.
+ * @returns {Promise<{ server: Server<typeof IncomingMessage, typeof ServerResponse>; readonly activeSessions: number; readonly stopping: boolean; listen(port?: number, host?: string): Promise<void>; shutdown(): Promise<void>; }>} Running HTTP application and its lifecycle controls.
  */
 export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
   const config = parseProductionConfig(env);

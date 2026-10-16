@@ -24,8 +24,26 @@ interface DocumentationClient {
  * invocation scope.
  */
 export interface DocsScopeDependencies {
+  /**
+   * Resolves a bearer credential from the command options or credential file.
+   * @param {CredentialOptions} options - Explicit bearer token, credential-file selection, and optional file reader.
+   * @returns {Promise<string>} Resolved nonempty bearer credential.
+   */
   resolveAccessToken(options: CredentialOptions): Promise<string>;
+
+  /**
+   * Constructs the generated endpoint client with the resolved bearer credential.
+   * @param {string} accessToken - Bearer credential used to authorize the generated endpoint client.
+   * @returns {DocumentationClient} Endpoint client bound to the resolved bearer credential.
+   */
   createDocumentationClient(accessToken: string): DocumentationClient;
+
+  /**
+   * Serializes and writes the documentation tree to the chosen destination.
+   * @param {DataApiDocumentation} document - Typed Data API documentation tree to serialize.
+   * @param {TokenOutputOptions} options - Destination, serialization format, overwrite policy, and output capabilities.
+   * @returns {Promise<void>} Completion after the document has been written.
+   */
   writeDocumentOutput(
     document: DataApiDocumentation,
     options: TokenOutputOptions,
@@ -98,6 +116,9 @@ function mapDocumentationError(error: unknown): Error {
  * The returned factory rejects unsupported formats before resolving credentials.
  * Credential resolution and client construction failures propagate unchanged;
  * documentation retrieval and output are deferred to the returned capabilities.
+ * @param {Diagnostics} diagnostics - Secret-safe sink for command progress and failure messages.
+ * @param {DocsScopeDependencies} dependencies - Injected external capabilities used by the command scope.
+ * @returns {CreateDocsCommandScope} Factory that resolves an isolated dependency scope per invocation.
  */
 export function createDocsCommandScopeFactory(
   diagnostics: Diagnostics,

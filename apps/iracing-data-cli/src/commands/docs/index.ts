@@ -13,7 +13,10 @@ import type { Diagnostics } from "../../diagnostics.js";
  * dependencies.
  */
 export interface CreateDocsCommandOptions {
+  /** Secret-safe diagnostic sink for command progress and failures. */
   diagnostics: Diagnostics;
+
+  /** Optional overrides for command-scoped external capabilities. */
   dependencies?: DocsScopeDependencies;
 }
 
@@ -24,6 +27,10 @@ export interface CreateDocsCommandOptions {
  * a separately composed invocation scope. Injectable scope dependencies are exposed
  * here for tests and future application composition while production registrations
  * can use the module defaults.
+ * @param {CreateDocsCommandOptions} root0 - Command composition inputs and dependency overrides.
+ * @param {Diagnostics} root0.diagnostics - Secret-safe sink for command progress and failure messages.
+ * @param {DocsScopeDependencies | undefined} root0.dependencies - Injected external capabilities used by the command scope.
+ * @returns {Command} Configured CLI command ready for registration.
  */
 export function createDocsCommand({
   diagnostics,

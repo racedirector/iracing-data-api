@@ -37,27 +37,33 @@ const CommaSeparatedSessionIdsSchema = z.codec(
   },
 );
 
+/** Validates the string client identifier issued during OAuth registration. */
 export const OAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
 });
 
+/** Validates the string secret issued to a confidential OAuth client. */
 export const OAuthClientSecretSchema = z.string().meta({
   description: "The client secret issued during registration.",
 });
 
+/** Accepts the iracing.auth authorization permission literal. */
 export const OAuthScopeAuthSchema = z.literal("iracing.auth").meta({
   description: "OAuth scope that grants authorization for iRacing services.",
 });
 
+/** Accepts the iracing.profile member-profile permission literal. */
 export const OAuthScopeProfileSchema = z.literal("iracing.profile").meta({
   description: "OAuth scope that grants access to the iRacing profile.",
 });
 
+/** Accepts the supported authorization and profile permission literals. */
 export const OAuthScopesSchema = z.union([
   OAuthScopeAuthSchema,
   OAuthScopeProfileSchema,
 ]);
 
+/** Accepts the raw whitespace-delimited scope string without applying the scope codec. */
 export const OAuthScopesStringSchema = z.string().meta({
   description:
     "One or more scopes to request, if any, separated by whitespace.",
@@ -65,7 +71,10 @@ export const OAuthScopesStringSchema = z.string().meta({
 
 // Headers
 
+/** HTTP header carrying the OAuth request-correlation identifier. */
 export const OAuthRequestIdHeaderKey = "x-request-id";
+
+/** Validates the string request-correlation header returned by the OAuth service. */
 export const OAuthRequestIdHeaderSchema = z.string().meta({
   title: "Request ID",
   description:
@@ -75,12 +84,14 @@ export const OAuthRequestIdHeaderSchema = z.string().meta({
   },
 });
 
+/** Validates the OAuth request-correlation response header. */
 export const OAuthHeadersSchema = z.object({
   [OAuthRequestIdHeaderKey]: OAuthRequestIdHeaderSchema,
 });
 
 // Requests and responses
 
+/** Validates the documented OAuth error response fields. */
 export const OAuthErrorResponseSchema = z.object({
   status: z.number(),
   status_reason: z.string(),
@@ -90,6 +101,7 @@ export const OAuthErrorResponseSchema = z.object({
   state: z.string().optional(),
 });
 
+/** Validates authorization-code request parameters including registration, scope, state, and PKCE. */
 export const OAuthAuthorizeParametersSchema = z.object({
   client_id: OAuthClientIdSchema,
   redirect_uri: z.url().meta({
@@ -122,6 +134,7 @@ export const OAuthAuthorizeParametersSchema = z.object({
   }),
 });
 
+/** Validates authorization callback state and exchange-code query parameters. */
 export const OAuthCallbackParametersSchema = z
   .object({
     state: z.string(),
@@ -132,6 +145,7 @@ export const OAuthCallbackParametersSchema = z
       "Parameters are added to the query string of the `redirect_uri`.",
   });
 
+/** Validates the authorization-code grant, redirect URI, and optional PKCE verifier. */
 export const OAuthTokenAuthorizationCodeGrantParametersSchema = z
   .object({
     grant_type: z.literal("authorization_code"),
@@ -152,6 +166,7 @@ export const OAuthTokenAuthorizationCodeGrantParametersSchema = z
     id: "authorizationCodeGrant",
   });
 
+/** Validates the refresh-token grant and client registration parameters. */
 export const OAuthTokenRefreshGrantParametersSchema = z
   .object({
     grant_type: z.literal("refresh_token"),
@@ -165,6 +180,7 @@ export const OAuthTokenRefreshGrantParametersSchema = z
     id: "refreshTokenGrant",
   });
 
+/** Validates the confidential password-limited grant and account credentials. */
 export const OAuthPasswordLimitedGrantParametersSchema = z
   .object({
     grant_type: z.literal("password_limited"),
@@ -183,6 +199,7 @@ export const OAuthPasswordLimitedGrantParametersSchema = z
     id: "passwordLimitedGrant",
   });
 
+/** Selects the supported token-request contract by grant_type. */
 export const OAuthTokenParametersSchema = z
   .discriminatedUnion("grant_type", [
     OAuthTokenAuthorizationCodeGrantParametersSchema,
@@ -193,6 +210,7 @@ export const OAuthTokenParametersSchema = z
     id: "tokenGrantParameters",
   });
 
+/** Validates the token endpoint response without interpreting access-token claims. */
 export const OAuthTokenResponseSchema = z
   .object({
     access_token: z.string().meta({
@@ -218,6 +236,7 @@ export const OAuthTokenResponseSchema = z
     id: "tokenGrantResponse",
   });
 
+/** Algorithm names accepted by the shared wire schema; runtime verification applies a narrower policy. */
 export const OAuthJWTAccessTokenAlgorithmValues = [
   "HS256",
   "HS384",
@@ -235,6 +254,7 @@ export const OAuthJWTAccessTokenAlgorithmValues = [
   "EdDSA",
 ] as const;
 
+/** Trims and validates the JWT algorithm name without selecting the runtime verification policy. */
 export const OAuthJWTAccessTokenAlgorithmSchema = z
   .string()
   .trim()
@@ -246,6 +266,7 @@ export const OAuthJWTAccessTokenAlgorithmSchema = z
       "The signed JWT algorithm used by the iRacing access token header. `none` is explicitly disallowed.",
   });
 
+/** Validates decoded JWT header fields before runtime cryptographic policy is applied. */
 export const OAuthJWTAccessTokenHeaderSchema = z
   .object({
     kid: z.string().min(1).meta({
@@ -279,6 +300,7 @@ export const OAuthJWTAccessTokenHeaderSchema = z
       "The decoded JWS header for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
   });
 
+/** Validates decoded access-token claims without verifying the token signature. */
 export const OAuthJWTAccessTokenPayloadSchema = z
   .object({
     session_id: z.uuid().meta({
@@ -335,6 +357,7 @@ export const OAuthJWTAccessTokenPayloadSchema = z
       "The decoded payload for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
   });
 
+/** Validates the decoded JWT header and payload as one structural contract. */
 export const OAuthJWTAccessTokenSchema = z
   .object({
     header: OAuthJWTAccessTokenHeaderSchema,
@@ -347,6 +370,7 @@ export const OAuthJWTAccessTokenSchema = z
       "The decoded and parsed JWT access token structure for iRacing.",
   });
 
+/** Validates session metadata while retaining the opaque upstream session identifier. */
 export const OAuthSessionSchema = z.object({
   session_id: z.string().meta({
     description:
@@ -388,19 +412,23 @@ export const OAuthSessionSchema = z.object({
   last_user_agent_browser: z.string().nullable(),
 });
 
+/** Validates the session-list response wrapper. */
 export const OAuthSessionsSchema = z.object({
   sessions: z.array(OAuthSessionSchema),
 });
 
+/** Validates the authenticated member display name and customer identifier. */
 export const OAuthProfileResponseSchema = z.object({
   iracing_name: z.string(),
   iracing_cust_id: z.number(),
 });
 
+/** Validates the optional browser-forgetting flag for current-session revocation. */
 export const OAuthRevokeCurrentSessionInputSchema = z.object({
   forget_browser: z.boolean().optional(),
 });
 
+/** Validates the serialized session selection for revocation. */
 export const OAuthRevokeSessionsInputSchema = z.object({
   session_ids: CommaSeparatedSessionIdsSchema,
 });

@@ -26,12 +26,18 @@ import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpApplicationConfig } from "./config.js";
 import type { McpServices, McpToolRegistrar } from "./services.js";
 
+/** Immutable HTTP request-body and shutdown-drain limits. */
 export const transportLimits = Object.freeze({
   bodyBytes: 64 * 1024,
   drainMs: 10_000,
 });
 
-/** Schedules a lifecycle callback and returns a cancellation function. */
+/**
+ * Schedules a lifecycle callback and returns a cancellation function.
+ * @param {() => void} callback - Work to run after the scheduled delay.
+ * @param {number} milliseconds - Delay before invoking the scheduled callback.
+ * @returns {() => void} Cancellation function that prevents the scheduled callback.
+ */
 export type Schedule = (
   callback: () => void,
   milliseconds: number,
@@ -62,6 +68,8 @@ export interface HttpApplicationOptions {
 
   /** Exact authorities/origins; production validates configuration before composition. */
   readonly allowedHosts?: readonly string[];
+
+  /** Exact browser origins permitted to access the HTTP transport. */
   readonly allowedOrigins?: readonly string[];
 
   /** Sanitizing logger used for transport and tool diagnostics. */
@@ -73,6 +81,7 @@ export interface HttpApplicationOptions {
   /**
    * Enables logical MCP sessions and generates their opaque identifiers.
    * Omit this only for explicitly stateless embeddings/tests.
+   * @returns {string} Fresh opaque identifier for a new MCP transport session.
    */
   readonly sessionIdGenerator?: () => string;
 }
@@ -275,7 +284,7 @@ async function createMcpSession(
  * Creates the process-scoped HTTP application serving health and MCP endpoints.
  *
  * The returned application owns shared shutdown state and, when enabled,
- * a registry of logical MCP sessions. initialize creates a session-scoped SDK
+ * a registry of logical MCP sessions. Initialize creates a session-scoped SDK
  * server/transport; subsequent POST/GET/DELETE exchanges route by Mcp-Session-Id.
  * Explicit stateless composition retains one server/transport per POST. Host/origin
  * validation, body limits, cancellation, and bounded shutdown are
@@ -285,6 +294,8 @@ async function createMcpSession(
  * allow localhost:3000 and 127.0.0.1:3000 with their HTTP origins. Every route
  * requires exactly one allowed Host header; Origin may be absent, but must be
  * allowed when present. Rejected hosts or origins receive HTTP 403.
+ * @param {HttpApplicationOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {{ server: Server<typeof IncomingMessage, typeof ServerResponse>; readonly activeSessions: number; readonly stopping: boolean; listen(port?: number, host?: string): Promise<void>; shutdown(): Promise<void>; }} HTTP application with transport startup and shutdown controls.
  */
 export function createHttpApplication(options: HttpApplicationOptions) {
   const owner = new HttpOwner(options);
@@ -339,6 +350,9 @@ export function createHttpApplication(options: HttpApplicationOptions) {
  *
  * Importing this module has no process-level side effects; callers explicitly opt into signal
  * handling and receive an unsubscribe function for tests or embedding scenarios.
+ * @param {ReturnType<typeof createHttpApplication>} app - HTTP application whose transport lifecycle is being managed.
+ * @param {(exitCode: 0 | 1) => void} onStopped - Optional notification invoked with the shutdown exit code.
+ * @returns {() => void} Cleanup callback that removes the installed signal listeners.
  */
 export function installTerminationHandlers(
   app: ReturnType<typeof createHttpApplication>,

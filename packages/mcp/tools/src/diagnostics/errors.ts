@@ -72,6 +72,7 @@ const codes = Object.keys(errorPolicy) as [
   ...ApplicationErrorCode[],
 ];
 
+/** Restricts application failures to the maintained secret-safe error-code set. */
 export const ApplicationErrorCodeSchema = z.enum(codes);
 const reasons = {
   AUTHORIZATION_REQUIRED: [
@@ -88,6 +89,7 @@ const reasons = {
   CURSOR_EXPIRED: ["expired_or_evicted", "session_changed"],
 } as const;
 
+/** Validates bounded, secret-safe tool errors and their correlation identifiers. */
 export const ErrorEnvelopeSchema = z
   .strictObject({
     error: z.strictObject({
@@ -132,12 +134,14 @@ const contexts = new WeakMap<RequestContext, string>();
  * from arbitrary object properties.
  */
 export interface RequestContext {
+  /** Opaque correlation identifier safe to include in tool errors. */
   readonly request_id: string;
 }
 
 /**
  * Creates a fresh immutable correlation context backed by an internally owned request
  * identifier.
+ * @returns {RequestContext} Fresh opaque request-correlation context.
  */
 export function createRequestContext(): RequestContext {
   const context = Object.freeze({ request_id: randomUUID() });
@@ -150,6 +154,8 @@ export function createRequestContext(): RequestContext {
 /**
  * Returns the owned identifier for a known request context and refuses to trust
  * caller-supplied lookalike properties.
+ * @param {RequestContext} context - Request-local identity, cancellation, or diagnostic context.
+ * @returns {string} Safe correlation identifier for the request.
  */
 export function requestId(context: RequestContext): string {
   return contexts.get(context) ?? createRequestContext().request_id;
@@ -219,7 +225,12 @@ export class ApplicationFailure extends Error {
   }
 }
 
-/** Discards messages, causes, stacks, bodies, and all unrecognized exception data. */
+/**
+ * Discards messages, causes, stacks, bodies, and all unrecognized exception data.
+ * @param {unknown} error - Unknown failure to classify without exposing secrets.
+ * @param {RequestContext} context - Request-local identity, cancellation, or diagnostic context.
+ * @returns {ErrorEnvelope} Bounded secret-safe application error envelope.
+ */
 export function errorEnvelope(
   error: unknown,
   context: RequestContext,
@@ -246,6 +257,10 @@ export function errorEnvelope(
 /**
  * Projects an unknown failure into the safe MCP tool-error envelope while preserving
  * intentional protocol failures.
+ * @param {unknown} error - Unknown failure to classify without exposing secrets.
+ * @param {RequestContext} context - Request-local identity, cancellation, or diagnostic context.
+ * @returns {object} MCP tool-error result containing the safe application envelope.
+ * @throws {ProtocolFailure} If the supplied failure belongs to the HTTP or MCP protocol boundary.
  */
 export function toolError(error: unknown, context: RequestContext) {
   if (error instanceof ProtocolFailure) {
@@ -280,7 +295,10 @@ export type FailureDomain =
  * without exposing arbitrary exception details to the model-facing application contract.
  */
 export class ProtocolFailure extends Error {
-  /** Creates a protocol failure for the owning transport domain. */
+  /**
+   * Creates a protocol failure for the owning transport domain.
+   * @param {"http" | "mcp_protocol"} domain - Transport or application boundary responsible for the failure.
+   */
   constructor(readonly domain: "http" | "mcp_protocol") {
     super("Protocol request rejected.");
     this.name = "ProtocolFailure";

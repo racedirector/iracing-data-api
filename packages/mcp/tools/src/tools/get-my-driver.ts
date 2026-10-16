@@ -7,7 +7,11 @@ import { Id, text } from "./primitives.js";
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register get_my_driver on the caller-owned server. */
+/**
+ * Register get_my_driver on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerGetMyDriver(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -15,7 +19,10 @@ export function registerGetMyDriver(
   registerTool(server, services, definition);
 }
 
+/** Rejects arguments for the authenticated-member lookup. */
 export const SelfInput = z.strictObject({});
+
+/** Validates the customer identifier and nonempty driver display name. */
 export const DriverProjection = z.object({
   cust_id: Id,
   display_name: text.min(1),

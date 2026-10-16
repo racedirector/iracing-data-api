@@ -14,7 +14,11 @@ import {
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register get_recent_races on the caller-owned server. */
+/**
+ * Register get_recent_races on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerGetRecentRaces(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -22,10 +26,13 @@ export function registerGetRecentRaces(
   registerTool(server, services, definition);
 }
 
+/** Accepts an optional customer identifier and a bounded recent-race count. */
 export const RecentInput = z.strictObject({
   cust_id: Id.optional(),
   limit: z.number().int().min(1).max(10).default(10),
 });
+
+/** Projects recent-race identity, season, track, and finishing information. */
 export const RecentProjection = z
   .object({
     subsession_id: Id,

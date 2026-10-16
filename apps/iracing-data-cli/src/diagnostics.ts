@@ -5,14 +5,30 @@
  * Authorization URLs may be printed for explicit manual browser completion.
  */
 export interface Diagnostics {
+  /**
+   * Writes a secret-safe informational diagnostic.
+   * @param {string} message - Human-readable explanation retained on the failure.
+   */
   info(message: string): void;
+
+  /**
+   * Writes a secret-safe warning diagnostic.
+   * @param {string} message - Human-readable explanation retained on the failure.
+   */
   warn(message: string): void;
+
+  /**
+   * Writes a secret-safe failure diagnostic.
+   * @param {string} message - Human-readable explanation retained on the failure.
+   */
   error(message: string): void;
 }
 
 /**
  * Creates the CLI diagnostic sink over a single writer, keeping user output separate while
  * preserving level semantics.
+ * @param {(message: string) => void} write - Injected sink for formatted diagnostic output.
+ * @returns {Diagnostics} Diagnostic methods bound to the injected writer.
  */
 export function createDiagnostics(
   write: (message: string) => void = (message) =>

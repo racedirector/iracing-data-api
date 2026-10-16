@@ -13,13 +13,20 @@ import type { Diagnostics } from "../../diagnostics.js";
  * dependencies.
  */
 export interface CreateWhoamiCommandOptions {
+  /** Secret-safe diagnostic sink for command progress and failures. */
   diagnostics: Diagnostics;
+
+  /** Optional overrides for command-scoped external capabilities. */
   dependencies?: WhoamiScopeDependencies;
 }
 
 /**
  * Build a whoami command with credential resolution, OAuth API, and stdout defaults,
  * or supplied dependencies. I/O begins when its action runs.
+ * @param {CreateWhoamiCommandOptions} root0 - Command composition inputs and dependency overrides.
+ * @param {Diagnostics} root0.diagnostics - Secret-safe sink for command progress and failure messages.
+ * @param {WhoamiScopeDependencies | undefined} root0.dependencies - Injected external capabilities used by the command scope.
+ * @returns {Command} Configured CLI command ready for registration.
  */
 export function createWhoamiCommand({
   diagnostics,

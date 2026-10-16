@@ -2,6 +2,7 @@ import { randomBytes } from "node:crypto";
 import { ApplicationFailure } from "../diagnostics/errors.js";
 import { RetentionBudget } from "../retention.js";
 
+/** Immutable cursor-count, retention-byte, response-byte, and lifetime limits. */
 export const COLLECTION_LIMITS = Object.freeze({
   cursors: 32,
   bytes: 32 * 1024 * 1024,
@@ -12,6 +13,7 @@ export const COLLECTION_LIMITS = Object.freeze({
 /**
  * Raises the stable cursor-expiration protocol failure used for expired or evicted collection
  * state.
+ * @throws {ApplicationFailure} Always, to report an expired or evicted continuation.
  */
 export function collectionExpired(): never {
   throw new ApplicationFailure("CURSOR_EXPIRED", {
@@ -27,6 +29,8 @@ function capacity(): never {
  * Builds a successful MCP tool result with the original value as structuredContent and a JSON
  * text serialization that may omit unsupported values. Both projections are jointly constrained
  * by the response-size policy.
+ * @param {Record<string, unknown>} value - Input value to validate, store, or serialize.
+ * @returns {{ content: { type: "text"; text: string; }[]; structuredContent: Record<string, unknown>; }} MCP text and structured-content projections within the response-size limit.
  */
 export function completeResult(value: Record<string, unknown>) {
   const result = {
@@ -65,7 +69,11 @@ export class CollectionCursors {
   readonly #entries = new Map<string, Cursor>();
   readonly #now: () => number;
 
-  /** Register expiry cleanup with the shared budget; now returns Unix milliseconds. */
+  /**
+   * Register expiry cleanup with the shared budget; now returns Unix milliseconds.
+   * @param {() => number} now - Clock returning Unix milliseconds for cursor expiration.
+   * @param {RetentionBudget} budget - Shared owner of retained bytes and cursor-token capacity.
+   */
   constructor(
     now: () => number = Date.now,
     readonly budget = new RetentionBudget(),
@@ -75,6 +83,8 @@ export class CollectionCursors {
       this.#prune();
     });
   }
+
+  /** Discards all retained cursors and releases their capacity reservations. */
   invalidate(): void {
     this.budget.release(this.#bytes(), this.#entries.size);
     this.#entries.clear();
@@ -112,11 +122,19 @@ export class CollectionCursors {
 
   /**
    * Clone a collection and return its first page, retaining continuation state as needed.
-   * expiresAt is in Unix milliseconds and is capped at five minutes from now.
-   * limit must be an integer from 1 to 100; pages may shrink to fit 64 KiB.
-   * source_total counts all supplied items. Expired state throws CURSOR_EXPIRED;
+   * ExpiresAt is in Unix milliseconds and is capped at five minutes from now.
+   * Limit must be an integer from 1 to 100; pages may shrink to fit 64 KiB.
+   * Source_total counts all supplied items. Expired state throws CURSOR_EXPIRED;
    * invalid limits or exhausted capacity throw RESPONSE_LIMIT_EXCEEDED.
    * Cloning and JSON serialization errors propagate.
+   * @param {{ tool: string; filters: unknown; items: readonly Record<string, unknown>[]; context?: Record<string, unknown>; limit: number; expiresAt: number; }} options - Configuration and injected capabilities for this operation.
+   * @param {string} options.tool - Tool identifier bound to every retained continuation.
+   * @param {unknown} options.filters - Initial selection bound to continuation replay validation.
+   * @param {readonly Record<string, unknown>[]} options.items - Projected records copied into the retained snapshot.
+   * @param {Record<string, unknown>} options.context - Additional metadata included in each page.
+   * @param {number} options.limit - Maximum records per page, from 1 to 100.
+   * @param {number} options.expiresAt - Upstream expiration deadline in Unix milliseconds.
+   * @returns {Result} First bounded page and its optional continuation cursor.
    */
   start(options: {
     tool: string;
@@ -175,6 +193,9 @@ export class CollectionCursors {
    * Return a cloned page for this owner's tool-bound token, caching successful replay.
    * Unknown, expired, or wrong-tool tokens throw CURSOR_EXPIRED. Page or retention
    * capacity failures propagate as RESPONSE_LIMIT_EXCEEDED without advancing the token.
+   * @param {string} tool - Tool identifier that must match the retained continuation.
+   * @param {string} token - Opaque continuation identifying retained state for this owner.
+   * @returns {Result} First bounded page and its optional continuation cursor.
    */
   resume(tool: string, token: string): Result {
     this.#prune();

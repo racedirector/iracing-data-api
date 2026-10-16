@@ -66,14 +66,19 @@ function parseProcessedTokenResponse(result: oauth.TokenEndpointResponse) {
  * ClientMetadata supplies the client registration used by the OAuth lifecycle.
  */
 export interface OAuthClientOptions {
+  /** Registration and endpoint policy supplied to the OAuth lifecycle. */
   clientMetadata: Readonly<IRacingOAuthClientMetadataInput>;
 
   // Stores
+  /** Stores short-lived authorization state and PKCE verifiers. */
   stateStore: StateStore;
+
+  /** Stores OAuth sessions and rotated refresh credentials. */
   sessionStore: SessionStore;
 
   // Low-level iRacing OAuth API dependency. The default uses the generated
   // wire client while tests or applications may inject a compatible boundary.
+  /** Optional factory for the low-level OAuth API facade. */
   createOAuthApi?: OAuthApiClientFactory;
 }
 
@@ -341,7 +346,7 @@ export class OAuthClient {
 
   /**
    * Refreshes a token for the given refresh token.
-   * @param {string} token The refresh token.
+   * @param {string} token - Stored refresh credential exchanged for a new access grant.
    * @returns {Promise<OAuthTokenResponse>} The complete grant response, including any rotated refresh credential.
    *
    * @throws {OAuthRefreshError} If the OAuth server returns a structured refresh error body.
@@ -495,6 +500,8 @@ export class OAuthClient {
    * This validates the token shape, but does not verify the token signature.
    *
    * @throws {Error} If the token is not a valid JWT or does not match the expected access-token schema.
+   * @param {string} accessToken - JWT whose decoded claims are checked by this operation.
+   * @returns {import("@iracing-data/oauth-schema").OAuthJWTAccessToken} Structurally validated JWT header and payload without signature verification.
    */
   parseAccessToken(accessToken: string) {
     return decodeAccessToken(accessToken);
@@ -549,6 +556,9 @@ export class OAuthClient {
    * @throws {Error} If the token cannot be verified before validation.
    * @throws {Error} If the token is expired or its time-based claims are inconsistent.
    * @throws {Error} If the issuer, client id, audience, environment, or required scopes do not match.
+   * @param {string} accessToken - JWT whose decoded claims are checked by this operation.
+   * @param {Omit< AccessTokenValidationOptions, "issuer" | "clientId" | "requiredScopes" >} options - Additional environment, clock, and skew constraints beyond the client registration.
+   * @returns {Promise<import("@iracing-data/oauth-schema").OAuthJWTAccessToken>} Signature-verified JWT header and payload satisfying registration and caller constraints.
    */
   async validateAccessToken(
     accessToken: string,
@@ -574,7 +584,12 @@ export type { IRacingOAuthTokenResponse } from "@iracing-data/oauth-schema";
 
 /** Optional headers, body, and protocol controls for one protected resource request. */
 export interface ProtectedRequestOptions {
+  /** Additional headers forwarded to the protected resource request. */
   headers?: Headers;
+
+  /** Optional body forwarded to the protected resource request. */
   body?: oauth.ProtectedResourceRequestBody;
+
+  /** Protocol controls forwarded to the protected resource request. */
   options?: oauth.ProtectedResourceRequestOptions;
 }

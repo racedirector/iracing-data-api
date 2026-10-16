@@ -28,6 +28,9 @@ function cacheUrl(input: string, directory = false): URL {
  * Resolve a filename of at most 255 characters within the API-provided HTTPS directory.
  * Reject invalid directories, unsupported filename characters, or paths outside that
  * directory with DATA_RESOLUTION_FAILED.
+ * @param {string} base - Validated upstream directory URL used to resolve chunk filenames.
+ * @param {string} filename - Opaque upstream chunk filename to validate and resolve.
+ * @returns {URL} Validated absolute chunk URL under the upstream cache directory.
  */
 export function chunkUrl(base: string, filename: string): URL {
   const url = cacheUrl(base, true);
@@ -55,6 +58,8 @@ export function chunkUrl(base: string, filename: string): URL {
  * Return chunk metadata for a successful search with consistent counts and safe URLs.
  * Allows at most 1,000 chunks and 500,000 rows; an empty result must have no chunks.
  * Malformed metadata or unsafe download paths throw DATA_RESOLUTION_FAILED.
+ * @param {unknown} value - Input value to validate, store, or serialize.
+ * @returns {{ chunk_size: number; num_chunks: number; rows: number; base_download_url: string; chunk_file_names: string[]; }} Validated chunk counts, filenames, base URL, and search totals.
  */
 export function parseManifest(value: unknown) {
   const wire = parse(
@@ -93,7 +98,11 @@ export function parseManifest(value: unknown) {
   return info;
 }
 
-/** Optional manifest echoes may be absent, but must never contradict the request. */
+/**
+ * Optional manifest echoes may be absent, but must never contradict the request.
+ * @param {unknown} value - Input value to validate, store, or serialize.
+ * @param {Record<string, unknown>} expected - Search parameters that the upstream response must echo.
+ */
 export function validateSearchEcho(
   value: unknown,
   expected: Record<string, unknown>,

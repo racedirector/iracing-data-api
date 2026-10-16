@@ -7,7 +7,7 @@
  * Preserve stable operation/schema IDs and investigate official evidence for changes.
  *
  * Import exports one in-memory document without logging or filesystem mutation.
- * cli.ts owns JSON/YAML serialization and writes from that same document. Build
+ * Cli.ts owns JSON/YAML serialization and writes from that same document. Build
  * this helper's dependencies first so codegen reads current compiled schemas.
  * OAuth wire generation reads oauth.json into @iracing-data/oauth-client-fetch.
  * The authored OAuthApiClient adapter validates responses and applies request policy;
@@ -28,6 +28,7 @@ import {
 } from "@iracing-data/oauth-schema";
 import { createDocument } from "zod-openapi";
 
+/** OpenAPI document composed from the authored OAuth wire contracts. */
 export const document = createDocument({
   openapi: "3.1.1",
   info: {

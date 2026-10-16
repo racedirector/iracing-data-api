@@ -42,6 +42,7 @@ import {
 import type { SessionStore } from "../schema";
 import type { GetOptions } from "./index";
 
+/** Maximum accepted UTF-8 credential-document size in bytes. */
 export const OAUTH_TOKEN_DOCUMENT_MAX_BYTES = 64 * 1024;
 
 /**
@@ -67,6 +68,12 @@ export type OAuthTokenDocumentErrorCode =
  * without changing the public token shape.
  */
 export class OAuthTokenDocumentError extends Error {
+  /**
+   * Creates a classified token-document failure with its trusted diagnostic cause.
+   * @param {OAuthTokenDocumentErrorCode} code - Stable classification used to distinguish this failure.
+   * @param {string} message - Human-readable explanation retained on the failure.
+   * @param {unknown} cause - Original failure retained only for trusted diagnostics.
+   */
   constructor(
     public readonly code: OAuthTokenDocumentErrorCode,
     message: string,
@@ -82,18 +89,66 @@ export class OAuthTokenDocumentError extends Error {
  * failure cases can be tested deterministically.
  */
 export interface OAuthTokenDocumentFileSystem {
+  /**
+   * Changes filesystem permission bits for a credential path.
+   * @param {string} path - Filesystem or protected-resource path used by this operation.
+   * @param {number} mode - POSIX permission bits requested for the filesystem entry.
+   * @returns {Promise<void>} Completion of the requested operation.
+   */
   chmod(path: string, mode: number): Promise<void>;
+
+  /**
+   * Publishes a file through an exclusive hard link without replacing an existing destination.
+   * @param {string} existingPath - Existing file used as the source of the hard link.
+   * @param {string} newPath - Destination path for the new hard link.
+   * @returns {Promise<void>} Completion of the requested operation.
+   */
   link(existingPath: string, newPath: string): Promise<void>;
+
+  /**
+   * Reads path metadata without following symbolic links.
+   * @param {string} path - Filesystem or protected-resource path used by this operation.
+   * @returns {ReturnType<typeof lstat>} Filesystem metadata for the entry without following symbolic links.
+   */
   lstat(path: string): ReturnType<typeof lstat>;
+
+  /**
+   * Creates the credential directory using the supplied filesystem options.
+   * @param {string} path - Filesystem or protected-resource path used by this operation.
+   * @param {Parameters<typeof mkdir>[1]} options - Configuration and injected capabilities for this operation.
+   * @returns {ReturnType<typeof mkdir>} Filesystem directory-creation result.
+   */
   mkdir(
     path: string,
     options: Parameters<typeof mkdir>[1],
   ): ReturnType<typeof mkdir>;
+
+  /**
+   * Opens a credential file with the requested flags and permission bits.
+   * @param {string} path - Filesystem or protected-resource path used by this operation.
+   * @param {string} flags - Filesystem open flags governing creation and access.
+   * @param {number} mode - POSIX permission bits requested for the filesystem entry.
+   * @returns {Promise<FileHandle>} File handle for the requested access mode.
+   */
   open(path: string, flags: string, mode: number): Promise<FileHandle>;
+
+  /**
+   * Atomically replaces the destination with the prepared file on the same filesystem.
+   * @param {string} oldPath - Prepared source path to publish at the destination.
+   * @param {string} newPath - Destination path for the new hard link.
+   * @returns {Promise<void>} Completion of the requested operation.
+   */
   rename(oldPath: string, newPath: string): Promise<void>;
+
+  /**
+   * Removes a file or symbolic-link directory entry.
+   * @param {string} path - Filesystem or protected-resource path used by this operation.
+   * @returns {Promise<void>} Completion of the requested operation.
+   */
   unlink(path: string): Promise<void>;
 }
 
+/** Node filesystem implementation used by default for secure token persistence. */
 export const oauthTokenDocumentFileSystem: OAuthTokenDocumentFileSystem = {
   chmod,
   link,
@@ -106,6 +161,7 @@ export const oauthTokenDocumentFileSystem: OAuthTokenDocumentFileSystem = {
 
 /** Read-time filesystem seam for hardened credential loading. */
 export interface OAuthTokenDocumentReadOptions {
+  /** Filesystem operations supplied by the host for persistence. */
   fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
 }
 
@@ -120,9 +176,16 @@ export type OAuthTokenDocumentWriteOptions = OAuthTokenDocumentReadOptions & {
  * OAuth session key.
  */
 export interface OAuthTokenDocumentSessionStoreOptions {
+  /** Path of the persisted token or key-value document. */
   filePath: string;
+
+  /** Single session identifier accepted by this durable store. */
   sessionKey: string;
+
+  /** Requested file and directory synchronization policy. */
   durability?: OAuthTokenDocumentDurability;
+
+  /** Filesystem operations supplied by the host for persistence. */
   fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
 }
 
@@ -343,6 +406,9 @@ function validateTokenDocument(value: unknown): OAuthTokenResponse {
 /**
  * Validates token invariants and emits the canonical bounded JSON credential document used for
  * durable persistence.
+ * @param {OAuthTokenResponse} token - OAuth credential or command document to serialize.
+ * @returns {string} Validated JSON credential document ending with a newline.
+ * @throws {OAuthTokenDocumentError} If the token is invalid or its serialized document exceeds the size limit.
  */
 export function serializeOAuthTokenDocument(token: OAuthTokenResponse): string {
   const normalized = validateTokenDocument(token);
@@ -387,6 +453,9 @@ async function syncDirectory(
 /**
  * Loads a credential document only after validating parent/file ownership, file type, inode
  * stability, size, JSON shape, and token invariants.
+ * @param {string} filePath - Path to the persisted OAuth credential document.
+ * @param {OAuthTokenDocumentReadOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {Promise<OAuthTokenResponse | undefined>} Validated credentials, or undefined when the document is absent.
  */
 export async function readOAuthTokenDocument(
   filePath: string,
@@ -455,6 +524,10 @@ export async function readOAuthTokenDocument(
 /**
  * Publishes credentials through an exclusive temporary file and atomic replacement, enforcing
  * overwrite and requested durability semantics.
+ * @param {string} filePath - Path to the persisted OAuth credential document.
+ * @param {OAuthTokenResponse} token - OAuth credential or command document to serialize.
+ * @param {OAuthTokenDocumentWriteOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {Promise<void>} Completion after secure publication and requested synchronization.
  */
 export async function writeOAuthTokenDocument(
   filePath: string,
@@ -598,6 +671,11 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
   private value?: OAuthTokenResponse;
   private quarantinedCause?: unknown;
 
+  /**
+   * Creates a durable store accepting only the configured nonempty session key.
+   * @param {OAuthTokenDocumentSessionStoreOptions} options - Configuration and injected capabilities for this operation.
+   * @throws {Error} If the durable store is configured with an empty session key.
+   */
   constructor(options: OAuthTokenDocumentSessionStoreOptions) {
     if (!options.sessionKey.trim()) {
       throw new Error("OAuth token document session key must be nonempty.");
@@ -664,6 +742,12 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
     return result;
   }
 
+  /**
+   * Reads the value associated with a key without creating a missing entry. Persistence failures propagate to the caller.
+   * @param {string} key - Identifier of the stored value to read or mutate.
+   * @param {GetOptions} _options - Optional cooperative read controls supported by the store interface.
+   * @returns {Promise<OAuthTokenResponse | undefined>} Stored value, or undefined when no entry exists.
+   */
   async get(key: string, _options?: GetOptions) {
     this.assertKey(key);
     await this.mutationTail;
@@ -672,6 +756,12 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
     return this.value ? { ...this.value } : undefined;
   }
 
+  /**
+   * Stores the supplied value under its key. Persistence failures propagate to the caller.
+   * @param {string} key - Identifier of the stored value to read or mutate.
+   * @param {OAuthTokenResponse} value - Input value to validate, store, or serialize.
+   * @returns {Promise<void>} Completion of the store mutation.
+   */
   set(key: string, value: OAuthTokenResponse) {
     this.assertKey(key);
     const normalized = validateTokenDocument(value);
@@ -686,6 +776,11 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
     });
   }
 
+  /**
+   * Deletes the stored value associated with a key. Persistence failures propagate to the caller.
+   * @param {string} key - Identifier of the stored value to read or mutate.
+   * @returns {Promise<void>} Completion of the store deletion.
+   */
   del(key: string) {
     this.assertKey(key);
 
@@ -698,6 +793,10 @@ export class OAuthTokenDocumentSessionStore implements SessionStore {
     });
   }
 
+  /**
+   * Removes all values owned by this store. Persistence failures propagate to the caller.
+   * @returns {Promise<void>} Completion of clearing this store.
+   */
   clear() {
     return this.enqueueMutation(async () => {
       await removeOAuthTokenDocument(this.filePath, {

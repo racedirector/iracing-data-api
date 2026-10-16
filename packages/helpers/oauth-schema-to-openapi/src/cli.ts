@@ -34,6 +34,11 @@ function resolveFormat(
 /**
  * Serializes the canonical authored OAuth document to the requested build-artifact path,
  * replacing only that selected output file.
+ * @param {{ outputDir?: string; fileName?: string; format?: "json" | "yaml"; }} root0 - Command composition inputs and dependency overrides.
+ * @param {string} root0.outputDir - Directory where the generated OpenAPI document is written.
+ * @param {string} root0.fileName - Filename used for the generated OpenAPI document.
+ * @param {"json" | "yaml" | undefined} root0.format - JSON or YAML serialization selected by the caller.
+ * @returns {Promise<void>} Completion after the selected OpenAPI document is written.
  */
 export async function generateOpenAPISpec({
   outputDir = __dirname,

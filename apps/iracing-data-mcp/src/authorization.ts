@@ -8,22 +8,36 @@ import type { OAuthTokenVerifier } from "@modelcontextprotocol/server";
 
 /** Verifier-neutral, process-scoped configuration for MCP ingress. */
 export interface McpAuthorizationOptions {
+  /** Canonical protected-resource URL advertised to OAuth clients. */
   readonly resourceUrl: string;
+
+  /** Validates incoming bearer credentials before granting MCP access. */
   readonly verifier: OAuthTokenVerifier;
 
   /** External authorization-server issuer used only for resource metadata. */
   readonly issuer?: string;
+
+  /** Permissions required on verified bearer tokens. */
   readonly requiredScopes?: readonly string[];
 }
 
 /** App-owned Express composition; session identifiers never grant access. */
 export interface McpAuthorizationBoundary {
+  /** URL advertising OAuth protected-resource metadata. */
   readonly metadataUrl: string;
+
+  /** Router serving the protected-resource metadata document. */
   readonly metadataRouter: Router;
+
+  /** Request handler that enforces bearer authorization. */
   readonly middleware: RequestHandler;
 }
 
-/** Composes SDK bearer middleware with issuer-only resource discovery. */
+/**
+ * Composes SDK bearer middleware with issuer-only resource discovery.
+ * @param {McpAuthorizationOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {McpAuthorizationBoundary} Metadata router and bearer-authorization middleware for the resource.
+ */
 export function createMcpAuthorizationBoundary(
   options: McpAuthorizationOptions,
 ): McpAuthorizationBoundary {

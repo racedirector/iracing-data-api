@@ -68,11 +68,12 @@ test("references cannot escape through a symlink", (t) => {
   const temporary = fs.mkdtempSync(path.join(os.tmpdir(), "agent-regression-"));
   t.after(() => fs.rmSync(temporary, { recursive: true, force: true }));
   fs.symlinkSync(
-    path.join(root, "AGENTS.md"),
-    path.join(temporary, "outside.md"),
+    root,
+    path.join(temporary, "outside"),
+    process.platform === "win32" ? "junction" : "dir",
   );
   const changed = copy();
-  changed.scenarios[0].inputs = ["outside.md"];
+  changed.scenarios[0].inputs = ["outside/AGENTS.md"];
   assert.throws(() => validateSuite(changed, temporary), /repository file/);
 });
 

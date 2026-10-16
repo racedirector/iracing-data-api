@@ -6,8 +6,13 @@ import type { OAuthTokenResponse } from "@iracing-data/oauth-schema";
  * verifier and caller application state.
  */
 export interface InternalState {
+  /** Expected authorization-server issuer associated with this state. */
   iss: string;
+
+  /** PKCE code verifier retained until the authorization callback. */
   verifier?: string;
+
+  /** Opaque caller state restored after the authorization callback. */
   appState?: string;
 }
 

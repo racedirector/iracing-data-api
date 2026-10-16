@@ -40,6 +40,7 @@ const DEFAULT_REDIRECT_URI = `http://${CALLBACK_HOST}:0${CALLBACK_PATH}`;
 
 const SESSION_ID = "iracing-data-cli";
 
+/** Authorization and profile permissions requested by default during CLI login. */
 export const DEFAULT_SCOPES = [
   "iracing.auth",
   "iracing.profile",
@@ -50,7 +51,18 @@ export const DEFAULT_SCOPES = [
  * the protocol owner without reproducing it.
  */
 export interface OAuthClientLike {
+  /**
+   * Creates an authorization request and retains its state and PKCE verifier.
+   * @returns {Promise<{ url: URL }>} Authorization URL with retained state and PKCE context.
+   */
   authorize(): Promise<{ url: URL }>;
+
+  /**
+   * Exchanges the callback code and stores the resulting OAuth session.
+   * @param {URLSearchParams} params - Query parameters received on the authorization callback.
+   * @param {string} sessionId - Key identifying the stored OAuth session.
+   * @returns {Promise<OAuthTokenResponse>} OAuth session obtained by exchanging the callback code.
+   */
   callback(
     params: URLSearchParams,
     sessionId?: string,
@@ -59,15 +71,35 @@ export interface OAuthClientLike {
 
 /** Client registration inputs used only when browser login must construct its own OAuth client. */
 export interface OAuthClientConfig {
+  /** Identifier issued when registering the OAuth application. */
   clientId: string;
+
+  /** Optional confidential-client secret used by supported grant flows. */
   clientSecret?: string;
+
+  /** Registered callback URL for the authorization-code exchange. */
   redirectUri: string;
+
+  /** Ordered OAuth permissions requested for authorization. */
   scopes: Readonly<OAuthScopeList>;
 }
 
 /** Process-signal seam used to cancel browser login while guaranteeing listener cleanup. */
 export interface SignalSource {
+  /**
+   * Registers a one-time listener for a process signal.
+   * @param {NodeJS.Signals} signal - Abort signal governing request-local work.
+   * @param {() => void} listener - Callback invoked when the selected process signal fires.
+   * @returns {unknown} Host-specific listener registration result.
+   */
   once(signal: NodeJS.Signals, listener: () => void): unknown;
+
+  /**
+   * Removes a previously registered process-signal listener.
+   * @param {NodeJS.Signals} signal - Abort signal governing request-local work.
+   * @param {() => void} listener - Callback invoked when the selected process signal fires.
+   * @returns {unknown} Host-specific listener removal result.
+   */
   off(signal: NodeJS.Signals, listener: () => void): unknown;
 }
 
@@ -76,15 +108,42 @@ export interface SignalSource {
  * and cancellation testable.
  */
 export interface BrowserLoginOptions {
+  /** Identifier issued when registering the OAuth application. */
   clientId: string;
+
+  /** Optional confidential-client secret used by supported grant flows. */
   clientSecret?: string;
+
+  /** Registered callback URL for the authorization-code exchange. */
   redirectUri?: string;
+
+  /** Ordered OAuth permissions requested for authorization. */
   scopes?: Readonly<OAuthScopeList>;
+
+  /** Maximum time to wait for browser authorization before cancelling. */
   timeoutSeconds: number;
+
+  /** Whether to launch the authorization URL in the default browser. */
   openBrowser: boolean;
+
+  /** Secret-safe diagnostic sink for command progress and failures. */
   diagnostics: Diagnostics;
+
+  /**
+   * Injected browser launcher for the authorization URL.
+   * @param {string} url - Absolute URL used by this operation.
+   * @returns {Promise<void>} Completion of the requested operation.
+   */
   browserOpener?: (url: string) => Promise<void>;
+
+  /**
+   * Constructs the OAuth lifecycle owner for the selected registration.
+   * @param {OAuthClientConfig} config - Validated registration, transport, or verification settings.
+   * @returns {OAuthClientLike} Classified OAuth failure retaining the relevant operation context.
+   */
   clientFactory?: (config: OAuthClientConfig) => OAuthClientLike;
+
+  /** Process-signal source used to cancel and clean up browser login. */
   signalSource?: SignalSource;
 }
 
@@ -106,6 +165,8 @@ function closeServer(server: Server): Promise<void> {
 /**
  * Runs one loopback browser authorization attempt, accepts at most one callback, and always
  * releases the listener and signal handlers.
+ * @param {BrowserLoginOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {Promise<OAuthTokenResponse>} OAuth credentials obtained from the completed browser callback.
  */
 export async function authenticateWithBrowser(
   options: BrowserLoginOptions,

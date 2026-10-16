@@ -17,6 +17,7 @@
 import { z } from "zod";
 import { BooleanParameterSchema } from "./primitives";
 
+/** Validates the Data API error message and optional explanatory fields. */
 export const ErrorResponseSchema = z
   .object({
     error: z.string(),
@@ -27,6 +28,7 @@ export const ErrorResponseSchema = z
     id: "errorResponse",
   });
 
+/** Validates the cached-data URL and expiry returned by modeled Data API endpoints. */
 export const APIResponseSchema = z
   .object({
     link: z.url().meta({ description: "A link to the cached data" }),
@@ -38,10 +40,12 @@ export const APIResponseSchema = z
   });
 
 // The official constants docs establish an array of objects, but not their fields.
+/** Validates constant rows without inventing contracts for their dynamic fields. */
 export const ConstantsResponseSchema = z
   .array(z.record(z.string(), z.unknown()))
   .meta({ id: "iracingConstantsResponse" });
 
+/** Validates series-search success, chunk metadata, and echoed search parameters. */
 export const ResultsSearchSeriesResponseSchema = z
   .object({
     type: z.literal("search_series_results"),
@@ -62,6 +66,7 @@ export const ResultsSearchSeriesResponseSchema = z
     id: "resultsSearchSeriesResponse",
   });
 
+/** Validates a documented method parameter and its optional note and required flag. */
 export const ServiceMethodParametersDocsResponseSchema = z
   .object({
     type: z.string(),
@@ -73,6 +78,7 @@ export const ServiceMethodParametersDocsResponseSchema = z
     id: "iracingServiceMethodParametersDocs",
   });
 
+/** Validates a documented endpoint link, optional parameter map, and string or array notes. */
 export const ServiceMethodDocsResponseSchema = z
   .object({
     link: z.url(),
@@ -90,6 +96,7 @@ export const ServiceMethodDocsResponseSchema = z
     id: "iracingServiceMethodDocs",
   });
 
+/** Validates the method-name index for one documented Data API service. */
 export const ServiceDocsResponseSchema = z
   .record(z.string(), ServiceMethodDocsResponseSchema)
   .meta({
@@ -98,6 +105,7 @@ export const ServiceDocsResponseSchema = z
     id: "iracingServiceDocs",
   });
 
+/** Validates the service-name index for the Data API documentation tree. */
 export const ServicesDocsResponseSchema = z
   .record(z.string(), ServiceDocsResponseSchema)
   .meta({

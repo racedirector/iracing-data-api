@@ -10,6 +10,7 @@ import {
   optionalBoolean,
 } from "../primitives.js";
 
+/** Validates the initial driver-race search filters and time range. */
 export const SearchInitialInput = z.strictObject({
   cust_id: Id.optional(),
   range: z.union([
@@ -33,7 +34,11 @@ export const SearchInitialInput = z.strictObject({
   official_only: z.boolean().optional(),
   limit,
 });
+
+/** Accepts initial driver-race filters or an opaque continuation. */
 export const SearchInput = z.union([SearchInitialInput, ContinuationInput]);
+
+/** Projects race-search identifiers, timing, and season context. */
 export const SearchProjection = z.object({
   subsession_id: Id,
   start_time: z.iso.datetime({ offset: true }),

@@ -8,7 +8,7 @@
  * parsing here extracts access_token only, not a durable OAuth session or refresh
  * operation. Reject empty tokens, CR/LF and an existing Bearer prefix.
  *
- * Default paths are repository-relative with equal source/dist depth. login.ts
+ * Default paths are repository-relative with equal source/dist depth. Login.ts
  * selects a separate auth-only MCP document so independent refreshing consumers do
  * not share one rotating credential. Callers selecting that document must observe
  * stopped-owner discipline; resolution does not lock or watch the file.
@@ -18,9 +18,12 @@ import { fileURLToPath } from "node:url";
 import { parse as parseYaml } from "yaml";
 
 // This CLI is private to the repository; source and dist have the same depth.
+/** Repository-local default path for CLI OAuth credentials. */
 export const defaultCredentialsPath = fileURLToPath(
   new URL("../../../.iracing-data/credentials.json", import.meta.url),
 );
+
+/** Repository-local default path for the MCP credential document. */
 export const defaultMcpCredentialsPath = fileURLToPath(
   new URL(
     "../../../.iracing-data/iracing-data-mcp/credentials.json",
@@ -33,14 +36,25 @@ export const defaultMcpCredentialsPath = fileURLToPath(
  * injectable filesystem access.
  */
 export interface CredentialOptions {
+  /** Credential-file selection or writer owned by this command scope. */
   credentials?: string;
+
+  /** Bearer credential or provider used to authorize API calls. */
   accessToken?: string;
+
+  /**
+   * Injected UTF-8 credential-file reader.
+   * @param {string} path - Filesystem or protected-resource path used by this operation.
+   * @returns {Promise<string>} UTF-8 contents of the selected credential file.
+   */
   readCredentials?: (path: string) => Promise<string>;
 }
 
 /**
  * Resolves one access token according to CLI precedence and validates the selected credential
  * document before returning it.
+ * @param {CredentialOptions} options - Explicit bearer token, credential-file selection, and optional file reader.
+ * @returns {Promise<string>} Resolved nonempty bearer credential.
  */
 export async function resolveAccessToken(
   options: CredentialOptions = {},

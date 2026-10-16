@@ -55,7 +55,11 @@ const diagnosticFields = z.object({
   error_code: ApplicationErrorCodeSchema.optional(),
 });
 
-/** Central redaction by projection: unknown fields and invalid values are discarded. */
+/**
+ * Central redaction by projection: unknown fields and invalid values are discarded.
+ * @param {unknown} input - Untrusted input to validate or project.
+ * @returns {z.infer<typeof diagnosticFields>} Allowlisted diagnostic fields safe for logging.
+ */
 export function redactDiagnostics(
   input: unknown,
 ): z.infer<typeof diagnosticFields> {
@@ -82,6 +86,8 @@ export function redactDiagnostics(
 /**
  * Creates the structured diagnostic logger that redacts payloads before emitting one JSON
  * record per event.
+ * @param {(line: string) => void} write - Injected sink for formatted diagnostic output.
+ * @returns {{ log(level: "info" | "error" | "debug", context: RequestContext, fields?: unknown): void; failure(context: RequestContext, error: unknown, fields?: unknown): void; }} Logger that emits only allowlisted diagnostic fields.
  */
 export function createDiagnosticLogger(
   write: (line: string) => void = (line) => {
@@ -119,7 +125,11 @@ export function createDiagnosticLogger(
   };
 }
 
-/** Health projection only; #350 owns the endpoint and liveness response. */
+/**
+ * Health projection only; #350 owns the endpoint and liveness response.
+ * @param {unknown} input - Untrusted input to validate or project.
+ * @returns {{ auth_state: "ready" | "authorization_required" | "configuration_error"; }} Sanitized authorization-state summary.
+ */
 export function healthDiagnostics(input: unknown) {
   const { auth_state } = redactDiagnostics(input);
 

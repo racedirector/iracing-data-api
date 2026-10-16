@@ -17,7 +17,11 @@ import {
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register lookup_content on the caller-owned server. */
+/**
+ * Register lookup_content on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerLookupContent(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -25,6 +29,7 @@ export function registerLookupContent(
   registerTool(server, services, definition);
 }
 
+/** Accepts car or track filters or an opaque continuation. */
 export const ContentInput = z.union([
   z
     .strictObject({
@@ -41,11 +46,15 @@ export const ContentInput = z.union([
     .refine((value) => !(value.ids && value.query)),
   ContinuationInput,
 ]);
+
+/** Projects car identifiers and display names. */
 export const CarProjection = z.object({
   car_id: Id,
   car_name: text.min(1),
   car_name_abbreviated: optionalText,
 });
+
+/** Projects track identifiers, configuration names, and discipline flags. */
 export const TrackProjection = z.object({
   track_id: Id,
   track_name: text.min(1),

@@ -46,15 +46,18 @@ import {
   TrackIdParameterSchema,
 } from "./primitives";
 
+/** Validates auth parameters at the Data API request boundary. */
 export const AuthParametersSchema = z.object({
   email: z.email(),
   password: z.string(),
 });
 
+/** Validates driver stats by category path at the Data API request boundary. */
 export const DriverStatsByCategoryPathSchema = z.object({
   category: CategorySchema,
 });
 
+/** Validates hosted combined sessions parameters at the Data API request boundary. */
 export const HostedCombinedSessionsParametersSchema = z.object({
   package_id: PackageIdParameterSchema.optional().meta({
     description:
@@ -62,6 +65,7 @@ export const HostedCombinedSessionsParametersSchema = z.object({
   }),
 });
 
+/** Validates league customer sessions parameters at the Data API request boundary. */
 export const LeagueCustomerSessionsParametersSchema = z.object({
   mine: BooleanParameterSchema.optional().meta({
     description: "If true, return only sessions created by this user.",
@@ -72,6 +76,7 @@ export const LeagueCustomerSessionsParametersSchema = z.object({
   }),
 });
 
+/** Validates league directory parameters at the Data API request boundary. */
 export const LeagueDirectoryParametersSchema = z.object({
   search: z.string().optional().meta({
     description:
@@ -117,6 +122,7 @@ export const LeagueDirectoryParametersSchema = z.object({
     .meta({ description: "One of asc or desc.  Defaults to asc." }),
 });
 
+/** Validates league get parameters at the Data API request boundary. */
 export const LeagueGetParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
@@ -124,6 +130,7 @@ export const LeagueGetParametersSchema = z.object({
   }),
 });
 
+/** Validates league get points systems parameters at the Data API request boundary. */
 export const LeagueGetPointsSystemsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   season_id: LeagueSeasonIdParameterSchema.optional().meta({
@@ -132,6 +139,7 @@ export const LeagueGetPointsSystemsParametersSchema = z.object({
   }),
 });
 
+/** Validates league membership parameters at the Data API request boundary. */
 export const LeagueMembershipParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description:
@@ -140,6 +148,7 @@ export const LeagueMembershipParametersSchema = z.object({
   include_league: BooleanParameterSchema.optional(),
 });
 
+/** Validates league roster parameters at the Data API request boundary. */
 export const LeagueRosterParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
@@ -147,6 +156,7 @@ export const LeagueRosterParametersSchema = z.object({
   }),
 });
 
+/** Validates league seasons parameters at the Data API request boundary. */
 export const LeagueSeasonsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   retired: BooleanParameterSchema.optional().meta({
@@ -154,6 +164,7 @@ export const LeagueSeasonsParametersSchema = z.object({
   }),
 });
 
+/** Validates league season standings parameters at the Data API request boundary. */
 export const LeagueSeasonStandingsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   season_id: LeagueSeasonIdParameterSchema,
@@ -164,6 +175,7 @@ export const LeagueSeasonStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates league season sessions parameters at the Data API request boundary. */
 export const LeagueSeasonSessionsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   season_id: LeagueSeasonIdParameterSchema,
@@ -173,6 +185,7 @@ export const LeagueSeasonSessionsParametersSchema = z.object({
   }),
 });
 
+/** Validates lookup drivers parameters at the Data API request boundary. */
 export const LookupDriversParametersSchema = z.object({
   search_term: z
     .string()
@@ -182,12 +195,14 @@ export const LookupDriversParametersSchema = z.object({
   }),
 });
 
+/** Validates member awards parameters at the Data API request boundary. */
 export const MemberAwardsParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates member award instances parameters at the Data API request boundary. */
 export const MemberAwardInstancesParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -195,6 +210,7 @@ export const MemberAwardInstancesParametersSchema = z.object({
   award_id: z.coerce.number(),
 });
 
+/** Validates member chart data parameters at the Data API request boundary. */
 export const MemberChartDataParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -207,6 +223,7 @@ export const MemberChartDataParametersSchema = z.object({
   }),
 });
 
+/** Validates member get parameters at the Data API request boundary. */
 export const MemberGetParametersSchema = z.object({
   cust_ids: CustomerIdsParameterSchema.meta({
     description:
@@ -215,17 +232,20 @@ export const MemberGetParametersSchema = z.object({
   include_licenses: BooleanParameterSchema.optional(),
 });
 
+/** Validates member profile parameters at the Data API request boundary. */
 export const MemberProfileParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates results get parameters at the Data API request boundary. */
 export const ResultsGetParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional(),
 });
 
+/** Validates results event log parameters at the Data API request boundary. */
 export const ResultsEventLogParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   simsession_number: SimSessionNumberParameterSchema.meta({
@@ -233,6 +253,7 @@ export const ResultsEventLogParametersSchema = z.object({
   }),
 });
 
+/** Validates results lap chart data parameters at the Data API request boundary. */
 export const ResultsLapChartDataParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   simsession_number: SimSessionNumberParameterSchema.meta({
@@ -240,6 +261,7 @@ export const ResultsLapChartDataParametersSchema = z.object({
   }),
 });
 
+/** Validates results lap data parameters at the Data API request boundary. */
 export const ResultsLapDataParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   simsession_number: SimSessionNumberParameterSchema.meta({
@@ -254,6 +276,7 @@ export const ResultsLapDataParametersSchema = z.object({
   }),
 });
 
+/** Validates results search hosted parameters at the Data API request boundary. */
 export const ResultsSearchHostedParametersSchema = z.object({
   start_range_begin: z.iso.datetime().optional().meta({
     description:
@@ -304,6 +327,7 @@ export const ResultsSearchHostedParametersSchema = z.object({
   }),
 });
 
+/** Validates results search series parameters at the Data API request boundary. */
 export const ResultsSearchSeriesParametersSchema = z.object({
   season_year: SeasonYearParameterSchema.optional().meta({
     description: "Required when using season_quarter.",
@@ -355,6 +379,7 @@ export const ResultsSearchSeriesParametersSchema = z.object({
   }),
 });
 
+/** Validates results season results parameters at the Data API request boundary. */
 export const ResultsSeasonResultsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   event_type: EventTypeParameterSchema.optional().meta({
@@ -366,11 +391,13 @@ export const ResultsSeasonResultsParametersSchema = z.object({
   }),
 });
 
+/** Validates season list parameters at the Data API request boundary. */
 export const SeasonListParametersSchema = z.object({
   season_year: SeasonYearParameterSchema,
   season_quarter: SeasonQuarterParameterSchema,
 });
 
+/** Validates season race guide parameters at the Data API request boundary. */
 export const SeasonRaceGuideParametersSchema = z.object({
   from: z.iso.datetime({ offset: true }).optional().meta({
     description:
@@ -381,6 +408,7 @@ export const SeasonRaceGuideParametersSchema = z.object({
   }),
 });
 
+/** Validates season spectator subsessionids parameters at the Data API request boundary. */
 export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
   event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
@@ -388,6 +416,7 @@ export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
   }),
 });
 
+/** Validates season spectator subsessionids detail parameters at the Data API request boundary. */
 export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
   event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
@@ -399,10 +428,12 @@ export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
   }),
 });
 
+/** Validates series past seasons parameters at the Data API request boundary. */
 export const SeriesPastSeasonsParametersSchema = z.object({
   series_id: SeriesIdParameterSchema,
 });
 
+/** Validates series seasons parameters at the Data API request boundary. */
 export const SeriesSeasonsParametersSchema = z.object({
   include_series: BooleanParameterSchema.optional(),
   season_year: SeasonYearParameterSchema.optional().meta({
@@ -415,16 +446,19 @@ export const SeriesSeasonsParametersSchema = z.object({
   }),
 });
 
+/** Validates series season list parameters at the Data API request boundary. */
 export const SeriesSeasonListParametersSchema = z.object({
   include_series: BooleanParameterSchema.optional(),
   season_year: SeasonYearParameterSchema.optional(),
   season_quarter: SeasonQuarterParameterSchema.optional(),
 });
 
+/** Validates series season schedule parameters at the Data API request boundary. */
 export const SeriesSeasonScheduleParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
 });
 
+/** Validates stats member bests parameters at the Data API request boundary. */
 export const StatsMemberBestsParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -435,12 +469,14 @@ export const StatsMemberBestsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats member career parameters at the Data API request boundary. */
 export const StatsMemberCareerParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats member division parameters at the Data API request boundary. */
 export const StatsMemberDivisionParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   event_type: z.union([EventTypeTimeTrialSchema, EventTypeRaceSchema]).meta({
@@ -449,6 +485,7 @@ export const StatsMemberDivisionParametersSchema = z.object({
   }),
 });
 
+/** Validates stats member recap parameters at the Data API request boundary. */
 export const StatsMemberRecapParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -463,24 +500,28 @@ export const StatsMemberRecapParametersSchema = z.object({
   }),
 });
 
+/** Validates stats member recent races parameters at the Data API request boundary. */
 export const StatsMemberRecentRacesParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats member summary parameters at the Data API request boundary. */
 export const StatsMemberSummaryParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats member yearly parameters at the Data API request boundary. */
 export const StatsMemberYearlyParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats season driver standings parameters at the Data API request boundary. */
 export const StatsSeasonDriverStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -490,6 +531,7 @@ export const StatsSeasonDriverStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season supersession standings parameters at the Data API request boundary. */
 export const StatsSeasonSupersessionStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -499,6 +541,7 @@ export const StatsSeasonSupersessionStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season team standings parameters at the Data API request boundary. */
 export const StatsSeasonTeamStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -507,6 +550,7 @@ export const StatsSeasonTeamStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season tt standings parameters at the Data API request boundary. */
 export const StatsSeasonTTStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -516,6 +560,7 @@ export const StatsSeasonTTStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season tt results parameters at the Data API request boundary. */
 export const StatsSeasonTTResultsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -525,6 +570,7 @@ export const StatsSeasonTTResultsParametersSchema = z.object({
   division: DivisionParameterSchema.optional(),
 });
 
+/** Validates stats season qualify results parameters at the Data API request boundary. */
 export const StatsSeasonQualifyResultsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -534,6 +580,7 @@ export const StatsSeasonQualifyResultsParametersSchema = z.object({
   division: DivisionParameterSchema.optional(),
 });
 
+/** Validates stats world records parameters at the Data API request boundary. */
 export const StatsWorldRecordsParametersSchema = z.object({
   car_id: CarIdParameterSchema,
   track_id: TrackIdParameterSchema,
@@ -546,6 +593,7 @@ export const StatsWorldRecordsParametersSchema = z.object({
   }),
 });
 
+/** Validates team get parameters at the Data API request boundary. */
 export const TeamGetParametersSchema = z.object({
   team_id: TeamIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
@@ -553,6 +601,7 @@ export const TeamGetParametersSchema = z.object({
   }),
 });
 
+/** Validates time attack member season results parameters at the Data API request boundary. */
 export const TimeAttackMemberSeasonResultsParametersSchema = z.object({
   ta_comp_season_id: z.coerce.number(),
 });

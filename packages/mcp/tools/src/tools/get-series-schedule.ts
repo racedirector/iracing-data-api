@@ -14,7 +14,11 @@ import {
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register get_series_schedule on the caller-owned server. */
+/**
+ * Register get_series_schedule on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerGetSeriesSchedule(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -22,6 +26,7 @@ export function registerGetSeriesSchedule(
   registerTool(server, services, definition);
 }
 
+/** Accepts season and optional week filters or an opaque continuation. */
 export const SeriesScheduleInput = z.union([
   z.strictObject({
     season_id: Id,
@@ -30,6 +35,8 @@ export const SeriesScheduleInput = z.union([
   }),
   ContinuationInput,
 ]);
+
+/** Projects schedule dates, track details, and race-week context. */
 export const SeriesScheduleProjection = z.object({
   race_week_num: z.number().int().min(0).max(52),
   start_date: z.iso.date(),

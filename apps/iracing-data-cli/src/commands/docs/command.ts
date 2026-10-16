@@ -28,18 +28,25 @@ export type DocsOptions = TokenOutputOptions & CredentialOptions;
  * diagnostics.
  */
 export interface DocsCommandScope {
+  /** Retrieves the typed Data API documentation tree. */
   docs: {
     get(): Promise<DataApiDocumentation>;
   };
+
+  /** Writes the command result to the configured destination. */
   output: {
     write(document: DataApiDocumentation): Promise<void>;
   };
+
+  /** Secret-safe diagnostic sink for command progress and failures. */
   diagnostics: Diagnostics;
 }
 
 /**
  * Factory contract for creating an isolated documentation-command scope from normalized
  * options.
+ * @param {DocsOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {Promise<DocsCommandScope>} Resolved capabilities for one command invocation.
  */
 export type CreateDocsCommandScope = (
   options: DocsOptions,
@@ -50,6 +57,7 @@ export type CreateDocsCommandScope = (
  * the invocation scope.
  */
 export interface DocsCommandDependencies {
+  /** Resolves dependencies once for each command invocation. */
   createScope: CreateDocsCommandScope;
 }
 
@@ -57,6 +65,9 @@ export interface DocsCommandDependencies {
  * Build the docs command, resolving a fresh scope when its async action runs.
  * The action fetches documentation once and writes it through that scope;
  * scope creation, retrieval, and output failures reject `parseAsync()`.
+ * @param {DocsCommandDependencies} root0 - Command composition inputs and dependency overrides.
+ * @param {CreateDocsCommandScope} root0.createScope - Factory resolving dependencies once per command invocation.
+ * @returns {Command} Configured CLI command ready for registration.
  */
 export function createDocsCommand({ createScope }: DocsCommandDependencies) {
   return new Command("docs")

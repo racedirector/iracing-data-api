@@ -8,7 +8,11 @@ import { registerLookupContent } from "./tools/lookup-content.js";
 import { registerSearchDriverRaces } from "./tools/search-driver-races.js";
 import type { IracingToolRegistry, IracingToolServices } from "./services.js";
 
-/** Register the eight iRacing tools without configuring or creating the server. */
+/**
+ * Register the eight iRacing tools without configuring or creating the server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerIracingTools(
   server: IracingToolRegistry,
   services: IracingToolServices,

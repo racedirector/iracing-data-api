@@ -5,7 +5,11 @@ const owners = new WeakMap<
   { collections: CollectionCursors; budget: RetentionBudget }
 >();
 
-/** Retain only MCP state under an opaque host-owned scope, never credential identity. */
+/**
+ * Retain only MCP state under an opaque host-owned scope, never credential identity.
+ * @param {object} scope - Opaque owner identity isolating retained continuations.
+ * @returns {{ collections: CollectionCursors; budget: RetentionBudget; }} Collection and search continuation owners sharing the same retention budget.
+ */
 export function continuation(scope: object) {
   let owner = owners.get(scope);
 

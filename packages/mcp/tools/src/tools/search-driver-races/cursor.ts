@@ -43,7 +43,11 @@ interface Cursor {
 export class SearchCursors {
   readonly #entries = new Map<string, Cursor>();
 
-  /** Register search expiry cleanup with the budget; now returns Unix milliseconds. */
+  /**
+   * Register search expiry cleanup with the budget; now returns Unix milliseconds.
+   * @param {RetentionBudget} budget - Shared owner of retained bytes and cursor-token capacity.
+   * @param {() => number} now - Clock returning Unix milliseconds for cursor expiration.
+   */
   constructor(
     readonly budget: RetentionBudget,
     readonly now: () => number = Date.now,
@@ -91,6 +95,10 @@ export class SearchCursors {
    * after five minutes or at the earlier resolved member-link deadline.
    * API, payload, cancellation, and capacity errors propagate; failed initial pages
    * release their snapshot reservations.
+   * @param {Filters} filters - Validated driver, time-range, and result selections bound to this search.
+   * @param {IracingDataAccess} access - Generated API configuration and continuation ownership for this request.
+   * @param {AbortSignal} signal - Abort signal governing request-local work.
+   * @returns {Promise<Result>} Bounded race-search page with its next continuation when incomplete.
    */
   async start(
     filters: Filters,
@@ -167,6 +175,10 @@ export class SearchCursors {
    * Resume a retained token, returning a clone of a cached or concurrently pending page.
    * Pending replay shares the first caller's access and signal. Unknown or expired
    * tokens throw CURSOR_EXPIRED; page errors propagate without advancing the offset.
+   * @param {string} token - Opaque continuation identifying retained state for this owner.
+   * @param {IracingDataAccess} access - Generated API configuration and continuation ownership for this request.
+   * @param {AbortSignal} signal - Abort signal governing request-local work.
+   * @returns {Promise<Result>} Bounded race-search page with its next continuation when incomplete.
    */
   async resume(
     token: string,
@@ -442,7 +454,11 @@ export class SearchCursors {
 
 const owners = new WeakMap<object, SearchCursors>();
 
-/** Share bounded search state only within the opaque continuation scope. */
+/**
+ * Share bounded search state only within the opaque continuation scope.
+ * @param {object} scope - Opaque owner identity isolating retained continuations.
+ * @returns {SearchCursors} Search cursor owner associated with this isolation scope.
+ */
 export function searchCursors(scope: object): SearchCursors {
   let owner = owners.get(scope);
 

@@ -32,21 +32,22 @@ test("every built alias retains identity and replacement-specific declaration do
       path.join(root, module + ".d.ts"),
       "utf8",
     );
-    assert.ok(
-      declaration.includes(
-        `/** @deprecated Use ${entry.new} instead. */\nexport declare const ${entry.old}`,
-      ) ||
-        declaration.includes(
-          `/** @deprecated Use ${entry.new} instead. */\nexport type ${entry.old}`,
-        ),
-      entry.old,
-    );
     const source = ts.createSourceFile(
       module,
       declaration,
       ts.ScriptTarget.Latest,
       true,
     );
+    const alias = source.statements.find(
+      (statement) =>
+        statement.name?.text === entry.old ||
+        statement.declarationList?.declarations.some(
+          (item) => item.name.text === entry.old,
+        ),
+    );
+    assert.ok(alias, entry.old);
+    const deprecations = ts.getJSDocDeprecatedTag(alias);
+    assert.equal(deprecations?.comment, `Use ${entry.new} instead.`, entry.old);
     const canonical = source.statements.find(
       (statement) =>
         statement.name?.text === entry.new ||
