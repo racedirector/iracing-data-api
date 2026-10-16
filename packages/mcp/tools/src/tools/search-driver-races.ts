@@ -32,8 +32,8 @@ const definition = {
         track_name: z.string().nullable(),
         config_name: z.string().nullable(),
       }),
-      event_type: z.number().int(),
-      num_drivers: z.number().int().nullable(),
+      event_type: z.int(),
+      num_drivers: z.int().nullable(),
       official_session: z.boolean().nullable(),
     }),
     {

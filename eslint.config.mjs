@@ -13,6 +13,7 @@ import jsdocPlugin from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
 import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
+import zod from "eslint-plugin-zod";
 import globals from "globals";
 import {
   configs as tsConfigs,
@@ -189,7 +190,55 @@ const documentedExportContexts = [
   "ExportDefaultDeclaration:has(> ClassExpression)",
 ];
 
+// Type-aware runtime lint already rejects these deprecated APIs. Keep the Zod
+// equivalents for JavaScript, tests and other files outside that typed policy.
+const zodDeprecatedApiRules = {
+  "zod/no-native-enum": "error",
+  "zod/no-number-schema-with-finite": "error",
+  "zod/no-number-schema-with-is-finite": "error",
+  "zod/no-number-schema-with-is-int": "error",
+  "zod/no-number-schema-with-safe": "error",
+  "zod/no-number-schema-with-step": "error",
+  "zod/no-schema-with-is-nullable": "error",
+  "zod/no-schema-with-is-optional": "error",
+  "zod/prefer-top-level-string-formats": "error",
+};
+
 export default defineConfig([
+  {
+    // Zod rules track imports; do not apply presets with unrelated naming/style policies.
+    name: "authored-zod-v4",
+    files: ["**/*.{ts,js,mjs,cjs}"],
+    ignores: generatedTypeScript,
+    plugins: { zod },
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["zod/v3", "zod/v3/*"],
+              message: "Use the workspace Zod v4 API.",
+            },
+          ],
+        },
+      ],
+      ...zodDeprecatedApiRules,
+      "zod/no-any-schema": "error",
+      "zod/no-coerce-boolean": "error",
+      "zod/no-empty-custom-schema": "error",
+      "zod/no-number-schema-with-int": "error",
+      "zod/no-promise-schema": "error",
+      "zod/no-throw-in-refine": "error",
+      "zod/no-transform-in-record-key": "error",
+      "zod/require-brand-type-parameter": "error",
+      "zod/prefer-meta": "error",
+      "zod/prefer-loose-object": "error",
+      "zod/prefer-strict-object": "error",
+      "zod/no-conflicting-checks": "error",
+    },
+  },
+
   {
     linterOptions: {
       reportUnusedDisableDirectives: "error",
@@ -534,6 +583,10 @@ export default defineConfig([
       },
     },
     rules: {
+      // no-deprecated checks resolved symbols here; avoid duplicate Zod diagnostics.
+      ...Object.fromEntries(
+        Object.keys(zodDeprecatedApiRules).map((rule) => [rule, "off"]),
+      ),
       // The presets already enforce floating/misused promises, unnecessary
       // conditions/assertions, and Error-only throws. These are additional rules.
       "@typescript-eslint/switch-exhaustiveness-check": "error",

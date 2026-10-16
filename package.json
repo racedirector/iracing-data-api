@@ -38,7 +38,7 @@
     "verify:examples": "node scripts/verify.mjs examples",
     "verify:generated": "node scripts/verify.mjs generated",
     "verify:rust": "node scripts/verify.mjs rust",
-    "test:verification": "node --test scripts/verify.test.mjs scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs",
+    "test:verification": "node --test scripts/verify.test.mjs scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs scripts/eslint-zod-policy.test.mjs",
     "test:jsdoc-policy": "node --test scripts/eslint-jsdoc-policy.test.mjs",
     "check:generated": "node scripts/check-generated.mjs",
     "test:codegen": "node --test scripts/*presentation.test.mjs scripts/check-generated.test.mjs",
@@ -53,7 +53,7 @@
     "test:data-contract": "node --test tests/data-contract/*.test.cjs",
     "test:docker": "pnpm --filter '@iracing-data/iracing-data-mcp...' build && node apps/iracing-data-mcp/test/docker/recovery.mjs",
     "verify:docker": "pnpm test:docker",
-    "test:lint-policy": "node --test scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs"
+    "test:lint-policy": "node --test scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs scripts/eslint-zod-policy.test.mjs"
   },
   "keywords": [],
   "author": "",
@@ -78,6 +78,7 @@
     "eslint-plugin-prettier": "5.5.7",
     "eslint-plugin-sonarjs": "^4.2.2",
     "eslint-plugin-unicorn": "^78.0.0",
+    "eslint-plugin-zod": "5.0.1",
     "globals": "^17.13.0",
     "prettier": "3.9.10",
     "prettier-config-standard": "7.0.0",

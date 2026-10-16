@@ -33,7 +33,7 @@ export const TrackDetailsSchema = z.object({
   award_exempt: z.boolean(),
 
   category: TrackDetailsCategorySchema,
-  category_id: z.number().int(),
+  category_id: z.int(),
 
   // YYYY-MM-DD
   opens: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -42,7 +42,7 @@ export const TrackDetailsSchema = z.object({
   // Present for most entries, but not all
   config_name: z.string().optional(),
 
-  corners_per_lap: z.number().int(),
+  corners_per_lap: z.int(),
 
   // ISO datetime w/ Z or offset
   created: z.iso.datetime({ offset: true }),
@@ -54,7 +54,7 @@ export const TrackDetailsSchema = z.object({
   fully_lit: z.boolean(),
   night_lighting: z.boolean(),
 
-  grid_stalls: z.number().int(),
+  grid_stalls: z.int(),
 
   has_opt_path: z.boolean(),
   has_short_parade_lap: z.boolean(),
@@ -65,7 +65,7 @@ export const TrackDetailsSchema = z.object({
   is_oval: z.boolean(),
   is_ps_purchasable: z.boolean(),
 
-  lap_scoring: z.number().int(),
+  lap_scoring: z.int(),
 
   latitude: z.number(),
   longitude: z.number(),
@@ -74,17 +74,17 @@ export const TrackDetailsSchema = z.object({
 
   logo: z.string(),
 
-  max_cars: z.number().int(),
+  max_cars: z.int(),
 
   // Missing for some entries
   nominal_lap_time: z.number().optional(),
 
-  number_pitstalls: z.number().int(),
+  number_pitstalls: z.int(),
 
-  package_id: z.number().int(),
+  package_id: z.int(),
 
   // Missing for some entries
-  pit_road_speed_limit: z.number().int().optional(),
+  pit_road_speed_limit: z.int().optional(),
 
   // number (sometimes an int, sometimes a float)
   price: z.number(),
@@ -92,11 +92,11 @@ export const TrackDetailsSchema = z.object({
   // Missing for some entries
   price_display: z.string().optional(),
 
-  priority: z.number().int(),
+  priority: z.int(),
 
   purchasable: z.boolean(),
 
-  qualify_laps: z.number().int(),
+  qualify_laps: z.int(),
 
   rain_enabled: z.boolean(),
 
@@ -108,11 +108,11 @@ export const TrackDetailsSchema = z.object({
   // Missing for some entries
   site_url: z.string().optional(),
 
-  sku: z.number().int(),
+  sku: z.int(),
 
   small_image: z.string(),
 
-  solo_laps: z.number().int(),
+  solo_laps: z.int(),
 
   start_on_left: z.boolean(),
 
@@ -127,10 +127,10 @@ export const TrackDetailsSchema = z.object({
 
   track_dirpath: z.string(),
 
-  track_id: z.number().int(),
+  track_id: z.int(),
   track_name: z.string(),
 
-  track_type: z.number().int(),
+  track_type: z.int(),
   track_type_text: z.string(),
 
   track_types: z.array(TrackDetailsTrackTypeSchema),
