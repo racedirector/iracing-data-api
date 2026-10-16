@@ -8,7 +8,11 @@ import { Id, query, limit, ContinuationInput } from "./primitives.js";
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register find_drivers on the caller-owned server. */
+/**
+ * Register find_drivers on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerFindDrivers(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -16,6 +20,7 @@ export function registerFindDrivers(
   registerTool(server, services, definition);
 }
 
+/** Accepts a driver query or an opaque continuation with bounded page size. */
 export const DriversInput = z.union([
   z.strictObject({ query, league_id: Id.optional(), limit }),
   ContinuationInput,

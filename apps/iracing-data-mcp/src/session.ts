@@ -36,7 +36,10 @@ import {
 import { createDiagnosticLogger } from "./diagnostics/logging.js";
 import type { AuthorizationState, McpServices } from "./services.js";
 
+/** Stable key for the single locally owned MCP OAuth session. */
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
+
+/** Default credential-document path inside the MCP container. */
 export const MCP_CREDENTIAL_FILE = "/var/lib/iracing-data-mcp/credentials.json";
 
 export type { AuthorizationState } from "./services.js";
@@ -46,9 +49,16 @@ export type { AuthorizationState } from "./services.js";
  * and diagnostic seams.
  */
 export interface SessionCompositionOptions {
+  /** Registration and endpoint policy supplied to the OAuth lifecycle. */
   readonly clientMetadata: OAuthClientOptions["clientMetadata"];
+
+  /** Path to the durable OAuth credential document. */
   readonly credentialFile?: string;
+
+  /** Filesystem operations supplied by the host for persistence. */
   readonly fileSystem?: Partial<OAuthTokenDocumentFileSystem>;
+
+  /** Structured diagnostic logger supplied by the host. */
   readonly logger?: ReturnType<typeof createDiagnosticLogger>;
 }
 
@@ -81,6 +91,8 @@ function validateSession(token: OAuthTokenResponse | undefined) {
  * and make later token requests fail. OAuth client construction errors instead
  * reject composition with CONFIGURATION_ERROR. Returned tool access shares one opaque
  * continuation scope and throws AUTHORIZATION_REQUIRED after quarantine or shutdown begins.
+ * @param {SessionCompositionOptions} options - Configuration and injected capabilities for this operation.
+ * @returns {Promise<McpServices>} Composed OAuth and Data API services with their credential owner.
  */
 export async function createMcpServices(
   options: SessionCompositionOptions,

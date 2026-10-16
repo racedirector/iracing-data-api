@@ -6,7 +6,11 @@ import { searchCursors } from "./search-driver-races/cursor.js";
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register search_driver_races on the caller-owned server. */
+/**
+ * Register search_driver_races on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerSearchDriverRaces(
   server: IracingToolRegistry,
   services: IracingToolServices,

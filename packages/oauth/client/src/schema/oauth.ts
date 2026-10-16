@@ -11,12 +11,14 @@ const DEFAULT_TOKEN_URL = `${DEFAULT_OAUTH_URL}/token`;
 
 const DEFAULT_USER_INFO_URL = `${DEFAULT_OAUTH_URL}/iracing/profile`;
 
+/** Accepts the default iRacing OAuth service base URL literal. */
 export const IRacingOAuthBaseURL = z.literal(DEFAULT_OAUTH_URL).meta({
   id: "iracingOAuthURL",
   title: "iRacing OAuth Service URL",
   description: "The URL for the iRacing OAuth service",
 });
 
+/** Accepts the default authorization endpoint under the OAuth service base URL. */
 export const IRacingOAuthAuthorizationURL = z
   .templateLiteral([IRacingOAuthBaseURL, "/authorize"])
   .meta({
@@ -25,6 +27,7 @@ export const IRacingOAuthAuthorizationURL = z
     description: "The endpoint for authorization.",
   });
 
+/** Accepts the default token endpoint under the OAuth service base URL. */
 export const IRacingOAuthTokenURL = z
   .templateLiteral([IRacingOAuthBaseURL, "/token"])
   .meta({
@@ -33,6 +36,7 @@ export const IRacingOAuthTokenURL = z
     description: "The endpoint for token exchange.",
   });
 
+/** Accepts the default member-profile endpoint under the OAuth service base URL. */
 export const IRacingOAuthUserInfoURL = z
   .templateLiteral([IRacingOAuthBaseURL, "/iracing/profile"])
   .meta({
@@ -42,6 +46,7 @@ export const IRacingOAuthUserInfoURL = z
       "The endpoint for fetching the user info on behalf of the authorized user.",
   });
 
+/** Validates an array of supported OAuth permission literals. */
 export const IRacingOAuthScopesArraySchema = z.array(OAuthScopesSchema).meta({
   id: "scopes",
   title: "Scopes",
@@ -49,6 +54,7 @@ export const IRacingOAuthScopesArraySchema = z.array(OAuthScopesSchema).meta({
     "The OAuth scopes that may be requested. See: https://oauth.iracing.com/oauth2/book/scopes.html",
 });
 
+/** Validates OAuth registration settings and supplies default endpoint and scope policy. */
 export const IRacingOAuthClientMetadataSchema = z
   .object({
     authorizationUrl: z
@@ -181,7 +187,7 @@ export const IRacingOAuthClientMetadataSchema = z
   });
 
 /**
- * Type exports
+ * Type exports.
  */
 
 export type IRacingOAuthURL = z.infer<typeof IRacingOAuthBaseURL>;

@@ -24,14 +24,33 @@ interface IdentityClient {
  * whoami invocation scope.
  */
 export interface WhoamiScopeDependencies {
+  /**
+   * Resolves a bearer credential from the command options or credential file.
+   * @param {CredentialOptions} options - Explicit bearer token, credential-file selection, and optional file reader.
+   * @returns {Promise<string>} Resolved nonempty bearer credential.
+   */
   resolveAccessToken(options: CredentialOptions): Promise<string>;
+
+  /**
+   * Constructs the generated endpoint client with the resolved bearer credential.
+   * @param {string} accessToken - Bearer credential used to authorize the generated endpoint client.
+   * @returns {IdentityClient} Endpoint client bound to the resolved bearer credential.
+   */
   createIdentityClient(accessToken: string): IdentityClient;
+
+  /**
+   * Writes serialized command output to standard output.
+   * @param {string} value - Input value to validate, store, or serialize.
+   */
   writeStdout(value: string): void;
 }
 
 /**
  * Project the typed OAuth API into the narrow identity capability and translate
  * its safe failures into CLI diagnostics. The generated client owns the request.
+ * @param {string} accessToken - Bearer credential used to authorize the generated endpoint client.
+ * @param {OAuthProfileApi} api - OAuth endpoint facade used to retrieve the authenticated profile.
+ * @returns {IdentityClient} Identity facade providing access to the authenticated profile.
  */
 export function createOAuthIdentityClient(
   accessToken: string,
@@ -97,6 +116,9 @@ const defaultDependencies: WhoamiScopeDependencies = {
  * resolver prioritizes an explicit credential file over injected/environment
  * tokens, then uses the default file when no token is selected.
  * Profile retrieval and output are deferred to the returned capabilities.
+ * @param {Diagnostics} diagnostics - Secret-safe sink for command progress and failure messages.
+ * @param {WhoamiScopeDependencies} dependencies - Injected external capabilities used by the command scope.
+ * @returns {CreateWhoamiCommandScope} Factory that resolves an isolated dependency scope per invocation.
  */
 export function createWhoamiCommandScopeFactory(
   diagnostics: Diagnostics,

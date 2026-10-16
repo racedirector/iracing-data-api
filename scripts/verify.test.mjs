@@ -112,7 +112,10 @@ test("schema and generated-wire selectors are disjoint and wire runs after SDK b
   const manifest = JSON.parse(fs.readFileSync(`${root}/package.json`, "utf8"));
   const selectedFiles = (script) => {
     const pattern = manifest.scripts[script].split(" ").at(-1);
-    return fs.globSync(pattern, { cwd: root }).sort();
+    return fs
+      .globSync(pattern, { cwd: root })
+      .map((file) => file.replaceAll("\\", "/"))
+      .sort();
   };
   const schemas = selectedFiles("test:schema-compatibility");
   const wires = selectedFiles("test:data-contract");

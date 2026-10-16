@@ -30,6 +30,7 @@ import {
  * semantics from exception text.
  */
 export interface MappingContext {
+  /** Boundary responsible for handling and presenting this failure. */
   readonly domain: FailureDomain;
 
   /** Only set when the host has confirmed account entitlement denial. */
@@ -40,7 +41,12 @@ export interface MappingContext {
     "safe_to_retry" | "rotation_uncertain" | "persistence_failed";
 }
 
-/** Minimal seams only: no body reads, message matching, recursive causes, or refresh. */
+/**
+ * Minimal seams only: no body reads, message matching, recursive causes, or refresh.
+ * @param {unknown} error - Unknown failure to classify without exposing secrets.
+ * @param {MappingContext} context - Request-local identity, cancellation, or diagnostic context.
+ * @returns {ApplicationFailure | ProtocolFailure} Classified application or protocol failure for the selected boundary.
+ */
 export function mapFailure(
   error: unknown,
   context: MappingContext,

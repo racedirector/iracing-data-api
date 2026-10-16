@@ -9,7 +9,7 @@ import boundaries from "eslint-plugin-boundaries";
 import importPlugin, {
   flatConfigs as importConfigs,
 } from "eslint-plugin-import-x";
-import jsdocPlugin from "eslint-plugin-jsdoc";
+import jsdocPlugin, { rules as jsdocRules } from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
 import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
@@ -163,32 +163,61 @@ const authoredTypeScriptExclusions = [
 const authoredTypeAliasContext =
   "TSTypeAliasDeclaration:not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='infer']):not([typeAnnotation.typeName.left.name='z'][typeAnnotation.typeName.right.name='input'])";
 
-// AST selectors identifying inline exported declarations whose existing JSDoc
-// must have a meaningful description. Used by jsdoc/require-description and
-// jsdoc/match-description; jsdoc/require-jsdoc separately checks comment presence.
-//
-// Covers named/default functions and classes, named interfaces/enums/type aliases,
-// and exported variables initialized with a function or class expression. Ordinary
-// exported values and re-exports do not match. For example, `export const run =
-// () => {}` matches, while `export const version = "1"` does not.
-//
-// Selector syntax: :has(...) requires a matching descendant, `>` means a direct
-// child, and :not(...) in authoredTypeAliasContext excludes direct Zod projections.
-const documentedExportContexts = [
-  "ExportNamedDeclaration:has(> FunctionDeclaration)",
-  "ExportNamedDeclaration:has(> ClassDeclaration)",
-  "ExportNamedDeclaration:has(> TSInterfaceDeclaration)",
-  "ExportNamedDeclaration:has(> TSEnumDeclaration)",
-  `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
-  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ArrowFunctionExpression)",
-  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > FunctionExpression)",
-  "ExportNamedDeclaration:has(> VariableDeclaration > VariableDeclarator > ClassExpression)",
-  "ExportDefaultDeclaration:has(> FunctionDeclaration)",
-  "ExportDefaultDeclaration:has(> ClassDeclaration)",
-  "ExportDefaultDeclaration:has(> ArrowFunctionExpression)",
-  "ExportDefaultDeclaration:has(> FunctionExpression)",
-  "ExportDefaultDeclaration:has(> ClassExpression)",
+// Keep these selectors rooted at exported declarations: descendants of exported
+// function bodies can contain private local classes and interfaces.
+const exportedClassContexts = [
+  ":matches(ExportNamedDeclaration, ExportDefaultDeclaration) > :matches(ClassDeclaration, ClassExpression)",
+  "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > ClassExpression",
 ];
+const publicClassMemberContexts = exportedClassContexts.map(
+  (context) =>
+    `${context} > ClassBody > :matches(MethodDefinition, PropertyDefinition, TSAbstractMethodDefinition, TSAbstractPropertyDefinition):not([accessibility=private]):not([accessibility=protected]):not([key.type=PrivateIdentifier])`,
+);
+const publicShapeMemberContexts = [
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > :matches(TSPropertySignature, TSMethodSignature, TSCallSignatureDeclaration)",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > :matches(TSPropertySignature, TSMethodSignature, TSCallSignatureDeclaration)",
+];
+const documentedExportContexts = [
+  "ExportNamedDeclaration:has(> :matches(FunctionDeclaration, ClassDeclaration, TSInterfaceDeclaration, TSEnumDeclaration, VariableDeclaration))",
+  `ExportNamedDeclaration:has(> ${authoredTypeAliasContext})`,
+  "ExportDefaultDeclaration:has(> :matches(FunctionDeclaration, ClassDeclaration, ArrowFunctionExpression, FunctionExpression, ClassExpression))",
+  ...publicClassMemberContexts.map(
+    (context) =>
+      `${context} > :matches(FunctionExpression, TSEmptyBodyFunctionExpression)`,
+  ),
+  ...publicClassMemberContexts.map(
+    (context) =>
+      `${context}:matches(PropertyDefinition, TSAbstractPropertyDefinition)`,
+  ),
+  ...publicShapeMemberContexts,
+];
+// Tag-context matching in the plugin cannot follow selector combinators.
+// Parent attributes retain the same exported ownership for bodyless contracts.
+const bodylessCallableContexts = [
+  ":matches(TSAbstractMethodDefinition, TSAbstractPropertyDefinition[typeAnnotation.typeAnnotation.type=TSFunctionType]):not([accessibility=private]):not([accessibility=protected]):matches([parent.parent.parent.type=ExportNamedDeclaration], [parent.parent.parent.type=ExportDefaultDeclaration], [parent.parent.parent.parent.parent.type=ExportNamedDeclaration])",
+  "TSCallSignatureDeclaration[parent.parent.parent.type=ExportNamedDeclaration]",
+];
+const documentedCallableContexts = [
+  ":matches(ExportNamedDeclaration, ExportDefaultDeclaration) > FunctionDeclaration",
+  "ExportNamedDeclaration > VariableDeclaration > VariableDeclarator > :matches(ArrowFunctionExpression, FunctionExpression)",
+  "ExportDefaultDeclaration > :matches(ArrowFunctionExpression, FunctionExpression)",
+  ...publicClassMemberContexts.map(
+    (context) =>
+      `${context} > :matches(FunctionExpression, ArrowFunctionExpression)`,
+  ),
+  ...bodylessCallableContexts,
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > TSMethodSignature",
+  "ExportNamedDeclaration > TSInterfaceDeclaration > TSInterfaceBody > TSCallSignatureDeclaration",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > TSMethodSignature",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSTypeLiteral > TSCallSignatureDeclaration",
+  "ExportNamedDeclaration > TSTypeAliasDeclaration > TSFunctionType",
+  ...publicShapeMemberContexts.map(
+    (context) => `${context} > TSTypeAnnotation > TSFunctionType`,
+  ),
+];
+
+const contractDescriptionPattern =
+  "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value|customer id|the configuration)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu";
 
 // Type-aware runtime lint already rejects these deprecated APIs. Keep the Zod
 // equivalents for JavaScript, tests and other files outside that typed policy.
@@ -441,11 +470,26 @@ export default defineConfig([
     files: ["apps/**/*.ts", "packages/**/*.ts", "eslint.config.mjs"],
     ignores: authoredTypeScriptExclusions,
     plugins: {
-      jsdoc: jsdocPlugin,
+      jsdoc: {
+        ...jsdocPlugin,
+        rules: {
+          ...jsdocRules,
+          "require-public-member-jsdoc": jsdocRules["require-jsdoc"],
+        },
+      },
     },
     settings: {
       jsdoc: {
         mode: "typescript",
+        tagNamePreference: {
+          arg: "param",
+          argument: "param",
+          return: "returns",
+          exception: "throws",
+        },
+        structuredTags: {
+          throws: { required: ["type"] },
+        },
       },
     },
     rules: {
@@ -467,31 +511,136 @@ export default defineConfig([
             MethodDefinition: false,
           },
           contexts: [
+            "ExportNamedDeclaration > VariableDeclaration",
+            "Program > VariableDeclaration > VariableDeclarator > *.init",
+            ...publicClassMemberContexts.map(
+              (context) =>
+                `${context} > :matches(FunctionExpression, ArrowFunctionExpression, TSEmptyBodyFunctionExpression)`,
+            ),
+            ...publicClassMemberContexts.map(
+              (context) =>
+                `${context}:matches(PropertyDefinition, TSAbstractPropertyDefinition)`,
+            ),
+            ...publicShapeMemberContexts,
             "TSEnumDeclaration",
             "TSInterfaceDeclaration",
             authoredTypeAliasContext,
           ],
         },
       ],
+      // The plugin's runtime export map omits abstract members and call
+      // signatures. These selectors establish public ownership directly, so
+      // reuse its presence rule without applying that export-map filter.
+      "jsdoc/require-public-member-jsdoc": [
+        "error",
+        {
+          enableFixer: false,
+          publicOnly: false,
+          require: {
+            ArrowFunctionExpression: false,
+            ClassDeclaration: false,
+            ClassExpression: false,
+            FunctionDeclaration: false,
+            FunctionExpression: false,
+          },
+          contexts: [
+            ...publicClassMemberContexts.map(
+              (context) =>
+                `${context}:matches(TSAbstractMethodDefinition, TSAbstractPropertyDefinition)`,
+            ),
+            ...publicShapeMemberContexts.map(
+              (context) => `${context}[type=TSCallSignatureDeclaration]`,
+            ),
+          ],
+        },
+      ],
+      "jsdoc/check-alignment": "error",
+      "jsdoc/require-asterisk-prefix": "error",
+      "jsdoc/require-description-complete-sentence": "error",
+      "jsdoc/check-param-names": "error",
+      "jsdoc/check-property-names": "error",
+      "jsdoc/check-tag-names": "error",
+      "jsdoc/check-types": "error",
+      "jsdoc/check-values": "error",
+      "jsdoc/valid-types": "error",
+      "jsdoc/informative-docs": "error",
+      "jsdoc/require-param": [
+        "error",
+        { contexts: documentedCallableContexts },
+      ],
+      "jsdoc/require-param-name": "error",
+      "jsdoc/require-param-type": ["error", { contexts: ["any"] }],
+      "jsdoc/require-param-description": ["error", { contexts: ["any"] }],
+      "jsdoc/require-returns": [
+        "error",
+        {
+          contexts: documentedCallableContexts.map((context) => ({
+            context,
+            forceRequireReturn:
+              context.endsWith("TSMethodSignature") ||
+              context.endsWith("TSFunctionType"),
+          })),
+          forceReturnsWithAsync: true,
+        },
+      ],
+      // require-returns recognizes runtime functions but not these bodyless
+      // declarations. Require their return tag directly; the shared type and
+      // description rules validate its contents.
+      "jsdoc/require-tags": [
+        "error",
+        {
+          tags: bodylessCallableContexts.map((context) => ({
+            tag: "returns",
+            context,
+          })),
+        },
+      ],
+      "jsdoc/require-returns-type": ["error", { contexts: ["any"] }],
+      "jsdoc/require-returns-description": ["error", { contexts: ["any"] }],
+      "jsdoc/require-throws": [
+        "error",
+        { contexts: documentedCallableContexts },
+      ],
+      "jsdoc/require-property": "error",
+      "jsdoc/require-property-name": "error",
+      "jsdoc/require-property-type": "error",
+      "jsdoc/require-property-description": "error",
+      "jsdoc/normalize-see-links": ["error", { wrapBareUrls: true }],
       "jsdoc/require-description": [
         "error",
         {
-          contexts: documentedExportContexts,
+          contexts: [
+            ...documentedExportContexts,
+            "FunctionDeclaration",
+            "ArrowFunctionExpression",
+            "FunctionExpression",
+            "VariableDeclaration",
+            "TSInterfaceDeclaration",
+            authoredTypeAliasContext,
+            "TSEnumDeclaration",
+          ],
           descriptionStyle: "body",
-          exemptedBy: ["inheritdoc", "deprecated"],
+          exemptedBy: ["inheritdoc"],
         },
       ],
       "jsdoc/match-description": [
         "error",
         {
-          contexts: documentedExportContexts,
+          contexts: ["any"],
           mainDescription: {
-            match:
-              "/^(?!\\s*(?:TODO|TBD|FIXME|placeholder|returns? (?:the )?result|gets? (?:the )?value)\\.?\\s*$)[\\s\\S]*\\S[\\s\\S]*$/iu",
+            match: contractDescriptionPattern,
             message:
               "Exported API JSDoc must describe the contract rather than use an empty or placeholder description.",
           },
-          nonemptyTags: false,
+          matchDescription: contractDescriptionPattern,
+          tags: {
+            param: true,
+            returns: true,
+            property: true,
+            deprecated: true,
+            throws: true,
+          },
+          nonemptyTags: true,
         },
       ],
     },

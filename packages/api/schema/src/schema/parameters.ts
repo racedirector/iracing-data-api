@@ -46,15 +46,18 @@ import {
   TrackIdParameterSchema,
 } from "./primitives";
 
+/** Validates auth parameters at the Data API request boundary. */
 export const AuthParametersSchema = z.object({
   email: z.email(),
   password: z.string(),
 });
 
+/** Validates driver stats by category path at the Data API request boundary. */
 export const DriverStatsByCategoryPathSchema = z.object({
   category: CategorySchema,
 });
 
+/** Validates hosted combined sessions parameters at the Data API request boundary. */
 export const HostedCombinedSessionsParametersSchema = z.object({
   package_id: PackageIdParameterSchema.optional().meta({
     description:
@@ -62,6 +65,7 @@ export const HostedCombinedSessionsParametersSchema = z.object({
   }),
 });
 
+/** Validates league customer sessions parameters at the Data API request boundary. */
 export const LeagueCustomerSessionsParametersSchema = z.object({
   mine: BooleanParameterSchema.optional().meta({
     description: "If true, return only sessions created by this user.",
@@ -72,6 +76,7 @@ export const LeagueCustomerSessionsParametersSchema = z.object({
   }),
 });
 
+/** Validates league directory parameters at the Data API request boundary. */
 export const LeagueDirectoryParametersSchema = z.object({
   search: z.string().optional().meta({
     description:
@@ -117,6 +122,7 @@ export const LeagueDirectoryParametersSchema = z.object({
     .meta({ description: "One of asc or desc.  Defaults to asc." }),
 });
 
+/** Validates league get parameters at the Data API request boundary. */
 export const LeagueGetParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
@@ -124,6 +130,7 @@ export const LeagueGetParametersSchema = z.object({
   }),
 });
 
+/** Validates league get points systems parameters at the Data API request boundary. */
 export const LeagueGetPointsSystemsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   season_id: LeagueSeasonIdParameterSchema.optional().meta({
@@ -132,6 +139,7 @@ export const LeagueGetPointsSystemsParametersSchema = z.object({
   }),
 });
 
+/** Validates league membership parameters at the Data API request boundary. */
 export const LeagueMembershipParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description:
@@ -140,6 +148,7 @@ export const LeagueMembershipParametersSchema = z.object({
   include_league: BooleanParameterSchema.optional(),
 });
 
+/** Validates league roster parameters at the Data API request boundary. */
 export const LeagueRosterParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
@@ -147,6 +156,7 @@ export const LeagueRosterParametersSchema = z.object({
   }),
 });
 
+/** Validates league seasons parameters at the Data API request boundary. */
 export const LeagueSeasonsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   retired: BooleanParameterSchema.optional().meta({
@@ -154,6 +164,7 @@ export const LeagueSeasonsParametersSchema = z.object({
   }),
 });
 
+/** Validates league season standings parameters at the Data API request boundary. */
 export const LeagueSeasonStandingsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   season_id: LeagueSeasonIdParameterSchema,
@@ -164,6 +175,7 @@ export const LeagueSeasonStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates league season sessions parameters at the Data API request boundary. */
 export const LeagueSeasonSessionsParametersSchema = z.object({
   league_id: LeagueIdParameterSchema,
   season_id: LeagueSeasonIdParameterSchema,
@@ -173,6 +185,7 @@ export const LeagueSeasonSessionsParametersSchema = z.object({
   }),
 });
 
+/** Validates lookup drivers parameters at the Data API request boundary. */
 export const LookupDriversParametersSchema = z.object({
   search_term: z
     .string()
@@ -182,12 +195,14 @@ export const LookupDriversParametersSchema = z.object({
   }),
 });
 
+/** Validates member awards parameters at the Data API request boundary. */
 export const MemberAwardsParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates member award instances parameters at the Data API request boundary. */
 export const MemberAwardInstancesParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -195,6 +210,7 @@ export const MemberAwardInstancesParametersSchema = z.object({
   award_id: z.coerce.number(),
 });
 
+/** Validates member chart data parameters at the Data API request boundary. */
 export const MemberChartDataParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -207,6 +223,7 @@ export const MemberChartDataParametersSchema = z.object({
   }),
 });
 
+/** Validates member get parameters at the Data API request boundary. */
 export const MemberGetParametersSchema = z.object({
   cust_ids: CustomerIdsParameterSchema.meta({
     description:
@@ -215,17 +232,20 @@ export const MemberGetParametersSchema = z.object({
   include_licenses: BooleanParameterSchema.optional(),
 });
 
+/** Validates member profile parameters at the Data API request boundary. */
 export const MemberProfileParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates results get parameters at the Data API request boundary. */
 export const ResultsGetParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional(),
 });
 
+/** Validates results event log parameters at the Data API request boundary. */
 export const ResultsEventLogParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   simsession_number: SimSessionNumberParameterSchema.meta({
@@ -233,6 +253,7 @@ export const ResultsEventLogParametersSchema = z.object({
   }),
 });
 
+/** Validates results lap chart data parameters at the Data API request boundary. */
 export const ResultsLapChartDataParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   simsession_number: SimSessionNumberParameterSchema.meta({
@@ -240,6 +261,7 @@ export const ResultsLapChartDataParametersSchema = z.object({
   }),
 });
 
+/** Validates results lap data parameters at the Data API request boundary. */
 export const ResultsLapDataParametersSchema = z.object({
   subsession_id: SubsessionIdParameterSchema,
   simsession_number: SimSessionNumberParameterSchema.meta({
@@ -254,6 +276,7 @@ export const ResultsLapDataParametersSchema = z.object({
   }),
 });
 
+/** Validates results search hosted parameters at the Data API request boundary. */
 export const ResultsSearchHostedParametersSchema = z.object({
   start_range_begin: z.iso.datetime().optional().meta({
     description:
@@ -304,6 +327,7 @@ export const ResultsSearchHostedParametersSchema = z.object({
   }),
 });
 
+/** Validates results search series parameters at the Data API request boundary. */
 export const ResultsSearchSeriesParametersSchema = z.object({
   season_year: SeasonYearParameterSchema.optional().meta({
     description: "Required when using season_quarter.",
@@ -355,6 +379,7 @@ export const ResultsSearchSeriesParametersSchema = z.object({
   }),
 });
 
+/** Validates results season results parameters at the Data API request boundary. */
 export const ResultsSeasonResultsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   event_type: EventTypeParameterSchema.optional().meta({
@@ -366,11 +391,13 @@ export const ResultsSeasonResultsParametersSchema = z.object({
   }),
 });
 
+/** Validates season list parameters at the Data API request boundary. */
 export const SeasonListParametersSchema = z.object({
   season_year: SeasonYearParameterSchema,
   season_quarter: SeasonQuarterParameterSchema,
 });
 
+/** Validates season race guide parameters at the Data API request boundary. */
 export const SeasonRaceGuideParametersSchema = z.object({
   from: z.iso.datetime({ offset: true }).optional().meta({
     description:
@@ -381,6 +408,7 @@ export const SeasonRaceGuideParametersSchema = z.object({
   }),
 });
 
+/** Validates season spectator subsessionids parameters at the Data API request boundary. */
 export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
   event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
@@ -388,6 +416,7 @@ export const SeasonSpectatorSubsessionidsParametersSchema = z.object({
   }),
 });
 
+/** Validates season spectator subsessionids detail parameters at the Data API request boundary. */
 export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
   event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
@@ -399,10 +428,12 @@ export const SeasonSpectatorSubsessionidsDetailParametersSchema = z.object({
   }),
 });
 
+/** Validates series past seasons parameters at the Data API request boundary. */
 export const SeriesPastSeasonsParametersSchema = z.object({
   series_id: SeriesIdParameterSchema,
 });
 
+/** Validates series seasons parameters at the Data API request boundary. */
 export const SeriesSeasonsParametersSchema = z.object({
   include_series: BooleanParameterSchema.optional(),
   season_year: SeasonYearParameterSchema.optional().meta({
@@ -415,16 +446,19 @@ export const SeriesSeasonsParametersSchema = z.object({
   }),
 });
 
+/** Validates series season list parameters at the Data API request boundary. */
 export const SeriesSeasonListParametersSchema = z.object({
   include_series: BooleanParameterSchema.optional(),
   season_year: SeasonYearParameterSchema.optional(),
   season_quarter: SeasonQuarterParameterSchema.optional(),
 });
 
+/** Validates series season schedule parameters at the Data API request boundary. */
 export const SeriesSeasonScheduleParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
 });
 
+/** Validates stats member bests parameters at the Data API request boundary. */
 export const StatsMemberBestsParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -435,12 +469,14 @@ export const StatsMemberBestsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats member career parameters at the Data API request boundary. */
 export const StatsMemberCareerParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats member division parameters at the Data API request boundary. */
 export const StatsMemberDivisionParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   event_type: z.union([EventTypeTimeTrialSchema, EventTypeRaceSchema]).meta({
@@ -449,6 +485,7 @@ export const StatsMemberDivisionParametersSchema = z.object({
   }),
 });
 
+/** Validates stats member recap parameters at the Data API request boundary. */
 export const StatsMemberRecapParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
@@ -463,24 +500,28 @@ export const StatsMemberRecapParametersSchema = z.object({
   }),
 });
 
+/** Validates stats member recent races parameters at the Data API request boundary. */
 export const StatsMemberRecentRacesParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats member summary parameters at the Data API request boundary. */
 export const StatsMemberSummaryParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats member yearly parameters at the Data API request boundary. */
 export const StatsMemberYearlyParametersSchema = z.object({
   cust_id: CustomerIdSchema.optional().meta({
     description: "Defaults to the authenticated member.",
   }),
 });
 
+/** Validates stats season driver standings parameters at the Data API request boundary. */
 export const StatsSeasonDriverStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -490,6 +531,7 @@ export const StatsSeasonDriverStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season supersession standings parameters at the Data API request boundary. */
 export const StatsSeasonSupersessionStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -499,6 +541,7 @@ export const StatsSeasonSupersessionStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season team standings parameters at the Data API request boundary. */
 export const StatsSeasonTeamStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -507,6 +550,7 @@ export const StatsSeasonTeamStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season tt standings parameters at the Data API request boundary. */
 export const StatsSeasonTTStandingsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -516,6 +560,7 @@ export const StatsSeasonTTStandingsParametersSchema = z.object({
   }),
 });
 
+/** Validates stats season tt results parameters at the Data API request boundary. */
 export const StatsSeasonTTResultsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -525,6 +570,7 @@ export const StatsSeasonTTResultsParametersSchema = z.object({
   division: DivisionParameterSchema.optional(),
 });
 
+/** Validates stats season qualify results parameters at the Data API request boundary. */
 export const StatsSeasonQualifyResultsParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
   car_class_id: CarClassIdParameterSchema,
@@ -534,6 +580,7 @@ export const StatsSeasonQualifyResultsParametersSchema = z.object({
   division: DivisionParameterSchema.optional(),
 });
 
+/** Validates stats world records parameters at the Data API request boundary. */
 export const StatsWorldRecordsParametersSchema = z.object({
   car_id: CarIdParameterSchema,
   track_id: TrackIdParameterSchema,
@@ -546,6 +593,7 @@ export const StatsWorldRecordsParametersSchema = z.object({
   }),
 });
 
+/** Validates team get parameters at the Data API request boundary. */
 export const TeamGetParametersSchema = z.object({
   team_id: TeamIdParameterSchema,
   include_licenses: BooleanParameterSchema.optional().meta({
@@ -553,12 +601,13 @@ export const TeamGetParametersSchema = z.object({
   }),
 });
 
+/** Validates time attack member season results parameters at the Data API request boundary. */
 export const TimeAttackMemberSeasonResultsParametersSchema = z.object({
   ta_comp_season_id: z.coerce.number(),
 });
 
 /**
- * Types
+ * Types.
  */
 export type DriverStatsByCategoryPath = z.infer<
   typeof DriverStatsByCategoryPathSchema
@@ -703,356 +752,647 @@ export type TimeAttackMemberSeasonResultsParameters = z.infer<
 >;
 
 // Historical exports stay in their original module for import compatibility.
-/** @deprecated Use AuthParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use AuthParametersSchema instead.
+ */
 export const IRacingAuthParametersSchema = AuthParametersSchema;
 
-/** @deprecated Use DriverStatsByCategoryPathSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use DriverStatsByCategoryPathSchema instead.
+ */
 export const IRacingDriverStatsByCategoryPathSchema =
   DriverStatsByCategoryPathSchema;
 
-/** @deprecated Use HostedCombinedSessionsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use HostedCombinedSessionsParametersSchema instead.
+ */
 export const IRacingHostedCombinedSessionsParametersSchema =
   HostedCombinedSessionsParametersSchema;
 
-/** @deprecated Use LeagueCustomerSessionsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueCustomerSessionsParametersSchema instead.
+ */
 export const IRacingLeagueCustomerSessionsParametersSchema =
   LeagueCustomerSessionsParametersSchema;
 
-/** @deprecated Use LeagueDirectoryParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueDirectoryParametersSchema instead.
+ */
 export const IRacingLeagueDirectoryParametersSchema =
   LeagueDirectoryParametersSchema;
 
-/** @deprecated Use LeagueGetParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueGetParametersSchema instead.
+ */
 export const IRacingLeagueGetParametersSchema = LeagueGetParametersSchema;
 
-/** @deprecated Use LeagueGetPointsSystemsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueGetPointsSystemsParametersSchema instead.
+ */
 export const IRacingLeagueGetPointsSystemsParametersSchema =
   LeagueGetPointsSystemsParametersSchema;
 
-/** @deprecated Use LeagueMembershipParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueMembershipParametersSchema instead.
+ */
 export const IRacingLeagueMembershipParametersSchema =
   LeagueMembershipParametersSchema;
 
-/** @deprecated Use LeagueRosterParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueRosterParametersSchema instead.
+ */
 export const IRacingLeagueRosterParametersSchema = LeagueRosterParametersSchema;
 
-/** @deprecated Use LeagueSeasonsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueSeasonsParametersSchema instead.
+ */
 export const IRacingLeagueSeasonsParametersSchema =
   LeagueSeasonsParametersSchema;
 
-/** @deprecated Use LeagueSeasonStandingsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueSeasonStandingsParametersSchema instead.
+ */
 export const IRacingLeagueSeasonStandingsParametersSchema =
   LeagueSeasonStandingsParametersSchema;
 
-/** @deprecated Use LeagueSeasonSessionsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LeagueSeasonSessionsParametersSchema instead.
+ */
 export const IRacingLeagueSeasonSessionsParametersSchema =
   LeagueSeasonSessionsParametersSchema;
 
-/** @deprecated Use LookupDriversParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use LookupDriversParametersSchema instead.
+ */
 export const IRacingLookupDriversParametersSchema =
   LookupDriversParametersSchema;
 
-/** @deprecated Use MemberAwardsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use MemberAwardsParametersSchema instead.
+ */
 export const IRacingMemberAwardsParametersSchema = MemberAwardsParametersSchema;
 
-/** @deprecated Use MemberAwardInstancesParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use MemberAwardInstancesParametersSchema instead.
+ */
 export const IRacingMemberAwardInstancesParametersSchema =
   MemberAwardInstancesParametersSchema;
 
-/** @deprecated Use MemberChartDataParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use MemberChartDataParametersSchema instead.
+ */
 export const IRacingMemberChartDataParametersSchema =
   MemberChartDataParametersSchema;
 
-/** @deprecated Use MemberGetParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use MemberGetParametersSchema instead.
+ */
 export const IRacingMemberGetParametersSchema = MemberGetParametersSchema;
 
-/** @deprecated Use MemberProfileParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use MemberProfileParametersSchema instead.
+ */
 export const IRacingMemberProfileParametersSchema =
   MemberProfileParametersSchema;
 
-/** @deprecated Use ResultsGetParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsGetParametersSchema instead.
+ */
 export const IRacingResultsGetParametersSchema = ResultsGetParametersSchema;
 
-/** @deprecated Use ResultsEventLogParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsEventLogParametersSchema instead.
+ */
 export const IRacingResultsEventLogParametersSchema =
   ResultsEventLogParametersSchema;
 
-/** @deprecated Use ResultsLapChartDataParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsLapChartDataParametersSchema instead.
+ */
 export const IRacingResultsLapChartDataParametersSchema =
   ResultsLapChartDataParametersSchema;
 
-/** @deprecated Use ResultsLapDataParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsLapDataParametersSchema instead.
+ */
 export const IRacingResultsLapDataParametersSchema =
   ResultsLapDataParametersSchema;
 
-/** @deprecated Use ResultsSearchHostedParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsSearchHostedParametersSchema instead.
+ */
 export const IRacingResultsSearchHostedParametersSchema =
   ResultsSearchHostedParametersSchema;
 
-/** @deprecated Use ResultsSearchSeriesParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsSearchSeriesParametersSchema instead.
+ */
 export const IRacingResultsSearchSeriesParametersSchema =
   ResultsSearchSeriesParametersSchema;
 
-/** @deprecated Use ResultsSeasonResultsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ResultsSeasonResultsParametersSchema instead.
+ */
 export const IRacingResultsSeasonResultsParametersSchema =
   ResultsSeasonResultsParametersSchema;
 
-/** @deprecated Use SeasonListParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeasonListParametersSchema instead.
+ */
 export const IRacingSeasonListParametersSchema = SeasonListParametersSchema;
 
-/** @deprecated Use SeasonRaceGuideParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeasonRaceGuideParametersSchema instead.
+ */
 export const IRacingSeasonRaceGuideParametersSchema =
   SeasonRaceGuideParametersSchema;
 
-/** @deprecated Use SeasonSpectatorSubsessionidsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeasonSpectatorSubsessionidsParametersSchema instead.
+ */
 export const IRacingSeasonSpectatorSubsessionidsParametersSchema =
   SeasonSpectatorSubsessionidsParametersSchema;
 
-/** @deprecated Use SeasonSpectatorSubsessionidsDetailParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeasonSpectatorSubsessionidsDetailParametersSchema instead.
+ */
 export const IRacingSeasonSpectatorSubsessionidsDetailParametersSchema =
   SeasonSpectatorSubsessionidsDetailParametersSchema;
 
-/** @deprecated Use SeriesPastSeasonsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeriesPastSeasonsParametersSchema instead.
+ */
 export const IRacingSeriesPastSeasonsParametersSchema =
   SeriesPastSeasonsParametersSchema;
 
-/** @deprecated Use SeriesSeasonsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeriesSeasonsParametersSchema instead.
+ */
 export const IRacingSeriesSeasonsParametersSchema =
   SeriesSeasonsParametersSchema;
 
-/** @deprecated Use SeriesSeasonListParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeriesSeasonListParametersSchema instead.
+ */
 export const IRacingSeriesSeasonListParametersSchema =
   SeriesSeasonListParametersSchema;
 
-/** @deprecated Use SeriesSeasonScheduleParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use SeriesSeasonScheduleParametersSchema instead.
+ */
 export const IRacingSeriesSeasonScheduleParametersSchema =
   SeriesSeasonScheduleParametersSchema;
 
-/** @deprecated Use StatsMemberBestsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberBestsParametersSchema instead.
+ */
 export const IRacingStatsMemberBestsParametersSchema =
   StatsMemberBestsParametersSchema;
 
-/** @deprecated Use StatsMemberCareerParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberCareerParametersSchema instead.
+ */
 export const IRacingStatsMemberCareerParametersSchema =
   StatsMemberCareerParametersSchema;
 
-/** @deprecated Use StatsMemberDivisionParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberDivisionParametersSchema instead.
+ */
 export const IRacingStatsMemberDivisionParametersSchema =
   StatsMemberDivisionParametersSchema;
 
-/** @deprecated Use StatsMemberRecapParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberRecapParametersSchema instead.
+ */
 export const IRacingStatsMemberRecapParametersSchema =
   StatsMemberRecapParametersSchema;
 
-/** @deprecated Use StatsMemberRecentRacesParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberRecentRacesParametersSchema instead.
+ */
 export const IRacingStatsMemberRecentRacesParametersSchema =
   StatsMemberRecentRacesParametersSchema;
 
-/** @deprecated Use StatsMemberSummaryParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberSummaryParametersSchema instead.
+ */
 export const IRacingStatsMemberSummaryParametersSchema =
   StatsMemberSummaryParametersSchema;
 
-/** @deprecated Use StatsMemberYearlyParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsMemberYearlyParametersSchema instead.
+ */
 export const IRacingStatsMemberYearlyParametersSchema =
   StatsMemberYearlyParametersSchema;
 
-/** @deprecated Use StatsSeasonDriverStandingsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsSeasonDriverStandingsParametersSchema instead.
+ */
 export const IRacingStatsSeasonDriverStandingsParametersSchema =
   StatsSeasonDriverStandingsParametersSchema;
 
-/** @deprecated Use StatsSeasonSupersessionStandingsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsSeasonSupersessionStandingsParametersSchema instead.
+ */
 export const IRacingStatsSeasonSupersessionStandingsParametersSchema =
   StatsSeasonSupersessionStandingsParametersSchema;
 
-/** @deprecated Use StatsSeasonTeamStandingsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsSeasonTeamStandingsParametersSchema instead.
+ */
 export const IRacingStatsSeasonTeamStandingsParametersSchema =
   StatsSeasonTeamStandingsParametersSchema;
 
-/** @deprecated Use StatsSeasonTTStandingsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsSeasonTTStandingsParametersSchema instead.
+ */
 export const IRacingStatsSeasonTTStandingsParametersSchema =
   StatsSeasonTTStandingsParametersSchema;
 
-/** @deprecated Use StatsSeasonTTResultsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsSeasonTTResultsParametersSchema instead.
+ */
 export const IRacingStatsSeasonTTResultsParametersSchema =
   StatsSeasonTTResultsParametersSchema;
 
-/** @deprecated Use StatsSeasonQualifyResultsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsSeasonQualifyResultsParametersSchema instead.
+ */
 export const IRacingStatsSeasonQualifyResultsParametersSchema =
   StatsSeasonQualifyResultsParametersSchema;
 
-/** @deprecated Use StatsWorldRecordsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use StatsWorldRecordsParametersSchema instead.
+ */
 export const IRacingStatsWorldRecordsParametersSchema =
   StatsWorldRecordsParametersSchema;
 
-/** @deprecated Use TeamGetParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use TeamGetParametersSchema instead.
+ */
 export const IRacingTeamGetParametersSchema = TeamGetParametersSchema;
 
-/** @deprecated Use TimeAttackMemberSeasonResultsParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use TimeAttackMemberSeasonResultsParametersSchema instead.
+ */
 export const IRacingTimeAttackMemberSeasonResultsParametersSchema =
   TimeAttackMemberSeasonResultsParametersSchema;
 
-/** @deprecated Use DriverStatsByCategoryPath instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use DriverStatsByCategoryPath instead.
+ */
 export type IRacingDriverStatsByCategoryPath = DriverStatsByCategoryPath;
 
-/** @deprecated Use HostedCombinedSessionsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use HostedCombinedSessionsParameters instead.
+ */
 export type IRacingHostedCombinedSessionsParameters =
   HostedCombinedSessionsParameters;
 
-/** @deprecated Use LeagueCustomerSessionsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueCustomerSessionsParameters instead.
+ */
 export type IRacingLeagueCustomerSessionsParameters =
   LeagueCustomerSessionsParameters;
 
-/** @deprecated Use LeagueDirectoryParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueDirectoryParameters instead.
+ */
 export type IRacingLeagueDirectoryParameters = LeagueDirectoryParameters;
 
-/** @deprecated Use LeagueGetParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueGetParameters instead.
+ */
 export type IRacingLeagueGetParameters = LeagueGetParameters;
 
-/** @deprecated Use LeagueGetPointsSystemsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueGetPointsSystemsParameters instead.
+ */
 export type IRacingLeagueGetPointsSystemsParameters =
   LeagueGetPointsSystemsParameters;
 
-/** @deprecated Use LeagueMembershipParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueMembershipParameters instead.
+ */
 export type IRacingLeagueMembershipParameters = LeagueMembershipParameters;
 
-/** @deprecated Use LeagueRosterParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueRosterParameters instead.
+ */
 export type IRacingLeagueRosterParameters = LeagueRosterParameters;
 
-/** @deprecated Use LeagueSeasonsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueSeasonsParameters instead.
+ */
 export type IRacingLeagueSeasonsParameters = LeagueSeasonsParameters;
 
-/** @deprecated Use LeagueSeasonStandingsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueSeasonStandingsParameters instead.
+ */
 export type IRacingLeagueSeasonStandingsParameters =
   LeagueSeasonStandingsParameters;
 
-/** @deprecated Use LeagueSeasonSessionsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LeagueSeasonSessionsParameters instead.
+ */
 export type IRacingLeagueSeasonSessionsParameters =
   LeagueSeasonSessionsParameters;
 
-/** @deprecated Use LookupDriversParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use LookupDriversParameters instead.
+ */
 export type IRacingLookupDriversParameters = LookupDriversParameters;
 
-/** @deprecated Use MemberAwardsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use MemberAwardsParameters instead.
+ */
 export type IRacingMemberAwardsParameters = MemberAwardsParameters;
 
-/** @deprecated Use MemberAwardInstancesParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use MemberAwardInstancesParameters instead.
+ */
 export type IRacingMemberAwardInstancesParameters =
   MemberAwardInstancesParameters;
 
-/** @deprecated Use MemberChartDataParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use MemberChartDataParameters instead.
+ */
 export type IRacingMemberChartDataParameters = MemberChartDataParameters;
 
-/** @deprecated Use MemberGetParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use MemberGetParameters instead.
+ */
 export type IRacingMemberGetParameters = MemberGetParameters;
 
-/** @deprecated Use MemberProfileParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use MemberProfileParameters instead.
+ */
 export type IRacingMemberProfileParameters = MemberProfileParameters;
 
-/** @deprecated Use ResultsGetParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsGetParameters instead.
+ */
 export type IRacingResultsGetParameters = ResultsGetParameters;
 
-/** @deprecated Use ResultsEventLogParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsEventLogParameters instead.
+ */
 export type IRacingResultsEventLogParameters = ResultsEventLogParameters;
 
-/** @deprecated Use ResultsLapChartDataParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsLapChartDataParameters instead.
+ */
 export type IRacingResultsLapChartDataParameters =
   ResultsLapChartDataParameters;
 
-/** @deprecated Use ResultsLapDataParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsLapDataParameters instead.
+ */
 export type IRacingResultsLapDataParameters = ResultsLapDataParameters;
 
-/** @deprecated Use ResultsSearchHostedParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsSearchHostedParameters instead.
+ */
 export type IRacingResultsSearchHostedParameters =
   ResultsSearchHostedParameters;
 
-/** @deprecated Use ResultsSearchSeriesParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsSearchSeriesParameters instead.
+ */
 export type IRacingResultsSearchSeriesParameters =
   ResultsSearchSeriesParameters;
 
-/** @deprecated Use ResultsSeasonResultsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ResultsSeasonResultsParameters instead.
+ */
 export type IRacingResultsSeasonResultsParameters =
   ResultsSeasonResultsParameters;
 
-/** @deprecated Use SeasonListParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeasonListParameters instead.
+ */
 export type IRacingSeasonListParameters = SeasonListParameters;
 
-/** @deprecated Use SeasonRaceGuideParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeasonRaceGuideParameters instead.
+ */
 export type IRacingSeasonRaceGuideParameters = SeasonRaceGuideParameters;
 
-/** @deprecated Use SeasonSpectatorSubsessionidsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeasonSpectatorSubsessionidsParameters instead.
+ */
 export type IRacingSeasonSpectatorSubsessionidsParameters =
   SeasonSpectatorSubsessionidsParameters;
 
-/** @deprecated Use SeasonSpectatorSubsessionidsDetailParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeasonSpectatorSubsessionidsDetailParameters instead.
+ */
 export type IRacingSeasonSpectatorSubsessionidsDetailParameters =
   SeasonSpectatorSubsessionidsDetailParameters;
 
-/** @deprecated Use SeriesPastSeasonsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeriesPastSeasonsParameters instead.
+ */
 export type IRacingSeriesPastSeasonsParameters = SeriesPastSeasonsParameters;
 
-/** @deprecated Use SeriesSeasonsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeriesSeasonsParameters instead.
+ */
 export type IRacingSeriesSeasonsParameters = SeriesSeasonsParameters;
 
-/** @deprecated Use SeriesSeasonListParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeriesSeasonListParameters instead.
+ */
 export type IRacingSeriesSeasonListParameters = SeriesSeasonListParameters;
 
-/** @deprecated Use SeriesSeasonScheduleParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use SeriesSeasonScheduleParameters instead.
+ */
 export type IRacingSeriesSeasonScheduleParameters =
   SeriesSeasonScheduleParameters;
 
-/** @deprecated Use StatsMemberBestsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberBestsParameters instead.
+ */
 export type IRacingStatsMemberBestsParameters = StatsMemberBestsParameters;
 
-/** @deprecated Use StatsMemberCareerParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberCareerParameters instead.
+ */
 export type IRacingStatsMemberCareerParameters = StatsMemberCareerParameters;
 
-/** @deprecated Use StatsMemberDivisionParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberDivisionParameters instead.
+ */
 export type IRacingStatsMemberDivisionParameters =
   StatsMemberDivisionParameters;
 
-/** @deprecated Use StatsMemberRecapParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberRecapParameters instead.
+ */
 export type IRacingStatsMemberRecapParameters = StatsMemberRecapParameters;
 
-/** @deprecated Use StatsMemberRecentRacesParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberRecentRacesParameters instead.
+ */
 export type IRacingStatsMemberRecentRacesParameters =
   StatsMemberRecentRacesParameters;
 
-/** @deprecated Use StatsMemberSummaryParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberSummaryParameters instead.
+ */
 export type IRacingStatsMemberSummaryParameters = StatsMemberSummaryParameters;
 
-/** @deprecated Use StatsMemberYearlyParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsMemberYearlyParameters instead.
+ */
 export type IRacingStatsMemberYearlyParameters = StatsMemberYearlyParameters;
 
-/** @deprecated Use StatsSeasonDriverStandingsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsSeasonDriverStandingsParameters instead.
+ */
 export type IRacingStatsSeasonDriverStandingsParameters =
   StatsSeasonDriverStandingsParameters;
 
-/** @deprecated Use StatsSeasonSupersessionStandingsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsSeasonSupersessionStandingsParameters instead.
+ */
 export type IRacingStatsSeasonSupersessionStandingsParameters =
   StatsSeasonSupersessionStandingsParameters;
 
-/** @deprecated Use StatsSeasonTeamStandingsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsSeasonTeamStandingsParameters instead.
+ */
 export type IRacingStatsSeasonTeamStandingsParameters =
   StatsSeasonTeamStandingsParameters;
 
-/** @deprecated Use StatsSeasonTTStandingsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsSeasonTTStandingsParameters instead.
+ */
 export type IRacingStatsSeasonTTStandingsParameters =
   StatsSeasonTTStandingsParameters;
 
-/** @deprecated Use StatsSeasonTTResultsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsSeasonTTResultsParameters instead.
+ */
 export type IRacingStatsSeasonTTResultsParameters =
   StatsSeasonTTResultsParameters;
 
-/** @deprecated Use StatsSeasonQualifyResultsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsSeasonQualifyResultsParameters instead.
+ */
 export type IRacingStatsSeasonQualifyResultsParameters =
   StatsSeasonQualifyResultsParameters;
 
-/** @deprecated Use StatsWorldRecordsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use StatsWorldRecordsParameters instead.
+ */
 export type IRacingStatsWorldRecordsParameters = StatsWorldRecordsParameters;
 
-/** @deprecated Use TeamGetParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use TeamGetParameters instead.
+ */
 export type IRacingTeamGetParameters = TeamGetParameters;
 
-/** @deprecated Use TimeAttackMemberSeasonResultsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use TimeAttackMemberSeasonResultsParameters instead.
+ */
 export type IRacingTimeAttackMemberSeasonResultsParameters =
   TimeAttackMemberSeasonResultsParameters;

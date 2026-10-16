@@ -15,7 +15,11 @@ import {
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";
 
-/** Register list_series_seasons on the caller-owned server. */
+/**
+ * Register list_series_seasons on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerListSeriesSeasons(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -23,6 +27,7 @@ export function registerListSeriesSeasons(
   registerTool(server, services, definition);
 }
 
+/** Accepts series and season filters or an opaque continuation. */
 export const SeriesSeasonsInput = z.union([
   z
     .strictObject({
@@ -38,6 +43,8 @@ export const SeriesSeasonsInput = z.union([
     ),
   ContinuationInput,
 ]);
+
+/** Projects series season identity, calendar, and active status. */
 export const SeriesSeasonProjection = z.object({
   season_id: Id,
   series_id: Id,

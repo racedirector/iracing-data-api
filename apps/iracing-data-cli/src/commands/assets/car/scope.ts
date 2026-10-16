@@ -20,9 +20,31 @@ interface CarAssetsClient {
 
 /** Injected seams used to build one car-assets invocation scope. */
 export interface CarAssetsScopeDependencies {
+  /**
+   * Resolves a bearer credential from the command options or credential file.
+   * @param {CredentialOptions} options - Explicit bearer token, credential-file selection, and optional file reader.
+   * @returns {Promise<string>} Resolved nonempty bearer credential.
+   */
   resolveAccessToken(options: CredentialOptions): Promise<string>;
+
+  /**
+   * Constructs the generated endpoint client with the resolved bearer credential.
+   * @param {string} accessToken - Bearer credential used to authorize the generated endpoint client.
+   * @returns {CarAssetsClient} Endpoint client bound to the resolved bearer credential.
+   */
   createCarAssetsClient(accessToken: string): CarAssetsClient;
+
+  /**
+   * Fetches the opaque data URL returned by the typed Data API endpoint.
+   * @param {string} link - Opaque HTTPS data URL returned by a typed Data API response.
+   * @returns {Promise<unknown>} Decoded JSON payload from the returned data URL.
+   */
   materializeReturnedDataApiLink(link: string): Promise<unknown>;
+
+  /**
+   * Writes serialized command output to standard output.
+   * @param {string} value - Serialized text written directly to standard output.
+   */
   writeStdout(value: string): void;
 }
 
@@ -92,6 +114,9 @@ function mapCarAssetsRequestError(error: unknown): Error {
 /**
  * Build one `assets car` scope: resolve credentials, construct the generated API client,
  * bind returned-link materialization, and expose JSON-only stdout output.
+ * @param {Diagnostics} diagnostics - Secret-safe sink for command progress and failure messages.
+ * @param {CarAssetsScopeDependencies} dependencies - Injected external capabilities used by the command scope.
+ * @returns {CreateCarAssetsCommandScope} Factory that resolves an isolated dependency scope per invocation.
  */
 export function createCarAssetsCommandScopeFactory(
   diagnostics: Diagnostics,

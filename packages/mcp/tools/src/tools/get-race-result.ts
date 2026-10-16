@@ -64,7 +64,11 @@ function projectRaceParticipants(
   });
 }
 
-/** Register get_race_result on the caller-owned server. */
+/**
+ * Register get_race_result on the caller-owned server.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ */
 export function registerGetRaceResult(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -72,6 +76,7 @@ export function registerGetRaceResult(
   registerTool(server, services, definition);
 }
 
+/** Accepts race identifiers and participant filters or an opaque continuation. */
 export const RaceResultInput = z.union([
   z.strictObject({
     subsession_id: Id,
@@ -86,6 +91,8 @@ export const RaceResultInput = z.union([
   }),
   ContinuationInput,
 ]);
+
+/** Projects race identity, timing, series, and track context with normalized optional fields. */
 export const RaceContextProjection = z.object({
   subsession_id: Id,
   start_time: z.iso
@@ -101,10 +108,14 @@ export const RaceContextProjection = z.object({
     config_name: optionalText,
   }),
 });
+
+/** Validates session identity and raw participant rows before local projection. */
 export const RaceSessionProjection = z.object({
   simsession_number: z.int(),
   results: z.array(z.record(z.string(), z.unknown())),
 });
+
+/** Projects participant identity, classification, positions, and lap statistics. */
 export const RaceParticipantProjection = z
   .object({
     cust_id: optionalId,

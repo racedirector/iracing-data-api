@@ -27,9 +27,16 @@ export type OAuthAccessTokenProvider =
  * coupling callers to the generated client.
  */
 export interface OAuthApiClientOptions {
+  /** Bearer credential or provider used to authorize API calls. */
   accessToken?: OAuthAccessTokenProvider;
+
+  /** Optional override for the generated OAuth service base URL. */
   basePath?: string;
+
+  /** Injected Fetch implementation used for outbound HTTP requests. */
   fetchApi?: typeof fetch;
+
+  /** Default timeout for outbound requests in milliseconds. */
   requestTimeoutMs?: number;
 }
 
@@ -38,8 +45,13 @@ export interface OAuthApiClientOptions {
  * stable status-based error classification.
  */
 export class OAuthApiHttpError extends Error {
+  /** Upstream correlation header retained when present. */
   readonly requestId?: string;
 
+  /**
+   * Creates the classified OAuth failure with its operation context.
+   * @param {Response} response - Upstream HTTP response retained for protocol handling.
+   */
   constructor(readonly response: Response) {
     super(`OAuth API request failed with HTTP ${String(response.status)}.`);
     this.name = "OAuthApiHttpError";
@@ -52,6 +64,11 @@ export class OAuthApiHttpError extends Error {
  * schema-contract violations.
  */
 export class OAuthApiContractError extends Error {
+  /**
+   * Creates the classified OAuth failure with its operation context.
+   * @param {string} message - Human-readable explanation retained on the failure.
+   * @param {"transport" | "not_json" | "invalid_json" | "contract"} kind - Safe classification distinguishing transport and decoding failures.
+   */
   constructor(
     message: string,
     readonly kind:
@@ -73,6 +90,10 @@ export class OAuthApiContractError extends Error {
 export class OAuthApiClient {
   private readonly api: DefaultApi;
 
+  /**
+   * Configures the generated OAuth transport, request timeouts, and response validation.
+   * @param {OAuthApiClientOptions} options - Bearer provider, service base URL, Fetch implementation, and request timeout.
+   */
   constructor(options: OAuthApiClientOptions = {}) {
     const fetchApi = options.fetchApi ?? fetch;
 
@@ -107,6 +128,11 @@ export class OAuthApiClient {
     );
   }
 
+  /**
+   * Exchanges a supported grant and retains the raw response for OAuth protocol handling.
+   * @param {OAuthTokenParameters} parameters - Typed parameters forwarded to the generated OAuth endpoint.
+   * @returns {Promise<Response>} Raw token endpoint response, including OAuth error responses.
+   */
   async exchangeTokenRaw(parameters: OAuthTokenParameters) {
     try {
       const response = await this.api.exchangeTokenRaw(
@@ -125,6 +151,11 @@ export class OAuthApiClient {
     }
   }
 
+  /**
+   * Exchanges a supported grant and validates the successful token response.
+   * @param {OAuthTokenParameters} parameters - Typed parameters forwarded to the generated OAuth endpoint.
+   * @returns {Promise<OAuthTokenResponse>} Validated successful token response.
+   */
   async exchangeToken(
     parameters: OAuthTokenParameters,
   ): Promise<OAuthTokenResponse> {
@@ -139,6 +170,10 @@ export class OAuthApiClient {
     );
   }
 
+  /**
+   * Fetches and validates the authenticated member profile.
+   * @returns {Promise<OAuthProfileResponse>} Validated authenticated member profile.
+   */
   async getProfile(): Promise<OAuthProfileResponse> {
     try {
       const response = await this.api.getProfileRaw();
@@ -151,6 +186,10 @@ export class OAuthApiClient {
     }
   }
 
+  /**
+   * Fetches and validates the OAuth session list.
+   * @returns {Promise<OAuthSessions>} Validated list of OAuth sessions.
+   */
   async getSessions(): Promise<OAuthSessions> {
     try {
       const response = await this.api.getSessionsRaw();
@@ -163,6 +202,11 @@ export class OAuthApiClient {
     }
   }
 
+  /**
+   * Revokes the current OAuth session with optional browser forgetting.
+   * @param {OAuthRevokeCurrentSessionParameters} parameters - Typed parameters forwarded to the generated OAuth endpoint.
+   * @returns {Promise<void>} Completion of current-session revocation.
+   */
   async revokeCurrent(parameters: OAuthRevokeCurrentSessionParameters = {}) {
     try {
       await this.api.revokeCurrent(parameters);
@@ -171,6 +215,11 @@ export class OAuthApiClient {
     }
   }
 
+  /**
+   * Revokes the selected opaque OAuth session identifiers.
+   * @param {OAuthRevokeSessionsParameters} parameters - Typed parameters forwarded to the generated OAuth endpoint.
+   * @returns {Promise<void>} Completion of selected-session revocation.
+   */
   async revokeSessions(parameters: OAuthRevokeSessionsParameters) {
     try {
       await this.api.revokeSessions({
@@ -181,6 +230,10 @@ export class OAuthApiClient {
     }
   }
 
+  /**
+   * Revokes all sessions associated with the current OAuth client.
+   * @returns {Promise<void>} Completion of client-wide revocation.
+   */
   async revokeClient() {
     try {
       await this.api.revokeClient();
@@ -285,6 +338,8 @@ export type OAuthProtocolApi = Pick<
 /**
  * Factory seam for constructing the protocol facade from endpoint, transport, and access-token
  * policy.
+ * @param {OAuthApiClientOptions} options - Bearer provider, service base URL, Fetch implementation, and request timeout.
+ * @returns {OAuthProtocolApi} Endpoint facade used by the authored OAuth lifecycle.
  */
 export type OAuthApiClientFactory = (
   options: OAuthApiClientOptions,

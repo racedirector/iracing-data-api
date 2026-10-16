@@ -26,6 +26,10 @@ export class DiskStore<
   private readonly state = new Map<K, V>();
   private readonly filePath: string;
 
+  /**
+   * Loads a JSON-backed key-value store from the supplied file.
+   * @param {string} filePath - Path to the persisted OAuth credential document.
+   */
   constructor(filePath: string) {
     this.filePath = filePath;
     this.load();
@@ -72,20 +76,36 @@ export class DiskStore<
     }
   }
 
+  /**
+   * Reads a key from the in-memory snapshot loaded at construction; it does not reread the file.
+   * @param {K} key - Identifier of the stored value to read or mutate.
+   * @param {GetOptions} _options - Optional cooperative read controls supported by the store interface.
+   * @returns {V | undefined} Stored value, or undefined when no entry exists.
+   */
   get(key: K, _options?: GetOptions) {
     return this.state.get(key);
   }
 
+  /**
+   * Stores the supplied value under its key. Persistence failures propagate to the caller.
+   * @param {K} key - Identifier of the stored value to read or mutate.
+   * @param {V} value - Input value to validate, store, or serialize.
+   */
   set(key: K, value: V) {
     this.state.set(key, value);
     this.persist();
   }
 
+  /**
+   * Deletes the stored value associated with a key. Persistence failures propagate to the caller.
+   * @param {K} key - Identifier of the stored value to read or mutate.
+   */
   del(key: K) {
     this.state.delete(key);
     this.persist();
   }
 
+  /** Removes all values owned by this store. Persistence failures propagate to the caller. */
   clear() {
     this.state.clear();
     this.persist();

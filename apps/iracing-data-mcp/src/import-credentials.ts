@@ -41,6 +41,9 @@ async function publishCredentials(
  * Imports a shared OAuth token JSON document from a secure filesystem path.
  * Callers must stop and drain credential owners first; this function does not
  * enforce that prerequisite.
+ * @param {string} source - Existing credential-document path to import.
+ * @param {string} destination - Path where the imported credential or secret will be stored.
+ * @returns {Promise<void>} Completion after validated credentials are durably imported.
  */
 export async function importCredentials(
   source: string,
@@ -59,6 +62,9 @@ export async function importCredentials(
  * Imports a serialized OAuth token document supplied out-of-band, such as stdin.
  * This intentionally avoids applying POSIX source-file checks to a host staging
  * file while retaining schema validation and secure durable destination writes.
+ * @param {string} serialized - UTF-8 JSON credential document supplied by the importer.
+ * @param {string} destination - Path where the imported credential or secret will be stored.
+ * @returns {Promise<void>} Completion after the JSON credentials are validated and imported.
  */
 export async function importCredentialsJson(
   serialized: string,
@@ -84,6 +90,9 @@ export async function importCredentialsJson(
 /**
  * Atomically writes a client secret supplied out-of-band into the owned MCP data
  * directory. The secret is never accepted from the MCP container environment.
+ * @param {string} secret - Client secret to validate before writing it to disk.
+ * @param {string} destination - Path where the imported credential or secret will be stored.
+ * @returns {Promise<void>} Completion after the validated client secret is securely written.
  */
 export async function importClientSecret(
   secret: string,

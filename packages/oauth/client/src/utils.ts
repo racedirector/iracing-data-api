@@ -1,7 +1,7 @@
 /**
  * Protocol masking and JWT convenience validation, separate from session policy.
  *
- * maskSecret implements the provider-specific secret-plus-normalized-identifier
+ * MaskSecret implements the provider-specific secret-plus-normalized-identifier
  * SHA-256/base64 transformation; it is not credential encryption or safe logging.
  * Decode helpers establish structure only. Verification performs jose signature
  * validation with the maintained algorithm/header/JWKS contract before claims checks;
@@ -30,10 +30,11 @@ import type { OAuthJWTAccessToken } from "@iracing-data/oauth-schema";
 
 /**
  * Mask a secret (client_secret or password) using iRacing's masking algorithm.
+ * @see {@link https://oauth.iracing.com/oauth2/book/token_endpoint.html|iRacing token endpoint}
  *
- * @param secret - The secret to mask
- * @param identifier - client_id for client_secret, username for password
- * @returns Base64 encoded SHA-256 hash of secret + normalized_identifier
+ * @param {string} secret - Unmodified password or client secret, retained verbatim before hashing.
+ * @param {string} identifier - Client ID for a client secret, or username for a password; trimmed and lowercased before hashing.
+ * @returns {string} Base64 encoded SHA-256 hash of secret + normalized_identifier.
  */
 export function maskSecret(secret: string, identifier: string): string {
   // Normalize the identifier (trim and lowercase)
@@ -51,10 +52,19 @@ export function maskSecret(secret: string, identifier: string): string {
  * access-token validation in addition to fixed cryptographic policy.
  */
 export interface AccessTokenValidationOptions {
+  /** Client identifier required in both client_id and the audience list when supplied. */
   clientId?: string;
+
+  /** Exact issuer claim required after signature verification when supplied. */
   issuer?: string;
+
+  /** Scopes that must each occur in the whitespace-delimited scope claim. */
   requiredScopes?: readonly string[];
+
+  /** Exact iracing_env claim required when supplied; null requires a null claim. */
   expectedEnvironment?: string | null;
+
+  /** Clock tolerance in seconds for expiry, issue, and authentication times; defaults to five. */
   clockSkewSeconds?: number;
 }
 
@@ -77,10 +87,11 @@ function getRemoteJWKSet(jku: string): RemoteJWKSet {
 }
 
 /**
- * Decodes an access token to it's parts.
- * @param accessToken The access token to decode
- * @returns A parsed access token.
+ * Decodes and schema-checks JWT headers and claims without verifying the signature.
+ * @param {string} accessToken - Compact JWT whose untrusted header and payload should be decoded.
+ * @returns {OAuthJWTAccessToken} Schema-validated header and claims that remain untrusted until signature verification.
  *
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
  * @throws {Error} If the token is not a valid JWT or does not match the expected access-token schema.
  */
 export function decodeAccessToken(accessToken: string): OAuthJWTAccessToken {
@@ -99,6 +110,10 @@ export function decodeAccessToken(accessToken: string): OAuthJWTAccessToken {
  * Verifies an access token with the iRacing JWKS endpoint and validates its shape.
  *
  * This performs signature verification before any claims are trusted.
+ * Remote JWK sets are cached by the schema-validated jku URL for this process.
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
+ * @param {string} accessToken - Compact JWT carrying the schema-validated key-set URL.
+ * @returns {Promise<OAuthJWTAccessToken>} Signature-verified header and payload; caller-specific claims constraints are not applied.
  *
  * @throws {Error} If the token cannot be decoded, verified, or parsed into the expected shape.
  */
@@ -125,10 +140,11 @@ export async function verifyAccessToken(
 }
 
 /**
- * Validates the access token according to https://oauth.iracing.com/oauth2/book/access_token.html#claims-validation
- * @param accessToken The acces token to validate.
- * @param options The options to apply to validation.
- * @returns a parsed and validated access token.
+ * Verifies the signature before checking fixed audience, token times, and caller-selected claims.
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html#claims-validation|iRacing claims validation}
+ * @param {string} accessToken - Compact JWT to verify before applying caller-selected claims constraints.
+ * @param {AccessTokenValidationOptions} options - Claims constraints and clock tolerance; omitted constraints are not checked.
+ * @returns {Promise<OAuthJWTAccessToken>} Verified token satisfying fixed audience and caller-selected claims constraints.
  *
  * @throws {Error} If the token cannot be verified before validation.
  * @throws {Error} If the token is expired or its time-based claims are inconsistent.
@@ -190,6 +206,9 @@ function isJWTExpired(token: string) {
  * Returns whether an access token is expired.
  *
  * @throws {Error} If the token is not a valid JWT.
+ * @param {string} accessToken - Compact JWT to decode; opaque credentials cannot be inspected by this helper.
+ * @returns {boolean} True when the current millisecond clock is past exp in seconds; missing exp is treated as zero.
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
  */
 export function isAccessTokenExpired(accessToken: string) {
   return isJWTExpired(accessToken);
@@ -199,6 +218,9 @@ export function isAccessTokenExpired(accessToken: string) {
  * Returns whether an access token is still valid.
  *
  * @throws {Error} If the token is not a valid JWT.
+ * @param {string} accessToken - Compact JWT to decode; opaque credentials cannot be inspected by this helper.
+ * @returns {boolean} True when the current millisecond clock is at or before exp in seconds; missing exp is treated as zero.
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
  */
 export function isAccessTokenValid(accessToken: string) {
   return !isAccessTokenExpired(accessToken);
@@ -208,6 +230,9 @@ export function isAccessTokenValid(accessToken: string) {
  * Returns whether a refresh token is expired.
  *
  * @throws {Error} If the token is not a valid JWT.
+ * @param {string} refreshToken - Compact JWT to decode; opaque credentials cannot be inspected by this helper.
+ * @returns {boolean} True when the current millisecond clock is past exp in seconds; missing exp is treated as zero.
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
  */
 export function isRefreshTokenExpired(refreshToken: string) {
   return isJWTExpired(refreshToken);
@@ -217,6 +242,9 @@ export function isRefreshTokenExpired(refreshToken: string) {
  * Returns whether a refresh token is still valid.
  *
  * @throws {Error} If the token is not a valid JWT.
+ * @param {string} refreshToken - Compact JWT to decode; opaque credentials cannot be inspected by this helper.
+ * @returns {boolean} True when the current millisecond clock is at or before exp in seconds; missing exp is treated as zero.
+ * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
  */
 export function isRefreshTokenValid(refreshToken: string) {
   return !isRefreshTokenExpired(refreshToken);

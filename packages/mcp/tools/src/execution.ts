@@ -18,7 +18,12 @@ import type {
 import type { completeResult } from "./tools/collections.js";
 import type { StandardSchemaWithJSON } from "@modelcontextprotocol/server";
 
-/** Compose the common page fields with each tool's local projected contract. */
+/**
+ * Compose the common page fields with each tool's local projected contract.
+ * @param {z.ZodType} items - Schema or projected collection items used to construct the page.
+ * @param {z.ZodRawShape} context - Request-local identity, cancellation, or diagnostic context.
+ * @returns {z.ZodObject<{ items: z.ZodArray<z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>>; returned_count: z.ZodNumber; complete: z.ZodBoolean; next_cursor: z.ZodNullable<z.ZodString>; source_total: z.ZodNumber; }, z.core.$strip>} Object schema for the bounded page and its continuation metadata.
+ */
 export function pageOutput(items: z.ZodType, context: z.ZodRawShape = {}) {
   return z.object({
     ...context,
@@ -92,6 +97,14 @@ function executionFailure(error: unknown, signal: AbortSignal): unknown {
  * failures become INTERNAL_ERROR. ProtocolFailure escapes as a protocol rejection
  * unless an aborted signal maps it to UPSTREAM_UNAVAILABLE.
  * Schema conversion and server registration errors propagate to the caller.
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
+ * @param {IracingToolServices} services - Host-owned API access and continuation services.
+ * @param {ToolDefinition<T>} root2 - Tool metadata, validation contracts, and execution handler.
+ * @param {string} root2.name - MCP tool identifier advertised to clients.
+ * @param {string} root2.description - Human-readable explanation advertised with the tool.
+ * @param {z.ZodType<T, unknown, z.core.$ZodTypeInternals<T, unknown>>} root2.inputSchema - Runtime contract for incoming tool arguments.
+ * @param {z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>} root2.outputSchema - Runtime contract for structured tool results.
+ * @param {(input: T, access: IracingDataAccess, context: IracingToolContext) => Promise<ReturnType<typeof completeResult>>} root2.work - Handler executed with validated input and request-local API access.
  */
 export function registerTool<T>(
   server: IracingToolRegistry,
@@ -190,10 +203,25 @@ function invalidPayload(error: unknown): boolean {
 
 /** A tool's public contract and typed execution capability, independent of its host. */
 export interface ToolDefinition<T> {
+  /** MCP tool name advertised to clients. */
   name: string;
+
+  /** Human-readable explanation advertised alongside the tool. */
   description: string;
+
+  /** Validation contract applied to incoming tool arguments. */
   inputSchema: z.ZodType<T>;
+
+  /** Validation contract applied to structured tool results. */
   outputSchema: z.ZodType;
+
+  /**
+   * Runs the validated tool using request-local API access and cancellation.
+   * @param {T} input - Untrusted input to validate or project.
+   * @param {IracingDataAccess} access - Generated API configuration and continuation ownership for this request.
+   * @param {IracingToolContext} context - Request-local identity, cancellation, or diagnostic context.
+   * @returns {Promise<ReturnType<typeof completeResult>>} Successful text and structured-content projections within the response limit.
+   */
   work: (
     input: T,
     access: IracingDataAccess,

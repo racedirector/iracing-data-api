@@ -2,7 +2,15 @@ const DEFAULT_RETURNED_LINK_TIMEOUT_MS = 15_000;
 
 /** Injectable transport and timeout policy for returned Data API links. */
 export interface ReturnedDataApiLinkDependencies {
+  /**
+   * Performs the injected HTTP request with caller-supplied transport controls.
+   * @param {string} input - Absolute URL of the linked data requested by this fetch dependency.
+   * @param {RequestInit} init - Transport controls forwarded to the HTTP request.
+   * @returns {Promise<Response>} HTTP response returned by the injected transport.
+   */
   fetch(input: string, init: RequestInit): Promise<Response>;
+
+  /** Maximum duration of the linked-data HTTP request in milliseconds. */
   timeoutMs: number;
 }
 
@@ -37,6 +45,9 @@ function validateReturnedLink(link: string): void {
  *
  * The request intentionally sends no iRacing Authorization header. Failures expose only
  * fixed transport/status/JSON diagnostics and never include arbitrary response bodies.
+ * @param {string} link - Opaque HTTPS data URL returned by a typed Data API response.
+ * @param {ReturnedDataApiLinkDependencies} dependencies - Injected external capabilities used by the command scope.
+ * @returns {Promise<unknown>} Decoded JSON payload from the returned data URL.
  */
 export async function materializeReturnedDataApiLink(
   link: string,

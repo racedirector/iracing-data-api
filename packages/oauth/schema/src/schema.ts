@@ -3,12 +3,12 @@
  *
  * Request/response fields, literal values, headers and metadata here are public
  * schema acceptance, not a transcription of dependency-normalized runtime objects.
- * oauth4webapi validates and lowercases token_type; the authored client restores
+ * Oauth4webapi validates and lowercases token_type; the authored client restores
  * the public Bearer representation after processing rather than broadening this
  * wire schema. Refresh credentials are opaque strings, distinct from JWT convenience
  * validation. Inspect official evidence before changing a public protocol shape.
  *
- * scopes.ts owns collection/codec representation over the scope vocabulary here;
+ * Scopes.ts owns collection/codec representation over the scope vocabulary here;
  * applications choose their own least-privilege policy. The helper under packages/
  * helpers/oauth-schema-to-openapi owns endpoint/method/content-type mappings and
  * constructs OpenAPI from these shapes. Current main's OAuth runtime is authored,
@@ -19,7 +19,7 @@
 import { z } from "zod";
 
 /**
- * OAuth2 schema
+ * OAuth2 schema.
  */
 
 // Primitives
@@ -37,27 +37,33 @@ const CommaSeparatedSessionIdsSchema = z.codec(
   },
 );
 
+/** Validates the string client identifier issued during OAuth registration. */
 export const OAuthClientIdSchema = z.string().meta({
   description: "The client identifier issued during client registration.",
 });
 
+/** Validates the string secret issued to a confidential OAuth client. */
 export const OAuthClientSecretSchema = z.string().meta({
   description: "The client secret issued during registration.",
 });
 
+/** Accepts the iracing.auth authorization permission literal. */
 export const OAuthScopeAuthSchema = z.literal("iracing.auth").meta({
   description: "OAuth scope that grants authorization for iRacing services.",
 });
 
+/** Accepts the iracing.profile member-profile permission literal. */
 export const OAuthScopeProfileSchema = z.literal("iracing.profile").meta({
   description: "OAuth scope that grants access to the iRacing profile.",
 });
 
+/** Accepts the supported authorization and profile permission literals. */
 export const OAuthScopesSchema = z.union([
   OAuthScopeAuthSchema,
   OAuthScopeProfileSchema,
 ]);
 
+/** Accepts the raw whitespace-delimited scope string without applying the scope codec. */
 export const OAuthScopesStringSchema = z.string().meta({
   description:
     "One or more scopes to request, if any, separated by whitespace.",
@@ -65,7 +71,10 @@ export const OAuthScopesStringSchema = z.string().meta({
 
 // Headers
 
+/** HTTP header carrying the OAuth request-correlation identifier. */
 export const OAuthRequestIdHeaderKey = "x-request-id";
+
+/** Validates the string request-correlation header returned by the OAuth service. */
 export const OAuthRequestIdHeaderSchema = z.string().meta({
   title: "Request ID",
   description:
@@ -75,12 +84,14 @@ export const OAuthRequestIdHeaderSchema = z.string().meta({
   },
 });
 
+/** Validates the OAuth request-correlation response header. */
 export const OAuthHeadersSchema = z.object({
   [OAuthRequestIdHeaderKey]: OAuthRequestIdHeaderSchema,
 });
 
 // Requests and responses
 
+/** Validates the documented OAuth error response fields. */
 export const OAuthErrorResponseSchema = z.object({
   status: z.number(),
   status_reason: z.string(),
@@ -90,6 +101,7 @@ export const OAuthErrorResponseSchema = z.object({
   state: z.string().optional(),
 });
 
+/** Validates authorization-code request parameters including registration, scope, state, and PKCE. */
 export const OAuthAuthorizeParametersSchema = z.object({
   client_id: OAuthClientIdSchema,
   redirect_uri: z.url().meta({
@@ -122,6 +134,7 @@ export const OAuthAuthorizeParametersSchema = z.object({
   }),
 });
 
+/** Validates authorization callback state and exchange-code query parameters. */
 export const OAuthCallbackParametersSchema = z
   .object({
     state: z.string(),
@@ -132,6 +145,7 @@ export const OAuthCallbackParametersSchema = z
       "Parameters are added to the query string of the `redirect_uri`.",
   });
 
+/** Validates the authorization-code grant, redirect URI, and optional PKCE verifier. */
 export const OAuthTokenAuthorizationCodeGrantParametersSchema = z
   .object({
     grant_type: z.literal("authorization_code"),
@@ -152,6 +166,7 @@ export const OAuthTokenAuthorizationCodeGrantParametersSchema = z
     id: "authorizationCodeGrant",
   });
 
+/** Validates the refresh-token grant and client registration parameters. */
 export const OAuthTokenRefreshGrantParametersSchema = z
   .object({
     grant_type: z.literal("refresh_token"),
@@ -165,6 +180,7 @@ export const OAuthTokenRefreshGrantParametersSchema = z
     id: "refreshTokenGrant",
   });
 
+/** Validates the confidential password-limited grant and account credentials. */
 export const OAuthPasswordLimitedGrantParametersSchema = z
   .object({
     grant_type: z.literal("password_limited"),
@@ -183,6 +199,7 @@ export const OAuthPasswordLimitedGrantParametersSchema = z
     id: "passwordLimitedGrant",
   });
 
+/** Selects the supported token-request contract by grant_type. */
 export const OAuthTokenParametersSchema = z
   .discriminatedUnion("grant_type", [
     OAuthTokenAuthorizationCodeGrantParametersSchema,
@@ -193,6 +210,7 @@ export const OAuthTokenParametersSchema = z
     id: "tokenGrantParameters",
   });
 
+/** Validates the token endpoint response without interpreting access-token claims. */
 export const OAuthTokenResponseSchema = z
   .object({
     access_token: z.string().meta({
@@ -218,6 +236,7 @@ export const OAuthTokenResponseSchema = z
     id: "tokenGrantResponse",
   });
 
+/** Algorithm names accepted by the shared wire schema; runtime verification applies a narrower policy. */
 export const OAuthJWTAccessTokenAlgorithmValues = [
   "HS256",
   "HS384",
@@ -235,6 +254,7 @@ export const OAuthJWTAccessTokenAlgorithmValues = [
   "EdDSA",
 ] as const;
 
+/** Trims and validates the JWT algorithm name without selecting the runtime verification policy. */
 export const OAuthJWTAccessTokenAlgorithmSchema = z
   .string()
   .trim()
@@ -246,6 +266,7 @@ export const OAuthJWTAccessTokenAlgorithmSchema = z
       "The signed JWT algorithm used by the iRacing access token header. `none` is explicitly disallowed.",
   });
 
+/** Validates decoded JWT header fields before runtime cryptographic policy is applied. */
 export const OAuthJWTAccessTokenHeaderSchema = z
   .object({
     kid: z.string().min(1).meta({
@@ -279,6 +300,7 @@ export const OAuthJWTAccessTokenHeaderSchema = z
       "The decoded JWS header for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
   });
 
+/** Validates decoded access-token claims without verifying the token signature. */
 export const OAuthJWTAccessTokenPayloadSchema = z
   .object({
     session_id: z.uuid().meta({
@@ -335,6 +357,7 @@ export const OAuthJWTAccessTokenPayloadSchema = z
       "The decoded payload for an iRacing access token. See: https://oauth.iracing.com/oauth2/book/access_token.html",
   });
 
+/** Validates the decoded JWT header and payload as one structural contract. */
 export const OAuthJWTAccessTokenSchema = z
   .object({
     header: OAuthJWTAccessTokenHeaderSchema,
@@ -347,6 +370,7 @@ export const OAuthJWTAccessTokenSchema = z
       "The decoded and parsed JWT access token structure for iRacing.",
   });
 
+/** Validates session metadata while retaining the opaque upstream session identifier. */
 export const OAuthSessionSchema = z.object({
   session_id: z.string().meta({
     description:
@@ -388,19 +412,23 @@ export const OAuthSessionSchema = z.object({
   last_user_agent_browser: z.string().nullable(),
 });
 
+/** Validates the session-list response wrapper. */
 export const OAuthSessionsSchema = z.object({
   sessions: z.array(OAuthSessionSchema),
 });
 
+/** Validates the authenticated member display name and customer identifier. */
 export const OAuthProfileResponseSchema = z.object({
   iracing_name: z.string(),
   iracing_cust_id: z.number(),
 });
 
+/** Validates the optional browser-forgetting flag for current-session revocation. */
 export const OAuthRevokeCurrentSessionInputSchema = z.object({
   forget_browser: z.boolean().optional(),
 });
 
+/** Validates the serialized session selection for revocation. */
 export const OAuthRevokeSessionsInputSchema = z.object({
   session_ids: CommaSeparatedSessionIdsSchema,
 });
@@ -446,164 +474,311 @@ export type OAuthRevokeSessionsParameters = z.infer<
 >;
 
 // Historical exports stay in their original module for import compatibility.
-/** @deprecated Use OAuthClientIdSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthClientIdSchema instead.
+ */
 export const IRacingOAuthClientIdSchema = OAuthClientIdSchema;
 
-/** @deprecated Use OAuthClientSecretSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthClientSecretSchema instead.
+ */
 export const IRacingOAuthClientSecretSchema = OAuthClientSecretSchema;
 
-/** @deprecated Use OAuthScopeAuthSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthScopeAuthSchema instead.
+ */
 export const IRacingOAuthScopeAuthSchema = OAuthScopeAuthSchema;
 
-/** @deprecated Use OAuthScopeProfileSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthScopeProfileSchema instead.
+ */
 export const IRacingOAuthScopeProfileSchema = OAuthScopeProfileSchema;
 
-/** @deprecated Use OAuthScopesSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthScopesSchema instead.
+ */
 export const IRacingOAuthScopesSchema = OAuthScopesSchema;
 
-/** @deprecated Use OAuthScopesStringSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthScopesStringSchema instead.
+ */
 export const IRacingOAuthScopesStringSchema = OAuthScopesStringSchema;
 
-/** @deprecated Use OAuthRequestIdHeaderKey instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthRequestIdHeaderKey instead.
+ */
 export const IRacingOAuthRequestIdHeaderKey = OAuthRequestIdHeaderKey;
 
-/** @deprecated Use OAuthRequestIdHeaderSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthRequestIdHeaderSchema instead.
+ */
 export const IRacingOAuthRequestIdHeaderSchema = OAuthRequestIdHeaderSchema;
 
-/** @deprecated Use OAuthHeadersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthHeadersSchema instead.
+ */
 export const IRacingOAuthHeadersSchema = OAuthHeadersSchema;
 
-/** @deprecated Use OAuthErrorResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthErrorResponseSchema instead.
+ */
 export const IRacingOAuthErrorResponseSchema = OAuthErrorResponseSchema;
 
-/** @deprecated Use OAuthAuthorizeParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthAuthorizeParametersSchema instead.
+ */
 export const IRacingOAuthAuthorizeParametersSchema =
   OAuthAuthorizeParametersSchema;
 
-/** @deprecated Use OAuthCallbackParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthCallbackParametersSchema instead.
+ */
 export const IRacingOAuthCllbackParametersSchema =
   OAuthCallbackParametersSchema;
 
-/** @deprecated Use OAuthTokenAuthorizationCodeGrantParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthTokenAuthorizationCodeGrantParametersSchema instead.
+ */
 export const IRacingOAuthTokenAuthorizationCodeGrantParametersSchema =
   OAuthTokenAuthorizationCodeGrantParametersSchema;
 
-/** @deprecated Use OAuthTokenRefreshGrantParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthTokenRefreshGrantParametersSchema instead.
+ */
 export const IRacingOAuthTokenRefreshGrantParametersSchema =
   OAuthTokenRefreshGrantParametersSchema;
 
-/** @deprecated Use OAuthPasswordLimitedGrantParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthPasswordLimitedGrantParametersSchema instead.
+ */
 export const IRacingOAuthPasswordLimitedGrantParametersSchema =
   OAuthPasswordLimitedGrantParametersSchema;
 
-/** @deprecated Use OAuthTokenParametersSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthTokenParametersSchema instead.
+ */
 export const IRacingOAuthTokenParametersSchema = OAuthTokenParametersSchema;
 
-/** @deprecated Use OAuthTokenResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthTokenResponseSchema instead.
+ */
 export const IRacingOAuthTokenResponseSchema = OAuthTokenResponseSchema;
 
-/** @deprecated Use OAuthJWTAccessTokenAlgorithmValues instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthJWTAccessTokenAlgorithmValues instead.
+ */
 export const IRacingOAuthJWTAccessTokenAlgorithmValues =
   OAuthJWTAccessTokenAlgorithmValues;
 
-/** @deprecated Use OAuthJWTAccessTokenAlgorithmSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthJWTAccessTokenAlgorithmSchema instead.
+ */
 export const IRacingOAuthJWTAccessTokenAlgorithmSchema =
   OAuthJWTAccessTokenAlgorithmSchema;
 
-/** @deprecated Use OAuthJWTAccessTokenHeaderSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthJWTAccessTokenHeaderSchema instead.
+ */
 export const IRacingOAuthJWTAccessTokenHeaderSchema =
   OAuthJWTAccessTokenHeaderSchema;
 
-/** @deprecated Use OAuthJWTAccessTokenPayloadSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthJWTAccessTokenPayloadSchema instead.
+ */
 export const IRacingOAuthJWTAccessTokenPayloadSchema =
   OAuthJWTAccessTokenPayloadSchema;
 
-/** @deprecated Use OAuthJWTAccessTokenSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthJWTAccessTokenSchema instead.
+ */
 export const IRacingOAuthJWTAccessTokenSchema = OAuthJWTAccessTokenSchema;
 
-/** @deprecated Use OAuthSessionSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthSessionSchema instead.
+ */
 export const IRacingOAuthSessionSchema = OAuthSessionSchema;
 
-/** @deprecated Use OAuthSessionsSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthSessionsSchema instead.
+ */
 export const IRacingOAuthSessionsSchema = OAuthSessionsSchema;
 
-/** @deprecated Use OAuthProfileResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthProfileResponseSchema instead.
+ */
 export const IRacingOAuthProfileResponseSchema = OAuthProfileResponseSchema;
 
-/** @deprecated Use OAuthRevokeCurrentSessionInputSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthRevokeCurrentSessionInputSchema instead.
+ */
 export const IRacingOAuthRevokeCurrentSessionInputSchema =
   OAuthRevokeCurrentSessionInputSchema;
 
-/** @deprecated Use OAuthRevokeSessionsInputSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use OAuthRevokeSessionsInputSchema instead.
+ */
 export const IRacingOAuthRevokeSessionsInputSchema =
   OAuthRevokeSessionsInputSchema;
 
-/** @deprecated Use OAuthClientId instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthClientId instead.
+ */
 export type IRacingOAuthClientId = OAuthClientId;
 
-/** @deprecated Use OAuthClientSecret instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthClientSecret instead.
+ */
 export type IRacingOAuthClientSecret = OAuthClientSecret;
 
-/** @deprecated Use OAuthScopeAuth instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthScopeAuth instead.
+ */
 export type IRacingOAuthScopeAuth = OAuthScopeAuth;
 
-/** @deprecated Use OAuthScopeProfile instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthScopeProfile instead.
+ */
 export type IRacingOAuthScopeProfile = OAuthScopeProfile;
 
-/** @deprecated Use OAuthScopes instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthScopes instead.
+ */
 export type IRacingOAuthScopes = OAuthScopes;
 
-/** @deprecated Use OAuthScopesString instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthScopesString instead.
+ */
 export type IRacingOAuthScopesString = OAuthScopesString;
 
-/** @deprecated Use OAuthRequestIdHeader instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthRequestIdHeader instead.
+ */
 export type IRacingOAuthRequestIdHeader = OAuthRequestIdHeader;
 
-/** @deprecated Use OAuthHeaders instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthHeaders instead.
+ */
 export type IRacingOAuthHeaders = OAuthHeaders;
 
-/** @deprecated Use OAuthAuthorizeParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthAuthorizeParameters instead.
+ */
 export type IRacingOAuthAuthorizeParameters = OAuthAuthorizeParameters;
 
-/** @deprecated Use OAuthTokenAuthorizationCodeGrantParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthTokenAuthorizationCodeGrantParameters instead.
+ */
 export type IRacingOAuthTokenAuthorizationCodeGrantParameters =
   OAuthTokenAuthorizationCodeGrantParameters;
 
-/** @deprecated Use OAuthTokenRefreshGrantParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthTokenRefreshGrantParameters instead.
+ */
 export type IRacingOAuthTokenRefreshGrantParameters =
   OAuthTokenRefreshGrantParameters;
 
-/** @deprecated Use OAuthTokenParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthTokenParameters instead.
+ */
 export type IRacingOAuthTokenParameters = OAuthTokenParameters;
 
-/** @deprecated Use OAuthTokenResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthTokenResponse instead.
+ */
 export type IRacingOAuthTokenResponse = OAuthTokenResponse;
 
-/** @deprecated Use OAuthJWTAccessTokenAlgorithm instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthJWTAccessTokenAlgorithm instead.
+ */
 export type IRacingOAuthJWTAccessTokenAlgorithm = OAuthJWTAccessTokenAlgorithm;
 
-/** @deprecated Use OAuthJWTAccessTokenHeader instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthJWTAccessTokenHeader instead.
+ */
 export type IRacingOAuthJWTAccessTokenHeader = OAuthJWTAccessTokenHeader;
 
-/** @deprecated Use OAuthJWTAccessTokenPayload instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthJWTAccessTokenPayload instead.
+ */
 export type IRacingOAuthJWTAccessTokenPayload = OAuthJWTAccessTokenPayload;
 
-/** @deprecated Use OAuthJWTAccessToken instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthJWTAccessToken instead.
+ */
 export type IRacingOAuthJWTAccessToken = OAuthJWTAccessToken;
 
-/** @deprecated Use OAuthSession instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthSession instead.
+ */
 export type IRacingOAuthSession = OAuthSession;
 
-/** @deprecated Use OAuthSessions instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthSessions instead.
+ */
 export type IRacingOAuthSessions = OAuthSessions;
 
-/** @deprecated Use OAuthProfileResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthProfileResponse instead.
+ */
 export type IRacingOAuthProfileResponse = OAuthProfileResponse;
 
-/** @deprecated Use OAuthRevokeCurrentSessionParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthRevokeCurrentSessionParameters instead.
+ */
 export type IRacingOAuthRevokeCurrentSessionParameters =
   OAuthRevokeCurrentSessionParameters;
 
-/** @deprecated Use OAuthRevokeSessionsParameters instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use OAuthRevokeSessionsParameters instead.
+ */
 export type IRacingOAuthRevokeSessionsParameters =
   OAuthRevokeSessionsParameters;

@@ -19,10 +19,19 @@ import type { Diagnostics } from "../../../diagnostics.js";
  * are intentionally outside this boundary.
  */
 export interface LoginEnvironment {
+  /** OAuth client identifier supplied by the environment. */
   IRACING_AUTH_CLIENT?: string;
+
+  /** Optional OAuth client secret supplied by the environment. */
   IRACING_AUTH_SECRET?: string;
+
+  /** Registered loopback redirect URL supplied by the environment. */
   IRACING_AUTH_REDIRECT_URI?: string;
+
+  /** Account username for password-limited authentication. */
   IRACING_AUTH_USERNAME?: string;
+
+  /** Account password for password-limited authentication. */
   IRACING_AUTH_PASSWORD?: string;
 }
 
@@ -42,9 +51,20 @@ type PasswordLimitedAuthenticationOptions = PasswordLimitedCredentials & {
  * invocation scope.
  */
 export interface LoginScopeDependencies {
+  /** Injected loopback browser authorization implementation. */
   authenticate: typeof authenticateWithBrowser;
+
+  /** Injected credential-document writer. */
   writeOutput: typeof writeTokenOutput;
+
+  /** OAuth registration and account inputs read from the process environment. */
   environment: LoginEnvironment;
+
+  /**
+   * Optional implementation of the password-limited grant.
+   * @param {PasswordLimitedAuthenticationOptions} options - Configuration and injected capabilities for this operation.
+   * @returns {Promise<OAuthTokenResponse>} OAuth credentials obtained by the password-limited grant.
+   */
   authenticatePasswordLimited?: (
     options: PasswordLimitedAuthenticationOptions,
   ) => Promise<OAuthTokenResponse>;
@@ -89,6 +109,9 @@ async function authenticateWithPasswordLimited(
  * default destination before authentication. Authentication and file writes
  * are deferred to the returned capabilities. Browser authentication and writer
  * errors propagate; password-limited grant failures become a fixed error message.
+ * @param {Diagnostics} diagnostics - Secret-safe sink for command progress and failure messages.
+ * @param {LoginScopeDependencies} dependencies - Injected external capabilities used by the command scope.
+ * @returns {CreateLoginCommandScope} Factory that resolves an isolated dependency scope per invocation.
  */
 export function createLoginCommandScopeFactory(
   diagnostics: Diagnostics,

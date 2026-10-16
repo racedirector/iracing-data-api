@@ -17,6 +17,7 @@
 import { z } from "zod";
 import { BooleanParameterSchema } from "./primitives";
 
+/** Validates the Data API error message and optional explanatory fields. */
 export const ErrorResponseSchema = z
   .object({
     error: z.string(),
@@ -27,6 +28,7 @@ export const ErrorResponseSchema = z
     id: "errorResponse",
   });
 
+/** Validates the cached-data URL and expiry returned by modeled Data API endpoints. */
 export const APIResponseSchema = z
   .object({
     link: z.url().meta({ description: "A link to the cached data" }),
@@ -38,10 +40,12 @@ export const APIResponseSchema = z
   });
 
 // The official constants docs establish an array of objects, but not their fields.
+/** Validates constant rows without inventing contracts for their dynamic fields. */
 export const ConstantsResponseSchema = z
   .array(z.record(z.string(), z.unknown()))
   .meta({ id: "iracingConstantsResponse" });
 
+/** Validates series-search success, chunk metadata, and echoed search parameters. */
 export const ResultsSearchSeriesResponseSchema = z
   .object({
     type: z.literal("search_series_results"),
@@ -62,6 +66,7 @@ export const ResultsSearchSeriesResponseSchema = z
     id: "resultsSearchSeriesResponse",
   });
 
+/** Validates a documented method parameter and its optional note and required flag. */
 export const ServiceMethodParametersDocsResponseSchema = z
   .object({
     type: z.string(),
@@ -73,6 +78,7 @@ export const ServiceMethodParametersDocsResponseSchema = z
     id: "iracingServiceMethodParametersDocs",
   });
 
+/** Validates a documented endpoint link, optional parameter map, and string or array notes. */
 export const ServiceMethodDocsResponseSchema = z
   .object({
     link: z.url(),
@@ -90,6 +96,7 @@ export const ServiceMethodDocsResponseSchema = z
     id: "iracingServiceMethodDocs",
   });
 
+/** Validates the method-name index for one documented Data API service. */
 export const ServiceDocsResponseSchema = z
   .record(z.string(), ServiceMethodDocsResponseSchema)
   .meta({
@@ -98,6 +105,7 @@ export const ServiceDocsResponseSchema = z
     id: "iracingServiceDocs",
   });
 
+/** Validates the service-name index for the Data API documentation tree. */
 export const ServicesDocsResponseSchema = z
   .record(z.string(), ServiceDocsResponseSchema)
   .meta({
@@ -106,7 +114,7 @@ export const ServicesDocsResponseSchema = z
   });
 
 /**
- * Types
+ * Types.
  */
 
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
@@ -126,41 +134,77 @@ export type ServiceDocsResponse = z.infer<typeof ServiceDocsResponseSchema>;
 export type ServicesDocsResponse = z.infer<typeof ServicesDocsResponseSchema>;
 
 // Historical exports stay in their original module for import compatibility.
-/** @deprecated Use ErrorResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ErrorResponseSchema instead.
+ */
 export const IRacingErrorResponseSchema = ErrorResponseSchema;
 
-/** @deprecated Use APIResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use APIResponseSchema instead.
+ */
 export const IRacingAPIResponseSchema = APIResponseSchema;
 
-/** @deprecated Use ServiceMethodParametersDocsResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ServiceMethodParametersDocsResponseSchema instead.
+ */
 export const IRacingServiceMethodParametersDocsResponseSchema =
   ServiceMethodParametersDocsResponseSchema;
 
-/** @deprecated Use ServiceMethodDocsResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ServiceMethodDocsResponseSchema instead.
+ */
 export const IRacingServiceMethodDocsResponseSchema =
   ServiceMethodDocsResponseSchema;
 
-/** @deprecated Use ServiceDocsResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ServiceDocsResponseSchema instead.
+ */
 export const IRacingServiceDocsResponseSchema = ServiceDocsResponseSchema;
 
-/** @deprecated Use ServicesDocsResponseSchema instead. */
+/**
+ * Retains the historical import name with the same runtime value and identity.
+ * @deprecated Use ServicesDocsResponseSchema instead.
+ */
 export const IRacingServicesDocsResponseSchema = ServicesDocsResponseSchema;
 
-/** @deprecated Use ErrorResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ErrorResponse instead.
+ */
 export type IRacingErrorResponse = ErrorResponse;
 
-/** @deprecated Use APIResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use APIResponse instead.
+ */
 export type IRacingAPIResponse = APIResponse;
 
-/** @deprecated Use ServiceMethodParametersDocsResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ServiceMethodParametersDocsResponse instead.
+ */
 export type IRacingServiceMethodParametersDocsResponse =
   ServiceMethodParametersDocsResponse;
 
-/** @deprecated Use ServiceMethodDocsResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ServiceMethodDocsResponse instead.
+ */
 export type IRacingServiceMethodDocsResponse = ServiceMethodDocsResponse;
 
-/** @deprecated Use ServiceDocsResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ServiceDocsResponse instead.
+ */
 export type IRacingServiceDocsResponse = ServiceDocsResponse;
 
-/** @deprecated Use ServicesDocsResponse instead. */
+/**
+ * Retains the historical type name with identical assignability to the canonical contract.
+ * @deprecated Use ServicesDocsResponse instead.
+ */
 export type IRacingServicesDocsResponse = ServicesDocsResponse;
