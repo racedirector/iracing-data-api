@@ -1,75 +1,39 @@
-/**
- * Commander-facing docs command adapter.
- *
- * This file owns only command parsing/orchestration and the implementation body.
- * Scope construction is intentionally supplied from the docs module entry point so
- * consumers never need to know how the command's invocation scope is composed.
- */
+/** Commander adapter: validate output, resolve credentials, and execute docs. */
 import { Command } from "@commander-js/extra-typings";
-import type { CredentialOptions } from "../../credentials.js";
+import {
+  resolveAccessToken,
+  type CredentialOptions,
+} from "../../credentials.js";
+import {
+  resolveTokenFormat,
+  type TokenOutputOptions,
+} from "../../token-output.js";
+import { executeDocs } from "./execute.js";
 import type { Diagnostics } from "../../diagnostics.js";
-import type { TokenOutputOptions } from "../../token-output.js";
-import type { IracingServiceMethodDocs } from "@iracing-data/api-client-fetch";
 
-/**
- * Nested service-to-method documentation projection returned by the maintained Data API
- * documentation owner.
- */
-export type DataApiDocumentation = Record<
-  string,
-  Record<string, IracingServiceMethodDocs>
->;
-
-/** Command options that combine credential resolution with the shared document-output policy. */
+/** Existing credential and document-output options. */
 export type DocsOptions = TokenOutputOptions & CredentialOptions;
 
 /**
- * Per-invocation boundary for retrieving documentation, writing output, and reporting
- * diagnostics.
+ * Register without I/O; dependencies run only when the action is invoked.
+ * @param {object} root0 - Direct command dependencies.
+ * @param {Diagnostics} root0.diagnostics - Secret-safe progress sink.
+ * @param {typeof resolveAccessToken} root0.resolveAccessToken - Invocation token resolver.
+ * @param {Function} root0.execute - Direct documentation executor.
+ * @returns {Command} Configured docs command.
  */
-export interface DocsCommandScope {
-  /** Retrieves the typed Data API documentation tree. */
-  docs: {
-    get(): Promise<DataApiDocumentation>;
-  };
-
-  /** Writes the command result to the configured destination. */
-  output: {
-    write(document: DataApiDocumentation): Promise<void>;
-  };
-
-  /** Secret-safe diagnostic sink for command progress and failures. */
+export function createDocsCommand({
+  diagnostics,
+  resolveAccessToken: resolveToken = resolveAccessToken,
+  execute = executeDocs,
+}: {
   diagnostics: Diagnostics;
-}
-
-/**
- * Factory contract for creating an isolated documentation-command scope from normalized
- * options.
- * @param {DocsOptions} options - Configuration and injected capabilities for this operation.
- * @returns {Promise<DocsCommandScope>} Resolved capabilities for one command invocation.
- */
-export type CreateDocsCommandScope = (
-  options: DocsOptions,
-) => Promise<DocsCommandScope>;
-
-/**
- * Application-registration dependencies for the docs command; service access remains inside
- * the invocation scope.
- */
-export interface DocsCommandDependencies {
-  /** Resolves dependencies once for each command invocation. */
-  createScope: CreateDocsCommandScope;
-}
-
-/**
- * Build the docs command, resolving a fresh scope when its async action runs.
- * The action fetches documentation once and writes it through that scope;
- * scope creation, retrieval, and output failures reject `parseAsync()`.
- * @param {DocsCommandDependencies} root0 - Command composition inputs and dependency overrides.
- * @param {CreateDocsCommandScope} root0.createScope - Factory resolving dependencies once per command invocation.
- * @returns {Command} Configured CLI command ready for registration.
- */
-export function createDocsCommand({ createScope }: DocsCommandDependencies) {
+  resolveAccessToken?: typeof resolveAccessToken;
+  execute?: (
+    options: DocsOptions,
+    context: { accessToken: string; diagnostics: Diagnostics },
+  ) => Promise<void>;
+}) {
   return new Command("docs")
     .description("Fetch the complete authenticated Data API documentation once")
     .option(
@@ -83,11 +47,9 @@ export function createDocsCommand({ createScope }: DocsCommandDependencies) {
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
     .action(async (options) => {
-      const { docs, output, diagnostics } = await createScope(options);
+      resolveTokenFormat(options.output, options.format);
+      const accessToken = await resolveToken(options);
 
-      const document = await docs.get();
-
-      await output.write(document);
-      diagnostics.info("Data API documentation fetched.");
+      await execute(options, { accessToken, diagnostics });
     });
 }
