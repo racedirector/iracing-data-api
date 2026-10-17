@@ -105,10 +105,18 @@ export interface BrowserLoginOptions {
 }
 
 /**
- * Runs one loopback browser authorization attempt, accepts at most one callback, and always
- * releases the listener and signal handlers.
- * @param {BrowserLoginOptions} options - Configuration and injected capabilities for this operation.
+ * Opens browser authorization through oauth-callback, then exchanges the callback for tokens.
+ * With the default OAuth client, stores the session in memory under the CLI session key
+ * without fetching a profile or writing credentials to disk.
+ *
+ * The prebuilt authorization URL requires a fixed-port HTTP loopback redirect URI;
+ * oauth-callback rejects port 0, including the default URI used when none is supplied.
+ * The callback timeout excludes token exchange. No process-signal handlers are installed.
+ * @param {BrowserLoginOptions} options - OAuth registration and optional client factory. Scopes default to auth and profile; timeoutSeconds must convert to an integer from 1 through 2147483647 milliseconds.
  * @returns {Promise<OAuthTokenResponse>} OAuth credentials obtained from the completed browser callback.
+ * @throws {TypeError} If oauth-callback rejects the authorization URL or redirect URI.
+ * @throws {RangeError} If the converted callback timeout is outside the supported integer range.
+ * @throws {Error} Propagates client construction, authorization, listener, browser launch, callback timeout, and token exchange or validation failures unchanged.
  */
 export async function authenticateWithBrowser(
   options: BrowserLoginOptions,
