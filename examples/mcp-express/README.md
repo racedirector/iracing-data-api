@@ -42,6 +42,13 @@ Services preserve diagnostic causes; this MCP boundary controls disclosure.
 SDK input/protocol validation remains SDK-owned. The unregistered `find_drivers`
 skeleton is not yet migrated.
 
+`get_my_driver` delegates identity lookup to `src/iracing/member.ts`, which describes
+the member endpoint for the core `src/iracing/request.ts` pipeline. The pipeline
+validates cached and downloaded values and caches the projected identity using the
+linked response's expiration. Server composition binds request-local authentication
+to configuration resolution; the tool handles only lookup and result presentation.
+The existing `get_my_driver:v1` cache key and caller-supplied cache scope are preserved.
+
 Run `pnpm build` before `pnpm start`, `pnpm start:stdio`, or `pnpm start:http`.
 Run `pnpm typecheck` to check types without bundling the source.
 The build checks types with TypeScript, then bundles the local source into
@@ -57,8 +64,8 @@ supplies `fetch` and `Date.now`. After fetching an API
 link envelope, call `links.materialize({ response, schema, signal })` to fetch and
 validate its JSON payload. It uses the API package's envelope schema and returns
 the parsed payload directly. Link requests carry no API bearer token; expired
-links, HTTP failures, and invalid payloads throw. `src/mcp/tools/get-my-driver.ts` shows its use
-with the existing driver output schema.
+links, HTTP failures, and invalid payloads throw. `src/mcp/index.ts` composes the
+linked-response materializer with the member and core request resolvers.
 
 `src/credentials` provides `FileSessionStore`, an OAuth `SessionStore` for the CLI's
 bare JSON token document. Pass the credential file path and, optionally, a session
