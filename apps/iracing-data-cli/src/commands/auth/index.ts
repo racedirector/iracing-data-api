@@ -14,9 +14,7 @@ interface CreateAuthCommandOptions {
  * @returns {Command} Configured CLI command ready for registration.
  */
 export function createAuthCommand({ diagnostics }: CreateAuthCommandOptions) {
-  const auth = new Command("auth").description("Authentication commands");
-
-  auth.addCommand(createLoginCommand({ diagnostics }));
-
-  return auth;
+  return new Command("auth")
+    .description("Authentication commands")
+    .addCommand(createLoginCommand({ diagnostics }));
 }
