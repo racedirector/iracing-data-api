@@ -29,13 +29,6 @@
       "owner": "examples"
     },
     {
-      "path": "examples/oauth-password-limited",
-      "name": "iracing-password-limited-oauth",
-      "ecosystem": "npm",
-      "kind": "example",
-      "owner": "examples"
-    },
-    {
       "path": ".",
       "name": "iracing-data-api",
       "ecosystem": "npm",
