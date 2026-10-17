@@ -143,11 +143,12 @@ export class OAuthClient {
 
   /**
    * Generates an Authorization URL for kicking off the OAuth flow.
+   * @param {string} [state] - Fresh, unpredictable state supplied by a callback listener; generated when omitted.
    * @returns {Promise<{ url: URL; verifier: string; state: string; }>} The URL, verifier, and state parameter.
    *
    * @throws {Error} If the client is not configured with a redirect URI.
    */
-  async authorize() {
+  async authorize(state = oauth.generateRandomState()) {
     if (!this.clientMetadata.redirectUri) {
       throw ClientMetadataError.missingRedirectUri();
     }
@@ -155,8 +156,6 @@ export class OAuthClient {
     const verifier = oauth.generateRandomCodeVerifier();
 
     const challenge = await oauth.calculatePKCECodeChallenge(verifier);
-
-    const state = oauth.generateRandomState();
 
     await this.stateStore.set(state, {
       verifier,

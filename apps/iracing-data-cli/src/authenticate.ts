@@ -22,7 +22,8 @@ import {
   type OAuthScopeList,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
-import { getAuthCode } from "oauth-callback";
+import { getAuthCode, type AuthorizationUrlBuilder } from "oauth-callback";
+import { openUrlInBrowser } from "./browser.js";
 
 const CALLBACK_HOST = "127.0.0.1";
 
@@ -45,9 +46,10 @@ export const DEFAULT_SCOPES = [
 export interface OAuthClientLike {
   /**
    * Creates an authorization request and retains its state and PKCE verifier.
+   * @param {string} [state] - Fresh state supplied by the callback listener, or generated when omitted.
    * @returns {Promise<{ url: URL }>} Authorization URL with retained state and PKCE context.
    */
-  authorize(): Promise<{ url: URL }>;
+  authorize(state?: string): Promise<{ url: URL }>;
 
   /**
    * Exchanges the callback code and stores the resulting OAuth session.
@@ -97,6 +99,13 @@ export interface BrowserLoginOptions {
   timeoutSeconds: number;
 
   /**
+   * Opens the authorization URL; failures fall back to manual login on stderr.
+   * @param {URL} url - Authorization URL to open.
+   * @returns {unknown} Completion of the browser handoff.
+   */
+  launch?: (url: URL) => unknown;
+
+  /**
    * Constructs the OAuth lifecycle owner for the selected registration.
    * @param {OAuthClientConfig} config - Validated registration, transport, or verification settings.
    * @returns {OAuthClientLike} OAuth lifecycle owner configured for the selected registration.
@@ -121,36 +130,60 @@ export interface BrowserLoginOptions {
 export async function authenticateWithBrowser(
   options: BrowserLoginOptions,
 ): Promise<OAuthTokenResponse> {
-  const oauthClientConfig = {
-    clientId: options.clientId,
-    clientSecret: options.clientSecret,
-    redirectUri: options.redirectUri ?? DEFAULT_REDIRECT_URI,
-    scopes: [...(options.scopes ?? DEFAULT_SCOPES)],
-  };
-
-  const client =
-    options.clientFactory?.(oauthClientConfig) ??
-    new OAuthClient({
-      clientMetadata: oauthClientConfig,
-      stateStore: new InMemoryStore<string, InternalState>(),
-      sessionStore: new InMemoryStore<string, OAuthTokenResponse>(),
-    });
-
-  const { url } = await client.authorize();
-
   const controller = new AbortController();
 
-  // wire SIGINT/SIGTERM if you still want that CLI policy
+  const cancel = () => {
+    controller.abort(new Error("Authentication cancelled."));
+  };
 
-  const { params } = await getAuthCode(url, {
-    redirectUri: options.redirectUri,
-    timeout: options.timeoutSeconds * 1000,
-    signal: controller.signal,
+  process.once("SIGINT", cancel);
+  process.once("SIGTERM", cancel);
 
-    // launch: createLauncher(options),
-    // successHtml: SUCCESS_HTML,
-    // errorHtml: ERROR_HTML,
-  });
+  try {
+    let client!: OAuthClientLike;
 
-  return client.callback(params, SESSION_ID);
+    const authorize = async (redirectUri: string, state?: string) => {
+      const config = {
+        clientId: options.clientId,
+        clientSecret: options.clientSecret,
+        redirectUri,
+        scopes: [...(options.scopes ?? DEFAULT_SCOPES)],
+      };
+
+      client =
+        options.clientFactory?.(config) ??
+        new OAuthClient({
+          clientMetadata: config,
+          stateStore: new InMemoryStore<string, InternalState>(),
+          sessionStore: new InMemoryStore<string, OAuthTokenResponse>(),
+        });
+
+      return (await client.authorize(state)).url;
+    };
+
+    const builder: AuthorizationUrlBuilder = ({ redirectUri, state }) =>
+      authorize(redirectUri, state);
+
+    const authorization = options.redirectUri
+      ? await authorize(options.redirectUri)
+      : builder;
+
+    const { params } = await getAuthCode(authorization, {
+      redirectUri: options.redirectUri ?? DEFAULT_REDIRECT_URI,
+      timeout: options.timeoutSeconds * 1000,
+      signal: controller.signal,
+      async launch(url) {
+        try {
+          await (options.launch ?? openUrlInBrowser)(url);
+        } catch {
+          process.stderr.write(`Open this URL to log in: ${url.href}\n`);
+        }
+      },
+    });
+
+    return await client.callback(params, SESSION_ID);
+  } finally {
+    process.removeListener("SIGINT", cancel);
+    process.removeListener("SIGTERM", cancel);
+  }
 }
