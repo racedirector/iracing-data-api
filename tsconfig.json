@@ -14,12 +14,6 @@
       "path": "./examples/oauth-example"
     },
     {
-      "path": "./examples/oauth-example-cli"
-    },
-    {
-      "path": "./examples/oauth-password-limited"
-    },
-    {
       "path": "./packages/api/client/axios"
     },
     {

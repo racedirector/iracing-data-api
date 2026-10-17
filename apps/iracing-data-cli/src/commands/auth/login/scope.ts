@@ -123,6 +123,16 @@ export function createLoginCommandScopeFactory(
     );
 }
 
+/**
+ * Selects and validates the credential destination and returns deferred authentication
+ * and write capabilities. Explicit output takes precedence over credentials; otherwise
+ * auth-only scopes select the MCP credential file and other scopes select the CLI file.
+ * @param {LoginInvocation} invocation - Normalized login options and destination preferences.
+ * @param {Diagnostics} diagnostics - Diagnostic sink exposed by the returned scope.
+ * @param {LoginScopeDependencies} dependencies - Authentication, output, and environment capabilities.
+ * @returns {Awaited<ReturnType<CreateLoginCommandScope>>} Login capabilities without authenticating or writing credentials yet.
+ * @throws {Error} If the format is unsupported or explicit YAML targets a default credential destination.
+ */
 function createLoginScope(
   invocation: LoginInvocation,
   diagnostics: Diagnostics,
@@ -150,8 +160,8 @@ function createLoginScope(
     authentication: {
       /**
        * Return the selected method's OAuth token without writing a credential file.
-       * Browser login uses the invocation's callback timeout in seconds and may open
-       * a browser. Its failures propagate; browser-opening failure allows manual login.
+       * Browser login forwards the callback timeout in seconds and delegates browser
+       * launch to the authentication dependency. Its failures propagate unchanged.
        *
        * Password-limited login requires nonempty client ID, client secret, username,
        * and password from the scoped environment. Trim the username but preserve the
@@ -160,7 +170,7 @@ function createLoginScope(
        * Error that omits the original cause. Browser options do not apply to this method.
        */
       async authenticate() {
-        return authenticateInvocation(invocation, diagnostics, dependencies);
+        return authenticateInvocation(invocation, dependencies);
       },
     },
     credentials: {
@@ -182,9 +192,18 @@ function createLoginScope(
   };
 }
 
+/**
+ * Runs the selected grant using the scoped environment without writing a credential file.
+ * Browser authentication failures propagate unchanged. Password-limited login trims
+ * the username, preserves the password, and replaces grant failures with a fixed error
+ * that omits the original cause.
+ * @param {LoginInvocation} invocation - Selected method, scopes, browser launch preference, and callback timeout in seconds.
+ * @param {LoginScopeDependencies} dependencies - Authentication implementations and environment inputs.
+ * @returns {Promise<OAuthTokenResponse>} Token returned by the selected authentication implementation.
+ * @throws {Error} If password-limited credentials are missing or its grant fails; browser authentication errors propagate unchanged.
+ */
 async function authenticateInvocation(
   invocation: LoginInvocation,
-  diagnostics: Diagnostics,
   dependencies: LoginScopeDependencies,
 ) {
   const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
@@ -197,9 +216,8 @@ async function authenticateInvocation(
       clientSecret,
       redirectUri: nonempty(dependencies.environment.IRACING_AUTH_REDIRECT_URI),
       scopes: invocation.scopes,
+      open: invocation.open,
       timeoutSeconds: Number(invocation.timeoutSeconds),
-      openBrowser: invocation.open,
-      diagnostics,
     });
   }
 

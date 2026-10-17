@@ -49,6 +49,10 @@ if (storedToken) {
 }
 ```
 
+`authorize()` generates fresh state by default. A callback listener that generates
+its own unpredictable state can pass it to `authorize(state)` so the authorization
+URL and retained PKCE context use the listener's state.
+
 When you pass a `sessionId` to `callback()`, the client stores the token under
 that key without fetching the iRacing profile. This allows callers that already
 own the storage key to use only the scopes required by their protected resources.

@@ -16,21 +16,14 @@
  * A timeout/cancellation closes local work; it does not revoke upstream grants.
  */
 import {
-  createServer,
-  type Server,
-  type IncomingMessage,
-  type ServerResponse,
-} from "node:http";
-import {
   InMemoryStore,
   OAuthClient,
   type InternalState,
   type OAuthScopeList,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
+import { getAuthCode, type AuthorizationUrlBuilder } from "oauth-callback";
 import { openUrlInBrowser } from "./browser.js";
-import type { Diagnostics } from "./diagnostics.js";
-import type { AddressInfo } from "node:net";
 
 const CALLBACK_HOST = "127.0.0.1";
 
@@ -53,9 +46,10 @@ export const DEFAULT_SCOPES = [
 export interface OAuthClientLike {
   /**
    * Creates an authorization request and retains its state and PKCE verifier.
+   * @param {string} [state] - Fresh state supplied by the callback listener, or generated when omitted.
    * @returns {Promise<{ url: URL }>} Authorization URL with retained state and PKCE context.
    */
-  authorize(): Promise<{ url: URL }>;
+  authorize(state?: string): Promise<{ url: URL }>;
 
   /**
    * Exchanges the callback code and stores the resulting OAuth session.
@@ -84,25 +78,6 @@ export interface OAuthClientConfig {
   scopes: Readonly<OAuthScopeList>;
 }
 
-/** Process-signal seam used to cancel browser login while guaranteeing listener cleanup. */
-export interface SignalSource {
-  /**
-   * Registers a one-time listener for a process signal.
-   * @param {NodeJS.Signals} signal - Process signal name, such as SIGINT.
-   * @param {() => void} listener - Callback invoked when the selected process signal fires.
-   * @returns {unknown} Host-specific listener registration result.
-   */
-  once(signal: NodeJS.Signals, listener: () => void): unknown;
-
-  /**
-   * Removes a previously registered process-signal listener.
-   * @param {NodeJS.Signals} signal - Process signal name, such as SIGINT.
-   * @param {() => void} listener - Callback invoked when the selected process signal fires.
-   * @returns {unknown} Host-specific listener removal result.
-   */
-  off(signal: NodeJS.Signals, listener: () => void): unknown;
-}
-
 /**
  * Browser-login dependencies and policy knobs; injected seams keep protocol, browser launch,
  * and cancellation testable.
@@ -123,18 +98,15 @@ export interface BrowserLoginOptions {
   /** Maximum time to wait for browser authorization before cancelling. */
   timeoutSeconds: number;
 
-  /** Whether to launch the authorization URL in the default browser. */
-  openBrowser: boolean;
-
-  /** Secret-safe diagnostic sink for command progress and failures. */
-  diagnostics: Diagnostics;
+  /** Whether to open a browser automatically; false prints the login URL to stderr. */
+  open?: boolean;
 
   /**
-   * Injected browser launcher for the authorization URL.
-   * @param {string} url - Absolute URL used by this operation.
-   * @returns {Promise<void>} Completion of the requested operation.
+   * Opens the authorization URL; failures fall back to manual login on stderr.
+   * @param {URL} url - Authorization URL to open.
+   * @returns {unknown} Completion of the browser handoff.
    */
-  browserOpener?: (url: string) => Promise<void>;
+  launch?: (url: URL) => unknown;
 
   /**
    * Constructs the OAuth lifecycle owner for the selected registration.
@@ -142,275 +114,93 @@ export interface BrowserLoginOptions {
    * @returns {OAuthClientLike} OAuth lifecycle owner configured for the selected registration.
    */
   clientFactory?: (config: OAuthClientConfig) => OAuthClientLike;
-
-  /** Process-signal source used to cancel and clean up browser login. */
-  signalSource?: SignalSource;
-}
-
-function closeServer(server: Server): Promise<void> {
-  return new Promise((resolve) => {
-    if (!server.listening) {
-      resolve();
-
-      return;
-    }
-
-    server.close(() => {
-      resolve();
-    });
-    server.closeAllConnections();
-  });
 }
 
 /**
- * Runs one loopback browser authorization attempt, accepts at most one callback, and always
- * releases the listener and signal handlers.
- * @param {BrowserLoginOptions} options - Configuration and injected capabilities for this operation.
+ * Opens browser authorization through oauth-callback, then exchanges the callback for tokens.
+ * With the default OAuth client, stores the session in memory under the CLI session key
+ * without fetching a profile or writing credentials to disk.
+ *
+ * The prebuilt authorization URL requires a fixed-port HTTP loopback redirect URI;
+ * oauth-callback rejects port 0, including the default URI used when none is supplied.
+ * The callback timeout excludes token exchange. SIGINT/SIGTERM handlers cancel the
+ * callback wait and are removed before token exchange to restore process cancellation.
+ * @param {BrowserLoginOptions} options - OAuth registration and optional client factory. Scopes default to auth and profile; timeoutSeconds must convert to an integer from 1 through 2147483647 milliseconds.
  * @returns {Promise<OAuthTokenResponse>} OAuth credentials obtained from the completed browser callback.
+ * @throws {TypeError} If oauth-callback rejects the authorization URL or redirect URI.
+ * @throws {RangeError} If the converted callback timeout is outside the supported integer range.
+ * @throws {Error} Propagates client construction, authorization, listener, browser launch, callback timeout, and token exchange or validation failures unchanged.
  */
 export async function authenticateWithBrowser(
   options: BrowserLoginOptions,
 ): Promise<OAuthTokenResponse> {
-  const { timeoutSeconds, diagnostics, signalSource = process } = options;
+  const controller = new AbortController();
 
-  const registeredRedirectUri = options.redirectUri ?? DEFAULT_REDIRECT_URI;
+  const cancel = () => {
+    controller.abort(new Error("Authentication cancelled."));
+  };
 
-  const callbackUrl = validateBrowserOptions(options, registeredRedirectUri);
-
-  const callbackHost = callbackUrl.hostname.replace(/^\[|\]$/g, "");
-
-  const callbackPort = Number(callbackUrl.port || "80");
-
-  const server = createServer();
-
-  let timeout: NodeJS.Timeout | undefined;
-
-  let rejectFlow: ((reason?: unknown) => void) | undefined;
-
-  const onSignal = () => rejectFlow?.(new Error("Authentication cancelled."));
+  process.once("SIGINT", cancel);
+  process.once("SIGTERM", cancel);
 
   try {
-    await listenForCallback(server, callbackPort, callbackHost);
+    let client!: OAuthClientLike;
 
-    const address = server.address() as AddressInfo | null;
+    const authorize = async (redirectUri: string, state?: string) => {
+      const config = {
+        clientId: options.clientId,
+        clientSecret: options.clientSecret,
+        redirectUri,
+        scopes: [...(options.scopes ?? DEFAULT_SCOPES)],
+      };
 
-    if (!address) {
-      throw new Error("OAuth callback listener did not expose an address.");
-    }
-
-    const redirectUri =
-      callbackPort === 0
-        ? registeredRedirectUri.replace(
-            /:0(?=\/|\?|$)/,
-            `:${String(address.port)}`,
-          )
-        : registeredRedirectUri;
-
-    const client = browserOAuthClient(options, redirectUri);
-
-    const { url } = await client.authorize();
-
-    const callbackPromise = new Promise<OAuthTokenResponse>(
-      (resolve, reject) => {
-        rejectFlow = reject;
-        timeout = setTimeout(
-          () => {
-            reject(
-              new Error(
-                "Timed out waiting for the OAuth callback. If iRacing rejected the URL, check IRACING_AUTH_CLIENT and ensure IRACING_AUTH_REDIRECT_URI matches a registered redirect URI (use port 0 only for a registered native-app URI).",
-              ),
-            );
-          },
-          Math.round(timeoutSeconds * 1000),
-        );
-        signalSource.once("SIGINT", onSignal);
-        signalSource.once("SIGTERM", onSignal);
-
-        const handleRequest = callbackHandler(
-          client,
-          redirectUri,
-          callbackUrl.pathname,
-          { resolve, reject },
-        );
-
-        server.on("request", (request, response) => {
-          void handleRequest(request, response).catch(reject);
+      client =
+        options.clientFactory?.(config) ??
+        new OAuthClient({
+          clientMetadata: config,
+          stateStore: new InMemoryStore<string, InternalState>(),
+          sessionStore: new InMemoryStore<string, OAuthTokenResponse>(),
         });
+
+      return (await client.authorize(state)).url;
+    };
+
+    const builder: AuthorizationUrlBuilder = ({ redirectUri, state }) =>
+      authorize(redirectUri, state);
+
+    const authorization = options.redirectUri
+      ? await authorize(options.redirectUri)
+      : builder;
+
+    const { params } = await getAuthCode(authorization, {
+      redirectUri: options.redirectUri ?? DEFAULT_REDIRECT_URI,
+      timeout: options.timeoutSeconds * 1000,
+      signal: controller.signal,
+      async launch(url) {
+        if (options.open === false) {
+          showLoginUrl(url);
+
+          return;
+        }
+
+        try {
+          await (options.launch ?? openUrlInBrowser)(url);
+        } catch {
+          showLoginUrl(url);
+        }
       },
-    );
+    });
 
-    await showAuthorizationUrl(url, options);
+    process.removeListener("SIGINT", cancel);
+    process.removeListener("SIGTERM", cancel);
 
-    diagnostics.info("Waiting for the OAuth callback...");
-
-    return await callbackPromise;
+    return await client.callback(params, SESSION_ID);
   } finally {
-    await cleanupBrowserListener(server, timeout, { signalSource, onSignal });
+    process.removeListener("SIGINT", cancel);
+    process.removeListener("SIGTERM", cancel);
   }
 }
 
-function validateBrowserOptions(
-  options: BrowserLoginOptions,
-  registeredRedirectUri: string,
-): URL {
-  if (!options.clientId) {
-    throw new Error(
-      "Missing required environment variable: IRACING_AUTH_CLIENT",
-    );
-  }
-
-  if (!Number.isFinite(options.timeoutSeconds) || options.timeoutSeconds <= 0) {
-    throw new Error("--timeout-seconds must be a positive number");
-  }
-
-  let callbackUrl: URL;
-
-  try {
-    callbackUrl = new URL(registeredRedirectUri);
-  } catch {
-    throw new Error(
-      "IRACING_AUTH_REDIRECT_URI must be a valid HTTP loopback URL.",
-    );
-  }
-
-  if (
-    callbackUrl.protocol !== "http:" ||
-    !["127.0.0.1", "[::1]"].includes(callbackUrl.hostname) ||
-    callbackUrl.username ||
-    callbackUrl.password ||
-    registeredRedirectUri.includes("#")
-  ) {
-    throw new Error(
-      "IRACING_AUTH_REDIRECT_URI must use http://127.0.0.1 or http://[::1], without credentials or a fragment. Register this loopback URI with iRacing before using browser login.",
-    );
-  }
-
-  return callbackUrl;
-}
-
-async function listenForCallback(
-  server: Server,
-  callbackPort: number,
-  callbackHost: string,
-) {
-  await new Promise<void>((resolve, reject) => {
-    server.once("error", () => {
-      reject(
-        new Error(
-          "Could not bind the OAuth callback listener. Free the port configured by IRACING_AUTH_REDIRECT_URI, or configure another loopback URI registered with iRacing.",
-        ),
-      );
-    });
-    server.listen(callbackPort, callbackHost, () => {
-      resolve();
-    });
-  });
-}
-
-async function showAuthorizationUrl(url: URL, options: BrowserLoginOptions) {
-  const authorizationUrl = url.toString();
-
-  if (options.openBrowser) {
-    try {
-      await (options.browserOpener ?? openUrlInBrowser)(authorizationUrl);
-      options.diagnostics.info(
-        "Opened the iRacing authorization page in your browser.",
-      );
-    } catch {
-      options.diagnostics.warn("Could not open the browser automatically.");
-      options.diagnostics.warn(`Open this URL manually: ${authorizationUrl}`);
-    }
-  } else {
-    options.diagnostics.info(`Open this URL in a browser: ${authorizationUrl}`);
-  }
-}
-
-function callbackHandler(
-  client: OAuthClientLike,
-  redirectUri: string,
-  callbackPath: string,
-  {
-    resolve,
-    reject,
-  }: {
-    resolve: (token: OAuthTokenResponse) => void;
-    reject: (error: unknown) => void;
-  },
-) {
-  let callbackClaimed = false;
-
-  return async (request: IncomingMessage, response: ServerResponse) => {
-    const requestUrl = new URL(request.url ?? "/", redirectUri);
-
-    if (requestUrl.pathname !== callbackPath) {
-      response.statusCode = 404;
-      response.end("Not found.");
-
-      return;
-    }
-
-    if (callbackClaimed) {
-      response.statusCode = 409;
-      response.end("OAuth callback already received.");
-
-      return;
-    }
-
-    callbackClaimed = true;
-
-    try {
-      const token = await client.callback(requestUrl.searchParams, SESSION_ID);
-
-      response.statusCode = 200;
-      response.setHeader("Content-Type", "text/html; charset=utf-8");
-      response.end(
-        "<h1>Authenticated</h1><p>You can return to the terminal.</p>",
-      );
-      resolve(token);
-    } catch {
-      response.statusCode = 500;
-      response.setHeader("Content-Type", "text/html; charset=utf-8");
-      response.end(
-        "<h1>Authentication failed</h1><p>Return to the terminal for details.</p>",
-      );
-      reject(new Error("iRacing OAuth authentication failed."));
-    }
-  };
-}
-
-function browserOAuthClient(
-  options: BrowserLoginOptions,
-  redirectUri: string,
-): OAuthClientLike {
-  const config: OAuthClientConfig = {
-    clientId: options.clientId,
-    clientSecret: options.clientSecret,
-    redirectUri,
-    scopes: options.scopes ?? DEFAULT_SCOPES,
-  };
-
-  return options.clientFactory
-    ? options.clientFactory(config)
-    : new OAuthClient({
-        clientMetadata: { ...config, scopes: [...config.scopes] },
-        stateStore: new InMemoryStore<string, InternalState>(),
-        sessionStore: new InMemoryStore<string, OAuthTokenResponse>(),
-      });
-}
-
-async function cleanupBrowserListener(
-  server: Server,
-  timeout: NodeJS.Timeout | undefined,
-  {
-    signalSource,
-    onSignal,
-  }: { signalSource: SignalSource; onSignal: () => void },
-) {
-  if (timeout) {
-    clearTimeout(timeout);
-  }
-
-  signalSource.off("SIGINT", onSignal);
-  signalSource.off("SIGTERM", onSignal);
-  await closeServer(server);
+function showLoginUrl(url: URL): void {
+  process.stderr.write(`Open this URL to log in: ${url.href}\n`);
 }

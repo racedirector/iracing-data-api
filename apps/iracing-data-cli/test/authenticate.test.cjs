@@ -1,347 +1,219 @@
 const assert = require("node:assert/strict");
-const { EventEmitter } = require("node:events");
+const { createServer } = require("node:net");
 const test = require("node:test");
 
+const originalFetch = globalThis.fetch;
 const TOKEN = {
   access_token: "synthetic-access",
   token_type: "Bearer",
   expires_in: 3600,
-  refresh_token: "synthetic-refresh",
-  refresh_token_expires_in: 7200,
-  scope: "iracing.auth",
 };
 
-function diagnostics() {
-  const messages = [];
-  return {
-    messages,
-    value: {
-      info: (message) => messages.push(message),
-      warn: (message) => messages.push(message),
-      error: (message) => messages.push(message),
-    },
+function trackSignals(t) {
+  const counts = ["SIGINT", "SIGTERM"].map((signal) =>
+    process.listenerCount(signal),
+  );
+  const assertReleased = () => {
+    for (const [index, signal] of ["SIGINT", "SIGTERM"].entries()) {
+      assert.equal(process.listenerCount(signal), counts[index]);
+    }
   };
+  t.after(assertReleased);
+  return assertReleased;
 }
-
-function signalSource() {
-  const emitter = new EventEmitter();
-  return {
-    emitter,
-    source: {
-      once: (signal, listener) => emitter.once(signal, listener),
-      off: (signal, listener) => emitter.off(signal, listener),
-    },
-  };
-}
-
-test("binds an ephemeral callback before opening the browser and exchanges once", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const log = diagnostics();
-  let config;
-  let callbackCalls = 0;
-  let sessionId;
-
-  const result = await authenticateWithBrowser({
-    clientId: "client-id",
-    clientSecret: "client-secret",
-    timeoutSeconds: 2,
-    openBrowser: true,
-    diagnostics: log.value,
-    clientFactory: (value) => {
-      config = value;
-      return {
-        authorize: async () => ({
-          url: new URL("https://example.test/authorize?state=synthetic-state"),
-        }),
-        callback: async (_params, id) => {
-          callbackCalls += 1;
-          sessionId = id;
-          await new Promise((resolve) => setTimeout(resolve, 25));
-          return TOKEN;
-        },
-      };
-    },
-    browserOpener: async () => {
-      assert.match(
-        config.redirectUri,
-        /^http:\/\/127\.0\.0\.1:\d+\/oauth\/iracing\/callback$/,
-      );
-      assert.notEqual(new URL(config.redirectUri).port, "0");
-
-      const unrelated = await fetch(
-        config.redirectUri.replace("/oauth/iracing/callback", "/unrelated"),
-      );
-      assert.equal(unrelated.status, 404);
-
-      const first = fetch(`${config.redirectUri}?code=one&state=state`);
-      const duplicate = fetch(`${config.redirectUri}?code=two&state=state`);
-      const [firstResponse, duplicateResponse] = await Promise.all([
-        first,
-        duplicate,
-      ]);
-      assert.deepEqual(
-        new Set([firstResponse.status, duplicateResponse.status]),
-        new Set([200, 409]),
-      );
-    },
-  });
-
-  assert.deepEqual(result, TOKEN);
-  assert.equal(callbackCalls, 1);
-  assert.equal(sessionId, "iracing-data-cli");
-  assert.equal(config.clientId, "client-id");
-  assert.equal(config.clientSecret, "client-secret");
-  assert.deepEqual(config.scopes, ["iracing.auth", "iracing.profile"]);
-});
-
-test("--no-open reports the authorization URL without invoking a browser", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const log = diagnostics();
-  let opened = false;
-
-  const result = await authenticateWithBrowser({
-    clientId: "client-id",
-    timeoutSeconds: 2,
-    openBrowser: false,
-    diagnostics: log.value,
-    clientFactory: ({ redirectUri }) => ({
-      authorize: async () => {
-        setTimeout(() => void fetch(`${redirectUri}?code=ok&state=state`), 10);
-        return {
-          url: new URL("https://example.test/authorize?state=synthetic-state"),
-        };
-      },
-      callback: async () => TOKEN,
-    }),
-    browserOpener: async () => {
-      opened = true;
-    },
-  });
-
-  assert.deepEqual(result, TOKEN);
-  assert.equal(opened, false);
-  assert.ok(
-    log.messages.some((message) =>
-      message.startsWith(
-        "Open this URL in a browser: https://example.test/authorize",
-      ),
-    ),
-  );
-});
-
-test("browser-launch failure falls back to a manual URL and continues", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const log = diagnostics();
-
-  const result = await authenticateWithBrowser({
-    clientId: "client-id",
-    timeoutSeconds: 2,
-    openBrowser: true,
-    diagnostics: log.value,
-    clientFactory: ({ redirectUri }) => ({
-      authorize: async () => {
-        setTimeout(() => void fetch(`${redirectUri}?code=ok&state=state`), 10);
-        return { url: new URL("https://example.test/authorize") };
-      },
-      callback: async () => TOKEN,
-    }),
-    browserOpener: async () => {
-      throw new Error("synthetic browser failure");
-    },
-  });
-
-  assert.deepEqual(result, TOKEN);
-  assert.ok(log.messages.includes("Could not open the browser automatically."));
-  assert.ok(
-    log.messages.includes(
-      "Open this URL manually: https://example.test/authorize",
-    ),
-  );
-  assert.doesNotMatch(log.messages.join("\n"), /synthetic browser failure/);
-});
-
-test("times out and removes signal listeners when no callback arrives", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const log = diagnostics();
-  const signals = signalSource();
-
-  await assert.rejects(
-    authenticateWithBrowser({
-      clientId: "client-id",
-      timeoutSeconds: 0.01,
-      openBrowser: false,
-      diagnostics: log.value,
-      signalSource: signals.source,
-      clientFactory: () => ({
-        authorize: async () => ({
-          url: new URL("https://example.test/authorize"),
-        }),
-        callback: async () => TOKEN,
-      }),
-    }),
-    /Timed out waiting for the OAuth callback/,
-  );
-
-  assert.equal(signals.emitter.listenerCount("SIGINT"), 0);
-  assert.equal(signals.emitter.listenerCount("SIGTERM"), 0);
-});
-
-test("SIGINT cancels the pending flow and removes signal listeners", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const log = diagnostics();
-  const signals = signalSource();
-
-  const pending = authenticateWithBrowser({
-    clientId: "client-id",
-    timeoutSeconds: 2,
-    openBrowser: false,
-    diagnostics: log.value,
-    signalSource: signals.source,
-    clientFactory: () => ({
-      authorize: async () => ({
-        url: new URL("https://example.test/authorize"),
-      }),
-      callback: async () => TOKEN,
-    }),
-  });
-
-  await new Promise((resolve) => setTimeout(resolve, 10));
-  signals.emitter.emit("SIGINT");
-  await assert.rejects(pending, /Authentication cancelled/);
-  assert.equal(signals.emitter.listenerCount("SIGINT"), 0);
-  assert.equal(signals.emitter.listenerCount("SIGTERM"), 0);
-});
-
-test("callback failures are sanitized and never expose token or secret material", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const log = diagnostics();
-
-  await assert.rejects(
-    authenticateWithBrowser({
-      clientId: "client-id",
-      clientSecret: "synthetic-secret",
-      timeoutSeconds: 2,
-      openBrowser: false,
-      diagnostics: log.value,
-      clientFactory: ({ redirectUri }) => ({
-        authorize: async () => {
-          setTimeout(
-            () => void fetch(`${redirectUri}?code=bad&state=state`),
-            10,
-          );
-          return { url: new URL("https://example.test/authorize") };
-        },
-        callback: async () => {
-          throw new Error(
-            "synthetic-secret synthetic-access synthetic-refresh",
-          );
-        },
-      }),
-    }),
-    /iRacing OAuth authentication failed/,
-  );
-
-  assert.doesNotMatch(
-    log.messages.join("\n"),
-    /synthetic-secret|synthetic-access|synthetic-refresh/,
-  );
-});
 
 async function unusedPort() {
-  const { createServer } = require("node:http");
   const server = createServer();
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  const port = server.address().port;
+  const { port } = server.address();
   await new Promise((resolve) => server.close(resolve));
   return port;
 }
 
-for (const fixedPort of [false, true]) {
-  test(`uses the registered callback path and ${fixedPort ? "fixed" : "ephemeral"} port`, async () => {
+async function completeCallback(url) {
+  const callback = new URL(url.searchParams.get("redirect_uri"));
+  callback.searchParams.set("code", "synthetic-code");
+  callback.searchParams.set("state", url.searchParams.get("state"));
+  const response = await originalFetch(callback);
+  assert.equal(response.status, 200);
+}
+
+for (const configured of [false, true]) {
+  test(`browser login uses matching redirect, state and PKCE (configured: ${configured})`, async (t) => {
     const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-    const port = fixedPort ? await unusedPort() : 0;
-    const registered = `http://127.0.0.1:${port}/api/auth/callback/iracing?flow=cli`;
-    let actual;
+    const assertSignalsReleased = trackSignals(t);
+    const redirectUri = configured
+      ? `http://127.0.0.1:${await unusedPort()}/registered?keep=exact%20value`
+      : undefined;
+    let authorization;
+    let exchanges = 0;
+    t.mock.method(globalThis, "fetch", async (url, options) => {
+      assertSignalsReleased();
+      assert.equal(String(url), "https://oauth.iracing.com/oauth2/token");
+      exchanges += 1;
+      const body = new URLSearchParams(options.body);
+      assert.equal(
+        body.get("redirect_uri"),
+        authorization.searchParams.get("redirect_uri"),
+      );
+      assert.equal(body.get("code"), "synthetic-code");
+      const { createHash } = require("node:crypto");
+      assert.equal(
+        createHash("sha256")
+          .update(body.get("code_verifier"))
+          .digest("base64url"),
+        authorization.searchParams.get("code_challenge"),
+      );
+      return Response.json(TOKEN);
+    });
     const result = await authenticateWithBrowser({
-      clientId: "client-id",
-      redirectUri: registered,
+      clientId: "synthetic-client",
+      redirectUri,
       timeoutSeconds: 2,
-      openBrowser: true,
-      diagnostics: diagnostics().value,
-      clientFactory: ({ redirectUri }) => {
-        actual = redirectUri;
-        return {
-          authorize: async () => ({
-            url: new URL("https://example.test/authorize"),
-          }),
-          callback: async (params) => {
-            assert.equal(params.get("flow"), "cli");
-            return TOKEN;
-          },
-        };
-      },
-      browserOpener: async () => {
-        if (fixedPort) assert.equal(actual, registered);
-        else {
-          assert.notEqual(new URL(actual).port, "0");
-          assert.equal(new URL(actual).pathname, "/api/auth/callback/iracing");
-          assert.equal(new URL(actual).search, "?flow=cli");
+      async launch(url) {
+        authorization = url;
+        const bound = new URL(url.searchParams.get("redirect_uri"));
+        assert.notEqual(bound.port, "0");
+        assert.ok(url.searchParams.get("state"));
+        if (configured) {
+          assert.equal(bound.href, redirectUri);
+        } else {
+          assert.equal(bound.hostname, "127.0.0.1");
+          assert.equal(bound.pathname, "/oauth/iracing/callback");
         }
-        const response = await fetch(`${actual}&code=ok&state=state`);
-        assert.equal(response.status, 200);
+        await completeCallback(url);
       },
     });
     assert.deepEqual(result, TOKEN);
-    await assert.rejects(fetch(actual));
+    assert.equal(exchanges, 1);
   });
 }
 
-test("rejects unsupported callback URIs before opening a browser", async () => {
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  for (const redirectUri of [
-    "invalid",
-    "https://127.0.0.1:3000/callback",
-    "http://localhost:3000/callback",
-    "http://example.test/callback",
-    "http://user:secret@127.0.0.1:3000/callback",
-    "http://127.0.0.1:3000/callback#fragment",
-  ]) {
-    await assert.rejects(
-      authenticateWithBrowser({
-        clientId: "client-id",
-        redirectUri,
-        timeoutSeconds: 2,
-        openBrowser: true,
-        diagnostics: diagnostics().value,
-        clientFactory: () => {
-          throw new Error("must not construct client");
+for (const open of [false, true]) {
+  test(`login command forwards browser launch preference (open: ${open})`, async (t) => {
+    const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+    const { createLoginCommand } =
+      await import("../dist/commands/auth/login/command.js");
+    const { createLoginCommandScopeFactory } =
+      await import("../dist/commands/auth/login/scope.js");
+    trackSignals(t);
+    const messages = [];
+    let browserLaunches = 0;
+    let manualCallback;
+    t.mock.method(globalThis, "fetch", async () => Response.json(TOKEN));
+    t.mock.method(process.stderr, "write", (message) => {
+      messages.push(message);
+      const prefix = "Open this URL to log in: ";
+      assert.ok(message.startsWith(prefix));
+      manualCallback = completeCallback(
+        new URL(message.slice(prefix.length).trim()),
+      );
+      return true;
+    });
+    const command = createLoginCommand({
+      createScope: createLoginCommandScopeFactory(
+        { info() {}, warn() {}, error() {} },
+        {
+          environment: { IRACING_AUTH_CLIENT: "synthetic-client" },
+          authenticate(options) {
+            assert.equal(options.open, open);
+            return authenticateWithBrowser({
+              ...options,
+              async launch(url) {
+                browserLaunches += 1;
+                await completeCallback(url);
+              },
+            });
+          },
+          async writeOutput(token) {
+            assert.deepEqual(token, TOKEN);
+          },
         },
-        browserOpener: async () => {
-          throw new Error("must not open browser");
-        },
-      }),
-      /IRACING_AUTH_REDIRECT_URI/,
+      ),
+    });
+    await command.parseAsync(
+      [...(open ? [] : ["--no-open"]), "--timeout-seconds", "2"],
+      { from: "user" },
     );
-  }
+    await manualCallback;
+    assert.equal(browserLaunches, open ? 1 : 0);
+    assert.equal(messages.length, open ? 0 : 1);
+  });
+}
+
+test("browser launch failure prints the login URL to stderr and permits manual completion", async (t) => {
+  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+  trackSignals(t);
+  let launched;
+  let manualCallback;
+  t.mock.method(process.stderr, "write", (message) => {
+    assert.equal(message, `Open this URL to log in: ${launched.href}\n`);
+    manualCallback = completeCallback(launched);
+    return true;
+  });
+  t.mock.method(globalThis, "fetch", async () => Response.json(TOKEN));
+  assert.deepEqual(
+    await authenticateWithBrowser({
+      clientId: "synthetic-client",
+      timeoutSeconds: 2,
+      launch(url) {
+        launched = url;
+        throw new Error("synthetic opener failure");
+      },
+    }),
+    TOKEN,
+  );
+  await manualCallback;
 });
 
-test("reports a recovery action when the registered port is occupied", async () => {
-  const { createServer } = require("node:http");
-  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-  const server = createServer();
-  await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
-  try {
+for (const signal of ["SIGINT", "SIGTERM"]) {
+  test(`${signal} cancels login and releases the listener and both handlers`, async (t) => {
+    const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+    trackSignals(t);
+    let redirectUri;
     await assert.rejects(
       authenticateWithBrowser({
-        clientId: "client-id",
-        redirectUri: `http://127.0.0.1:${server.address().port}/callback`,
+        clientId: "synthetic-client",
         timeoutSeconds: 2,
-        openBrowser: false,
-        diagnostics: diagnostics().value,
+        launch(url) {
+          redirectUri = url.searchParams.get("redirect_uri");
+          process.emit(signal);
+        },
       }),
-      /Free the port configured by IRACING_AUTH_REDIRECT_URI/,
+      /Authentication cancelled/,
     );
-  } finally {
-    await new Promise((resolve) => server.close(resolve));
-  }
+    await assert.rejects(originalFetch(redirectUri));
+  });
+}
+
+test("timeout removes signal handlers and releases the listener", async (t) => {
+  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+  trackSignals(t);
+  let redirectUri;
+  await assert.rejects(
+    authenticateWithBrowser({
+      clientId: "synthetic-client",
+      timeoutSeconds: 0.1,
+      launch(url) {
+        redirectUri = url.searchParams.get("redirect_uri");
+      },
+    }),
+    { name: "TimeoutError" },
+  );
+  await assert.rejects(originalFetch(redirectUri));
+});
+
+test("authorization failure removes signal handlers", async (t) => {
+  const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+  trackSignals(t);
+  await assert.rejects(
+    authenticateWithBrowser({
+      clientId: "synthetic-client",
+      timeoutSeconds: 2,
+      clientFactory() {
+        throw new Error("synthetic authorization failure");
+      },
+    }),
+    /synthetic authorization failure/,
+  );
 });

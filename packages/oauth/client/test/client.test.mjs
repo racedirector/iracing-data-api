@@ -95,7 +95,10 @@ test("authorize stores state/verifier and constructs an S256 request", async () 
 test("callback exchanges the code, consumes state, and persists the profile session", async () => {
   const { client, stateStore, sessionStore } = setup();
   mockFetch();
-  const { state, verifier } = await client.authorize();
+  const { state, verifier } = await client.authorize(
+    "synthetic-listener-state",
+  );
+  assert.equal(state, "synthetic-listener-state");
   const issued = token();
   const requests = [];
   mockFetch(async (url, options) => {
