@@ -13,11 +13,13 @@ function trackSignals(t) {
   const counts = ["SIGINT", "SIGTERM"].map((signal) =>
     process.listenerCount(signal),
   );
-  t.after(() => {
+  const assertReleased = () => {
     for (const [index, signal] of ["SIGINT", "SIGTERM"].entries()) {
       assert.equal(process.listenerCount(signal), counts[index]);
     }
-  });
+  };
+  t.after(assertReleased);
+  return assertReleased;
 }
 
 async function unusedPort() {
@@ -39,13 +41,14 @@ async function completeCallback(url) {
 for (const configured of [false, true]) {
   test(`browser login uses matching redirect, state and PKCE (configured: ${configured})`, async (t) => {
     const { authenticateWithBrowser } = await import("../dist/authenticate.js");
-    trackSignals(t);
+    const assertSignalsReleased = trackSignals(t);
     const redirectUri = configured
       ? `http://127.0.0.1:${await unusedPort()}/registered?keep=exact%20value`
       : undefined;
     let authorization;
     let exchanges = 0;
     t.mock.method(globalThis, "fetch", async (url, options) => {
+      assertSignalsReleased();
       assert.equal(String(url), "https://oauth.iracing.com/oauth2/token");
       exchanges += 1;
       const body = new URLSearchParams(options.body);
@@ -83,6 +86,58 @@ for (const configured of [false, true]) {
     });
     assert.deepEqual(result, TOKEN);
     assert.equal(exchanges, 1);
+  });
+}
+
+for (const open of [false, true]) {
+  test(`login command forwards browser launch preference (open: ${open})`, async (t) => {
+    const { authenticateWithBrowser } = await import("../dist/authenticate.js");
+    const { createLoginCommand } =
+      await import("../dist/commands/auth/login/command.js");
+    const { createLoginCommandScopeFactory } =
+      await import("../dist/commands/auth/login/scope.js");
+    trackSignals(t);
+    const messages = [];
+    let browserLaunches = 0;
+    let manualCallback;
+    t.mock.method(globalThis, "fetch", async () => Response.json(TOKEN));
+    t.mock.method(process.stderr, "write", (message) => {
+      messages.push(message);
+      const prefix = "Open this URL to log in: ";
+      assert.ok(message.startsWith(prefix));
+      manualCallback = completeCallback(
+        new URL(message.slice(prefix.length).trim()),
+      );
+      return true;
+    });
+    const command = createLoginCommand({
+      createScope: createLoginCommandScopeFactory(
+        { info() {}, warn() {}, error() {} },
+        {
+          environment: { IRACING_AUTH_CLIENT: "synthetic-client" },
+          authenticate(options) {
+            assert.equal(options.open, open);
+            return authenticateWithBrowser({
+              ...options,
+              async launch(url) {
+                browserLaunches += 1;
+                await completeCallback(url);
+              },
+            });
+          },
+          async writeOutput(token) {
+            assert.deepEqual(token, TOKEN);
+          },
+        },
+      ),
+    });
+    await command.parseAsync(
+      [...(open ? [] : ["--no-open"]), "--timeout-seconds", "2"],
+      { from: "user" },
+    );
+    await manualCallback;
+    assert.equal(browserLaunches, open ? 1 : 0);
+    assert.equal(messages.length, open ? 0 : 1);
   });
 }
 

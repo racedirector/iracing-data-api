@@ -98,6 +98,9 @@ export interface BrowserLoginOptions {
   /** Maximum time to wait for browser authorization before cancelling. */
   timeoutSeconds: number;
 
+  /** Whether to open a browser automatically; false prints the login URL to stderr. */
+  open?: boolean;
+
   /**
    * Opens the authorization URL; failures fall back to manual login on stderr.
    * @param {URL} url - Authorization URL to open.
@@ -120,7 +123,8 @@ export interface BrowserLoginOptions {
  *
  * The prebuilt authorization URL requires a fixed-port HTTP loopback redirect URI;
  * oauth-callback rejects port 0, including the default URI used when none is supplied.
- * The callback timeout excludes token exchange. No process-signal handlers are installed.
+ * The callback timeout excludes token exchange. SIGINT/SIGTERM handlers cancel the
+ * callback wait and are removed before token exchange to restore process cancellation.
  * @param {BrowserLoginOptions} options - OAuth registration and optional client factory. Scopes default to auth and profile; timeoutSeconds must convert to an integer from 1 through 2147483647 milliseconds.
  * @returns {Promise<OAuthTokenResponse>} OAuth credentials obtained from the completed browser callback.
  * @throws {TypeError} If oauth-callback rejects the authorization URL or redirect URI.
@@ -173,17 +177,30 @@ export async function authenticateWithBrowser(
       timeout: options.timeoutSeconds * 1000,
       signal: controller.signal,
       async launch(url) {
+        if (options.open === false) {
+          showLoginUrl(url);
+
+          return;
+        }
+
         try {
           await (options.launch ?? openUrlInBrowser)(url);
         } catch {
-          process.stderr.write(`Open this URL to log in: ${url.href}\n`);
+          showLoginUrl(url);
         }
       },
     });
+
+    process.removeListener("SIGINT", cancel);
+    process.removeListener("SIGTERM", cancel);
 
     return await client.callback(params, SESSION_ID);
   } finally {
     process.removeListener("SIGINT", cancel);
     process.removeListener("SIGTERM", cancel);
   }
+}
+
+function showLoginUrl(url: URL): void {
+  process.stderr.write(`Open this URL to log in: ${url.href}\n`);
 }
