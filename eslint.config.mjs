@@ -11,6 +11,7 @@ import importPlugin, {
 } from "eslint-plugin-import-x";
 import jsdocPlugin, { rules as jsdocRules } from "eslint-plugin-jsdoc";
 import eslintPluginPrettier from "eslint-plugin-prettier";
+import writeGoodComments from "eslint-plugin-write-good-comments";
 import sonarjs from "eslint-plugin-sonarjs";
 import unicorn from "eslint-plugin-unicorn";
 import zod from "eslint-plugin-zod";
@@ -814,6 +815,52 @@ export default defineConfig([
       "max-nested-callbacks": ["error", { max: 3 }],
       "max-depth": ["error", { max: 3 }],
       complexity: ["warn", 12],
+    },
+  },
+  {
+    files: ["examples/mcp-express/**/*.{js,mjs,ts}"],
+    plugins: { "write-good-comments": writeGoodComments },
+    rules: {
+      curly: ["error", "all"],
+      "no-nested-ternary": "error",
+      "no-unneeded-ternary": "error",
+      "no-sequences": ["error", { allowInParentheses: false }],
+      "no-multi-assign": "error",
+      "@stylistic/padding-line-between-statements": [
+        "error",
+        { blankLine: "always", prev: "*", next: "return" },
+        { blankLine: "always", prev: ["block", "block-like"], next: "*" },
+        { blankLine: "always", prev: ["const", "let", "var"], next: "*" },
+        {
+          blankLine: "any",
+          prev: ["const", "let", "var"],
+          next: ["const", "let", "var"],
+        },
+      ],
+      "@stylistic/lines-around-comment": [
+        "error",
+        {
+          beforeLineComment: true,
+          allowBlockStart: true,
+          allowInterfaceStart: true,
+          allowObjectStart: true,
+          allowArrayStart: true,
+        },
+      ],
+      "write-good-comments/write-good-comments": [
+        "error",
+        {
+          passive: false,
+          adverb: false,
+          eprime: false,
+          weasel: false,
+          so: false,
+          thereIs: false,
+          illusion: true,
+          tooWordy: true,
+          cliches: true,
+        },
+      ],
     },
   },
 ]);
