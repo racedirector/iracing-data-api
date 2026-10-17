@@ -1,10 +1,9 @@
 import { McpServer } from "@modelcontextprotocol/server";
+import { createMemberResolver } from "../iracing/member";
+import { createIRacingRequestResolver } from "../iracing/request";
 import { createGetMyDriverTool } from "./tools/get-my-driver";
-import {
-  CacheResolver,
-  ConfigurationResolver,
-  createIRacingLinkResolver,
-} from "./tools/resolvers";
+import { createIRacingLinkResolver } from "./tools/resolvers";
+import type { CacheResolver, ConfigurationResolver } from "./tools/resolvers";
 
 /** The root owns server identity and all services used by registered tools. */
 export interface CreateServerOptions {
@@ -20,20 +19,28 @@ export function createServer({
   cache,
 }: CreateServerOptions) {
   const server = new McpServer(serverInfo);
+  const resolveLink = createIRacingLinkResolver({
+    fetchApi: fetch,
+    now: () => Date.now(),
+  });
 
   createGetMyDriverTool(server, {
-    cache,
-    resolveConfiguration,
-    resolveLink: createIRacingLinkResolver({
-      fetchApi: fetch,
-      now: () => Date.now(),
-    }),
+    resolveMember: ({ signal, auth }) =>
+      createMemberResolver({
+        requests: createIRacingRequestResolver({
+          cache,
+          resolveConfiguration: (context) =>
+            resolveConfiguration({ ...context, auth }),
+        }),
+        materialize: (response, context) =>
+          resolveLink({ response, ...context }),
+      }).getCurrent({ signal }),
     resolveResponse: {
       success: (value) => ({
         content: [{ type: "text", text: JSON.stringify(value) }],
         structuredContent: value,
       }),
-      error: (cause) => ({
+      error: (_cause) => ({
         isError: true,
         content: [{ type: "text", text: "There was an unknown error" }],
       }),
