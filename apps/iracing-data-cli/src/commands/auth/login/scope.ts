@@ -160,7 +160,7 @@ function createLoginScope(
        * Error that omits the original cause. Browser options do not apply to this method.
        */
       async authenticate() {
-        return authenticateInvocation(invocation, diagnostics, dependencies);
+        return authenticateInvocation(invocation, dependencies);
       },
     },
     credentials: {
@@ -184,7 +184,6 @@ function createLoginScope(
 
 async function authenticateInvocation(
   invocation: LoginInvocation,
-  diagnostics: Diagnostics,
   dependencies: LoginScopeDependencies,
 ) {
   const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
@@ -198,8 +197,6 @@ async function authenticateInvocation(
       redirectUri: nonempty(dependencies.environment.IRACING_AUTH_REDIRECT_URI),
       scopes: invocation.scopes,
       timeoutSeconds: Number(invocation.timeoutSeconds),
-      openBrowser: invocation.open,
-      diagnostics,
     });
   }
 
