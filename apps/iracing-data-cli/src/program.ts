@@ -1,10 +1,12 @@
 import { Command } from "@commander-js/extra-typings";
 import { createAssetsCommand } from "./commands/assets/index.js";
 import { createAuthCommand } from "./commands/auth/index.js";
-import { createDocsCommand } from "./commands/docs.js";
+import {
+  createDocsCommand,
+  makeDocsService,
+} from "./commands/docs/index.js";
 import { createWhoamiCommand } from "./commands/whoami/index.js";
 import { resolveAccessToken } from "./credentials.js";
-import { makeDocsService } from "./services/docs.js";
 import { makeDocumentRequestService } from "./services/request.js";
 import { writeDocumentOutput } from "./token-output.js";
 import type { Diagnostics } from "./diagnostics.js";
