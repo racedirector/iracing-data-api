@@ -1,8 +1,8 @@
 /** Documentation execution independent of Commander and application infrastructure. */
-import type { DocApi } from "@iracing-data/api-client-fetch";
 import type { CredentialOptions } from "../credentials.js";
 import type { Diagnostics } from "../diagnostics.js";
 import type { TokenFormat, TokenOutputOptions } from "../token-output.js";
+import type { DocApi } from "@iracing-data/api-client-fetch";
 
 /** Validated invocation options supplied by the Commander adapter. */
 export type DocsInput = Pick<CredentialOptions, "credentials"> &
@@ -13,6 +13,11 @@ type Documentation = Awaited<ReturnType<DocApi["getDocs"]>>;
 
 /** The only contract Commander needs to dispatch the docs operation. */
 export interface DocsService {
+  /**
+   * Execute a normalized documentation command.
+   * @param {DocsInput} input - Parsed command input.
+   * @returns {Promise<void>} Completion of execution and output.
+   */
   execute(input: DocsInput): Promise<void>;
 }
 
@@ -20,11 +25,27 @@ export interface DocsService {
 export interface DocsServiceDependencies {
   /** Emits secret-safe progress messages. */
   diagnostics: Pick<Diagnostics, "info">;
-  /** Resolves the selected access token exactly once per invocation. */
+
+  /**
+   * Resolve the selected access token according to application policy.
+   * @param {CredentialOptions} options - Credential selection.
+   * @returns {Promise<string>} Resolved access token.
+   */
   resolveAccessToken(options: CredentialOptions): Promise<string>;
-  /** Provides an authenticated generated documentation client. */
+
+  /**
+   * Supply the authenticated generated documentation client.
+   * @param {string} accessToken - Validated access token.
+   * @returns {{doc: Pick<DocApi, "getDocs">}} Typed client capability.
+   */
   createApi(accessToken: string): { doc: Pick<DocApi, "getDocs"> };
-  /** Publishes the document using the existing output policy. */
+
+  /**
+   * Publish the unchanged generated documentation through the supplied writer.
+   * @param {Documentation} document - Generated documentation response.
+   * @param {TokenOutputOptions} options - Output destination and format policy.
+   * @returns {Promise<void>} Completion of publication.
+   */
   writeDocumentOutput(
     document: Documentation,
     options: TokenOutputOptions,
@@ -82,10 +103,13 @@ function mapDocumentationError(error: unknown): Error {
  * @param {DocsServiceDependencies} services - Credential, API, output and diagnostic capabilities.
  * @returns {DocsService} Independently callable docs executor.
  */
-export function makeDocsService(services: DocsServiceDependencies): DocsService {
+export function makeDocsService(
+  services: DocsServiceDependencies,
+): DocsService {
   return {
     async execute(input) {
       const accessToken = await services.resolveAccessToken(input);
+
       const api = services.createApi(accessToken);
 
       let document: Documentation;
