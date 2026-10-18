@@ -6,7 +6,11 @@ import { resolveTokenFormat } from "../token-output.js";
 const RawDocsOptionsSchema = z.strictObject({
   credentials: z.string().optional(),
   output: z.string().optional(),
-  format: z.enum(["json", "yaml"]).optional(),
+  format: z
+    .enum(["json", "yaml"], {
+      error: ({ input }) => "Unsupported output format: " + String(input),
+    })
+    .optional(),
   force: z.boolean().optional(),
 });
 
