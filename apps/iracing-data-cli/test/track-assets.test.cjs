@@ -174,10 +174,14 @@ test("track generated failures map safely, linked-data failures do not", async (
   const safeFailure = new Error(
     "Asset payload request failed with HTTP 502. Retry the command to obtain a fresh link.",
   );
-  const successfulMethod = t.mock.method(TrackApi.prototype, "getTrackAssets", async () => ({
-    link: "https://assets.example.test/track",
-    expires: new Date("2030-01-01"),
-  }));
+  const successfulMethod = t.mock.method(
+    TrackApi.prototype,
+    "getTrackAssets",
+    async () => ({
+      link: "https://assets.example.test/track",
+      expires: new Date("2030-01-01"),
+    }),
+  );
   const materializer = makeTrackAssetsService(requests, async () => {
     throw safeFailure;
   });
@@ -194,10 +198,8 @@ test("track invalid credentials fail before the generated API request", async (t
   const { makeDocumentRequestService } =
     await import("../dist/services/request.js");
   const { TrackApi } = await import("@iracing-data/api-client-fetch");
-  const method = t.mock.method(
-    TrackApi.prototype,
-    "getTrackAssets",
-    async () => assert.fail("unexpected request"),
+  const method = t.mock.method(TrackApi.prototype, "getTrackAssets", async () =>
+    assert.fail("unexpected request"),
   );
   const failure = new Error("invalid credentials");
   const requests = makeDocumentRequestService({
@@ -207,9 +209,8 @@ test("track invalid credentials fail before the generated API request", async (t
     },
     writeDocumentOutput: async () => assert.fail("unexpected output"),
   });
-  const service = makeTrackAssetsService(
-    requests,
-    async () => assert.fail("unexpected materialization"),
+  const service = makeTrackAssetsService(requests, async () =>
+    assert.fail("unexpected materialization"),
   );
 
   await assert.rejects(
