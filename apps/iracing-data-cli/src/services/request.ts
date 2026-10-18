@@ -2,7 +2,6 @@
 import { z } from "zod";
 import { mapDataApiRequestError } from "../errors.js";
 import type { Diagnostics } from "../diagnostics.js";
-import type { TokenOutputOptions } from "../token-output.js";
 
 /** Supported output formats for authenticated document commands. */
 export const DocumentFormatSchema = z.enum(["json", "yaml"], {
@@ -19,6 +18,14 @@ export const DocumentInputSchema = z.strictObject({
 
 /** Shared authenticated-document input derived from its authoritative schema. */
 export type DocumentInput = z.output<typeof DocumentInputSchema>;
+
+/** Document presentation options owned by the shared request/output workflow. */
+export const DocumentOutputSchema = DocumentInputSchema.extend({
+  outputLabel: z.enum(["Credential", "Documentation"]),
+});
+
+/** Writer options derived from the shared request's output schema. */
+export type DocumentOutput = z.output<typeof DocumentOutputSchema>;
 
 /** A command's policy for fetching and presenting one document. */
 export interface DocumentRequest<T> {
@@ -39,7 +46,7 @@ export interface DocumentRequest<T> {
   requiredScope?: string;
 
   /** Existing writer's output label. */
-  outputLabel: NonNullable<TokenOutputOptions["outputLabel"]>;
+  outputLabel: DocumentOutput["outputLabel"];
 
   /** Secret-safe diagnostic emitted only after successful publication. */
   successMessage: string;
@@ -70,12 +77,12 @@ export interface DocumentRequestDependencies {
   /**
    * Publish arbitrary command data through the existing secure output writer.
    * @param {unknown} document - Data returned by the request operation.
-   * @param {TokenOutputOptions} options - Format and destination choices.
+   * @param {DocumentOutput} options - Format and destination choices.
    * @returns {Promise<void>} Completed output.
    */
   writeDocumentOutput(
     document: unknown,
-    options: TokenOutputOptions,
+    options: DocumentOutput,
   ): Promise<void>;
 }
 
