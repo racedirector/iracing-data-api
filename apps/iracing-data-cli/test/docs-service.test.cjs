@@ -9,9 +9,8 @@ const input = {
 };
 
 test("shared document executor defers effects and orders credential, fetch, write, diagnostics", async () => {
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const calls = [];
   const document = { links: ["retained generated response"] };
   const service = makeDocumentRequestService({
@@ -52,9 +51,8 @@ test("shared document executor defers effects and orders credential, fetch, writ
 });
 
 test("shared document executor stops on credential resolution errors without fetching", async () => {
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const failure = new Error("invalid credential");
   const executor = makeDocumentRequestService({
     diagnostics: { info: () => assert.fail("unexpected success") },
@@ -77,9 +75,8 @@ test("shared document executor stops on credential resolution errors without fet
 });
 
 test("shared executor maps only request failures and preserves the original cause", async () => {
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const { DataApiRequestError } = await import("../dist/errors.js");
   const failure = new Error("secret content");
   failure.name = "ResponseError";
@@ -113,9 +110,8 @@ test("shared executor maps only request failures and preserves the original caus
 });
 
 test("shared executor does not map document write errors or announce success", async () => {
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const outputFailure = new Error("cannot write destination");
   let success = false;
   const executor = makeDocumentRequestService({
