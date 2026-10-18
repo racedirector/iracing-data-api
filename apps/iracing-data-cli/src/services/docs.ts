@@ -1,7 +1,7 @@
 /** Documentation execution independent of Commander and application infrastructure. */
+import { mapDataApiRequestError } from "../errors.js";
 import type { CredentialOptions } from "../credentials.js";
 import type { Diagnostics } from "../diagnostics.js";
-import { mapDataApiRequestError } from "../errors.js";
 import type { TokenFormat, TokenOutputOptions } from "../token-output.js";
 import type { DocApi } from "@iracing-data/api-client-fetch";
 
