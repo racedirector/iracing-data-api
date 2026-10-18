@@ -1,7 +1,7 @@
 /** Docs-specific fetch routine over the shared authenticated request executor. */
 import { IRacingAPI } from "../../api.js";
-import type { DocumentRequestService } from "../../services/request.js";
 import type { Options } from "./schema.js";
+import type { DocumentRequestService } from "../../services/request.js";
 
 /** Independently callable documentation execution contract. */
 export interface DocsService {
