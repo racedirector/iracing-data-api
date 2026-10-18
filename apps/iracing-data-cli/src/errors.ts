@@ -11,6 +11,7 @@ export interface DataApiRequestErrorContext {
 
 /** A public-safe Data API failure retaining its original internal cause. */
 export class DataApiRequestError extends Error {
+  /** Explicit safe error category for callers and error reporters. */
   override readonly name = "DataApiRequestError";
 
   /**
@@ -62,6 +63,7 @@ export function mapDataApiRequestError(
   context: DataApiRequestErrorContext,
 ): DataApiRequestError {
   const status = responseStatus(error);
+
   const prefix = "Data API " + context.operation + " request failed";
 
   if (status === 401 || status === 403) {
