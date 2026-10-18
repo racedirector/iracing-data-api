@@ -70,7 +70,12 @@ export function mapDataApiRequestError(
       : "";
 
     return new DataApiRequestError(
-      prefix + " with HTTP " + String(status) + ". Check token expiry" + scope + " and account access; obtain a new token with auth login.",
+      prefix +
+        " with HTTP " +
+        String(status) +
+        ". Check token expiry" +
+        scope +
+        " and account access; obtain a new token with auth login.",
       error,
       status,
     );
@@ -78,7 +83,10 @@ export function mapDataApiRequestError(
 
   if (status !== undefined) {
     return new DataApiRequestError(
-      prefix + " with HTTP " + String(status) + ". Try again; if the failure persists, check iRacing service availability.",
+      prefix +
+        " with HTTP " +
+        String(status) +
+        ". Try again; if the failure persists, check iRacing service availability.",
       error,
       status,
     );
