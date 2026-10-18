@@ -24,6 +24,7 @@ export const DocsOptionsSchema = z
         path: ["format"],
         message: "Unsupported output format: " + input.format,
       });
+
       return z.NEVER;
     }
 
