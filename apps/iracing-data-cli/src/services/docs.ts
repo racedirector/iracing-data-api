@@ -1,6 +1,7 @@
 /** Documentation execution independent of Commander and application infrastructure. */
 import type { CredentialOptions } from "../credentials.js";
 import type { Diagnostics } from "../diagnostics.js";
+import { mapDataApiRequestError } from "../errors.js";
 import type { TokenFormat, TokenOutputOptions } from "../token-output.js";
 import type { DocApi } from "@iracing-data/api-client-fetch";
 
@@ -52,51 +53,6 @@ export interface DocsServiceDependencies {
   ): Promise<void>;
 }
 
-/** Extracts HTTP status only from a generated-client ResponseError. */
-function responseStatus(error: unknown): number | undefined {
-  if (!(error instanceof Error) || error.name !== "ResponseError") {
-    return undefined;
-  }
-
-  const response = (error as Error & { response?: unknown }).response;
-
-  if (!response || typeof response !== "object" || !("status" in response)) {
-    return undefined;
-  }
-
-  const { status } = response as { status?: unknown };
-
-  return typeof status === "number" ? status : undefined;
-}
-
-/** Maps only request failures to secret-safe recovery advice; retains the cause. */
-function mapDocumentationError(error: unknown): Error {
-  const status = responseStatus(error);
-
-  if (status === 401 || status === 403) {
-    return new Error(
-      "Data API documentation request failed with HTTP " +
-        String(status) +
-        ". Check token expiry, iracing.auth scope and account access; obtain a new token with auth login.",
-      { cause: error },
-    );
-  }
-
-  if (status !== undefined) {
-    return new Error(
-      "Data API documentation request failed with HTTP " +
-        String(status) +
-        ". Try again; if the failure persists, check iRacing service availability.",
-      { cause: error },
-    );
-  }
-
-  return new Error(
-    "Data API documentation request failed. Check network connectivity and try again.",
-    { cause: error },
-  );
-}
-
 /**
  * Compose the docs executor from explicit external dependencies.
  * No credential, HTTP, or output I/O occurs until execute is invoked.
@@ -117,7 +73,10 @@ export function makeDocsService(
       try {
         document = await api.doc.getDocs();
       } catch (error) {
-        throw mapDocumentationError(error);
+        throw mapDataApiRequestError(error, {
+          operation: "documentation",
+          requiredScope: "iracing.auth",
+        });
       }
 
       await services.writeDocumentOutput(document, {
