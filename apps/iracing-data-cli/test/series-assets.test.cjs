@@ -40,7 +40,14 @@ function responseError(status) {
 test("assets help exposes series", async () => {
   const { createAssetsCommand } =
     await import("../dist/commands/assets/index.js");
-  const command = createAssetsCommand({ diagnostics, carService: { async execute() { throw new Error("unexpected car execution"); } }, });
+  const command = createAssetsCommand({
+    diagnostics,
+    carService: {
+      async execute() {
+        throw new Error("unexpected car execution");
+      },
+    },
+  });
   assert.match(command.helpInformation(), /\bseries\b/);
 });
 

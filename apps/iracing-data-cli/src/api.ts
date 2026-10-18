@@ -24,9 +24,13 @@ export class IRacingAPI {
     return this.documentation;
   }
 
-  /** Lazy, configured generated car client. */
+  /**
+   * Access the generated car client on first use.
+   * @returns {CarApi} Cached generated car client.
+   */
   get car(): CarApi {
     this.cars ??= new CarApi(this.configuration);
+
     return this.cars;
   }
 

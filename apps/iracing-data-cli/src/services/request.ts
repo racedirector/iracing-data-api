@@ -39,7 +39,11 @@ export interface DocumentRequest<T> {
    */
   fetch(accessToken: string): Promise<T>;
 
-  /** Optional second-stage retrieval, outside generated API error mapping. */
+  /**
+   * Optionally retrieve returned data outside generated API request error mapping.
+   * @param {T} response - Decoded generated request response or opaque envelope.
+   * @returns {Promise<unknown>} Materialized document to publish.
+   */
   materialize?(response: T): Promise<unknown>;
 
   /** Name used in secret-safe request errors. */

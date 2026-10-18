@@ -4,13 +4,21 @@ import type { DocumentRequestService } from "../../../services/request.js";
 import type { MaterializeReturnedDataApiLink } from "../returned-data-api-link.js";
 import type { Options } from "./schema.js";
 
+/** Independently callable car-assets execution contract. */
 export interface CarAssetsService {
+  /**
+   * Fetch and publish the car-assets document.
+   * @param {Options} options - Validated command options.
+   * @returns {Promise<void>} Completion after output publication.
+   */
   execute(options: Options): Promise<void>;
 }
 
 /**
- * Select the generated car operation here, not in Commander or the registrar.
- * The returned-link transport remains an injected external effect.
+ * Select the generated car operation without coupling request execution to the SDK.
+ * @param {DocumentRequestService} requests - Shared authenticated executor.
+ * @param {MaterializeReturnedDataApiLink} materialize - Injected HTTPS link transport.
+ * @returns {CarAssetsService} Car-assets command service.
  */
 export function makeCarAssetsService(
   requests: DocumentRequestService,
