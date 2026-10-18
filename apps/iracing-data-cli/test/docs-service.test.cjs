@@ -139,7 +139,7 @@ test("shared executor does not map document write errors or announce success", a
 });
 
 test("docs handler owns its generated request and selects shared execution", async (t) => {
-  const { makeDocsService } = await import("../dist/services/docs.js");
+  const { makeDocsService } = await import("../dist/commands/docs/index.js");
   const { DocApi } = await import("@iracing-data/api-client-fetch");
   const calls = [];
   const document = { a: "from generated client" };
