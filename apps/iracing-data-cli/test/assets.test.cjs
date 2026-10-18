@@ -32,9 +32,7 @@ test("car schema accepts credentials only with fixed JSON output", async () => {
 });
 
 test("car Commander validates and dispatches without registration I/O", async () => {
-  const { createCarAssetsCommand } = await import(
-    `${assetsDist}/car/index.js`
-  );
+  const { createCarAssetsCommand } = await import(`${assetsDist}/car/index.js`);
   const calls = [];
   const command = createCarAssetsCommand({
     async execute(options) {
@@ -81,9 +79,7 @@ test("assets group and application register without executing car", async () => 
 });
 
 test("car service selects generated CarApi operation, not registrar", async (t) => {
-  const { makeCarAssetsService } = await import(
-    `${assetsDist}/car/service.js`
-  );
+  const { makeCarAssetsService } = await import(`${assetsDist}/car/service.js`);
   const { CarApi } = await import("@iracing-data/api-client-fetch");
   const envelope = {
     link: "https://assets.example.test/car.json?signature=opaque",
@@ -124,12 +120,9 @@ test("car service selects generated CarApi operation, not registrar", async (t) 
 });
 
 test("car executor resolves once, materializes once, writes JSON and then logs", async (t) => {
-  const { makeCarAssetsService } = await import(
-    `${assetsDist}/car/service.js`
-  );
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeCarAssetsService } = await import(`${assetsDist}/car/service.js`);
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const { CarApi } = await import("@iracing-data/api-client-fetch");
   const envelope = {
     link: "https://assets.example.test/car.json?opaque=1",
@@ -153,11 +146,7 @@ test("car executor resolves once, materializes once, writes JSON and then logs",
       return "fake-token";
     },
     async writeDocumentOutput(payload, options) {
-      events.push([
-        "stdout",
-        JSON.stringify(payload, null, 2) + "\n",
-        options,
-      ]);
+      events.push(["stdout", JSON.stringify(payload, null, 2) + "\n", options]);
     },
   });
   const service = makeCarAssetsService(requests, async (link) => {
@@ -187,12 +176,9 @@ test("car executor resolves once, materializes once, writes JSON and then logs",
 });
 
 test("generated request errors are safe, retain cause and stop publication", async (t) => {
-  const { makeCarAssetsService } = await import(
-    `${assetsDist}/car/service.js`
-  );
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeCarAssetsService } = await import(`${assetsDist}/car/service.js`);
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const { CarApi } = await import("@iracing-data/api-client-fetch");
   const { DataApiRequestError } = await import("../dist/errors.js");
   let failure;
@@ -204,9 +190,8 @@ test("generated request errors are safe, retain cause and stop publication", asy
     resolveAccessToken: async () => "synthetic-token",
     writeDocumentOutput: async () => assert.fail("unexpected output"),
   });
-  const service = makeCarAssetsService(
-    executor,
-    async () => assert.fail("unexpected materialization"),
+  const service = makeCarAssetsService(executor, async () =>
+    assert.fail("unexpected materialization"),
   );
 
   for (const problem of [
@@ -233,21 +218,14 @@ test("generated request errors are safe, retain cause and stop publication", asy
 });
 
 test("returned-link failures retain their own safe diagnostics", async (t) => {
-  const { makeCarAssetsService } = await import(
-    `${assetsDist}/car/service.js`
-  );
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeCarAssetsService } = await import(`${assetsDist}/car/service.js`);
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const { CarApi } = await import("@iracing-data/api-client-fetch");
-  const method = t.mock.method(
-    CarApi.prototype,
-    "getCarAssets",
-    async () => ({
-      link: "https://assets.example.test/opaque",
-      expires: new Date("2030-01-01"),
-    }),
-  );
+  const method = t.mock.method(CarApi.prototype, "getCarAssets", async () => ({
+    link: "https://assets.example.test/opaque",
+    expires: new Date("2030-01-01"),
+  }));
   const failure = new Error(
     "Asset payload request failed with HTTP 502. Retry the command to obtain a fresh link.",
   );
@@ -268,12 +246,9 @@ test("returned-link failures retain their own safe diagnostics", async (t) => {
 });
 
 test("invalid credentials stop before the generated request", async () => {
-  const { makeCarAssetsService } = await import(
-    `${assetsDist}/car/service.js`
-  );
-  const { makeDocumentRequestService } = await import(
-    "../dist/services/request.js"
-  );
+  const { makeCarAssetsService } = await import(`${assetsDist}/car/service.js`);
+  const { makeDocumentRequestService } =
+    await import("../dist/services/request.js");
   const failure = new Error("invalid credentials");
   const executor = makeDocumentRequestService({
     diagnostics: { info: () => assert.fail("unexpected success") },

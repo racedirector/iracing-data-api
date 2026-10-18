@@ -11,5 +11,6 @@ export const OptionsSchema = RawOptionsSchema.transform((options) => ({
   ...options,
   format: "json" as const,
 }));
+
 /** Normalized car command options. */
 export type Options = z.output<typeof OptionsSchema>;
