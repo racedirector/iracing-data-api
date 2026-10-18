@@ -1,7 +1,7 @@
 /** Documentation command behavior independent of Commander and request I/O. */
 import { IRacingAPI } from "../api.js";
-import type { DocsOptions } from "../commands/docs-schema.js";
 import type { DocumentRequestService } from "./request.js";
+import type { DocsOptions } from "../commands/docs-schema.js";
 
 /** The docs command's independently executable contract. */
 export interface DocsService {
