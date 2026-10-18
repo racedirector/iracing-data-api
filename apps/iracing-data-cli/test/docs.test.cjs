@@ -54,7 +54,7 @@ function mockHttp(t, status = 200) {
 
 // Capture actual command output while leaving credentials, SDK and writer behavior intact.
 async function run(t, args) {
-  const { createDocsCommand } = await import("../dist/commands/docs.js");
+  const { createProgram } = await import("../dist/program.js");
   const { createDiagnostics } = await import("../dist/diagnostics.js");
   const stdout = [];
   const stderr = [];
@@ -64,9 +64,11 @@ async function run(t, args) {
   });
   let error;
   try {
-    await createDocsCommand({
-      diagnostics: createDiagnostics((message) => stderr.push(`${message}\n`)),
-    })
+    const docsCommand = createProgram(
+      createDiagnostics((message) => stderr.push(`${message}\n`)),
+    ).commands.find((command) => command.name() === "docs");
+    assert.ok(docsCommand);
+    await docsCommand
       .configureOutput({
         writeOut: (text) => stdout.push(text),
         writeErr: (text) => stderr.push(text),
