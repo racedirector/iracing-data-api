@@ -1,15 +1,10 @@
 const assert = require("node:assert/strict");
-const { mkdtemp, readFile, rm, stat, writeFile } = require("node:fs/promises");
+const { spawnSync } = require("node:child_process");
+const fs = require("node:fs/promises");
+const { syncBuiltinESMExports } = require("node:module");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
-
-const responseError = (status) => {
-  const error = new Error("upstream secret body");
-  error.name = "ResponseError";
-  error.response = new Response("secret", { status });
-  return error;
-};
 
 const DOCS = {
   car: {
@@ -20,377 +15,349 @@ const DOCS = {
   },
 };
 
-const diagnostics = { info() {}, warn() {}, error() {} };
-const loadCommand = () => import("../dist/commands/docs/command.js");
-const loadExecutor = () => import("../dist/commands/docs/execute.js");
-
-function testIo({
-  accessToken = "synthetic",
-  fetchDocumentation = async () => DOCS,
-  writeOutput = async () => {},
-  onOptions,
-  onToken,
-} = {}) {
-  return {
-    async resolveAccessToken(options) {
-      onOptions?.(options);
-      return accessToken;
-    },
-    async fetchDocumentation(token) {
-      onToken?.(token);
-      return fetchDocumentation(token);
-    },
-    writeDocumentOutput: writeOutput,
-  };
-}
-
-async function commandWithIo(io, overrides = {}) {
-  const { createDocsCommand } = await loadCommand();
-  const { executeDocs } = await loadExecutor();
-  return createDocsCommand({
-    diagnostics,
-    resolveAccessToken: (options) =>
-      io.resolveAccessToken({ ...overrides, ...options }),
-    execute: (options, context) =>
-      executeDocs({ ...overrides, ...options }, context, io),
+function setToken(t, value) {
+  const saved = process.env.IRACING_ACCESS_TOKEN;
+  if (value === undefined) delete process.env.IRACING_ACCESS_TOKEN;
+  else process.env.IRACING_ACCESS_TOKEN = value;
+  t.after(() => {
+    if (saved === undefined) delete process.env.IRACING_ACCESS_TOKEN;
+    else process.env.IRACING_ACCESS_TOKEN = saved;
   });
 }
 
-test("command registration/help is lazy and invocation resolves then executes once", async () => {
-  const { createDocsCommand } = await loadCommand();
-  const events = [];
-  const command = createDocsCommand({
-    diagnostics,
-    async resolveAccessToken(options) {
-      events.push("token");
-      assert.equal(options.credentials, "token.json");
-      return "resolved";
-    },
-    async execute(options, context) {
-      events.push("execute");
-      assert.equal(context.accessToken, "resolved");
-      assert.equal(context.diagnostics, diagnostics);
-      assert.equal(options.credentials, "token.json");
-    },
-  })
-    .configureOutput({ writeOut() {}, writeErr() {} })
-    .exitOverride();
-  assert.deepEqual(events, []);
-  await assert.rejects(command.parseAsync(["--help"], { from: "user" }), {
-    code: "commander.helpDisplayed",
-  });
-  assert.deepEqual(events, []);
-  await command.parseAsync(["--credentials", "token.json"], { from: "user" });
-  assert.deepEqual(events, ["token", "execute"]);
-});
+test.beforeEach((t) => setToken(t, "synthetic"));
 
-test("command passes the resolved serialization format directly to the executor", async (t) => {
-  const { createDocsCommand } = await loadCommand();
-  for (const [name, args, expected] of [
-    ["explicit YAML", ["--format", "yaml"], "yaml"],
-    ["explicit JSON", ["--format", "json"], "json"],
-    ["YAML extension", ["--output", "docs.yaml"], "yaml"],
-    ["short YAML extension", ["--output", "docs.yml"], "yaml"],
-    [
-      "explicit JSON overrides YAML extension",
-      ["--output", "docs.yaml", "--format", "json"],
-      "json",
-    ],
-    ["default JSON", [], "json"],
-  ]) {
-    await t.test(name, async () => {
-      const events = [];
-      const command = createDocsCommand({
-        diagnostics,
-        async resolveAccessToken() {
-          events.push("token");
-          return "resolved";
+function mockCredentialRead(t, read) {
+  const mocked = t.mock.method(fs, "readFile", read);
+  syncBuiltinESMExports();
+  t.after(() => {
+    mocked.mock.restore();
+    syncBuiltinESMExports();
+  });
+  return mocked.mock;
+}
+
+function mockHttp(t, status = 200) {
+  return t.mock.method(
+    globalThis,
+    "fetch",
+    async () =>
+      new Response(
+        JSON.stringify(status === 200 ? DOCS : { secret: "upstream secret" }),
+        {
+          status,
+          headers: { "content-type": "application/json" },
         },
-        async execute(options, context) {
-          events.push("execute");
-          assert.equal(options.format, expected);
-          assert.equal(
-            options.output,
-            args.includes("--output")
-              ? args[args.indexOf("--output") + 1]
-              : undefined,
-          );
-          assert.equal(context.accessToken, "resolved");
-        },
-      });
-      await command.parseAsync(args, { from: "user" });
-      assert.deepEqual(events, ["token", "execute"]);
-    });
+      ),
+  ).mock;
+}
+
+// Capture actual command output while leaving credentials, SDK and writer behavior intact.
+async function run(t, args) {
+  const { createDocsCommand } = await import("../dist/commands/docs.js");
+  const { createDiagnostics } = await import("../dist/diagnostics.js");
+  const stdout = [];
+  const stderr = [];
+  const output = t.mock.method(process.stdout, "write", (text) => {
+    stdout.push(text);
+    return true;
+  });
+  let error;
+  try {
+    await createDocsCommand({
+      diagnostics: createDiagnostics((message) => stderr.push(`${message}\n`)),
+    })
+      .configureOutput({
+        writeOut: (text) => stdout.push(text),
+        writeErr: (text) => stderr.push(text),
+      })
+      .exitOverride()
+      .parseAsync(args, { from: "user" });
+  } catch (caught) {
+    error = caught;
+  } finally {
+    output.mock.restore();
   }
+  return { stdout: stdout.join(""), stderr: stderr.join(""), error };
+}
+
+test("program registration and docs help perform no credential, HTTP or document I/O", async (t) => {
+  setToken(t, undefined);
+  const reads = mockCredentialRead(t, async () => {
+    throw new Error("unexpected credential read");
+  });
+  const http = mockHttp(t);
+  const { createProgram } = await import("../dist/program.js");
+  const diagnostics = {
+    info() {
+      assert.fail("unexpected diagnostic");
+    },
+    warn() {},
+    error() {},
+  };
+  const stdout = t.mock.method(process.stdout, "write", () => true);
+  createProgram(diagnostics);
+  stdout.mock.restore();
+  assert.equal(stdout.mock.callCount(), 0);
+  const result = await run(t, ["--help"]);
+  assert.equal(result.error.code, "commander.helpDisplayed");
+  assert.match(result.stdout, /--credentials/);
+  assert.match(result.stdout, /--format/);
+  assert.match(result.stdout, /--force/);
+  assert.equal(reads.callCount(), 0);
+  assert.equal(http.callCount(), 0);
 });
 
-test("invalid format and Commander input never resolve credentials", async () => {
-  const { createDocsCommand } = await loadCommand();
+test("invalid format and Commander input fail before credentials or HTTP", async (t) => {
+  setToken(t, undefined);
+  const reads = mockCredentialRead(t, async () => {
+    throw new Error("unexpected read");
+  });
+  const http = mockHttp(t);
   for (const args of [
     ["--format", "toml"],
     ["--credentials"],
     ["--snapshot"],
   ]) {
-    const calls = [];
-    const command = createDocsCommand({
-      diagnostics,
-      async resolveAccessToken() {
-        calls.push("token");
-        return "synthetic";
-      },
-      async execute() {
-        calls.push("execute");
-      },
-    })
-      .configureOutput({ writeErr() {} })
-      .exitOverride();
-    await assert.rejects(
-      command.parseAsync(args, { from: "user" }),
+    const result = await run(t, args);
+    assert.match(
+      result.error.message,
       args[0] === "--format" ? /Unsupported output format/ : /option/,
     );
-    assert.deepEqual(calls, []);
+    assert.equal(result.stdout, "");
+    assert.doesNotMatch(result.stderr, /documentation fetched/);
   }
+  assert.equal(reads.callCount(), 0);
+  assert.equal(http.callCount(), 0);
 });
 
-test("credential rejection prevents execution", async () => {
-  const { createDocsCommand } = await loadCommand();
-  const failure = new Error("credential failure");
-  const command = createDocsCommand({
-    diagnostics,
-    async resolveAccessToken() {
-      throw failure;
-    },
-    async execute() {
-      assert.fail("execution");
-    },
+test("docs invokes the generated operation once at the canonical URL and preserves JSON", async (t) => {
+  const { DocApi } = await import("@iracing-data/api-client-fetch");
+  const operation = t.mock.method(DocApi.prototype, "getDocs");
+  const http = mockHttp(t);
+  const reads = mockCredentialRead(t, async () => {
+    throw new Error("unexpected read");
   });
-  await assert.rejects(
-    command.parseAsync([], { from: "user" }),
-    (error) => error === failure,
+  const result = await run(t, []);
+  assert.equal(result.error, undefined);
+  assert.equal(result.stdout, JSON.stringify(DOCS, null, 2) + "\n");
+  assert.equal(result.stderr, "Data API documentation fetched.\n");
+  assert.equal(operation.mock.callCount(), 1);
+  assert.equal(http.callCount(), 1);
+  const [url, init] = http.calls[0].arguments;
+  assert.equal(url, "https://members-ng.iracing.com/data/doc");
+  assert.equal(init.method, "GET");
+  assert.equal(
+    new Headers(init.headers).get("authorization"),
+    "Bearer synthetic",
   );
+  assert.equal(reads.callCount(), 0);
 });
 
-test("executor fetches and writes once before success; writer errors retain identity", async () => {
-  const { executeDocs } = await loadExecutor();
-  const events = [];
-  const context = {
-    accessToken: "resolved",
-    diagnostics: {
-      ...diagnostics,
-      info(message) {
-        events.push(message);
-      },
-    },
-  };
-  const failure = new Error("output failure");
-  const io = {
-    async fetchDocumentation(token) {
-      assert.equal(token, "resolved");
-      events.push("get");
-      return DOCS;
-    },
-    async writeDocumentOutput(document, options) {
-      assert.equal(document, DOCS);
-      assert.equal(options.outputLabel, "Documentation");
-      events.push("write");
-    },
-  };
-  await executeDocs({}, context, io);
-  assert.deepEqual(events, ["get", "write", "Data API documentation fetched."]);
-  events.length = 0;
-  await assert.rejects(
-    executeDocs({}, context, {
-      ...io,
-      async writeDocumentOutput() {
-        throw failure;
-      },
-    }),
-    (error) => error === failure,
-  );
-  assert.deepEqual(events, ["get"]);
-});
-
-test("executor maps generated client failures without exposing upstream content", async () => {
-  for (const [error, expected] of [
-    [responseError(403), /HTTP 403.*Check token expiry/],
-    [responseError(401), /HTTP 401.*Check token expiry/],
-    [responseError(500), /HTTP 500.*service availability/],
-    [new Error("synthetic secret"), /network connectivity/],
+test("format selection preserves explicit YAML/JSON, extension inference and JSON defaults", async (t) => {
+  const { parse } = await import("yaml");
+  mockHttp(t);
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "iracing-docs-formats-"));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  for (const [name, args, yaml] of [
+    ["explicit-yaml", ["--format", "yaml"], true],
+    ["explicit-json", ["--format", "json"], false],
+    ["default", [], false],
+    ["inferred.yaml", [], true],
+    ["inferred.yml", [], true],
+    ["override.yaml", ["--format", "json"], false],
   ]) {
-    const { executeDocs } = await loadExecutor();
-    const io = testIo({
-      async fetchDocumentation() {
-        throw error;
-      },
-      async writeOutput() {
-        assert.fail("failed request must not write");
-      },
-    });
-    await assert.rejects(
-      executeDocs({}, { accessToken: "synthetic", diagnostics }, io),
-      (mapped) => {
-        assert.match(mapped.message, expected);
-        assert.doesNotMatch(mapped.message, /secret/);
-        assert.equal(mapped.cause, error);
-        return true;
-      },
-    );
+    const output = name.includes(".") ? path.join(dir, name) : undefined;
+    const result = await run(t, output ? [...args, "--output", output] : args);
+    assert.equal(result.error, undefined);
+    const text = output ? await fs.readFile(output, "utf8") : result.stdout;
+    assert.deepEqual(yaml ? parse(text) : JSON.parse(text), DOCS);
+    if (yaml) assert.match(text, /^car:/);
+    else assert.equal(text, JSON.stringify(DOCS, null, 2) + "\n");
+    if (output) assert.equal(result.stdout, "");
   }
 });
 
-test("executor owns documentation output policy", async (t) => {
-  const { writeDocumentOutput } = await import("../dist/token-output.js");
-  const dir = await mkdtemp(path.join(os.tmpdir(), "iracing-docs-output-"));
-  t.after(() => rm(dir, { recursive: true, force: true }));
+test("private file output refuses overwrite and supports force; write failures suppress success", async (t) => {
+  mockHttp(t);
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "iracing-docs-output-"));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
   const output = path.join(dir, "docs.json");
-
-  const io = testIo({ writeOutput: writeDocumentOutput });
-  const command = () => commandWithIo(io);
-
-  await (await command()).parseAsync([`--output=${output}`], { from: "user" });
-  assert.deepEqual(JSON.parse(await readFile(output, "utf8")), DOCS);
+  const first = await run(t, ["--output", output]);
+  assert.equal(first.error, undefined);
+  assert.equal(first.stdout, "");
   if (process.platform !== "win32")
-    assert.equal((await stat(output)).mode & 0o777, 0o600);
-  await assert.rejects(
-    (await command()).parseAsync(["--output", output], { from: "user" }),
-    /already exists/,
+    assert.equal((await fs.stat(output)).mode & 0o777, 0o600);
+  await fs.writeFile(output, "previous");
+  const refused = await run(t, ["--output", output]);
+  assert.match(refused.error.message, /already exists/);
+  assert.doesNotMatch(refused.error.message, /documentation request failed/);
+  assert.equal(refused.stdout, "");
+  assert.equal(refused.stderr, "");
+  assert.equal(await fs.readFile(output, "utf8"), "previous");
+  const forced = await run(t, ["--output", output, "--force"]);
+  assert.equal(forced.error, undefined);
+  assert.equal(forced.stdout, "");
+  assert.deepEqual(JSON.parse(await fs.readFile(output, "utf8")), DOCS);
+  assert.match(forced.stderr, /documentation fetched/);
+});
+
+test("default credentials are read exactly once when no environment token exists", async (t) => {
+  setToken(t, undefined);
+  const { defaultCredentialsPath } = await import("../dist/credentials.js");
+  const reads = mockCredentialRead(
+    t,
+    async () => '{"access_token":"default-file"}',
+  );
+  const http = mockHttp(t);
+  const result = await run(t, []);
+  assert.equal(result.error, undefined);
+  assert.equal(reads.callCount(), 1);
+  assert.equal(reads.calls[0].arguments[0], defaultCredentialsPath);
+  assert.equal(
+    new Headers(http.calls[0].arguments[1].headers).get("authorization"),
+    "Bearer default-file",
   );
 });
 
-test("snapshot option is retired", async () => {
-  const { createDocsCommand } = await loadCommand();
-  const command = createDocsCommand({
-    diagnostics,
-    async resolveAccessToken() {
-      assert.fail("token must not be resolved");
-    },
-    async execute() {
-      assert.fail("executor must not run");
-    },
-  });
-  command.configureOutput({ writeErr() {} });
-  command.exitOverride();
-
-  await assert.rejects(
-    command.parseAsync(["--snapshot"], { from: "user" }),
-    (error) => {
-      assert.equal(error.code, "commander.unknownOption");
-      assert.match(error.message, /unknown option '--snapshot'/);
-      return true;
-    },
+test("explicit JSON/YAML credentials override the environment and are read once", async (t) => {
+  const dir = await fs.mkdtemp(
+    path.join(os.tmpdir(), "iracing-docs-credentials-"),
   );
-});
-
-test("command can resolve the repository credential file through the existing credential owner", async (t) => {
-  const { resolveAccessToken, defaultCredentialsPath } =
-    await import("../dist/credentials.js");
-  const saved = process.env.IRACING_ACCESS_TOKEN;
-  delete process.env.IRACING_ACCESS_TOKEN;
-  t.after(() => {
-    if (saved === undefined) delete process.env.IRACING_ACCESS_TOKEN;
-    else process.env.IRACING_ACCESS_TOKEN = saved;
-  });
-
-  let token;
-  const io = {
-    resolveAccessToken,
-    async fetchDocumentation(accessToken) {
-      token = accessToken;
-      return DOCS;
-    },
-    async writeDocumentOutput() {},
-  };
-
-  const command = await commandWithIo(io, {
-    readCredentials: async (file) => {
-      assert.equal(file, defaultCredentialsPath);
-      return '{"access_token":"default-file"}';
-    },
-  });
-  await command.parseAsync([], { from: "user" });
-  assert.equal(token, "default-file");
-});
-
-test("command honors explicit JSON and YAML credential files", async (t) => {
-  const { resolveAccessToken } = await import("../dist/credentials.js");
-  const dir = await mkdtemp(path.join(os.tmpdir(), "iracing-docs-"));
-  t.after(() => rm(dir, { recursive: true, force: true }));
-
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  const http = mockHttp(t);
   for (const [name, contents] of [
     ["token.json", '{"access_token":"from-file"}'],
     ["token.yaml", "access_token: from-file\n"],
   ]) {
     const file = path.join(dir, name);
-    await writeFile(file, contents, { mode: 0o600 });
-    let token;
-    const io = {
-      resolveAccessToken,
-      async fetchDocumentation(accessToken) {
-        token = accessToken;
-        return DOCS;
-      },
-      async writeDocumentOutput() {},
-    };
-    const command = await commandWithIo(io, {
-      credentials: file,
-      accessToken: "other",
-    });
-    await command.parseAsync(["--credentials", file], { from: "user" });
-    assert.equal(token, "from-file");
+    await fs.writeFile(file, contents, { mode: 0o600 });
+    const reads = mockCredentialRead(t, fs.readFile);
+    const result = await run(t, ["--credentials", file]);
+    assert.equal(result.error, undefined);
+    assert.equal(reads.callCount(), 1);
+    assert.equal(reads.calls[0].arguments[0], file);
+    reads.restore();
+    syncBuiltinESMExports();
+    assert.equal(
+      new Headers(http.calls.at(-1).arguments[1].headers).get("authorization"),
+      "Bearer from-file",
+    );
   }
 });
 
-test("selected invalid credentials fail closed before documentation retrieval", async () => {
-  const { resolveAccessToken } = await import("../dist/credentials.js");
-  for (const readCredentials of [
-    async () => "invalid-json",
-    async () => {
-      throw new Error("secret");
-    },
+test("invalid selected credential files fail closed without a request", async (t) => {
+  const http = mockHttp(t);
+  const dir = await fs.mkdtemp(path.join(os.tmpdir(), "iracing-docs-invalid-"));
+  t.after(() => fs.rm(dir, { recursive: true, force: true }));
+  for (const [name, contents] of [
+    ["malformed.json", "invalid-json"],
+    ["empty.yaml", "access_token: ''"],
+    ["unreadable.json", undefined],
   ]) {
-    const command = await commandWithIo(
-      {
-        resolveAccessToken,
-        async fetchDocumentation() {
-          assert.fail("documentation must not be fetched");
-        },
-        async writeDocumentOutput() {
-          assert.fail("output must not be written");
-        },
+    const file = path.join(dir, name);
+    if (contents !== undefined) await fs.writeFile(file, contents);
+    const result = await run(t, ["--credentials", file]);
+    assert.match(
+      result.error.message,
+      /Unable to read credentials|without a Bearer prefix/,
+    );
+    assert.doesNotMatch(result.error.message, /documentation request failed/);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  }
+  assert.equal(http.callCount(), 0);
+});
+
+test("invalid bearer values prevent requests", async (t) => {
+  const http = mockHttp(t);
+  for (const token of [" ", "bad\r\ntoken", "Bearer synthetic"]) {
+    setToken(t, token);
+    const result = await run(t, []);
+    assert.match(result.error.message, /without a Bearer prefix/);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+  }
+  assert.equal(http.callCount(), 0);
+});
+
+test("credential utility preserves programmatic precedence without adding command injection", async () => {
+  const { resolveAccessToken } = await import("../dist/credentials.js");
+  assert.equal(
+    await resolveAccessToken({ accessToken: "injected" }),
+    "injected",
+  );
+  for (const file of ["selected.json", "selected.yaml"]) {
+    let reads = 0;
+    const token = await resolveAccessToken({
+      credentials: file,
+      accessToken: "injected",
+      readCredentials: async () => {
+        reads++;
+        return file.endsWith("yaml")
+          ? "access_token: selected"
+          : '{"access_token":"selected"}';
       },
-      { accessToken: "fallback", readCredentials },
-    );
-    await assert.rejects(
-      command.parseAsync(["--credentials", "selected.json"], { from: "user" }),
-      /Unable to read credentials/,
-    );
+    });
+    assert.equal(token, "selected");
+    assert.equal(reads, 1);
   }
 });
 
-test("executor preserves JSON stdout and YAML file output with force replacement", async (t) => {
-  const { executeDocs } = await loadExecutor();
-  const { writeDocumentOutput } = await import("../dist/token-output.js");
-  const { parse } = await import("yaml");
-  const dir = await mkdtemp(path.join(os.tmpdir(), "iracing-docs-formats-"));
-  t.after(() => rm(dir, { recursive: true, force: true }));
-  const io = testIo({ writeOutput: writeDocumentOutput });
-  const context = { accessToken: "synthetic", diagnostics };
-  const stdout = [];
-  await executeDocs({ writeStdout: (text) => stdout.push(text) }, context, io);
-  assert.equal(stdout.length, 1);
-  assert.equal(stdout[0], JSON.stringify(DOCS, null, 2) + "\n");
-  const output = path.join(dir, "docs.yaml");
-  await writeFile(output, "old");
-  await executeDocs(
-    {
-      output,
-      force: true,
-      writeStdout() {
-        assert.fail("file output must leave stdout empty");
+test("HTTP and network errors retain internal causes but expose only safe advice", async (t) => {
+  for (const [status, expected] of [
+    [401, /HTTP 401.*Check token expiry/],
+    [403, /HTTP 403.*Check token expiry/],
+    [500, /HTTP 500.*service availability/],
+  ]) {
+    const http = mockHttp(t, status);
+    const result = await run(t, []);
+    assert.match(result.error.message, expected);
+    assert.doesNotMatch(result.error.message, /secret|synthetic/);
+    assert.equal(result.error.cause.name, "ResponseError");
+    assert.equal(result.error.cause.response.status, status);
+    assert.equal(result.stdout, "");
+    assert.equal(result.stderr, "");
+    assert.equal(http.callCount(), 1);
+    http.restore();
+  }
+  const failure = new Error("upstream secret synthetic");
+  t.mock.method(globalThis, "fetch", async () => {
+    throw failure;
+  });
+  const result = await run(t, []);
+  assert.match(result.error.message, /network connectivity/);
+  assert.doesNotMatch(result.error.message, /secret|synthetic/);
+  assert.equal(result.error.cause.cause, failure);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "");
+});
+
+test("CLI entry point separates data/diagnostics and redacts upstream errors", () => {
+  const entry = path.resolve(__dirname, "../dist/index.js");
+  for (const status of [200, 401]) {
+    const script = `globalThis.fetch = async () => new Response(${JSON.stringify(JSON.stringify(status === 200 ? DOCS : { secret: "upstream secret" }))}, { status: ${status} });`;
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        `data:text/javascript,${encodeURIComponent(script)}`,
+        entry,
+        "docs",
+      ],
+      {
+        encoding: "utf8",
+        env: { ...process.env, IRACING_ACCESS_TOKEN: "synthetic" },
       },
-    },
-    context,
-    io,
-  );
-  assert.deepEqual(parse(await readFile(output, "utf8")), DOCS);
+    );
+    assert.equal(result.status, status === 200 ? 0 : 1, result.stderr);
+    if (status === 200) {
+      assert.equal(result.stdout, JSON.stringify(DOCS, null, 2) + "\n");
+      assert.equal(result.stderr, "Data API documentation fetched.\n");
+    } else {
+      assert.equal(result.stdout, "");
+      assert.match(result.stderr, /HTTP 401/);
+      assert.doesNotMatch(result.stderr, /secret|synthetic|ResponseError/);
+    }
+  }
 });
