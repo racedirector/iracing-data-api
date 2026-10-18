@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 test("docs Commander adapter parses flags and dispatches normalized input", async () => {
-  const { createDocsCommand } = await import("../dist/commands/docs.js");
+  const { createDocsCommand } = await import("../dist/commands/docs/index.js");
   const calls = [];
   const command = createDocsCommand({
     async execute(options) {
@@ -34,7 +34,7 @@ test("docs Commander adapter parses flags and dispatches normalized input", asyn
 });
 
 test("docs Commander adapter rejects invalid format before invoking service", async () => {
-  const { createDocsCommand } = await import("../dist/commands/docs.js");
+  const { createDocsCommand } = await import("../dist/commands/docs/index.js");
   let called = false;
   const command = createDocsCommand({
     async execute() {
@@ -49,7 +49,7 @@ test("docs Commander adapter rejects invalid format before invoking service", as
 });
 
 test("docs Commander adapter propagates service errors without handling requests itself", async () => {
-  const { createDocsCommand } = await import("../dist/commands/docs.js");
+  const { createDocsCommand } = await import("../dist/commands/docs/index.js");
   const failure = new Error("service failed");
   const command = createDocsCommand({
     async execute() {
@@ -63,7 +63,7 @@ test("docs Commander adapter propagates service errors without handling requests
 });
 
 test("docs registration does not invoke its service", async () => {
-  const { createDocsCommand } = await import("../dist/commands/docs.js");
+  const { createDocsCommand } = await import("../dist/commands/docs/index.js");
   let count = 0;
   const command = createDocsCommand({
     async execute() {
