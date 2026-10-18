@@ -53,7 +53,9 @@ test("docs service stops when credential resolution rejects", async () => {
   const failure = new Error("selected credential file is invalid");
   const service = makeDocsService({
     diagnostics: { info: () => assert.fail("unexpected success") },
-    resolveAccessToken: async () => { throw failure; },
+    resolveAccessToken: async () => {
+      throw failure;
+    },
     createApi: () => assert.fail("unexpected API construction"),
     writeDocumentOutput: async () => assert.fail("unexpected output"),
   });
@@ -74,7 +76,9 @@ test("docs service maps only generated request failures and retains their cause"
     resolveAccessToken: async () => "token",
     createApi: () => ({
       doc: {
-        getDocs: async () => { throw upstreamFailure; },
+        getDocs: async () => {
+          throw upstreamFailure;
+        },
       },
     }),
     writeDocumentOutput: async () => assert.fail("unexpected output"),
@@ -92,12 +96,18 @@ test("docs service propagates publication failures without relabeling them", asy
   const outputFailure = new Error("cannot write destination");
   let success = false;
   const service = makeDocsService({
-    diagnostics: { info: () => { success = true; } },
+    diagnostics: {
+      info: () => {
+        success = true;
+      },
+    },
     resolveAccessToken: async () => "token",
     createApi: () => ({
       doc: { getDocs: async () => ({ correct: true }) },
     }),
-    writeDocumentOutput: async () => { throw outputFailure; },
+    writeDocumentOutput: async () => {
+      throw outputFailure;
+    },
   });
   await assert.rejects(
     service.execute({ format: "yaml" }),
