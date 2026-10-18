@@ -1,12 +1,24 @@
 /** Generic authenticated request and document-output execution for CLI commands. */
+import { z } from "zod";
 import { mapDataApiRequestError } from "../errors.js";
-import type { CredentialOptions } from "../credentials.js";
 import type { Diagnostics } from "../diagnostics.js";
 import type { TokenOutputOptions } from "../token-output.js";
 
-/** Public CLI inputs needed by an authenticated document request. */
-export type DocumentInput = Pick<CredentialOptions, "credentials"> &
-  Pick<TokenOutputOptions, "output" | "format" | "force">;
+/** Supported output formats for authenticated document commands. */
+export const DocumentFormatSchema = z.enum(["json", "yaml"], {
+  error: ({ input }) => "Unsupported output format: " + String(input),
+});
+
+/** Parsed, normalized input accepted by the shared request/output routine. */
+export const DocumentInputSchema = z.strictObject({
+  credentials: z.string().optional(),
+  output: z.string().optional(),
+  format: DocumentFormatSchema,
+  force: z.boolean().optional(),
+});
+
+/** Shared authenticated-document input derived from its authoritative schema. */
+export type DocumentInput = z.output<typeof DocumentInputSchema>;
 
 /** A command's policy for fetching and presenting one document. */
 export interface DocumentRequest<T> {
@@ -50,10 +62,10 @@ export interface DocumentRequestDependencies {
 
   /**
    * Resolve one token using the application's selected credential policy.
-   * @param {CredentialOptions} options - Credential selection.
+   * @param {Pick<DocumentInput, "credentials">} options - Credential selection.
    * @returns {Promise<string>} Access token.
    */
-  resolveAccessToken(options: CredentialOptions): Promise<string>;
+  resolveAccessToken(options: Pick<DocumentInput, "credentials">): Promise<string>;
 
   /**
    * Publish arbitrary command data through the existing secure output writer.
