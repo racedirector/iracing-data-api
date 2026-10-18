@@ -23,8 +23,7 @@ test("docs schema transforms RawOptions into validated Options", async () => {
 });
 
 test("docs schema owns format inference and respects explicit formats", async () => {
-  const { OptionsSchema } =
-    await import("../dist/commands/docs/index.js");
+  const { OptionsSchema } = await import("../dist/commands/docs/index.js");
   assert.equal(OptionsSchema.parse({}).format, "json");
   assert.equal(OptionsSchema.parse({ output: "report.YAML" }).format, "yaml");
   assert.equal(OptionsSchema.parse({ output: "report.yml" }).format, "yaml");
@@ -55,7 +54,10 @@ test("shared request schema validates normalized input and writer options", asyn
     force: true,
   };
   assert.deepEqual(DocumentInputSchema.parse(normalized), normalized);
-  assert.equal(DocumentInputSchema.safeParse({ format: "toml" }).success, false);
+  assert.equal(
+    DocumentInputSchema.safeParse({ format: "toml" }).success,
+    false,
+  );
   assert.equal(DocumentInputSchema.safeParse({}).success, false);
   assert.deepEqual(
     DocumentOutputSchema.parse({
