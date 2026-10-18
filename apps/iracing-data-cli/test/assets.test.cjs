@@ -257,9 +257,8 @@ test("invalid credentials stop before the generated request", async () => {
     },
     writeDocumentOutput: async () => assert.fail("unexpected output"),
   });
-  const service = makeCarAssetsService(
-    executor,
-    async () => assert.fail("unexpected materialization"),
+  const service = makeCarAssetsService(executor, async () =>
+    assert.fail("unexpected materialization"),
   );
 
   await assert.rejects(
