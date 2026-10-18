@@ -337,19 +337,21 @@ test("HTTP and network errors retain internal causes but expose only safe advice
 
 test("CLI entry point separates data/diagnostics and redacts upstream errors", () => {
   const entry = path.resolve(__dirname, "../dist/index.js");
+  const fixture = path.resolve(__dirname, "fixtures/docs-fetch.mjs");
+
   for (const status of [200, 401]) {
-    const script = `globalThis.fetch = async () => new Response(${JSON.stringify(JSON.stringify(status === 200 ? DOCS : { secret: "upstream secret" }))}, { status: ${status} });`;
+    const payload = status === 200 ? DOCS : { secret: "upstream secret" };
     const result = spawnSync(
       process.execPath,
-      [
-        "--import",
-        `data:text/javascript,${encodeURIComponent(script)}`,
-        entry,
-        "docs",
-      ],
+      ["--import", fixture, entry, "docs"],
       {
         encoding: "utf8",
-        env: { ...process.env, IRACING_ACCESS_TOKEN: "synthetic" },
+        env: {
+          ...process.env,
+          IRACING_ACCESS_TOKEN: "synthetic",
+          IRACING_TEST_HTTP_STATUS: String(status),
+          IRACING_TEST_HTTP_BODY: JSON.stringify(payload),
+        },
       },
     );
     assert.equal(result.status, status === 200 ? 0 : 1, result.stderr);
