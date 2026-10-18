@@ -27,8 +27,8 @@ export function createProgram(diagnostics: Diagnostics) {
       resolveAccessToken,
       execute: (options, context) =>
         executeDocs(options, context, {
-          createDocumentationClient: (accessToken) =>
-            new DocApi(new Configuration({ accessToken })),
+          fetchDocumentation: (accessToken) =>
+            new DocApi(new Configuration({ accessToken })).getDocs(),
           writeDocumentOutput,
         }),
     }),

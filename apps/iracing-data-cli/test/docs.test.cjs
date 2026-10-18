@@ -26,7 +26,7 @@ const loadExecutor = () => import("../dist/commands/docs/execute.js");
 
 function testIo({
   accessToken = "synthetic",
-  getDocs = async () => DOCS,
+  fetchDocumentation = async () => DOCS,
   writeOutput = async () => {},
   onOptions,
   onToken,
@@ -36,9 +36,9 @@ function testIo({
       onOptions?.(options);
       return accessToken;
     },
-    createDocumentationClient(token) {
+    async fetchDocumentation(token) {
       onToken?.(token);
-      return { getDocs };
+      return fetchDocumentation(token);
     },
     writeDocumentOutput: writeOutput,
   };
@@ -138,15 +138,10 @@ test("executor fetches and writes once before success; writer errors retain iden
   };
   const failure = new Error("output failure");
   const io = {
-    createDocumentationClient(token) {
+    async fetchDocumentation(token) {
       assert.equal(token, "resolved");
-      events.push("client");
-      return {
-        async getDocs() {
-          events.push("get");
-          return DOCS;
-        },
-      };
+      events.push("get");
+      return DOCS;
     },
     async writeDocumentOutput(document, options) {
       assert.equal(document, DOCS);
@@ -155,12 +150,7 @@ test("executor fetches and writes once before success; writer errors retain iden
     },
   };
   await executeDocs({}, context, io);
-  assert.deepEqual(events, [
-    "client",
-    "get",
-    "write",
-    "Data API documentation fetched.",
-  ]);
+  assert.deepEqual(events, ["get", "write", "Data API documentation fetched."]);
   events.length = 0;
   await assert.rejects(
     executeDocs({}, context, {
@@ -171,7 +161,7 @@ test("executor fetches and writes once before success; writer errors retain iden
     }),
     (error) => error === failure,
   );
-  assert.deepEqual(events, ["client", "get"]);
+  assert.deepEqual(events, ["get"]);
 });
 
 test("executor maps generated client failures without exposing upstream content", async () => {
@@ -183,7 +173,7 @@ test("executor maps generated client failures without exposing upstream content"
   ]) {
     const { executeDocs } = await loadExecutor();
     const io = testIo({
-      async getDocs() {
+      async fetchDocumentation() {
         throw error;
       },
       async writeOutput() {
@@ -258,13 +248,9 @@ test("command can resolve the repository credential file through the existing cr
   let token;
   const io = {
     resolveAccessToken,
-    createDocumentationClient(accessToken) {
+    async fetchDocumentation(accessToken) {
       token = accessToken;
-      return {
-        async getDocs() {
-          return DOCS;
-        },
-      };
+      return DOCS;
     },
     async writeDocumentOutput() {},
   };
@@ -293,13 +279,9 @@ test("command honors explicit JSON and YAML credential files", async (t) => {
     let token;
     const io = {
       resolveAccessToken,
-      createDocumentationClient(accessToken) {
+      async fetchDocumentation(accessToken) {
         token = accessToken;
-        return {
-          async getDocs() {
-            return DOCS;
-          },
-        };
+        return DOCS;
       },
       async writeDocumentOutput() {},
     };
@@ -312,7 +294,7 @@ test("command honors explicit JSON and YAML credential files", async (t) => {
   }
 });
 
-test("selected invalid credentials fail closed before client construction", async () => {
+test("selected invalid credentials fail closed before documentation retrieval", async () => {
   const { resolveAccessToken } = await import("../dist/credentials.js");
   for (const readCredentials of [
     async () => "invalid-json",
@@ -323,8 +305,8 @@ test("selected invalid credentials fail closed before client construction", asyn
     const command = await commandWithIo(
       {
         resolveAccessToken,
-        createDocumentationClient() {
-          assert.fail("client must not be constructed");
+        async fetchDocumentation() {
+          assert.fail("documentation must not be fetched");
         },
         async writeDocumentOutput() {
           assert.fail("output must not be written");

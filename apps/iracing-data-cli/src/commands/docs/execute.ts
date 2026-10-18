@@ -61,8 +61,8 @@ function mapDocumentationError(error: unknown): Error {
  * @param {object} context - Resolved invocation context.
  * @param {string} context.accessToken - Validated bearer token.
  * @param {Diagnostics} context.diagnostics - Secret-safe progress sink.
- * @param {object} io - Required client construction and output dependencies, supplied by the caller.
- * @param {Function} io.createDocumentationClient - Construct the generated client.
+ * @param {object} io - Required documentation retrieval and output operations, supplied by the caller.
+ * @param {Function} io.fetchDocumentation - Retrieve documentation using the resolved token.
  * @param {Function} io.writeDocumentOutput - Shared output writer.
  * @returns {Promise<void>} Completion after output and success diagnostics.
  */
@@ -70,21 +70,17 @@ export async function executeDocs(
   options: DocsOptions,
   context: { accessToken: string; diagnostics: Diagnostics },
   io: {
-    createDocumentationClient: (accessToken: string) => {
-      getDocs(): Promise<DataApiDocumentation>;
-    };
+    fetchDocumentation: (accessToken: string) => Promise<DataApiDocumentation>;
     writeDocumentOutput: (
       document: DataApiDocumentation,
       options: TokenOutputOptions,
     ) => Promise<void>;
   },
 ): Promise<void> {
-  const api = io.createDocumentationClient(context.accessToken);
-
   let document: DataApiDocumentation;
 
   try {
-    document = await api.getDocs();
+    document = await io.fetchDocumentation(context.accessToken);
   } catch (error) {
     throw mapDocumentationError(error);
   }
