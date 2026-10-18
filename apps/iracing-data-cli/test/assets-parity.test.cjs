@@ -49,7 +49,7 @@ test("canonical OpenAPI runtime asset services match authored assets leaves", as
 
   const { createAssetsCommand } =
     await import("../dist/commands/assets/index.js");
-  const authored = createAssetsCommand({ diagnostics })
+  const authored = createAssetsCommand({ diagnostics, carService: { async execute() { throw new Error("unexpected car execution"); } }, })
     .commands.map((command) => command.name())
     .sort();
 

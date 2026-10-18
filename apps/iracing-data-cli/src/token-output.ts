@@ -57,7 +57,7 @@ export interface TokenOutputOptions {
   force?: boolean;
 
   /** Human-readable document kind used in output errors. */
-  outputLabel?: "Credential" | "Documentation";
+  outputLabel?: "Credential" | "Documentation" | "Assets";
 
   /** Directory used to resolve relative output paths. */
   cwd?: string;

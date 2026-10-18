@@ -1,3 +1,6 @@
+/** Injectable boundary shared by the assets command services. */
+export type MaterializeReturnedDataApiLink = (link: string) => Promise<unknown>;
+
 const DEFAULT_RETURNED_LINK_TIMEOUT_MS = 15_000;
 
 /** Injectable transport and timeout policy for returned Data API links. */
