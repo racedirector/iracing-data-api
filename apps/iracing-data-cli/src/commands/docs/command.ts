@@ -43,9 +43,10 @@ export function createDocsCommand({
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
     .action(async (options) => {
-      resolveTokenFormat(options.output, options.format);
+      const format = resolveTokenFormat(options.output, options.format);
+
       const accessToken = await resolveToken(options);
 
-      await execute(options, { accessToken, diagnostics });
+      await execute({ ...options, format }, { accessToken, diagnostics });
     });
 }

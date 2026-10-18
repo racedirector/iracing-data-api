@@ -84,6 +84,46 @@ test("command registration/help is lazy and invocation resolves then executes on
   assert.deepEqual(events, ["token", "execute"]);
 });
 
+test("command passes the resolved serialization format directly to the executor", async (t) => {
+  const { createDocsCommand } = await loadCommand();
+  for (const [name, args, expected] of [
+    ["explicit YAML", ["--format", "yaml"], "yaml"],
+    ["explicit JSON", ["--format", "json"], "json"],
+    ["YAML extension", ["--output", "docs.yaml"], "yaml"],
+    ["short YAML extension", ["--output", "docs.yml"], "yaml"],
+    [
+      "explicit JSON overrides YAML extension",
+      ["--output", "docs.yaml", "--format", "json"],
+      "json",
+    ],
+    ["default JSON", [], "json"],
+  ]) {
+    await t.test(name, async () => {
+      const events = [];
+      const command = createDocsCommand({
+        diagnostics,
+        async resolveAccessToken() {
+          events.push("token");
+          return "resolved";
+        },
+        async execute(options, context) {
+          events.push("execute");
+          assert.equal(options.format, expected);
+          assert.equal(
+            options.output,
+            args.includes("--output")
+              ? args[args.indexOf("--output") + 1]
+              : undefined,
+          );
+          assert.equal(context.accessToken, "resolved");
+        },
+      });
+      await command.parseAsync(args, { from: "user" });
+      assert.deepEqual(events, ["token", "execute"]);
+    });
+  }
+});
+
 test("invalid format and Commander input never resolve credentials", async () => {
   const { createDocsCommand } = await loadCommand();
   for (const args of [
@@ -91,18 +131,24 @@ test("invalid format and Commander input never resolve credentials", async () =>
     ["--credentials"],
     ["--snapshot"],
   ]) {
+    const calls = [];
     const command = createDocsCommand({
       diagnostics,
       async resolveAccessToken() {
-        assert.fail("token lookup");
+        calls.push("token");
+        return "synthetic";
       },
       async execute() {
-        assert.fail("execution");
+        calls.push("execute");
       },
     })
       .configureOutput({ writeErr() {} })
       .exitOverride();
-    await assert.rejects(command.parseAsync(args, { from: "user" }));
+    await assert.rejects(
+      command.parseAsync(args, { from: "user" }),
+      args[0] === "--format" ? /Unsupported output format/ : /option/,
+    );
+    assert.deepEqual(calls, []);
   }
 });
 
