@@ -72,7 +72,9 @@ export interface DocumentRequestDependencies {
    * @param {Pick<DocumentInput, "credentials">} options - Credential selection.
    * @returns {Promise<string>} Access token.
    */
-  resolveAccessToken(options: Pick<DocumentInput, "credentials">): Promise<string>;
+  resolveAccessToken(
+    options: Pick<DocumentInput, "credentials">,
+  ): Promise<string>;
 
   /**
    * Publish arbitrary command data through the existing secure output writer.
