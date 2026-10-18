@@ -10,5 +10,5 @@ export type RawOptions = z.input<typeof RawOptionsSchema>;
 export const OptionsSchema = RawOptionsSchema.transform((options) => ({
   ...options,
   format: "json" as const,
-})).pipe(DocumentInputSchema);
+}));
 export type Options = z.output<typeof OptionsSchema>;
