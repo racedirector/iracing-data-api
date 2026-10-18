@@ -1,6 +1,6 @@
 /** Docs-specific option validation and RawOptions-to-Options normalization. */
 import path from "node:path";
-import { z } from "zod";
+import type { z } from "zod";
 import {
   DocumentFormatSchema,
   DocumentInputSchema,
