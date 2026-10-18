@@ -47,6 +47,11 @@ test("assets help exposes track", async () => {
         throw new Error("unexpected car execution");
       },
     },
+    seriesService: {
+      async execute() {
+        throw new Error("unexpected series execution");
+      },
+    },
   });
   assert.match(command.helpInformation(), /\btrack\b/);
 });
