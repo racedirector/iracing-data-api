@@ -26,7 +26,7 @@ export function createProgram(diagnostics: Diagnostics) {
       makeDocsService({
         diagnostics,
         resolveAccessToken,
-        createApi: IRacingAPI.withAccessToken,
+        createApi: (accessToken) => IRacingAPI.withAccessToken(accessToken),
         writeDocumentOutput,
       }),
     ),
