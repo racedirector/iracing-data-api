@@ -1,8 +1,11 @@
 /** Direct documentation retrieval and output, independent of Commander. */
-import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
-import { writeDocumentOutput } from "../../token-output.js";
 import type { DocsOptions } from "./command.js";
 import type { Diagnostics } from "../../diagnostics.js";
+import type { TokenOutputOptions } from "../../token-output.js";
+import type { DocApi } from "@iracing-data/api-client-fetch";
+
+/** The generated operation owns the documentation response shape; preserve it verbatim. */
+type DataApiDocumentation = Awaited<ReturnType<DocApi["getDocs"]>>;
 
 /**
  * Read a numeric response status from an Error named ResponseError, returning
@@ -58,26 +61,27 @@ function mapDocumentationError(error: unknown): Error {
  * @param {object} context - Resolved invocation context.
  * @param {string} context.accessToken - Validated bearer token.
  * @param {Diagnostics} context.diagnostics - Secret-safe progress sink.
- * @param {object} io - Executor-local client and writer overrides.
+ * @param {object} io - Required client construction and output dependencies, supplied by the caller.
  * @param {Function} io.createDocumentationClient - Construct the generated client.
- * @param {typeof writeDocumentOutput} io.writeDocumentOutput - Shared output writer.
+ * @param {Function} io.writeDocumentOutput - Shared output writer.
  * @returns {Promise<void>} Completion after output and success diagnostics.
  */
 export async function executeDocs(
   options: DocsOptions,
   context: { accessToken: string; diagnostics: Diagnostics },
   io: {
-    createDocumentationClient: (accessToken: string) => Pick<DocApi, "getDocs">;
-    writeDocumentOutput: typeof writeDocumentOutput;
-  } = {
-    createDocumentationClient: (accessToken) =>
-      new DocApi(new Configuration({ accessToken })),
-    writeDocumentOutput,
+    createDocumentationClient: (accessToken: string) => {
+      getDocs(): Promise<DataApiDocumentation>;
+    };
+    writeDocumentOutput: (
+      document: DataApiDocumentation,
+      options: TokenOutputOptions,
+    ) => Promise<void>;
   },
 ): Promise<void> {
   const api = io.createDocumentationClient(context.accessToken);
 
-  let document: Awaited<ReturnType<DocApi["getDocs"]>>;
+  let document: DataApiDocumentation;
 
   try {
     document = await api.getDocs();

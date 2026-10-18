@@ -228,6 +228,9 @@ test("snapshot option is retired", async () => {
     async resolveAccessToken() {
       assert.fail("token must not be resolved");
     },
+    async execute() {
+      assert.fail("executor must not run");
+    },
   });
   command.configureOutput({ writeErr() {} });
   command.exitOverride();

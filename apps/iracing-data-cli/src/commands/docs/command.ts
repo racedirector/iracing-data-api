@@ -1,14 +1,10 @@
 /** Commander adapter: validate output, resolve credentials, and execute docs. */
 import { Command } from "@commander-js/extra-typings";
 import {
-  resolveAccessToken,
-  type CredentialOptions,
-} from "../../credentials.js";
-import {
   resolveTokenFormat,
   type TokenOutputOptions,
 } from "../../token-output.js";
-import { executeDocs } from "./execute.js";
+import type { CredentialOptions } from "../../credentials.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
 /** Existing credential and document-output options. */
@@ -18,18 +14,18 @@ export type DocsOptions = TokenOutputOptions & CredentialOptions;
  * Register without I/O; dependencies run only when the action is invoked.
  * @param {object} root0 - Direct command dependencies.
  * @param {Diagnostics} root0.diagnostics - Secret-safe progress sink.
- * @param {typeof resolveAccessToken} root0.resolveAccessToken - Invocation token resolver.
+ * @param {Function} root0.resolveAccessToken - Invocation token resolver.
  * @param {Function} root0.execute - Direct documentation executor.
  * @returns {Command} Configured docs command.
  */
 export function createDocsCommand({
   diagnostics,
-  resolveAccessToken: resolveToken = resolveAccessToken,
-  execute = executeDocs,
+  resolveAccessToken: resolveToken,
+  execute,
 }: {
   diagnostics: Diagnostics;
-  resolveAccessToken?: typeof resolveAccessToken;
-  execute?: (
+  resolveAccessToken: (options: CredentialOptions) => Promise<string>;
+  execute: (
     options: DocsOptions,
     context: { accessToken: string; diagnostics: Diagnostics },
   ) => Promise<void>;
