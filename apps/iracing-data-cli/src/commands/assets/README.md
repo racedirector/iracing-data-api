@@ -1,6 +1,6 @@
 # Assets commands
 
-`iracing-data assets` is the CLI surface for runtime Data API `*/assets` operations. The command group is structural; each leaf chooses its generated API operation and delegates credentials, generated request handling, and JSON publication to the shared document request executor. Car and series use the shared executor in this layer; track migrates in the final stacked change. The returned-link materializer remains an injected, shared HTTPS-only transport boundary.
+`iracing-data assets` is the CLI surface for runtime Data API `*/assets` operations. The command group is structural; each leaf chooses its generated API operation and delegates credentials, generated request handling, and JSON publication to the shared document request executor. All three leaves use the shared executor and one injected returned-link materializer, while retaining separate, opinionated generated API operations. The returned-link materializer remains an injected, shared HTTPS-only transport boundary.
 
 Current authored leaves:
 
@@ -10,7 +10,7 @@ iracing-data assets series
 iracing-data assets track
 ```
 
-Each command uses its generated Fetch client operation for the modeled Data API request, receives the standard opaque `{ link, expires }` envelope, materializes the exact returned HTTPS link once, and writes the resulting JSON payload to stdout with a trailing newline.
+Each command selects its generated Fetch client operation for the modeled Data API request, receives the standard opaque `{ link, expires }` envelope, materializes the exact returned HTTPS link once, and writes the resulting JSON payload to stdout with a trailing newline.
 
 The returned-link request does not forward the iRacing bearer token. Invalid or non-HTTPS links, transport failures, non-success responses, and non-JSON payloads fail with fixed diagnostics that do not include arbitrary upstream bodies or sensitive headers.
 
