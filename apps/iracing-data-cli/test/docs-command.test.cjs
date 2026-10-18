@@ -5,31 +5,46 @@ test("docs Commander adapter parses flags and dispatches normalized input", asyn
   const { createDocsCommand } = await import("../dist/commands/docs.js");
   const calls = [];
   const command = createDocsCommand({
-    async execute(options) { calls.push(options); },
+    async execute(options) {
+      calls.push(options);
+    },
   });
 
-  await command.parseAsync([
-    "--credentials", "selected.yaml",
-    "--output", "report.yaml",
-    "--format", "json",
-    "--force",
-  ], { from: "user" });
+  await command.parseAsync(
+    [
+      "--credentials",
+      "selected.yaml",
+      "--output",
+      "report.yaml",
+      "--format",
+      "json",
+      "--force",
+    ],
+    { from: "user" },
+  );
 
-  assert.deepEqual(calls, [{
-    credentials: "selected.yaml",
-    output: "report.yaml",
-    format: "json",
-    force: true,
-  }]);
+  assert.deepEqual(calls, [
+    {
+      credentials: "selected.yaml",
+      output: "report.yaml",
+      format: "json",
+      force: true,
+    },
+  ]);
 });
 
 test("docs Commander adapter rejects invalid format before invoking service", async () => {
   const { createDocsCommand } = await import("../dist/commands/docs.js");
   let called = false;
   const command = createDocsCommand({
-    async execute() { called = true; },
+    async execute() {
+      called = true;
+    },
   }).exitOverride();
-  await assert.rejects(command.parseAsync(["--format", "toml"], { from: "user" }), /Unsupported output format/);
+  await assert.rejects(
+    command.parseAsync(["--format", "toml"], { from: "user" }),
+    /Unsupported output format/,
+  );
   assert.equal(called, false);
 });
 
@@ -37,7 +52,9 @@ test("docs Commander adapter propagates service errors without handling requests
   const { createDocsCommand } = await import("../dist/commands/docs.js");
   const failure = new Error("service failed");
   const command = createDocsCommand({
-    async execute() { throw failure; },
+    async execute() {
+      throw failure;
+    },
   });
   await assert.rejects(
     command.parseAsync([], { from: "user" }),
@@ -49,7 +66,9 @@ test("docs registration does not invoke its service", async () => {
   const { createDocsCommand } = await import("../dist/commands/docs.js");
   let count = 0;
   const command = createDocsCommand({
-    async execute() { count++; },
+    async execute() {
+      count++;
+    },
   });
   assert.equal(command.name(), "docs");
   assert.equal(count, 0);
