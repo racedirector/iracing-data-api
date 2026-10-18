@@ -63,7 +63,11 @@ test("assets group and application register without executing car", async () => 
       assert.fail("registration executed a service");
     },
   };
-  const assets = createAssetsCommand({ diagnostics, carService });
+  const assets = createAssetsCommand({
+    diagnostics,
+    carService,
+    seriesService: carService,
+  });
 
   assert.equal(assets.name(), "assets");
   assert.deepEqual(
