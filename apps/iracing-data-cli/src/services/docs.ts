@@ -5,8 +5,8 @@ import type { Diagnostics } from "../diagnostics.js";
 import type { TokenFormat, TokenOutputOptions } from "../token-output.js";
 
 /** Validated invocation options supplied by the Commander adapter. */
-export type DocsInput = CredentialOptions &
-  Omit<TokenOutputOptions, "format"> & { format: TokenFormat };
+export type DocsInput = Pick<CredentialOptions, "credentials"> &
+  Pick<TokenOutputOptions, "output" | "force"> & { format: TokenFormat };
 
 /** Preserve the generated documentation response without a parallel schema. */
 type Documentation = Awaited<ReturnType<DocApi["getDocs"]>>;
