@@ -1,10 +1,10 @@
 /** Docs-specific option validation and RawOptions-to-Options normalization. */
 import path from "node:path";
-import type { z } from "zod";
 import {
   DocumentFormatSchema,
   DocumentInputSchema,
 } from "../../services/request.js";
+import type { z } from "zod";
 
 /** Commander flags accepted by the docs command before format inference. */
 export const RawOptionsSchema = DocumentInputSchema.omit({
