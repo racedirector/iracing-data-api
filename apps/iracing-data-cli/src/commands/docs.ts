@@ -1,6 +1,6 @@
 /** Commander adapter: parse and validate docs input, then dispatch it. */
 import { Command } from "@commander-js/extra-typings";
-import { resolveTokenFormat } from "../token-output.js";
+import { DocsOptionsSchema } from "./docs-schema.js";
 import type { DocsService } from "../services/docs.js";
 
 /**
@@ -21,10 +21,5 @@ export function createDocsCommand(service: DocsService) {
     )
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
-    .action((options) =>
-      service.execute({
-        ...options,
-        format: resolveTokenFormat(options.output, options.format),
-      }),
-    );
+    .action((options) => service.execute(DocsOptionsSchema.parse(options)));
 }
