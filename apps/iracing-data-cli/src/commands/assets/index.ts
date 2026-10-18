@@ -25,9 +25,9 @@ export interface CreateAssetsCommandOptions {
 /**
  * Group independently registered leaves without external effects.
  * @param {CreateAssetsCommandOptions} root0 - Already-composed leaf services.
- * @param {CarAssetsService} root0.carService - Car-assets service.
- * @param {SeriesAssetsService} root0.seriesService - Series-assets service.
- * @param {TrackAssetsService} root0.trackService - Track-assets service.
+ * @param {CarAssetsService} root0.carService - Handles car request selection and publication.
+ * @param {SeriesAssetsService} root0.seriesService - Handles series request selection and publication.
+ * @param {TrackAssetsService} root0.trackService - Handles track request selection and publication.
  * @returns {Command} Structural assets command.
  */
 export function createAssetsCommand({

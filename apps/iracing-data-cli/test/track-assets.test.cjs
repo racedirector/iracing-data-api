@@ -26,9 +26,8 @@ test("track schema fixes JSON output and accepts only credentials", async () => 
 });
 
 test("assets help exposes track without registration I/O", async () => {
-  const { createAssetsCommand } = await import(
-    "../dist/commands/assets/index.js"
-  );
+  const { createAssetsCommand } =
+    await import("../dist/commands/assets/index.js");
   const never = {
     async execute() {
       assert.fail("unexpected invocation");
@@ -78,11 +77,15 @@ test("track method runs once, link materializes once, output retains JSON", asyn
   const { TrackApi } = await import("@iracing-data/api-client-fetch");
   const link = "https://assets.example.test/track.json?opaque=signed";
   const events = [];
-  const method = t.mock.method(TrackApi.prototype, "getTrackAssets", async () => {
-    events.push("generated");
+  const method = t.mock.method(
+    TrackApi.prototype,
+    "getTrackAssets",
+    async () => {
+      events.push("generated");
 
-    return { link, expires: new Date("2030-01-01") };
-  });
+      return { link, expires: new Date("2030-01-01") };
+    },
+  );
   const requests = makeDocumentRequestService({
     diagnostics: {
       info(message) {
@@ -132,17 +135,20 @@ test("track generated failures map safely, linked-data failures do not", async (
   const { DataApiRequestError } = await import("../dist/errors.js");
   const { TrackApi } = await import("@iracing-data/api-client-fetch");
   let upstream;
-  const method = t.mock.method(TrackApi.prototype, "getTrackAssets", async () => {
-    throw upstream;
-  });
+  const method = t.mock.method(
+    TrackApi.prototype,
+    "getTrackAssets",
+    async () => {
+      throw upstream;
+    },
+  );
   const requests = makeDocumentRequestService({
     diagnostics: { info: () => assert.fail("unexpected success") },
     resolveAccessToken: async () => "synthetic",
     writeDocumentOutput: async () => assert.fail("unexpected output"),
   });
-  const service = makeTrackAssetsService(
-    requests,
-    async () => assert.fail("unexpected materialization"),
+  const service = makeTrackAssetsService(requests, async () =>
+    assert.fail("unexpected materialization"),
   );
 
   for (const error of [
@@ -168,14 +174,10 @@ test("track generated failures map safely, linked-data failures do not", async (
   const safeFailure = new Error(
     "Asset payload request failed with HTTP 502. Retry the command to obtain a fresh link.",
   );
-  const successfulMethod = t.mock.method(
-    TrackApi.prototype,
-    "getTrackAssets",
-    async () => ({
-      link: "https://assets.example.test/track",
-      expires: new Date("2030-01-01"),
-    }),
-  );
+  const successfulMethod = t.mock.method(TrackApi.prototype, "getTrackAssets", async () => ({
+    link: "https://assets.example.test/track",
+    expires: new Date("2030-01-01"),
+  }));
   const materializer = makeTrackAssetsService(requests, async () => {
     throw safeFailure;
   });
