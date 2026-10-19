@@ -21,7 +21,7 @@ export type DocumentInput = z.output<typeof DocumentInputSchema>;
 
 /** Document presentation options owned by the shared request/output workflow. */
 export const DocumentOutputSchema = DocumentInputSchema.extend({
-  outputLabel: z.enum(["Credential", "Documentation"]),
+  outputLabel: z.enum(["Credential", "Documentation", "Assets"]),
 });
 
 /** Writer options derived from the shared request's output schema. */
@@ -38,6 +38,13 @@ export interface DocumentRequest<T> {
    * @returns {Promise<T>} Data to publish.
    */
   fetch(accessToken: string): Promise<T>;
+
+  /**
+   * Optionally retrieve returned data outside generated API request error mapping.
+   * @param {T} response - Decoded generated request response or opaque envelope.
+   * @returns {Promise<unknown>} Materialized document to publish.
+   */
+  materialize?(response: T): Promise<unknown>;
 
   /** Name used in secret-safe request errors. */
   operation: string;
@@ -111,7 +118,12 @@ export function makeDocumentRequestService(
         });
       }
 
-      await dependencies.writeDocumentOutput(document, {
+      // Materialization failures are not generated API request failures.
+      const payload = request.materialize
+        ? await request.materialize(document)
+        : document;
+
+      await dependencies.writeDocumentOutput(payload, {
         ...request.input,
         outputLabel: request.outputLabel,
       });

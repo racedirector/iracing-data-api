@@ -1,8 +1,6 @@
+/** Structural assets command group. Leaf services own their API operations. */
 import { Command } from "@commander-js/extra-typings";
-import {
-  createCarAssetsCommand,
-  type CarAssetsScopeDependencies,
-} from "./car/index.js";
+import { createCarAssetsCommand, type CarAssetsService } from "./car/index.js";
 import {
   createSeriesAssetsCommand,
   type SeriesAssetsScopeDependencies,
@@ -13,34 +11,33 @@ import {
 } from "./track/index.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
-/** Composition inputs for the structural assets command group. */
+/** Service composition during the car-only migration phase. */
 export interface CreateAssetsCommandOptions {
-  /** Secret-safe diagnostic sink for command progress and failures. */
+  /** Already-composed service for the migrated car command. */
+  carService: CarAssetsService;
+
+  /** Still needed by the series and track commands until their stack layers. */
   diagnostics: Diagnostics;
 
-  /** Optional car-asset dependency overrides. */
-  carDependencies?: CarAssetsScopeDependencies;
-
-  /** Optional series-asset dependency overrides. */
+  /** Legacy series injection until PR B. */
   seriesDependencies?: SeriesAssetsScopeDependencies;
 
-  /** Optional track-asset dependency overrides. */
+  /** Legacy track injection until PR C. */
   trackDependencies?: TrackAssetsScopeDependencies;
 }
 
 /**
- * Build the structural assets command group and register its executable leaves.
- * The parent owns no invocation scope; each leaf resolves its own dependencies.
- * @param {CreateAssetsCommandOptions} root0 - Command composition inputs and dependency overrides.
- * @param {Diagnostics} root0.diagnostics - Secret-safe sink for command progress and failure messages.
- * @param {CarAssetsScopeDependencies | undefined} root0.carDependencies - Optional dependency overrides for car assets.
- * @param {SeriesAssetsScopeDependencies | undefined} root0.seriesDependencies - Optional dependency overrides for series assets.
- * @param {TrackAssetsScopeDependencies | undefined} root0.trackDependencies - Optional dependency overrides for track assets.
- * @returns {Command} Configured CLI command ready for registration.
+ * Group independently registered leaves without executing external effects.
+ * @param {CreateAssetsCommandOptions} root0 - Leaf service and transitional scopes.
+ * @param {CarAssetsService} root0.carService - Migrated car service.
+ * @param {Diagnostics} root0.diagnostics - Legacy leaf diagnostics.
+ * @param {SeriesAssetsScopeDependencies} root0.seriesDependencies - Legacy series I/O.
+ * @param {TrackAssetsScopeDependencies} root0.trackDependencies - Legacy track I/O.
+ * @returns {Command} Structural assets command.
  */
 export function createAssetsCommand({
+  carService,
   diagnostics,
-  carDependencies,
   seriesDependencies,
   trackDependencies,
 }: CreateAssetsCommandOptions) {
@@ -48,9 +45,7 @@ export function createAssetsCommand({
     "Data API asset metadata commands",
   );
 
-  assets.addCommand(
-    createCarAssetsCommand({ diagnostics, dependencies: carDependencies }),
-  );
+  assets.addCommand(createCarAssetsCommand(carService));
   assets.addCommand(
     createSeriesAssetsCommand({
       diagnostics,

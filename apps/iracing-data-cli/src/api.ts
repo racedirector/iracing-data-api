@@ -1,8 +1,9 @@
-import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
+import { CarApi, Configuration, DocApi } from "@iracing-data/api-client-fetch";
 
 /** Shared SDK configuration and lazy generated Data API clients, without CLI policy. */
 export class IRacingAPI {
   private documentation?: DocApi;
+  private cars?: CarApi;
 
   /**
    * Keep the generated SDK defaults, including its canonical Data API base URL.
@@ -21,6 +22,16 @@ export class IRacingAPI {
     this.documentation ??= new DocApi(this.configuration);
 
     return this.documentation;
+  }
+
+  /**
+   * Access the generated car client on first use.
+   * @returns {CarApi} Cached generated car client.
+   */
+  get car(): CarApi {
+    this.cars ??= new CarApi(this.configuration);
+
+    return this.cars;
   }
 
   /**

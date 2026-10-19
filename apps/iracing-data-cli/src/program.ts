@@ -1,5 +1,7 @@
 import { Command } from "@commander-js/extra-typings";
+import { makeCarAssetsService } from "./commands/assets/car/index.js";
 import { createAssetsCommand } from "./commands/assets/index.js";
+import { materializeReturnedDataApiLink } from "./commands/assets/returned-data-api-link.js";
 import { createAuthCommand } from "./commands/auth/index.js";
 import { createDocsCommand, makeDocsService } from "./commands/docs/index.js";
 import { createWhoamiCommand } from "./commands/whoami/index.js";
@@ -10,8 +12,8 @@ import type { Diagnostics } from "./diagnostics.js";
 
 /**
  * Register CLI adapters and compose shared external I/O without performing it.
- * @param {Diagnostics} diagnostics - Secret-safe sink for command messages.
- * @returns {Command} Configured CLI command and its subcommands.
+ * @param {Diagnostics} diagnostics - Secret-safe diagnostic sink.
+ * @returns {Command} Configured CLI command tree.
  */
 export function createProgram(diagnostics: Diagnostics) {
   const program = new Command("iracing-data").description(
@@ -24,7 +26,15 @@ export function createProgram(diagnostics: Diagnostics) {
     writeDocumentOutput,
   });
 
-  program.addCommand(createAssetsCommand({ diagnostics }));
+  program.addCommand(
+    createAssetsCommand({
+      diagnostics,
+      carService: makeCarAssetsService(
+        requests,
+        materializeReturnedDataApiLink,
+      ),
+    }),
+  );
   program.addCommand(createAuthCommand({ diagnostics }));
   program.addCommand(createDocsCommand(makeDocsService(requests)));
   program.addCommand(createWhoamiCommand({ diagnostics }));
