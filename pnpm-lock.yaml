@@ -309,6 +309,9 @@ importers:
       yaml:
         specifier: ^2.9.1
         version: 2.9.1
+      zod:
+        specifier: ^4.3.6
+        version: 4.6.5
     devDependencies:
       "@commander-js/extra-typings":
         specifier: ^15.0.0
