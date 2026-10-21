@@ -22,7 +22,7 @@
     "test": "node --test -r ts-node/register src/schema/primitives.test.ts src/schema/parameters.test.ts src/schema/responses.test.ts"
   },
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/api/schema#readme",
   "bugs": {
