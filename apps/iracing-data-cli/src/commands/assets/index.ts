@@ -7,39 +7,33 @@ import {
 } from "./series/index.js";
 import {
   createTrackAssetsCommand,
-  type TrackAssetsScopeDependencies,
+  type TrackAssetsService,
 } from "./track/index.js";
-import type { Diagnostics } from "../../diagnostics.js";
 
-/** Transitional registration contract while track remains on its old scope. */
+/** Independently composed leaf services required by the assets command group. */
 export interface CreateAssetsCommandOptions {
-  /** Already-composed car service. */
+  /** Opinionated car-assets service. */
   carService: CarAssetsService;
 
-  /** Already-composed series service. */
+  /** Opinionated series-assets service. */
   seriesService: SeriesAssetsService;
 
-  /** Still required by the old track-assets implementation. */
-  diagnostics: Diagnostics;
-
-  /** Legacy track dependencies until PR C. */
-  trackDependencies?: TrackAssetsScopeDependencies;
+  /** Opinionated track-assets service. */
+  trackService: TrackAssetsService;
 }
 
 /**
  * Group independently registered leaves without external effects.
- * @param {CreateAssetsCommandOptions} root0 - Services and transitional track wiring.
- * @param {CarAssetsService} root0.carService - Migrated car service.
- * @param {SeriesAssetsService} root0.seriesService - Migrated series service.
- * @param {Diagnostics} root0.diagnostics - Legacy track diagnostics.
- * @param {TrackAssetsScopeDependencies} root0.trackDependencies - Legacy track I/O.
+ * @param {CreateAssetsCommandOptions} root0 - Already-composed leaf services.
+ * @param {CarAssetsService} root0.carService - Handles car request selection and publication.
+ * @param {SeriesAssetsService} root0.seriesService - Handles series request selection and publication.
+ * @param {TrackAssetsService} root0.trackService - Handles track request selection and publication.
  * @returns {Command} Structural assets command.
  */
 export function createAssetsCommand({
   carService,
   seriesService,
-  diagnostics,
-  trackDependencies,
+  trackService,
 }: CreateAssetsCommandOptions) {
   const assets = new Command("assets").description(
     "Data API asset metadata commands",
@@ -47,12 +41,7 @@ export function createAssetsCommand({
 
   assets.addCommand(createCarAssetsCommand(carService));
   assets.addCommand(createSeriesAssetsCommand(seriesService));
-  assets.addCommand(
-    createTrackAssetsCommand({
-      diagnostics,
-      dependencies: trackDependencies,
-    }),
-  );
+  assets.addCommand(createTrackAssetsCommand(trackService));
 
   return assets;
 }

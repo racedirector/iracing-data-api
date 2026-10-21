@@ -4,7 +4,6 @@ const path = require("node:path");
 const test = require("node:test");
 const YAML = require("yaml");
 
-const diagnostics = { info() {}, warn() {}, error() {} };
 const openApiPath = path.resolve(__dirname, "../../../openapi/iracing.yaml");
 
 function discoverRuntimeAssetServices(document) {
@@ -50,7 +49,6 @@ test("canonical OpenAPI runtime asset services match authored assets leaves", as
   const { createAssetsCommand } =
     await import("../dist/commands/assets/index.js");
   const authored = createAssetsCommand({
-    diagnostics,
     carService: {
       async execute() {
         throw new Error("unexpected car execution");
@@ -59,6 +57,11 @@ test("canonical OpenAPI runtime asset services match authored assets leaves", as
     seriesService: {
       async execute() {
         throw new Error("unexpected series execution");
+      },
+    },
+    trackService: {
+      async execute() {
+        throw new Error("unexpected track execution");
       },
     },
   })

@@ -64,9 +64,9 @@ test("assets group and application register without executing car", async () => 
     },
   };
   const assets = createAssetsCommand({
-    diagnostics,
     carService,
     seriesService: carService,
+    trackService: carService,
   });
 
   assert.equal(assets.name(), "assets");
