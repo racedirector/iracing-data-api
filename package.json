@@ -53,7 +53,8 @@
     "test:data-contract": "node --test tests/data-contract/*.test.cjs",
     "test:docker": "pnpm --filter '@iracing-data/iracing-data-mcp...' build && node apps/iracing-data-mcp/test/docker/recovery.mjs",
     "verify:docker": "pnpm test:docker",
-    "test:lint-policy": "node --test scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs scripts/eslint-zod-policy.test.mjs"
+    "test:lint-policy": "node --test scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs scripts/eslint-zod-policy.test.mjs",
+    "iracing-mcp": "node --env-file-if-exists=.env examples/mcp-express/dist/cli.js"
   },
   "keywords": [],
   "author": "",
@@ -86,7 +87,8 @@
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.71.2",
-    "yaml": "^2.9.1"
+    "yaml": "^2.9.1",
+    "eslint-plugin-write-good-comments": "0.2.0"
   },
   "engines": {
     "node": ">=24.22.1 <25",
