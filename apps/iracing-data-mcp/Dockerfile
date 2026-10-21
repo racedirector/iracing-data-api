@@ -1,5 +1,5 @@
 # Build from the repository root. No credential input or publication.
-FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS build
+FROM node:24.22.1-bookworm-slim AS build
 WORKDIR /build
 RUN corepack enable
 COPY . .
@@ -9,7 +9,7 @@ RUN pnpm install --frozen-lockfile --ignore-scripts \
  && rm -rf /runtime/node_modules/@iracing-data/api-client-fetch/src /runtime/node_modules/@iracing-data/api-client-fetch/docs \
  && rm -f /runtime/node_modules/@iracing-data/api-client-fetch/tsconfig.json
 
-FROM node:24-bookworm-slim@sha256:0e0ff40c39bc087845bfb27465a0df4ea419520094bc35842ff83dd8cbe6f9b6 AS runtime
+FROM node:24.22.1-bookworm-slim AS runtime
 RUN rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /opt/yarn* \
  && rm -f /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack /usr/local/bin/pnpm /usr/local/bin/pnpx /usr/local/bin/yarn /usr/local/bin/yarnpkg
 # Image defaults are nonsecret and host-independent. User-specific configuration
