@@ -2,6 +2,7 @@ import { Command } from "@commander-js/extra-typings";
 import { makeCarAssetsService } from "./commands/assets/car/index.js";
 import { createAssetsCommand } from "./commands/assets/index.js";
 import { materializeReturnedDataApiLink } from "./commands/assets/returned-data-api-link.js";
+import { makeSeriesAssetsService } from "./commands/assets/series/index.js";
 import { createAuthCommand } from "./commands/auth/index.js";
 import { createDocsCommand, makeDocsService } from "./commands/docs/index.js";
 import { createWhoamiCommand } from "./commands/whoami/index.js";
@@ -30,6 +31,10 @@ export function createProgram(diagnostics: Diagnostics) {
     createAssetsCommand({
       diagnostics,
       carService: makeCarAssetsService(
+        requests,
+        materializeReturnedDataApiLink,
+      ),
+      seriesService: makeSeriesAssetsService(
         requests,
         materializeReturnedDataApiLink,
       ),

@@ -56,6 +56,11 @@ test("canonical OpenAPI runtime asset services match authored assets leaves", as
         throw new Error("unexpected car execution");
       },
     },
+    seriesService: {
+      async execute() {
+        throw new Error("unexpected series execution");
+      },
+    },
   })
     .commands.map((command) => command.name())
     .sort();
