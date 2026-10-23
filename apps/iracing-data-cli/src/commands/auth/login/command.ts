@@ -1,10 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { type OAuthTokenResponse } from "@iracing-data/oauth-client";
-import {
-  type LoginOptions,
-  type RawLoginOptions,
-  resolveOptions,
-} from "./schema.js";
+import { type Options, type RawOptions, resolveOptions } from "./schema.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
 /**
@@ -33,7 +29,7 @@ export interface LoginCommandScope {
  * @returns {Promise<LoginCommandScope>} Resolved capabilities for one command invocation.
  */
 export type CreateLoginCommandScope = (
-  invocation: LoginOptions,
+  invocation: Options,
 ) => Promise<LoginCommandScope>;
 
 /**
@@ -81,7 +77,7 @@ export function createLoginCommand({ createScope }: LoginCommandDependencies) {
       "OAuth callback timeout in seconds",
       "300",
     )
-    .action(async (raw: RawLoginOptions) => {
+    .action(async (raw: RawOptions) => {
       const options = resolveOptions.parse(raw);
 
       const { authentication, credentials, diagnostics } =

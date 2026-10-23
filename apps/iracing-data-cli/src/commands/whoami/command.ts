@@ -73,7 +73,7 @@ export function createWhoamiCommand({
       "--credentials <path>",
       "Override the shared JSON or YAML credential file",
     )
-    .action(async (options) => {
+    .action(async (raw) => {
       const { identity, output, diagnostics } = await createScope(options);
 
       const profile = await identity.getProfile();

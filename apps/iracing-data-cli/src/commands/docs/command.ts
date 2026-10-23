@@ -6,6 +6,7 @@
  * consumers never need to know how the command's invocation scope is composed.
  */
 import { Command } from "@commander-js/extra-typings";
+import { type Options, type RawOptions, resolveOptions } from "./schema.js";
 import type { CredentialOptions } from "../../credentials.js";
 import type { Diagnostics } from "../../diagnostics.js";
 import type { TokenOutputOptions } from "../../token-output.js";
@@ -49,7 +50,7 @@ export interface DocsCommandScope {
  * @returns {Promise<DocsCommandScope>} Resolved capabilities for one command invocation.
  */
 export type CreateDocsCommandScope = (
-  options: DocsOptions,
+  options: Options,
 ) => Promise<DocsCommandScope>;
 
 /**
@@ -69,7 +70,9 @@ export interface DocsCommandDependencies {
  * @param {CreateDocsCommandScope} root0.createScope - Factory resolving dependencies once per command invocation.
  * @returns {Command} Configured CLI command ready for registration.
  */
-export function createDocsCommand({ createScope }: DocsCommandDependencies) {
+export function createDocsCommand({
+  createScope,
+}: DocsCommandDependencies): Command {
   return new Command("docs")
     .description("Fetch the complete authenticated Data API documentation once")
     .option(
@@ -82,7 +85,9 @@ export function createDocsCommand({ createScope }: DocsCommandDependencies) {
     )
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
-    .action(async (options) => {
+    .action(async (raw: RawOptions) => {
+      const options = resolveOptions.parse(raw);
+
       const { docs, output, diagnostics } = await createScope(options);
 
       const document = await docs.get();

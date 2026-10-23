@@ -54,9 +54,9 @@ export const resolveOptions = z
 /**
  * The raw CLI command input.
  */
-export type RawLoginOptions = z.input<typeof resolveOptions>;
+export type RawOptions = z.input<typeof resolveOptions>;
 
 /**
  * The login command options.
  */
-export type LoginOptions = z.infer<typeof resolveOptions>;
+export type Options = z.infer<typeof resolveOptions>;
