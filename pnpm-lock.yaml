@@ -339,8 +339,8 @@ importers:
         specifier: ^2.0.2
         version: 2.0.2(@modelcontextprotocol/server@2.3.1)(express@5.3.0(supports-color@10.2.2))
       '@modelcontextprotocol/node':
-        specifier: 2.1.1
-        version: 2.1.1(@modelcontextprotocol/server@2.3.1)
+        specifier: 2.1.2
+        version: 2.1.2(@modelcontextprotocol/server@2.3.1)
       '@modelcontextprotocol/server':
         specifier: 2.3.1
         version: 2.3.1
@@ -351,8 +351,8 @@ importers:
         specifier: ^5.3.0
         version: 5.3.0(supports-color@10.2.2)
       jose:
-        specifier: ^6.2.12
-        version: 6.2.12
+        specifier: ^6.2.13
+        version: 6.2.13
       zod:
         specifier: ^4.6.7
         version: 4.6.7
@@ -513,8 +513,8 @@ importers:
         specifier: workspace:*
         version: link:../schema
       jose:
-        specifier: ^6.2.2
-        version: 6.2.12
+        specifier: ^6.2.13
+        version: 6.2.13
       oauth4webapi:
         specifier: ^3.8.8
         version: 3.8.8
@@ -890,11 +890,11 @@ packages:
       '@modelcontextprotocol/server': ^2.3.0
       express: ^4.18.0 || ^5.0.0
 
-  '@modelcontextprotocol/node@2.1.1':
-    resolution: {integrity: sha512-EY92OAXN2xYL7tNS/MVsWJW1v8VHAPwl9B4Ca3pCrjmvqyC+S1C/6UHsMxF2GoFPraS5Yyg56vFz9brVpFojMA==}
+  '@modelcontextprotocol/node@2.1.2':
+    resolution: {integrity: sha512-IIcIqBpr6NCQQs5DgJTgvbSOAw+3iaR/uquqg+e0nXCdudfjPg/80x0TseUnQx14AUAtE4fsJCEpJKPyb6WPVA==}
     engines: {node: '>=20'}
     peerDependencies:
-      '@modelcontextprotocol/server': ^2.3.0
+      '@modelcontextprotocol/server': ^2.4.0
 
   '@modelcontextprotocol/server@2.3.1':
     resolution: {integrity: sha512-e59MfWuSssj6DoQ96JCTqdW1AXT5/XtnTl0WWd6MU1Ka434fFUGGosCLJbGNySDhHGvxQWoRWK137FXYFkYNWw==}
@@ -2319,8 +2319,8 @@ packages:
     resolution: {integrity: sha512-RKYVTCjAnRthyJes037NX/IiqeidgN1xc3j1RjFfECFp28A1GVwK9nA+i0rJPaHqSZwygLzRnFlzUuHFoWWy+Q==}
     engines: {node: '>=6'}
 
-  jose@6.2.12:
-    resolution: {integrity: sha512-9NiFmJEex0sy2Dk58j2UGBSHgUs2ypF9eZSu4L6vjOX3Dp96Sw1F3uL+H+D1sx02jZZdzUT0HgvCy59CuvXcWw==}
+  jose@6.2.13:
+    resolution: {integrity: sha512-7TIg10ZE1x82YediN+lcrPNvGMKge9yFHQD+Qho/b8y2adfugU3AsvvHfxV0fzyFllT6l9xCjf4RWY9g/Z9PJQ==}
 
   jsdoc-type-pratt-parser@9.2.2:
     resolution: {integrity: sha512-eFY7Rlscvv/BpY6UsVsjKwMhu1tJO/F4U/vC9g3yeRy/JqszuO1UP6Vdq+85G+3FP6fEw/sWR8a5ftPFY86csw==}
@@ -3591,7 +3591,7 @@ snapshots:
       cross-spawn: 7.0.6
       eventsource: 3.0.7
       eventsource-parser: 3.1.1
-      jose: 6.2.12
+      jose: 6.2.13
       pkce-challenge: 5.0.1
       zod: 4.6.7
 
@@ -3605,7 +3605,7 @@ snapshots:
       cors: 2.8.6
       express: 5.3.0(supports-color@10.2.2)
 
-  '@modelcontextprotocol/node@2.1.1(@modelcontextprotocol/server@2.3.1)':
+  '@modelcontextprotocol/node@2.1.2(@modelcontextprotocol/server@2.3.1)':
     dependencies:
       '@hono/node-server': 1.19.17(hono@4.13.13)
       '@modelcontextprotocol/server': 2.3.1
@@ -5106,7 +5106,7 @@ snapshots:
 
   iterare@1.2.1: {}
 
-  jose@6.2.12: {}
+  jose@6.2.13: {}
 
   jsdoc-type-pratt-parser@9.2.2:
     dependencies:
