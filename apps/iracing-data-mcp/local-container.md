@@ -30,6 +30,8 @@ Do **not** add a Compose service-level `env_file: ../../.env`. That would inject
 
 ## Build, authenticate, and start
 
+The MCP lifecycle is intentionally owned by the repository-root `package.json`, not by `apps/iracing-data-mcp/package.json`. Run every `pnpm mcp:local ...` command from the repository root. If the command is absent from the root manifest in a checkout, treat that as repository/documentation drift; do not invent an app-local replacement.
+
 From the repository root:
 
 ```sh
