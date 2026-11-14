@@ -295,9 +295,15 @@ importers:
 
   apps/iracing-data-cli:
     dependencies:
+      '@commander-js/extra-typings':
+        specifier: ^15.0.0
+        version: 15.0.0(commander@15.0.0)
       '@iracing-data/api-client-fetch':
         specifier: workspace:*
         version: link:../../packages/api/client/fetch
+      '@iracing-data/api-schema':
+        specifier: workspace:*
+        version: link:../../packages/api/schema
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
@@ -314,9 +320,6 @@ importers:
         specifier: ^4.6.7
         version: 4.6.7
     devDependencies:
-      '@commander-js/extra-typings':
-        specifier: ^15.0.0
-        version: 15.0.0(commander@15.0.0)
       '@types/node':
         specifier: ^26.6.2
         version: 26.6.3

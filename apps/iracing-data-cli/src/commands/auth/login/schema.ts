@@ -14,6 +14,11 @@ export const resolveOptions = z
     method: z.string(),
     output: z.string().optional(),
     credentials: z.string().optional(),
+    clientId: z.string().optional(),
+    clientSecret: z.string().optional(),
+    redirectUri: z.string().optional(),
+    username: z.string().optional(),
+    password: z.string().optional(),
     scope: z.array(z.string()).optional(),
     format: z.string().optional(),
     force: z.literal(true).optional(),
@@ -32,6 +37,11 @@ export const resolveOptions = z
       .parse(options.method),
     output: options.output,
     credentials: options.credentials,
+    clientId: options.clientId,
+    clientSecret: options.clientSecret,
+    redirectUri: options.redirectUri,
+    username: options.username,
+    password: options.password,
     scopes: IRacingOAuthScopesArraySchema.min(1)
       .default(["iracing.auth", "iracing.profile"])
       .transform((scopes) => [...new Set(scopes)])

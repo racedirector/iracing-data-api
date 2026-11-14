@@ -1,4 +1,5 @@
 import { Command } from "@commander-js/extra-typings";
+import { readCredentialOptions } from "../../../schema.js";
 import type { CredentialOptions } from "../../../credentials.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
@@ -51,8 +52,10 @@ export function createTrackAssetsCommand({
       "--credentials <path>",
       "Read access_token from an auth login JSON or YAML file",
     )
-    .action(async (options) => {
-      const { assets, output, diagnostics } = await createScope(options);
+    .action(async (_options, command) => {
+      const { assets, output, diagnostics } = await createScope(
+        readCredentialOptions(command),
+      );
 
       const payload = await assets.get();
 

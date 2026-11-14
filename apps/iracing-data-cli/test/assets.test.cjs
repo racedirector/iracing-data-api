@@ -73,7 +73,7 @@ test("assets parent exposes the car leaf", async () => {
 
 test("program registers assets car", async () => {
   const { createProgram } = await import("../dist/program.js");
-  const program = createProgram(diagnostics);
+  const program = createProgram({ diagnostics, fetch: globalThis.fetch });
   const assets = program.commands.find(
     (command) => command.name() === "assets",
   );

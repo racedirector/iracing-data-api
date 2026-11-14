@@ -5,7 +5,7 @@ import { createProgram } from "./program.js";
 
 const diagnostics = createDiagnostics();
 
-createProgram(diagnostics)
+createProgram({ diagnostics, fetch: globalThis.fetch })
   .parseAsync()
   .catch((error: unknown) => {
     diagnostics.error(error instanceof Error ? error.message : "CLI failed.");

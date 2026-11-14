@@ -11,7 +11,8 @@ import {
   defaultMcpCredentialsPath,
 } from "../../../credentials.js";
 import { resolveTokenFormat, writeTokenOutput } from "../../../token-output.js";
-import type { CreateLoginCommandScope, LoginInvocation } from "./command.js";
+import type { CreateLoginCommandScope } from "./command.js";
+import type { Options as LoginInvocation } from "./schema.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
 /**
@@ -177,14 +178,14 @@ function createLoginScope(
       destination,
 
       /**
-       * Persist the token, propagating writer failures. Unless force is set,
-       * allow replacement for credential destinations but protect --output.
+       * Persist the token, propagating writer failures. Existing destinations
+       * are protected unless force is explicitly set.
        */
       write(token) {
         return dependencies.writeOutput(token, {
           output: destination,
           format: invocation.format,
-          force: invocation.force ?? !invocation.output,
+          force: invocation.force,
         });
       },
     },
@@ -206,18 +207,17 @@ async function authenticateInvocation(
   invocation: LoginInvocation,
   dependencies: LoginScopeDependencies,
 ) {
-  const clientId = dependencies.environment.IRACING_AUTH_CLIENT ?? "";
-
-  const clientSecret = nonempty(dependencies.environment.IRACING_AUTH_SECRET);
+  const { clientId, clientSecret, redirectUri, username, password } =
+    resolveLoginInputs(invocation, dependencies.environment);
 
   if (invocation.method === "browser") {
     return await dependencies.authenticate({
       clientId,
       clientSecret,
-      redirectUri: nonempty(dependencies.environment.IRACING_AUTH_REDIRECT_URI),
+      redirectUri,
       scopes: invocation.scopes,
       open: invocation.open,
-      timeoutSeconds: Number(invocation.timeoutSeconds),
+      timeoutSeconds: invocation.timeoutSeconds,
     });
   }
 
@@ -232,10 +232,6 @@ async function authenticateInvocation(
       "Password-limited authentication requires IRACING_AUTH_SECRET for an eligible confidential client.",
     );
   }
-
-  const username = dependencies.environment.IRACING_AUTH_USERNAME?.trim();
-
-  const password = dependencies.environment.IRACING_AUTH_PASSWORD;
 
   if (!username) {
     throw new Error(
@@ -265,6 +261,26 @@ async function authenticateInvocation(
       "Password-limited OAuth authentication failed. Verify client eligibility, registered user access, credentials, and requested scope before trying again.",
     );
   }
+}
+
+/** Resolve explicit options before injected environment inputs without exposing secrets. */
+function resolveLoginInputs(
+  invocation: LoginInvocation,
+  environment: LoginEnvironment,
+) {
+  return {
+    clientId: invocation.clientId ?? environment.IRACING_AUTH_CLIENT ?? "",
+    clientSecret: nonempty(
+      invocation.clientSecret ?? environment.IRACING_AUTH_SECRET,
+    ),
+    redirectUri: nonempty(
+      invocation.redirectUri ?? environment.IRACING_AUTH_REDIRECT_URI,
+    ),
+    username: (
+      invocation.username ?? environment.IRACING_AUTH_USERNAME
+    )?.trim(),
+    password: invocation.password ?? environment.IRACING_AUTH_PASSWORD,
+  };
 }
 
 function nonempty(value: string | undefined) {

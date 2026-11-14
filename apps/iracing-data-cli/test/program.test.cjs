@@ -9,7 +9,7 @@ test("exposes auth login in the command hierarchy", async () => {
     warn: (message) => messages.push(message),
     error: (message) => messages.push(message),
   };
-  const program = createProgram(diagnostics);
+  const program = createProgram({ diagnostics, fetch: globalThis.fetch });
   const auth = program.commands.find((command) => command.name() === "auth");
   assert.ok(auth);
   assert.ok(auth.commands.some((command) => command.name() === "login"));

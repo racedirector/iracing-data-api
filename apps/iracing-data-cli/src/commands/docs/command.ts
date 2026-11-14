@@ -6,6 +6,7 @@
  * consumers never need to know how the command's invocation scope is composed.
  */
 import { Command } from "@commander-js/extra-typings";
+import { readCredentialOptions } from "../../schema.js";
 import { type Options, type RawOptions, resolveOptions } from "./schema.js";
 import type { CredentialOptions } from "../../credentials.js";
 import type { Diagnostics } from "../../diagnostics.js";
@@ -85,10 +86,13 @@ export function createDocsCommand({
     )
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
-    .action(async (raw: RawOptions) => {
+    .action(async (raw: RawOptions, command) => {
       const options = resolveOptions.parse(raw);
 
-      const { docs, output, diagnostics } = await createScope(options);
+      const { docs, output, diagnostics } = await createScope({
+        ...options,
+        ...readCredentialOptions(command),
+      });
 
       const document = await docs.get();
 

@@ -1,4 +1,5 @@
 import { Command } from "@commander-js/extra-typings";
+import { readCredentialOptions } from "../../schema.js";
 import type { CredentialOptions } from "../../credentials.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
@@ -73,8 +74,10 @@ export function createWhoamiCommand({
       "--credentials <path>",
       "Override the shared JSON or YAML credential file",
     )
-    .action(async (raw) => {
-      const { identity, output, diagnostics } = await createScope(options);
+    .action(async (_raw, command) => {
+      const { identity, output, diagnostics } = await createScope(
+        readCredentialOptions(command),
+      );
 
       const profile = await identity.getProfile();
 

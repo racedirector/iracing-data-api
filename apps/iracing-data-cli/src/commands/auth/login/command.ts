@@ -1,5 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { type OAuthTokenResponse } from "@iracing-data/oauth-client";
+import { readGlobalOptions } from "../../../schema.js";
 import { type Options, type RawOptions, resolveOptions } from "./schema.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 
@@ -42,12 +43,9 @@ export interface LoginCommandDependencies {
 }
 
 /**
- * Build the login command. Its action validates method, scope, and destination options,
- * resolves one scope, then authenticates and persists the returned token.
- * Conflicting destinations, invalid methods or scopes, and scope, authentication, or
- * persistence failures reject `parseAsync()`.
- * @param {LoginCommandDependencies} options - Command composition inputs and dependency overrides.
- * @returns {Command} Configured CLI command ready for registration.
+ * Build login input parsing and execution over an invocation-owned authentication scope.
+ * @param {LoginCommandDependencies} options - Authentication and persistence scope factory.
+ * @returns {Command} Login command with hidden environment-backed credential inputs.
  */
 export function createLoginCommand({ createScope }: LoginCommandDependencies) {
   return new Command("login")
@@ -62,10 +60,6 @@ export function createLoginCommand({ createScope }: LoginCommandDependencies) {
       "Write tokens to an alternate file (protected unless --force)",
     )
     .option(
-      "--credentials <path>",
-      "Credential file to update instead of the repository default",
-    )
-    .option(
       "--scope <scopes...>",
       "OAuth scopes: iracing.auth, or iracing.auth iracing.profile",
     )
@@ -77,8 +71,11 @@ export function createLoginCommand({ createScope }: LoginCommandDependencies) {
       "OAuth callback timeout in seconds",
       "300",
     )
-    .action(async (raw: RawOptions) => {
-      const options = resolveOptions.parse(raw);
+    .action(async (raw: RawOptions, command) => {
+      const options = resolveOptions.parse({
+        ...raw,
+        ...readGlobalOptions(command),
+      });
 
       const { authentication, credentials, diagnostics } =
         await createScope(options);

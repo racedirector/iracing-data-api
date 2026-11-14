@@ -2,6 +2,41 @@
 
 `apps/iracing-data-cli` is this repository's private Commander-based `iracing-data` CLI. `iracing-data auth login` obtains iRacing OAuth tokens with the browser Authorization Code flow; `iracing-data docs` fetches authenticated Data API documentation, `iracing-data assets` materializes runtime asset metadata, and `iracing-data whoami` checks the active profile. This is private repository tooling.
 
+## Fetch results
+
+```bash
+pnpm iracing-data results --subsession-id 123456789 --include-licenses
+pnpm iracing-data results --subsession-id 123456789 --include-licenses false > results.json
+```
+
+The command validates query flags with `@iracing-data/api-schema`, requests
+`/data/results/get`, follows the HTTPS cache link without forwarding credentials,
+and writes the downloaded JSON to stdout. Omit `--include-licenses` to use the API
+default. Use global `--credentials <path>` or `IRACING_ACCESS_TOKEN` for authentication.
+
+## Use locally from another project
+
+Build this checkout and its workspace dependencies first:
+
+```bash
+pnpm install --frozen-lockfile
+pnpm --filter '@iracing-data/cli...' build
+```
+
+Then, from the consuming project:
+
+```bash
+pnpm link /absolute/path/to/iracing-data-api/apps/iracing-data-cli
+pnpm exec iracing-data results --subsession-id 123456789 --credentials /absolute/path/to/credentials.json
+```
+
+Keep this checkout available: the local link uses its built files and workspace
+dependencies. Rebuild after source changes. This private workspace package is not
+a standalone npm release; copying its directory or installing a packed tarball
+does not include its workspace dependencies. The executable does not load `.env`
+automatically; export environment variables or pass flags. Prefer an explicit
+credential path when scripting outside this repository.
+
 ## Configure an iRacing OAuth client
 
 Treat iRacing's OAuth documentation as authoritative for current registration availability and requirements:
@@ -33,6 +68,29 @@ for listener, redirect and cleanup behavior, and [iRacing redirect URI rules](ht
 If the authorization page rejects the URL, verify the client ID and registered callback URI with iRacing; changing the local configuration does not register a URI. If a fixed callback port is occupied, stop its listener or configure another URI already registered for the client. Public clients are not issued a secret; confidential clients may be issued one. If iRacing issued a client secret, the token exchange must use it.
 
 ## Configure the local environment
+
+Authentication options are declared globally on the program using Commander's
+environment bindings. They work before or after the subcommand:
+
+| Global option     | Environment                 |
+| ----------------- | --------------------------- |
+| `--access-token`  | `IRACING_ACCESS_TOKEN`      |
+| `--credentials`   | `IRACING_CREDENTIALS`       |
+| `--client-id`     | `IRACING_AUTH_CLIENT`       |
+| `--client-secret` | `IRACING_AUTH_SECRET`       |
+| `--redirect-uri`  | `IRACING_AUTH_REDIRECT_URI` |
+| `--username`      | `IRACING_AUTH_USERNAME`     |
+| `--password`      | `IRACING_AUTH_PASSWORD`     |
+
+All except `--credentials` are hidden from help. Prefer environment variables for
+secrets: command-line values can appear in shell history or process listings.
+Explicit flags override environment values. A command-local option overrides
+the corresponding inherited value through the shared option reader; command
+definitions do not need to repeat the environment bindings.
+
+API commands receive only the token and credential path, never OAuth account
+secrets. `auth login` uses registration/account inputs; its credential path is
+the document to update, while API commands read from that path.
 
 From the repository root:
 
@@ -100,7 +158,7 @@ Explicit `--format` wins. Otherwise `.yaml` and `.yml` paths select YAML; all ot
 
 By default, `auth login` atomically updates `.iracing-data/credentials.json` at the repository root. The directory is ignored by Git. An auth-only login with `--scope iracing.auth` instead targets `.iracing-data/iracing-data-mcp/credentials.json` so the MCP can own and refresh a distinct least-privilege credential lifecycle. Do not copy one refresh credential into both files or otherwise make independently refreshing consumers share the same rotating refresh token.
 
-Successful stdout is empty; diagnostics go to stderr. Subsequent logins replace the selected shared file so authenticated consumers can read the current token. `--credentials <path>` chooses another credential file to update. `--output <path>` retains the previous alternate-file behavior: it refuses replacement unless `--force` is supplied. Explicit destinations override the scope-specific default. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
+Successful stdout is empty; diagnostics go to stderr. Existing credential files are protected: pass `--force` on subsequent logins to replace the selected file. `--credentials <path>` chooses another credential file to update; `--output <path>` selects an alternate output file with the same replacement protection. Explicit destinations override the scope-specific default. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
 
 JSON writes use the shared [OAuth token-document implementation](../../packages/oauth/client/src/storage/token-document-store.ts).
 On POSIX keep credential directories owned with mode `0700` and files `0600`;
@@ -156,6 +214,35 @@ The three asset leaves use generated `CarApi.getCarAssets()`, `SeriesApi.getSeri
 The commands preserve the returned JSON rather than rewriting it into a CLI-specific schema. They do not download referenced image or binary assets, construct local directory layouts, synchronize files, or maintain an asset cache. Credential precedence is the same authenticated-command contract used by `docs`: explicit `--credentials`, then `IRACING_ACCESS_TOKEN`, then `.iracing-data/credentials.json`.
 
 Canonical OpenAPI parity is verified offline: runtime `/data/**/assets` routes in `openapi/iracing.yaml` must have matching authored `assets` leaves, while `/data/doc/**/assets` documentation routes are excluded. See the [assets command documentation](src/commands/assets/README.md) for ownership and safety details.
+
+## Capture league history
+
+```bash
+pnpm --filter '@iracing-data/cli...' build
+pnpm run iracing-data league-history --league-id 6529 --output .iracing-data/ftr-history
+```
+
+`IRACING_OUTPUT_DIR` overrides `--output` (`-o`). Without either, a timestamped
+directory under `.iracing-data/` is used, relative to the working directory.
+The destination must not already exist: partial captures are retained on failure,
+and a new directory is required for a retry. Files are private JSON captures.
+Keep them out of Git because they contain member information.
+
+Authentication follows the CLI's existing precedence: explicit `--credentials`,
+then `IRACING_ACCESS_TOKEN` (shell or root `.env`), then saved CLI credentials.
+Remove a stale environment token to use fresh `auth login` credentials.
+
+The command captures active and retired seasons, sessions with results, and
+each distinct subsession's full results sequentially. `manifest.json` is written
+last, only after full success. Cache downloads do not receive the bearer token.
+This is capture only: no Neon schema or row changes are made.
+
+The command owns its narrow operation contract and binds a `createExecute`
+handler, following FTR Discord's handler-owned service pattern. `program.ts`
+composes its service with networking, environment, clock and presentation.
+The capture service depends only on query/storage ports; the fetch SDK and
+filesystem adapters remain outside the command. Existing commands only gain
+shared credential-option plumbing; their service implementations are unchanged.
 
 ## Use the access token with `data-api-first-call`
 

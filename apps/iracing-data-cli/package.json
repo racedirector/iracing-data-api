@@ -15,7 +15,9 @@
     "test:vi": "vitest"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
     "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "commander": "^15.0.0",
     "oauth-callback": "^3.1.1",
@@ -23,7 +25,6 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@commander-js/extra-typings": "^15.0.0",
     "@types/node": "^26.6.2",
     "tsx": "^4.23.15",
     "vitest": "^5.0.5"
