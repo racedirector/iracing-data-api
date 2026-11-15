@@ -1,0 +1,41 @@
+import { MemberApi } from "@iracing-data/api-client-fetch";
+import { ApplicationFailure, DriverProjection } from "@iracing-data/mcp";
+import { mapUpstreamFailure } from "./errors.js";
+import { readLinkedData } from "./linked-response.js";
+import type { Configuration } from "@iracing-data/api-client-fetch";
+import type { DriverQueries } from "@iracing-data/mcp";
+
+/**
+ * Concrete Fetch adapter. The host owns the configuration, including its
+ * OAuth access-token callback. Neither tokens nor the SDK enter MCP contracts.
+ * @param {Configuration} configuration - Host-owned generated Fetch configuration with credentials and transport.
+ * @returns {DriverQueries} Queries for the authenticated driver.
+ */
+export function createDriverQueries(
+  configuration: Configuration,
+): DriverQueries {
+  const member = new MemberApi(configuration);
+
+  return {
+    async getCurrent({ signal }) {
+      signal.throwIfAborted();
+      let raw: unknown;
+
+      try {
+        const envelope = await member.getMemberInfo({ signal });
+
+        raw = await readLinkedData(envelope, signal, configuration.fetchApi);
+      } catch (error) {
+        throw mapUpstreamFailure(error);
+      }
+
+      const projection = DriverProjection.safeParse(raw);
+
+      if (!projection.success) {
+        throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+      }
+
+      return projection.data;
+    },
+  };
+}

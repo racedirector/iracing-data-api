@@ -1,35 +1,36 @@
-import type { Configuration } from "@iracing-data/api-client-fetch";
+import type { DriverQueries } from "./tools/get-my-driver/service.js";
+import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 
-/** Only the registration capability is required from a caller-owned server. */
+/** Only tool registration is needed for an externally constructed MCP server. */
 export type IracingToolRegistry = Pick<McpServer, "registerTool">;
 
-/** Request-local cancellation and optional ingress authentication for host selection. */
+/** Request-local cancellation and host-verified identity for capability selection. */
 export interface IracingToolContext {
-  /** Cancels upstream work for this request when the caller disconnects or aborts. */
+  /** Signal supplied by MCP to cancel this operation. */
   readonly signal: AbortSignal;
 
-  /** Verified ingress identity supplied by the host; absent for unauthenticated local transport. */
+  /** Verified ingress identity, when the host supplies one. */
   readonly authInfo?: AuthInfo;
 }
 
-/** Generated execution configuration and opaque retained-continuation isolation. */
-export interface IracingDataAccess {
-  /** Caller-owned generated-client configuration carrying endpoint, transport, and credential policy. */
-  readonly configuration: Configuration;
-
-  /** Opaque owner identity isolating retained cursors and replay state between accounts. */
-  readonly continuationScope: object;
-}
-
-/** The host owns credentials and selects access; tools interpret no claims. */
+/** The host selects independently implemented capabilities for each request. */
 export interface IracingToolServices {
   /**
-   * Selects credentials and continuation ownership for one request without interpreting claims in tools.
-   * @param {IracingToolContext} context - Request cancellation and verified ingress identity used by the host.
-   * @returns {IracingDataAccess | Promise<IracingDataAccess>} Generated-client access and the identity that owns retained continuations.
+   * Selects the principal's driver queries for the current request.
+   * @param {IracingToolContext} context - Request-local cancellation and verified ingress identity.
+   * @returns {DriverQueries | Promise<DriverQueries>} Driver query implementation chosen for this request.
    */
-  getDataApiAccess(
+  getDriverQueries?(
     context: IracingToolContext,
-  ): IracingDataAccess | Promise<IracingDataAccess>;
+  ): DriverQueries | Promise<DriverQueries>;
+
+  /**
+   * Selects the principal's recent-race queries for the current request.
+   * @param {IracingToolContext} context - Request-local cancellation and verified ingress identity.
+   * @returns {RecentRaceQueries | Promise<RecentRaceQueries>} Recent-race provider chosen for this request.
+   */
+  getRecentRaceQueries?(
+    context: IracingToolContext,
+  ): RecentRaceQueries | Promise<RecentRaceQueries>;
 }

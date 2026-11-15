@@ -28,18 +28,7 @@ const diagnosticFields = z.object({
       "data_api",
     ])
     .optional(),
-  tool: z
-    .enum([
-      "get_my_driver",
-      "find_drivers",
-      "get_recent_races",
-      "search_driver_races",
-      "get_race_result",
-      "list_series_seasons",
-      "get_series_schedule",
-      "lookup_content",
-    ])
-    .optional(),
+  tool: z.enum(["get_my_driver", "get_recent_races"]).optional(),
   stage: z.enum(["start", "complete", "failed"]).optional(),
   auth_state: z
     .enum(["ready", "authorization_required", "configuration_error"])

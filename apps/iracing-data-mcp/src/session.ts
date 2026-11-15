@@ -30,6 +30,8 @@ import {
   type OAuthTokenResponse,
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
+import { createDriverQueries } from "./adapters/driver.js";
+import { createRecentRaceQueries } from "./adapters/recent-races.js";
 import { createDiagnosticLogger } from "./diagnostics/logging.js";
 import type { AuthorizationState, McpServices } from "./services.js";
 
@@ -119,6 +121,47 @@ export async function createMcpServices(
     throw new ApplicationFailure("CONFIGURATION_ERROR");
   }
 
+  await initializeOwner(owner);
+
+  // OAuth/session storage remains the only owner of access credentials.
+  const getAccessToken = async () =>
+    validateSession(
+      await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
+    ).access_token;
+
+  const dataApiConfiguration = new Configuration({
+    accessToken: getAccessToken,
+  });
+
+  const driverQueries = createDriverQueries(dataApiConfiguration);
+
+  const recentRaceQueries = createRecentRaceQueries(dataApiConfiguration);
+
+  const selectAccount = () => {
+    if (owner.terminal || owner.ownerClosing) {
+      throw authorization("invalid_session");
+    }
+  };
+
+  return Object.freeze({
+    shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
+    oauthClient,
+    authorizationState: () => owner.state,
+    dataApiConfiguration,
+    getDriverQueries: () => {
+      selectAccount();
+
+      return driverQueries;
+    },
+    getRecentRaceQueries: () => {
+      selectAccount();
+
+      return recentRaceQueries;
+    },
+  });
+}
+
+async function initializeOwner(owner: SessionOwner) {
   try {
     validateSession(await owner.store.get(MCP_LOCAL_SESSION_KEY));
     owner.transition("ready");
@@ -129,33 +172,6 @@ export async function createMcpServices(
         : authorization("invalid_session"),
     );
   }
-
-  const dataApiConfiguration = new Configuration({
-    accessToken: async () =>
-      validateSession(
-        await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
-      ).access_token,
-  });
-
-  const continuationScope = {};
-
-  return Object.freeze({
-    shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
-    oauthClient,
-    authorizationState: () => owner.state,
-    dataApiConfiguration,
-    getDataApiAccess: () => {
-      if (owner.terminal) {
-        throw authorization("invalid_session");
-      }
-
-      if (owner.ownerClosing) {
-        throw authorization("invalid_session");
-      }
-
-      return { configuration: dataApiConfiguration, continuationScope };
-    },
-  });
 }
 
 class SessionOwner {

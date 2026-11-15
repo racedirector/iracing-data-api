@@ -344,7 +344,7 @@ test("real health, initialize, listing and tool errors stay safe before and afte
     id: 2,
     method: "tools/list",
   });
-  assert.equal(list.json().result.tools.length, 9);
+  assert.equal(list.json().result.tools.length, 3);
   const call = await request(app, "POST", "/mcp", {
     jsonrpc: "2.0",
     id: 3,

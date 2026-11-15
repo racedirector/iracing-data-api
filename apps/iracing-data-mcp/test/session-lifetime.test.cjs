@@ -59,50 +59,42 @@ function headers(sessionId) {
   };
 }
 
-async function toolServices(_api) {
-  const now = Date.now();
+async function toolServices() {
+  const { createDriverQueries } = await import("../dist/adapters/driver.js");
+  const { createRecentRaceQueries } =
+    await import("../dist/adapters/recent-races.js");
   const driver = {
     cust_id: 1,
     display_name: "Synthetic Driver",
     account: "ACCOUNT_SECRET",
   };
-  const cars = [
-    {
-      car_id: 2,
-      car_name: "Synthetic GT",
-      car_name_abbreviated: "SGT",
-      price: 99,
-    },
-    {
-      car_id: 1,
-      car_name: "Synthetic MX-5",
-      car_name_abbreviated: "SMX",
-      price: 99,
-    },
-  ];
-  const continuationScope = {};
+  const recent = {
+    cust_id: 1,
+    races: [{ subsession_id: 100, incidents: 3 }],
+  };
   const transport = async (url, init) => {
-    if (url.hostname === "members-ng.iracing.com") {
-      const key = url.pathname.includes("member/info") ? "member" : "cars";
+    const target = new URL(url);
+    if (target.hostname === "members-ng.iracing.com") {
+      const key = target.pathname.includes("member/info") ? "member" : "recent";
       return Response.json({
-        link: `https://scorpio-assets.s3.amazonaws.com/synthetic/${key}`,
-        expires: new Date(now + 900000).toISOString(),
+        link: `https://cache.example.test/synthetic/${key}`,
+        expires: new Date(Date.now() + 900000).toISOString(),
       });
     }
 
     assert.equal(new Headers(init.headers).has("authorization"), false);
-    return Response.json(url.pathname.endsWith("/member") ? driver : cars);
+    assert.equal(init.redirect, "error");
+    return Response.json(target.pathname.endsWith("/member") ? driver : recent);
   };
   const configuration = new Configuration({
     accessToken: async () => "TOKEN_SECRET",
-    fetchApi: (url, init) => transport(new URL(url), init),
+    fetchApi: transport,
   });
-  const access = () => ({ configuration, continuationScope });
-
   return Object.freeze({
     oauthClient: {},
-    dataApiConfiguration: {},
-    getDataApiAccess: access,
+    dataApiConfiguration: configuration,
+    getDriverQueries: () => createDriverQueries(configuration),
+    getRecentRaceQueries: () => createRecentRaceQueries(configuration),
     authorizationState: () => "ready",
     shutdownAuthorizationOwner: async () => {},
   });
@@ -111,8 +103,7 @@ async function toolServices(_api) {
 test("official MCP client preserves one logical session across initialize, list and real tool calls", async (t) => {
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
-  const api = await import("../dist/index.js");
-  const services = await toolServices(api);
+  const services = await toolServices();
   let registrations = 0;
   let seenServices;
   const { app, sharedServices, url } = await fixture(t, {
@@ -141,21 +132,21 @@ test("official MCP client preserves one logical session across initialize, list 
 
   const tools = await client.listTools();
   assert.ok(tools.tools.some((tool) => tool.name === "probe"));
-  assert.ok(tools.tools.some((tool) => tool.name === "lookup_content"));
+  assert.ok(tools.tools.some((tool) => tool.name === "get_recent_races"));
   assert.ok(tools.tools.some((tool) => tool.name === "get_my_driver"));
   assert.equal(
     (await client.callTool({ name: "probe", arguments: {} })).content[0].text,
     "ok",
   );
 
-  const content = await client.callTool({
-    name: "lookup_content",
-    arguments: { kind: "cars", query: "MX-5" },
+  const recent = await client.callTool({
+    name: "get_recent_races",
+    arguments: { cust_id: 1, limit: 1 },
   });
-  assert.ok(!content.isError, JSON.stringify(content));
+  assert.ok(!recent.isError, JSON.stringify(recent));
   assert.deepEqual(
-    content.structuredContent.items.map((item) => item.car_id),
-    [1],
+    recent.structuredContent.races.map((item) => item.subsession_id),
+    [100],
   );
 
   const identity = await client.callTool({
