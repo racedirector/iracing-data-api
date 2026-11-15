@@ -154,4 +154,4 @@ pnpm verify:docker
 
 The Docker suite uses synthetic credentials and no account access. It exercises production startup, rotation/restart, persistence faults, named-volume import, permission enforcement, graceful shutdown, and recovery behavior.
 
-The [HTTP boundary](src/http.ts), [session owner](src/session.ts), and [credential importer](src/import-credentials.ts) document the underlying lifecycle, durability, and recovery contracts.
+The [Hono runtime](src/runtime.ts), [session owner](src/session.ts), and [credential importer](src/import-credentials.ts) document the underlying lifecycle, durability, and recovery contracts.
