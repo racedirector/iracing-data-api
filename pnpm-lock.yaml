@@ -3496,11 +3496,11 @@ packages:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
   '@modelcontextprotocol/hono@2.0.2':
-    resolution: {tarball: https://registry.npmjs.org/@modelcontextprotocol/hono/-/hono-2.0.2.tgz}
+    resolution: {integrity: sha512-hXtSVm0S6d0EJWMVoaeAWevATQLzHrHiPuPBLxW5vM5OQJG+SFlm7D9iJT5cG3p84DDahCD4bAuqcCPdgNFAEw==}
     engines: {node: '>=20'}
     peerDependencies:
-      '@modelcontextprotocol/server': ^2.0.0
-      hono: ^4
+      '@modelcontextprotocol/server': ^2.3.0
+      hono: ^4.11.4
 
 snapshots:
 
