@@ -158,9 +158,15 @@ export async function startProduction(
     credentialFile: config.credentialFile,
   });
 
+  // External ingress alone must never grant access to the process-wide CLI
+  // account. A remote host must inject a verified actor-to-account resolver.
+  const selectedDependencies = authorization
+    ? { ...dependencies, resolveActor: () => null }
+    : dependencies;
+
   return startMcpRuntime({
     config,
-    dependencies,
+    dependencies: selectedDependencies,
     authorization,
     onStopped: (exitCode) => {
       process.stderr.write("", () => process.exit(exitCode));
