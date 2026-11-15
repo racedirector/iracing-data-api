@@ -15,6 +15,7 @@ const output = [];
 const requests = [];
 let mode = "normal";
 const held = [];
+let upstreamAborted = false;
 
 const source = {
   member: { cust_id: 7, display_name: "Synthetic Driver", private: "SECRET" },
@@ -48,7 +49,10 @@ const dataFetch = async (target, init = {}) => {
   }
   if (mode === "hold") {
     await new Promise((resolve, reject) => {
-      const onAbort = () => reject(new Error("aborted synthetic upstream"));
+      const onAbort = () => {
+        upstreamAborted = true;
+        reject(new Error("aborted synthetic upstream"));
+      };
       held.push(() => {
         init.signal.removeEventListener("abort", onAbort);
         resolve();
@@ -109,7 +113,7 @@ async function main() {
   });
   await app.listen(0, "127.0.0.1");
   const port = app.server.address().port;
-  const request = (method, body, headers = {}, route = "/mcp") =>
+  const request = (method, body, headers = {}, route = "/mcp", signal) =>
     new Promise((resolve, reject) => {
       const req = http.request(
         {
@@ -117,6 +121,7 @@ async function main() {
           port,
           path: route,
           method,
+          signal,
           headers: { Host: "127.0.0.1:3000", ...headers },
         },
         (res) => {
@@ -257,17 +262,32 @@ async function main() {
 
     mode = "hold";
     const cancel = new AbortController();
-    const pending = client
-      .callTool(
-        { name: "get_my_driver", arguments: {} },
-        { signal: cancel.signal },
-      )
-      .catch(() => undefined);
-    await until(() => held.length === 1);
-    cancel.abort();
-    held.splice(0).forEach((release) => release());
-    await pending;
-    mode = "normal";
+    const pending = request(
+      "POST",
+      JSON.stringify({
+        jsonrpc: "2.0",
+        id: 99,
+        method: "tools/call",
+        params: { name: "get_my_driver", arguments: {} },
+      }),
+      headers,
+      "/mcp",
+      cancel.signal,
+    ).then(
+      () => false,
+      () => true,
+    );
+    try {
+      await until(() => held.length === 1);
+      cancel.abort();
+      await until(() => upstreamAborted);
+      assert.equal(upstreamAborted, true);
+      assert.equal(await pending, true, "cancelled tool call must reject");
+    } finally {
+      held.splice(0).forEach((release) => release());
+      mode = "normal";
+      await pending;
+    }
     checks++;
 
     assert.deepEqual(await call("get_my_driver"), driver);
