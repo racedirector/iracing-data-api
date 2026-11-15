@@ -94,3 +94,14 @@ For source-level troubleshooting, `session.ts` owns only token lifecycle;
 `composition.ts` creates CLI Fetch capabilities and Awilix selectors. The
 previous `createMcpServices()` facade and generic diagnostics mapper no
 longer exist. Do not reintroduce either to solve local onboarding problems.
+
+## Hono runtime
+
+The runtime uses `@modelcontextprotocol/hono` with the official SDK
+`createMcpHandler`. The 2025 legacy fallback is deliberately stateless:
+no `Mcp-Session-Id` is created and GET/DELETE session routes are unsupported.
+The only responsibilities of `runtime.ts` are to compose the Hono app,
+mount the SDK MCP handler, expose health/optional OAuth resource metadata,
+and listen on the validated host/port. Do not restore Express, a custom
+session registry or a hand-written MCP transport. Keep CLI credential
+import/recovery steps and volume ownership checks as documented above.

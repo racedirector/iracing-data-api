@@ -121,7 +121,7 @@ refreshing owners and hot credential replacement are unsupported. Local processe
 can access this unauthenticated boundary; it does not defend against malicious
 same-user processes. Treat upstream names/text as untrusted data.
 
-See [production configuration](src/production.ts), [HTTP security](src/http.ts)
+See [production configuration](src/production.ts), [Hono runtime](src/runtime.ts)
 and [linked responses](../../packages/mcp/src/linked-response.ts) for the enforced boundaries.
 
 Local packaging and 22 Docker recovery acceptance groups passed on macOS arm64
@@ -168,3 +168,13 @@ The previous `createMcpServices()` compatibility facade and generic
 `diagnostics/mapping.ts` have been removed. Use `createMcpCredentialOwner()`
 for the local credential lifecycle and `composeMcpServices()` for injected
 per-actor query selection.
+
+## Hono listener and protocol
+
+The reference app uses the official MCP TypeScript SDK Hono adapter and
+`createMcpHandler`. It serves the two tools with one stateless MCP handler;
+there is no custom session registry or Express middleware. The 2025 legacy
+fallback is stateless (no `Mcp-Session-Id`), so GET/DELETE session operations
+return 405. Hono's bounded request parsing and explicit Host/Origin policy
+protect the listener. The app is created using `createMcpRuntime({ config,
+dependencies })` and served with `startMcpRuntime(...)`.

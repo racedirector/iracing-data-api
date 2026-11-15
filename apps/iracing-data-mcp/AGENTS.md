@@ -5,9 +5,9 @@ Inherits [root guidance](../../AGENTS.md). Inspect [`workspace-policy.json`](../
 The app is a concrete runtime composition of the maintained Data API and OAuth packages. MCP tool contracts remain client-independent. Follow [Data API guidance](../../packages/api/AGENTS.md), [generated client guidance](../../packages/api/client/AGENTS.md), and [OAuth guidance](../../packages/oauth/AGENTS.md) for their owned surfaces. Do not duplicate or hand-edit generated Data API contracts in this app. App-local Zod schemas are appropriate only for MCP-specific narrowing, projection, or composition.
 
 Inspect [services](../../packages/mcp/src/services.ts), [session ownership](src/session.ts),
-[HTTP lifecycle](src/http.ts), and [tool registration](../../packages/mcp/src/register.ts)
+[Hono runtime](src/runtime.ts), and [tool registration](../../packages/mcp/src/register.ts)
 before changing composition. The full source map is in [architecture navigation](architecture.md).
-Preserve the characterized protocol/recovery contracts when moving boundaries.
+Use the official MCP SDK Hono integration, not a custom HTTP/session dispatcher. The runtime has a stateless 2025 fallback and no MCP session registry. Preserve credential security and authorized actor resolution when changing transport.
 
 The local startup/onboarding contract is also consumed by the [repo-local MCP onboarding skill](../../.agents/skills/iracing-data-mcp-onboarding/SKILL.md). Any change to local prerequisites, `.env` keys, OAuth/login flow, Docker/Compose startup, credential import/storage, health checks, recovery commands, or MCP-client connection instructions must update that skill and its deterministic scripts in the same change. Keep the skill orchestration aligned with [the local Docker guide](local-container.md); do not let it invent a parallel startup path.
 

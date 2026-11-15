@@ -82,8 +82,7 @@ abort signals throughout. Do not create a second token cache or refresh owner.
   before effects, output projection, bounded results and sanitized failures.
 - Add [host adapter tests](../../../apps/iracing-data-mcp/test/tools.test.cjs)
   for injected SDK configuration, token isolation, safe signed links, 401/429
-  mapping, OAuth failures and cancellation. Keep the host's existing HTTP
-  session, ingress, and shutdown behavior.
+  mapping, OAuth failures and cancellation. Keep Hono ingress security, credential lifecycle, and shutdown behavior.
 - Update the [composed offline fixture](../../../apps/iracing-data-mcp/test/fixtures/composed.cjs)
   and [tool list](../../../apps/iracing-data-mcp/test/fixtures/tool-list.json)
   when the registered tool set changes.
@@ -108,3 +107,7 @@ Changes to skills or `AGENTS.md` also require the manual
 Do not claim unavailable checks passed. Do not hand-edit generated code,
 change public release versions, add listeners to the MCP package, or
 introduce speculative infrastructure.
+
+The runtime host is [Hono](../../../apps/iracing-data-mcp/src/runtime.ts)
+using the official SDK MCP handler. New tools do not add HTTP routes or
+session state; only update tool-local contracts and injected adapters.
