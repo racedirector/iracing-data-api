@@ -1,7 +1,7 @@
 import { Configuration } from "@iracing-data/api-client-fetch";
 import { createDriverQueries } from "./driver.js";
 import { createRecentRaceQueries } from "./recent-races.js";
-import type { McpActorDependencies } from "../composition.js";
+import type { McpCapabilities } from "../composition.js";
 
 /**
  * Bind the generated Fetch client and its tool-specific adapters to a
@@ -11,7 +11,7 @@ import type { McpActorDependencies } from "../composition.js";
  */
 export function createFetchQueries(
   accessToken: () => Promise<string>,
-): McpActorDependencies {
+): McpCapabilities {
   const configuration = new Configuration({ accessToken });
 
   return {
