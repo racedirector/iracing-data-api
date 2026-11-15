@@ -6,7 +6,7 @@ import {
   createRequestContext,
   toolError,
   registerIracingTools,
-} from "@iracing-data/mcp-tools";
+} from "@iracing-data/mcp";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
   McpServer,

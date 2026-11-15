@@ -21,10 +21,7 @@
  * The generated Data API configuration shares this fixed owner.
  */
 import { Configuration } from "@iracing-data/api-client-fetch";
-import {
-  ApplicationFailure,
-  createRequestContext,
-} from "@iracing-data/mcp-tools";
+import { ApplicationFailure, createRequestContext } from "@iracing-data/mcp";
 import {
   OAuthClient,
   OAuthRefreshError,

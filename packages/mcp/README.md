@@ -1,13 +1,13 @@
 # iRacing MCP tools
 
-`@iracing-data/mcp-tools` registers eight iRacing tools onto a caller-owned MCP
+`@iracing-data/mcp` registers eight iRacing tools onto a caller-owned MCP
 server. It is a private workspace package, not a publication target. The host owns
 server identity, protocol versions, transports, ingress auth, credentials and shutdown.
 
 ```ts
 import { Configuration } from "@iracing-data/api-client-fetch";
 import { McpServer } from "@modelcontextprotocol/server";
-import { registerIracingTools } from "@iracing-data/mcp-tools";
+import { registerIracingTools } from "@iracing-data/mcp";
 
 const server = new McpServer({ name: "consumer-service", version: "1.0.0" });
 const configuration = new Configuration({
@@ -43,13 +43,13 @@ Serialized MCP results are capped at 64 KiB. Search alone owns manifest/chunk
 semantics, bounded per-page scanning and chunk filename containment. It consumes
 the corrected generated `search_series` manifest model.
 
-The [reference host](../../../apps/iracing-data-mcp/architecture.md) composes its
+The [reference host](../../apps/iracing-data-mcp/architecture.md) composes its
 own server, file-backed OAuth refresh/persistence, Express and session lifecycle.
 Other consumers can supply their own credential/storage choices.
 
 ```sh
-pnpm --filter '@iracing-data/mcp-tools...' build
-pnpm --filter @iracing-data/mcp-tools test
+pnpm --filter '@iracing-data/mcp...' build
+pnpm --filter @iracing-data/mcp test
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm --filter @iracing-data/iracing-data-mcp test
 ```

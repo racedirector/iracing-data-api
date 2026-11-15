@@ -102,7 +102,7 @@ test("schema-bearing apps, examples and tests receive the policy", async () => {
   for (const filePath of [
     "apps/iracing-data-cli/src/__zod-policy-fixture__.test.ts",
     "apps/iracing-data-mcp/src/__zod-policy-fixture__.test.ts",
-    "packages/mcp/tools/src/__zod-policy-fixture__.test.ts",
+    "packages/mcp/src/__zod-policy-fixture__.test.ts",
     "examples/oauth-example/src/__zod-policy-fixture__.test.ts",
     "packages/api/schema/src/schema/__zod-policy-fixture__.test.ts",
   ]) {
@@ -122,7 +122,7 @@ test("schema-bearing apps, examples and tests receive the policy", async () => {
   for (const filePath of [
     "packages/api/schema/src/schema/responses.ts",
     "apps/iracing-data-mcp/src/config.ts",
-    "packages/mcp/tools/src/tools/primitives.ts",
+    "packages/mcp/src/tools/primitives.ts",
   ]) {
     const config = await eslint.calculateConfigForFile(filePath);
     assert.equal(config.rules["zod/no-any-schema"][0], 2);

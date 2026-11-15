@@ -12,7 +12,7 @@ import {
   errorEnvelope,
   requestId,
   type RequestContext,
-} from "@iracing-data/mcp-tools";
+} from "@iracing-data/mcp";
 import { z } from "zod";
 
 // No free-form strings: even a 'safe-looking' token/name/path must not pass.

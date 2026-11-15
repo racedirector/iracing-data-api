@@ -1,5 +1,5 @@
 export * from "./config.js";
-export * from "@iracing-data/mcp-tools";
+export * from "@iracing-data/mcp";
 export * from "./http.js";
 export * from "./session.js";
 

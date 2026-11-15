@@ -38,7 +38,7 @@
       "path": "./packages/oauth/schema"
     },
     {
-      "path": "./packages/mcp/tools"
+      "path": "./packages/mcp"
     }
   ]
 }
