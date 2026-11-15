@@ -1,6 +1,7 @@
 import type { RequestContext } from "./diagnostics/errors.js";
 import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
+import type { RaceSearchQueries } from "./tools/search-race-results/service.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 
 /** Only tool registration is needed for an externally constructed MCP server. */
@@ -20,6 +21,15 @@ export interface IracingToolContext {
 
 /** The host selects independently implemented capabilities for each request. */
 export interface IracingToolServices {
+  /**
+   * Select the verified actor's historical search capability.
+   * @param {IracingToolContext} context - Cancellation and verified actor context.
+   * @returns {RaceSearchQueries | Promise<RaceSearchQueries>} Actor-owned historical search provider.
+   */
+  getRaceSearchQueries?(
+    context: IracingToolContext,
+  ): RaceSearchQueries | Promise<RaceSearchQueries>;
+
   /**
    * Selects the principal's driver queries for the current request.
    * @param {IracingToolContext} context - Request-local cancellation and verified ingress identity.

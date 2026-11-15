@@ -1,9 +1,11 @@
+import { ApplicationFailure } from "@iracing-data/mcp";
 import { asValue, createContainer } from "awilix";
 import type {
   DriverQueries,
   IracingToolContext,
   IracingToolServices,
   RecentRaceQueries,
+  RaceSearchQueries,
 } from "@iracing-data/mcp";
 
 /** Principal verified by the HTTP host or fixed for local stdio. */
@@ -15,8 +17,11 @@ export interface McpActor {
   readonly provider: string;
 }
 
-/** The two domain capabilities required by the MCP server. */
+/** Actor-owned domain capabilities exposed by the MCP server. */
 export interface McpCapabilities {
+  /** Actor-scoped historical session search. */
+  readonly raceSearchQueries?: RaceSearchQueries;
+
   /** Actor-scoped driver lookup. */
   readonly driverQueries: DriverQueries;
 
@@ -45,7 +50,7 @@ export type ResolveCapabilities = (
 ) => Promise<McpCapabilities> | McpCapabilities;
 
 /**
- * Compose the two MCP tool selectors using injected dependencies.
+ * Compose explicit MCP tool selectors using injected dependencies.
  * @param {McpActor} actor - Host-verified actor or local stdio identity.
  * @param {ResolveCapabilities} resolveCapabilities - Host-owned account and data resolver.
  * @returns {IracingToolServices} Explicit tool services for the MCP factory.
@@ -73,6 +78,15 @@ export function composeMcpServices(
   }
 
   return {
+    getRaceSearchQueries: async (context) => {
+      const queries = (await select(context)).raceSearchQueries;
+
+      if (!queries) {
+        throw new ApplicationFailure("CONFIGURATION_ERROR");
+      }
+
+      return queries;
+    },
     getDriverQueries: async (context) => (await select(context)).driverQueries,
     getRecentRaceQueries: async (context) =>
       (await select(context)).recentRaceQueries,

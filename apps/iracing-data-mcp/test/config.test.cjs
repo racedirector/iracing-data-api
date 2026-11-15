@@ -39,7 +39,7 @@ test("local stdio capabilities are constructed lazily without network calls", as
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
 });
 
-test("local stdio executable initializes and advertises both tools", async () => {
+test("local stdio executable initializes and advertises all tools", async () => {
   const { Client } = await import("@modelcontextprotocol/client");
   const { StdioClientTransport } =
     await import("@modelcontextprotocol/client/stdio");
@@ -53,7 +53,7 @@ test("local stdio executable initializes and advertises both tools", async () =>
     await client.connect(transport);
     assert.deepEqual(
       (await client.listTools()).tools.map((tool) => tool.name),
-      ["get_my_driver", "get_recent_races"],
+      ["get_my_driver", "get_recent_races", "search_race_results"],
     );
   } finally {
     await client.close();
@@ -80,7 +80,7 @@ test("explicit credential path overrides an invalid environment path", async () 
 
   try {
     await client.connect(transport);
-    assert.equal((await client.listTools()).tools.length, 2);
+    assert.equal((await client.listTools()).tools.length, 3);
   } finally {
     await client.close();
   }

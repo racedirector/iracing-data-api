@@ -40,14 +40,20 @@ async function fixture(t, services = {}) {
   };
 }
 
-test("caller-owned server exposes exactly two tools and accepts neighboring registrations", async (t) => {
+test("caller-owned server exposes explicit tools and accepts neighboring registrations", async (t) => {
   const f = await fixture(t);
   const tools = (await f.client.listTools()).tools;
   assert.deepEqual(
     tools.map((tool) => tool.name),
-    ["before", "get_my_driver", "get_recent_races", "after"],
+    [
+      "before",
+      "get_my_driver",
+      "get_recent_races",
+      "search_race_results",
+      "after",
+    ],
   );
-  for (const tool of tools.slice(1, 3)) {
+  for (const tool of tools.slice(1, 4)) {
     assert.equal(tool.inputSchema.type, "object");
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.equal(tool.annotations.readOnlyHint, true);
@@ -62,6 +68,49 @@ test("caller-owned server exposes exactly two tools and accepts neighboring regi
   assert.equal((await f.call("before")).content[0].text, "before");
   assert.equal((await f.call("after")).content[0].text, "after");
   assert.equal(typeof f.api.createIracingMcpServer, "function");
+});
+
+test("historical search selects per request, forwards criteria and projects output", async (t) => {
+  let selected = 0;
+  const f = await fixture(t, {
+    getRaceSearchQueries: () => {
+      selected++;
+      return {
+        search: async (input, { signal }) => {
+          assert.ok(signal instanceof AbortSignal);
+          assert.equal(input.cust_id, 99);
+          assert.equal(input.league_id, 8579);
+          return {
+            source: "hosted",
+            criteria: { cust_id: 99, league_id: 8579 },
+            total_matches: 0,
+            total_chunks: 0,
+            chunk_index: 0,
+            returned_count: 0,
+            query_complete: true,
+            results: [],
+            position_basis: "upstream",
+            secret: "SECRET",
+          };
+        },
+      };
+    },
+  });
+  const args = {
+    source: "hosted",
+    cust_id: 99,
+    league_id: 8579,
+    start_range_begin: "2026-11-01T00:00:00Z",
+  };
+  const result = await f.call("search_race_results", args);
+  assert.equal(result.structuredContent.query_complete, true);
+  assert.doesNotMatch(JSON.stringify(result), /SECRET/);
+  const invalid = await f.call("search_race_results", {
+    ...args,
+    series_id: 3,
+  });
+  assert.equal(invalid.structuredContent.error.code, "INVALID_INPUT");
+  assert.equal(selected, 1);
 });
 
 test("input validation happens before resolving any dependencies", async (t) => {

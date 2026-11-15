@@ -1,5 +1,6 @@
 import { Configuration } from "@iracing-data/api-client-fetch";
 import { createDriverQueries } from "./driver.js";
+import { createRaceSearchQueries } from "./race-search.js";
 import { createRecentRaceQueries } from "./recent-races.js";
 import type { McpCapabilities } from "../composition.js";
 
@@ -15,6 +16,7 @@ export function createFetchQueries(
   const configuration = new Configuration({ accessToken });
 
   return {
+    raceSearchQueries: createRaceSearchQueries(configuration),
     driverQueries: createDriverQueries(configuration),
     recentRaceQueries: createRecentRaceQueries(configuration),
   };
