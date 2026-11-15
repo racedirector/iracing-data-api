@@ -16,10 +16,7 @@ import type {
   IracingToolServices,
 } from "../../services.js";
 
-/**
- * Register one explicitly typed and bounded recent-races query.
- * The host owns the concrete data client; this tool owns its public contract.
- */
+/** Register a bounded recent-races query using an injected domain capability. */
 export function registerGetRecentRaces(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -38,61 +35,66 @@ export function registerGetRecentRaces(
         openWorldHint: true,
       },
     },
-    async (arguments_, request) => {
-      const context: IracingToolContext = {
+    (input, request) =>
+      handleGetRecentRaces(input, services, {
         signal: request.mcpReq.signal,
         authInfo: request.http?.authInfo,
-      };
-
-      try {
-        const input = RecentInput.safeParse(arguments_);
-        if (!input.success) {
-          throw new ApplicationFailure("INVALID_INPUT");
-        }
-
-        context.signal.throwIfAborted();
-
-        if (!services.getRecentRaceQueries) {
-          throw new ApplicationFailure("CONFIGURATION_ERROR");
-        }
-
-        const queries = await services.getRecentRaceQueries(context);
-        const window = await queries.getRecent({
-          custId: input.data.cust_id,
-          signal: context.signal,
-        });
-
-        context.signal.throwIfAborted();
-
-        // Validate even untrusted/custom implementations before projecting.
-        const resolved = RecentRaceWindowSchema.safeParse(window);
-        if (!resolved.success) {
-          throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
-        }
-
-        if (
-          input.data.cust_id !== undefined &&
-          resolved.data.cust_id !== input.data.cust_id
-        ) {
-          throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
-        }
-
-        const races = resolved.data.races.slice(0, input.data.limit);
-        const output = RecentOutputSchema.parse({
-          cust_id: resolved.data.cust_id,
-          races,
-          returned_count: races.length,
-          complete: true,
-          position_basis: "upstream",
-        });
-
-        return completeResult(output);
-      } catch (error) {
-        return toolError(
-          context.signal.aborted ? new ApplicationFailure("UPSTREAM_UNAVAILABLE") : error,
-          createRequestContext(),
-        );
-      }
-    },
+      }),
   );
+}
+
+/** Keep service selection, bounds, output projection and failures visible. */
+async function handleGetRecentRaces(
+  input: unknown,
+  services: IracingToolServices,
+  context: IracingToolContext,
+) {
+  try {
+    const checked = RecentInput.safeParse(input);
+    if (!checked.success) {
+      throw new ApplicationFailure("INVALID_INPUT");
+    }
+
+    context.signal.throwIfAborted();
+    if (!services.getRecentRaceQueries) {
+      throw new ApplicationFailure("CONFIGURATION_ERROR");
+    }
+
+    const queries = await services.getRecentRaceQueries(context);
+    const window = await queries.getRecent({
+      custId: checked.data.cust_id,
+      signal: context.signal,
+    });
+
+    context.signal.throwIfAborted();
+    const resolved = RecentRaceWindowSchema.safeParse(window);
+    if (!resolved.success) {
+      throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+    }
+
+    if (
+      checked.data.cust_id !== undefined &&
+      resolved.data.cust_id !== checked.data.cust_id
+    ) {
+      throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
+    }
+
+    const races = resolved.data.races.slice(0, checked.data.limit);
+    const output = RecentOutputSchema.parse({
+      cust_id: resolved.data.cust_id,
+      races,
+      returned_count: races.length,
+      complete: true,
+      position_basis: "upstream",
+    });
+
+    return completeResult(output);
+  } catch (error) {
+    return toolError(
+      context.signal.aborted
+        ? new ApplicationFailure("UPSTREAM_UNAVAILABLE")
+        : error,
+      createRequestContext(),
+    );
+  }
 }
