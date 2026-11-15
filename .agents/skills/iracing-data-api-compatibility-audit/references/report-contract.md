@@ -19,4 +19,49 @@ Group findings by P1 (likely rejected valid response/invalid request, authentica
 - **Breaking implications:** yes/no/possibly with rationale for input acceptance, output/types, requiredness, operation IDs, export/signature changes, consumers and migration; assess independent packages separately.
 - **Implementation and release order:** canonical schema/mapping fixes before generated specs/SDKs and consumers, runtime-only fixes at their owner, downstream tests and migration before independently versioned releases. Use current manifests, managed release configuration and release guide; publication is outside the audit.
 
-End with checked/no-action surfaces, official documentation and endpoint coverage (including unavailable ones), executed/skipped validation, credentials/freshness/dirty-tree limitations, open ambiguities, and a consolidated dependency-aware implementation/release sequence. A service-free fixture pass validates audit mechanics only; it is never a current compatibility verdict.
+Report these layers separately:
+
+- **Docs diff:** expected/matched routes and parameters, classified candidates,
+  and current source/retrieval time.
+- **Live authored input/output cases:** expected endpoints and schema bindings;
+  PASS / CONTRACT_MISMATCH / BLOCKED / NOT_RUN counts and sanitized reasons.
+  Account for templates/variants and missing cases; do not count mocked dispatch
+  or an absent live suite as successful server validation.
+- **Selected linked payloads:** only the bounded cases required by changed
+  command-owned interpretation. An envelope pass does not validate linked JSON,
+  CSV, or chunks.
+- **Offline repository checks:** canonical schema/adapter tests, builds, and
+  generated freshness. These are not tests of generator internals or evidence
+  of current upstream compatibility.
+
+Each changed case includes the affected command and **add / modify / retain /
+retire** decision with rationale. Retaining a command after a schema-only repair
+is valid; deleting a failing case or weakening acceptance without evidence is not.
+A Zod parse pass establishes acceptance of that response, not schema completeness,
+every optional filter's semantics, or all success/error variants.
+
+## Living decision memory
+
+Update [the reconciliation log](../../../../docs/DATA-API-RECONCILIATION.md)
+whenever contract changes are made. Record a stable finding ID, dated observations
+and reviews with timezone, base git commit/dirty-tree context, implementation
+commits (or explicitly pending), official source locations, mismatch versus
+interpretation, decision and rationale, canonical owners, compatibility impact,
+validation/regeneration commands and outcomes, limitations, and next-review cases.
+Do not commit solely to obtain a reference or invent an implementation commit.
+
+At the next reconciliation, review previous findings and decisions against fresh
+official documentation and live cases before deciding **retain / revise / revert**.
+For example, corrected official definitions or a method now conforming to its
+documented contract may remove the reason for a workaround. Record the new dated
+decision and evidence without deleting the old rationale. A blocked recheck stays
+explicitly unverified. Historical log entries are not current upstream authority.
+Never store raw responses, credentials, private identifiers or signed URLs here.
+
+End with checked/no-action surfaces, official documentation and endpoint coverage
+(including unavailable ones), executed/skipped validation, credentials/freshness/
+dirty-tree limitations, open ambiguities, and a consolidated dependency-aware
+implementation/release sequence. If the requested full live gate is absent or
+blocked, finish **Unable to verify part of the contract**. Docs-only verdicts must
+say docs-only. A service-free fixture pass validates audit mechanics only; it is
+never a current compatibility verdict.

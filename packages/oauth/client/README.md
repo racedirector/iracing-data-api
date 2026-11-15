@@ -142,3 +142,11 @@ requests continue to use `oauth4webapi` for protocol processing.
 and [JWT/protocol utilities](src/utils.ts) own the detailed contracts.
 The [OAuth document mapping](../../helpers/oauth-schema-to-openapi/src/index.ts)
 explains current authored/generated ownership.
+
+# Pre-masked credentials
+
+Client metadata accepts `maskedPassword` instead of `password` and
+`maskedClientSecret` instead of `clientSecret`. Pre-masked values are sent
+unchanged, bypassing built-in masking. Each pair is mutually exclusive.
+The password-limited flow requires `username`, one password form, and one
+client-secret form. Public authorization-code clients may omit both secret forms.

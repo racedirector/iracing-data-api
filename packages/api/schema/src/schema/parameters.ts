@@ -26,11 +26,10 @@ import {
   CustomerIdSchema,
   CustomerIdsParameterSchema,
   DivisionParameterSchema,
+  DivisionEventTypeParameterSchema,
   EventTypeParameterSchema,
-  EventTypeRaceSchema,
   EventTypeSchema,
   EventTypesParameterSchema,
-  EventTypeTimeTrialSchema,
   LeagueIdParameterSchema,
   LeagueSeasonIdParameterSchema,
   PackageIdParameterSchema,
@@ -50,6 +49,17 @@ import {
 export const AuthParametersSchema = z.object({
   email: z.email(),
   password: z.string(),
+});
+
+/** Validates repeated lookup selectors documented by /data/doc/lookup/get. */
+export const LookupParametersSchema = z.object({
+  weather: z.array(z.string().min(1)).min(1).optional(),
+  licenselevels: z.array(z.string().min(1)).min(1).optional(),
+});
+
+/** Validates registered-driver queries documented by /data/doc/session/reg_drivers_list. */
+export const SessionRegisteredDriversParametersSchema = z.object({
+  subsession_id: SubsessionIdParameterSchema,
 });
 
 /** Validates driver stats by category path at the Data API request boundary. */
@@ -479,7 +489,7 @@ export const StatsMemberCareerParametersSchema = z.object({
 /** Validates stats member division parameters at the Data API request boundary. */
 export const StatsMemberDivisionParametersSchema = z.object({
   season_id: SeasonIdParameterSchema,
-  event_type: z.union([EventTypeTimeTrialSchema, EventTypeRaceSchema]).meta({
+  event_type: DivisionEventTypeParameterSchema.meta({
     description:
       "The event type code for the division type: 4 - Time Trial; 5 - Race",
   }),
@@ -609,6 +619,10 @@ export const TimeAttackMemberSeasonResultsParametersSchema = z.object({
 /**
  * Types.
  */
+export type LookupParameters = z.infer<typeof LookupParametersSchema>;
+export type SessionRegisteredDriversParameters = z.infer<
+  typeof SessionRegisteredDriversParametersSchema
+>;
 export type DriverStatsByCategoryPath = z.infer<
   typeof DriverStatsByCategoryPathSchema
 >;

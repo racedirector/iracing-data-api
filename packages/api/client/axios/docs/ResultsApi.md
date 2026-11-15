@@ -228,7 +228,7 @@ const { status, data } = await apiInstance.getResultsLapData(
 
 # **getResultsSearchHosted**
 
-> IracingAPIResponse getResultsSearchHosted()
+> ResultsSearchHostedResponse getResultsSearchHosted()
 
 ### Example
 
@@ -289,7 +289,7 @@ const { status, data } = await apiInstance.getResultsSearchHosted(
 
 ### Return type
 
-**IracingAPIResponse**
+**ResultsSearchHostedResponse**
 
 ### Authorization
 
@@ -304,7 +304,7 @@ const { status, data } = await apiInstance.getResultsSearchHosted(
 
 | Status code | Description                         | Response headers                                                                     |
 | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **200**     | Direct hosted-search chunk manifest | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
 | **401**     | Access token is missing or invalid. | -                                                                                    |
 | **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
 | **503**     | Maintenance                         | -                                                                                    |

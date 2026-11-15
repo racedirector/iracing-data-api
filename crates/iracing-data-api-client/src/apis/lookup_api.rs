@@ -13,6 +13,13 @@ use crate::{apis::ResponseContent, models};
 use reqwest;
 use serde::{de::Error as _, Deserialize, Serialize};
 
+/// struct for passing parameters to the method [`get_lookup`]
+#[derive(Clone, Debug)]
+pub struct GetLookupParams {
+    pub weather: Option<Vec<String>>,
+    pub licenselevels: Option<Vec<String>>,
+}
+
 /// struct for passing parameters to the method [`get_lookup_drivers`]
 #[derive(Clone, Debug)]
 pub struct GetLookupDriversParams {
@@ -36,6 +43,16 @@ pub enum GetLookupError {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(untagged)]
 pub enum GetLookupCountriesError {
+    Status401(models::ErrorResponse),
+    Status429(models::ErrorResponse),
+    Status503(models::ErrorResponse),
+    UnknownValue(serde_json::Value),
+}
+
+/// struct for typed errors of method [`get_lookup_current_season`]
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(untagged)]
+pub enum GetLookupCurrentSeasonError {
     Status401(models::ErrorResponse),
     Status429(models::ErrorResponse),
     Status503(models::ErrorResponse),
@@ -74,10 +91,49 @@ pub enum GetLookupLicensesError {
 
 pub async fn get_lookup(
     configuration: &configuration::Configuration,
+    params: GetLookupParams,
 ) -> Result<models::IracingApiResponse, Error<GetLookupError>> {
     let uri_str = format!("{}/data/lookup/get", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
+    if let Some(ref param_value) = params.weather {
+        req_builder = match "multi" {
+            "multi" => req_builder.query(
+                &param_value
+                    .into_iter()
+                    .map(|p| ("weather".to_owned(), p.to_string()))
+                    .collect::<Vec<(std::string::String, std::string::String)>>(),
+            ),
+            _ => req_builder.query(&[(
+                "weather",
+                &param_value
+                    .into_iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+                    .to_string(),
+            )]),
+        };
+    }
+    if let Some(ref param_value) = params.licenselevels {
+        req_builder = match "multi" {
+            "multi" => req_builder.query(
+                &param_value
+                    .into_iter()
+                    .map(|p| ("licenselevels".to_owned(), p.to_string()))
+                    .collect::<Vec<(std::string::String, std::string::String)>>(),
+            ),
+            _ => req_builder.query(&[(
+                "licenselevels",
+                &param_value
+                    .into_iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+                    .to_string(),
+            )]),
+        };
+    }
     if let Some(ref user_agent) = configuration.user_agent {
         req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
     }
@@ -148,6 +204,48 @@ pub async fn get_lookup_countries(
     } else {
         let content = resp.text().await?;
         let entity: Option<GetLookupCountriesError> = serde_json::from_str(&content).ok();
+        Err(Error::ResponseError(ResponseContent {
+            status,
+            content,
+            entity,
+        }))
+    }
+}
+
+pub async fn get_lookup_current_season(
+    configuration: &configuration::Configuration,
+) -> Result<models::IracingApiResponse, Error<GetLookupCurrentSeasonError>> {
+    let uri_str = format!("{}/data/lookup/current_season", configuration.base_path);
+    let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
+
+    if let Some(ref user_agent) = configuration.user_agent {
+        req_builder = req_builder.header(reqwest::header::USER_AGENT, user_agent.clone());
+    }
+    if let Some(ref token) = configuration.bearer_access_token {
+        req_builder = req_builder.bearer_auth(token.to_owned());
+    };
+
+    let req = req_builder.build()?;
+    let resp = configuration.client.execute(req).await?;
+
+    let status = resp.status();
+    let content_type = resp
+        .headers()
+        .get("content-type")
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("application/octet-stream");
+    let content_type = super::ContentType::from(content_type);
+
+    if !status.is_client_error() && !status.is_server_error() {
+        let content = resp.text().await?;
+        match content_type {
+            ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::IracingApiResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::IracingApiResponse`")))),
+        }
+    } else {
+        let content = resp.text().await?;
+        let entity: Option<GetLookupCurrentSeasonError> = serde_json::from_str(&content).ok();
         Err(Error::ResponseError(ResponseContent {
             status,
             content,

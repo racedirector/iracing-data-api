@@ -367,7 +367,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_stats_world_records
 
-> models::IracingApiResponse get_stats_world_records(car_id, track_id, season_year, season_quarter)
+> models::StatsWorldRecordsResponse get_stats_world_records(car_id, track_id, season_year, season_quarter)
 
 ### Parameters
 
@@ -380,7 +380,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**models::StatsWorldRecordsResponse**](statsWorldRecordsResponse.md)
 
 ### Authorization
 

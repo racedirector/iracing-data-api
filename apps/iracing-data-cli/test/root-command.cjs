@@ -3,6 +3,7 @@ exports.createRootCommand = async function () {
   const program = createProgram({
     diagnostics: { info() {}, warn() {}, error() {} },
     fetch: globalThis.fetch,
+    display: { display() {} },
   });
   program.commands.splice(0);
   return program;

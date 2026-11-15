@@ -30,6 +30,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**getLeagueSeasonStandingsDocs**](DocApi.md#getleagueseasonstandingsdocs)                           | **GET** /data/doc/league/season_standings               |             |
 | [**getLeagueSeasonsDocs**](DocApi.md#getleagueseasonsdocs)                                           | **GET** /data/doc/league/seasons                        |             |
 | [**getLookupCountriesDocs**](DocApi.md#getlookupcountriesdocs)                                       | **GET** /data/doc/lookup/countries                      |             |
+| [**getLookupCurrentSeasonDocs**](DocApi.md#getlookupcurrentseasondocs)                               | **GET** /data/doc/lookup/current_season                 |             |
 | [**getLookupDocs**](DocApi.md#getlookupdocs)                                                         | **GET** /data/doc/lookup                                |             |
 | [**getLookupDriversDocs**](DocApi.md#getlookupdriversdocs)                                           | **GET** /data/doc/lookup/drivers                        |             |
 | [**getLookupFlairsDocs**](DocApi.md#getlookupflairsdocs)                                             | **GET** /data/doc/lookup/flairs                         |             |
@@ -64,6 +65,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**getSeriesSeasonScheduleDocs**](DocApi.md#getseriesseasonscheduledocs)                             | **GET** /data/doc/series/season_schedule                |             |
 | [**getSeriesSeasonsDocs**](DocApi.md#getseriesseasonsdocs)                                           | **GET** /data/doc/series/seasons                        |             |
 | [**getSeriesStatsSeriesDocs**](DocApi.md#getseriesstatsseriesdocs)                                   | **GET** /data/doc/series/stats_series                   |             |
+| [**getSessionDocs**](DocApi.md#getsessiondocs)                                                       | **GET** /data/doc/session                               |             |
+| [**getSessionRegisteredDriversDocs**](DocApi.md#getsessionregistereddriversdocs)                     | **GET** /data/doc/session/reg_drivers_list              |             |
 | [**getStatsDocs**](DocApi.md#getstatsdocs)                                                           | **GET** /data/doc/stats                                 |             |
 | [**getStatsMemberBestsDocs**](DocApi.md#getstatsmemberbestsdocs)                                     | **GET** /data/doc/stats/member_bests                    |             |
 | [**getStatsMemberCareerDocs**](DocApi.md#getstatsmembercareerdocs)                                   | **GET** /data/doc/stats/member_career                   |             |
@@ -1518,6 +1521,62 @@ async function example() {
 
   try {
     const data = await api.getLookupCountriesDocs();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**IracingServiceMethodDocs**](IracingServiceMethodDocs.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+### HTTP response details
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **200**     | Success                             | -                |
+| **401**     | Access token is missing or invalid. | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+## getLookupCurrentSeasonDocs
+
+> IracingServiceMethodDocs getLookupCurrentSeasonDocs()
+
+### Example
+
+```ts
+import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
+import type { GetLookupCurrentSeasonDocsRequest } from "@iracing-data/api-client-fetch";
+
+async function example() {
+  console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
+  const config = new Configuration({
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new DocApi(config);
+
+  try {
+    const data = await api.getLookupCurrentSeasonDocs();
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -3422,6 +3481,118 @@ async function example() {
 
   try {
     const data = await api.getSeriesStatsSeriesDocs();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**IracingServiceMethodDocs**](IracingServiceMethodDocs.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+### HTTP response details
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **200**     | Success                             | -                |
+| **401**     | Access token is missing or invalid. | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+## getSessionDocs
+
+> { [key: string]: IracingServiceMethodDocs; } getSessionDocs()
+
+### Example
+
+```ts
+import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
+import type { GetSessionDocsRequest } from "@iracing-data/api-client-fetch";
+
+async function example() {
+  console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
+  const config = new Configuration({
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new DocApi(config);
+
+  try {
+    const data = await api.getSessionDocs();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**{ [key: string]: IracingServiceMethodDocs; }**](IracingServiceMethodDocs.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+### HTTP response details
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **200**     | Success                             | -                |
+| **401**     | Access token is missing or invalid. | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+## getSessionRegisteredDriversDocs
+
+> IracingServiceMethodDocs getSessionRegisteredDriversDocs()
+
+### Example
+
+```ts
+import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
+import type { GetSessionRegisteredDriversDocsRequest } from "@iracing-data/api-client-fetch";
+
+async function example() {
+  console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
+  const config = new Configuration({
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new DocApi(config);
+
+  try {
+    const data = await api.getSessionRegisteredDriversDocs();
     console.log(data);
   } catch (error) {
     console.error(error);

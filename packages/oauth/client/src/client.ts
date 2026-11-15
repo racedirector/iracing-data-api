@@ -131,14 +131,19 @@ export class OAuthClient {
       client_id: this.clientMetadata.clientId,
     };
 
-    this.clientAuthorization = this.clientMetadata.clientSecret
-      ? oauth.ClientSecretPost(
-          maskSecret(
+    const clientSecret =
+      this.clientMetadata.maskedClientSecret ??
+      (this.clientMetadata.clientSecret !== undefined
+        ? maskSecret(
             this.clientMetadata.clientSecret,
             this.clientMetadata.clientId,
-          ),
-        )
-      : oauth.None();
+          )
+        : undefined);
+
+    this.clientAuthorization =
+      clientSecret !== undefined
+        ? oauth.ClientSecretPost(clientSecret)
+        : oauth.None();
   }
 
   /**
@@ -197,18 +202,35 @@ export class OAuthClient {
    * @throws {Error} If the grant request fails or the returned token payload cannot be parsed.
    */
   async passwordLimitedAuthorization() {
-    const { username, password, clientId, clientSecret, scopes } =
-      this.clientMetadata;
+    const {
+      username,
+      password,
+      maskedPassword,
+      clientId,
+      clientSecret,
+      maskedClientSecret,
+      scopes,
+    } = this.clientMetadata;
 
     if (!username) {
       throw ClientMetadataError.missingCredentials("username");
     }
 
-    if (!password) {
+    const requestPassword =
+      maskedPassword ??
+      (password !== undefined ? maskSecret(password, username) : undefined);
+
+    const requestClientSecret =
+      maskedClientSecret ??
+      (clientSecret !== undefined
+        ? maskSecret(clientSecret, clientId)
+        : undefined);
+
+    if (requestPassword === undefined) {
       throw ClientMetadataError.missingCredentials("password");
     }
 
-    if (!clientSecret) {
+    if (requestClientSecret === undefined) {
       throw ClientMetadataError.missingClientSecret();
     }
 
@@ -216,9 +238,9 @@ export class OAuthClient {
       await OAuthPasswordLimitedGrantParametersSchema.parseAsync({
         grant_type: "password_limited",
         client_id: clientId,
-        client_secret: maskSecret(clientSecret, clientId),
+        client_secret: requestClientSecret,
         username,
-        password: maskSecret(password, username),
+        password: requestPassword,
         scope: scopes.join(" "),
       });
 

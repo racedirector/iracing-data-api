@@ -710,7 +710,7 @@ const { status, data } = await apiInstance.getStatsSeasonTimeTrialStandings(
 
 # **getStatsWorldRecords**
 
-> IracingAPIResponse getStatsWorldRecords()
+> StatsWorldRecordsResponse getStatsWorldRecords()
 
 ### Example
 
@@ -744,7 +744,7 @@ const { status, data } = await apiInstance.getStatsWorldRecords(
 
 ### Return type
 
-**IracingAPIResponse**
+**StatsWorldRecordsResponse**
 
 ### Authorization
 
@@ -759,7 +759,7 @@ const { status, data } = await apiInstance.getStatsWorldRecords(
 
 | Status code | Description                         | Response headers                                                                     |
 | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **200**     | World-record chunk manifest.        | -                                                                                    |
 | **401**     | Access token is missing or invalid. | -                                                                                    |
 | **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
 | **503**     | Maintenance                         | -                                                                                    |

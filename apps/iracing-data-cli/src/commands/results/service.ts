@@ -1,17 +1,12 @@
 import { Configuration, ResultsApi } from "@iracing-data/api-client-fetch";
 import { resolveAccessToken } from "../../credentials.js";
 import type { CreateExecuteOptions } from "./command.js";
+import type { DisplayWriter } from "../../types.js";
 
 /** Host-selected transport and output. */
-export interface ResultsRuntime {
+export interface ResultsRuntime extends DisplayWriter {
   /** HTTP transport. */
   fetch: typeof fetch;
-
-  /**
-   * JSON document output sink.
-   * @param {unknown} document - Downloaded JSON.
-   */
-  display(document: unknown): void;
 }
 
 /**

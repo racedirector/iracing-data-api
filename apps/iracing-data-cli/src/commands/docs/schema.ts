@@ -7,19 +7,16 @@ export const resolveOptions = z
   .object({
     output: z.string().optional(),
     credentials: z.string().optional(),
-    format: z.string().optional(),
-    force: z.literal(true).optional(),
+    accessToken: z.string().optional(),
+    format: z.enum(["json", "yaml"]).default("json"),
+    force: z.boolean().default(false),
   })
   .transform((options) => ({
     output: options.output,
     credentials: options.credentials,
-    format: z
-      .enum(["json", "yaml"])
-      .meta({
-        description: "Token serialization format",
-      })
-      .parse(options.format ?? "json"),
-    force: options.force ?? false,
+    accessToken: options.accessToken,
+    format: options.format,
+    force: options.force,
   }));
 
 /**

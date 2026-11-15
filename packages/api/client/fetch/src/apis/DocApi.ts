@@ -1200,6 +1200,50 @@ export class DocApi extends runtime.BaseAPI {
 
   /**
    */
+  async getLookupCurrentSeasonDocsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<IracingServiceMethodDocs>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
+
+      if (tokenString) {
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
+      }
+    }
+
+    let urlPath = `/data/doc/lookup/current_season`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      IracingServiceMethodDocsFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   */
+  async getLookupCurrentSeasonDocs(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<IracingServiceMethodDocs> {
+    const response = await this.getLookupCurrentSeasonDocsRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   */
   async getLookupDocsRaw(
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<{ [key: string]: IracingServiceMethodDocs }>> {
@@ -2694,6 +2738,95 @@ export class DocApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<IracingServiceMethodDocs> {
     const response = await this.getSeriesStatsSeriesDocsRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   */
+  async getSessionDocsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<{ [key: string]: IracingServiceMethodDocs }>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
+
+      if (tokenString) {
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
+      }
+    }
+
+    let urlPath = `/data/doc/session`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      runtime.mapValues(jsonValue, IracingServiceMethodDocsFromJSON),
+    );
+  }
+
+  /**
+   */
+  async getSessionDocs(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<{ [key: string]: IracingServiceMethodDocs }> {
+    const response = await this.getSessionDocsRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   */
+  async getSessionRegisteredDriversDocsRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<IracingServiceMethodDocs>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
+
+      if (tokenString) {
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
+      }
+    }
+
+    let urlPath = `/data/doc/session/reg_drivers_list`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      IracingServiceMethodDocsFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   */
+  async getSessionRegisteredDriversDocs(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<IracingServiceMethodDocs> {
+    const response =
+      await this.getSessionRegisteredDriversDocsRaw(initOverrides);
     return await response.value();
   }
 

@@ -285,6 +285,7 @@ export default defineConfig([
   {
     name: "build-and-contract-outputs",
     ignores: [
+      ".iracing-data/**",
       "**/dist/**",
       "bin/**",
       "node_modules/**",

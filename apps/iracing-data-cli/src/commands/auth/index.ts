@@ -1,5 +1,8 @@
 import { Command } from "@commander-js/extra-typings";
-import { createLoginCommand } from "./login/index.js";
+import { authenticateWithBrowser } from "../../authenticate.js";
+import { writeTokenOutput } from "../../token-output.js";
+import { createLoginCommand } from "./login/command.js";
+import { createLoginService } from "./login/service.js";
 import type { Diagnostics } from "../../diagnostics.js";
 
 /**
@@ -20,7 +23,13 @@ interface CreateAuthCommandOptions {
 export function createAuthCommand({
   diagnostics,
 }: CreateAuthCommandOptions): Command {
-  return new Command("auth")
-    .description("Authentication commands")
-    .addCommand(createLoginCommand({ diagnostics }));
+  return new Command("auth").description("Authentication commands").addCommand(
+    createLoginCommand(
+      createLoginService({
+        diagnostics,
+        authenticate: authenticateWithBrowser,
+        writeOutput: writeTokenOutput,
+      }),
+    ),
+  );
 }

@@ -21,6 +21,11 @@ import {
   IracingAPIResponseToJSON,
 } from "../models/index";
 
+export interface GetLookupRequest {
+  weather?: Array<string>;
+  licenselevels?: Array<string>;
+}
+
 export interface GetLookupDriversRequest {
   search_term: string;
   league_id?: number;
@@ -33,9 +38,18 @@ export class LookupApi extends runtime.BaseAPI {
   /**
    */
   async getLookupRaw(
+    requestParameters: GetLookupRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
     const queryParameters: any = {};
+
+    if (requestParameters["weather"] != null) {
+      queryParameters["weather"] = requestParameters["weather"];
+    }
+
+    if (requestParameters["licenselevels"] != null) {
+      queryParameters["licenselevels"] = requestParameters["licenselevels"];
+    }
 
     const headerParameters: runtime.HTTPHeaders = {};
 
@@ -68,9 +82,10 @@ export class LookupApi extends runtime.BaseAPI {
   /**
    */
   async getLookup(
+    requestParameters: GetLookupRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<IracingAPIResponse> {
-    const response = await this.getLookupRaw(initOverrides);
+    const response = await this.getLookupRaw(requestParameters, initOverrides);
     return await response.value();
   }
 
@@ -115,6 +130,50 @@ export class LookupApi extends runtime.BaseAPI {
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
   ): Promise<IracingAPIResponse> {
     const response = await this.getLookupCountriesRaw(initOverrides);
+    return await response.value();
+  }
+
+  /**
+   */
+  async getLookupCurrentSeasonRaw(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+    const queryParameters: any = {};
+
+    const headerParameters: runtime.HTTPHeaders = {};
+
+    if (this.configuration && this.configuration.accessToken) {
+      const token = this.configuration.accessToken;
+      const tokenString = await token("bearerAuth", []);
+
+      if (tokenString) {
+        headerParameters["Authorization"] = `Bearer ${tokenString}`;
+      }
+    }
+
+    let urlPath = `/data/lookup/current_season`;
+
+    const response = await this.request(
+      {
+        path: urlPath,
+        method: "GET",
+        headers: headerParameters,
+        query: queryParameters,
+      },
+      initOverrides,
+    );
+
+    return new runtime.JSONApiResponse(response, (jsonValue) =>
+      IracingAPIResponseFromJSON(jsonValue),
+    );
+  }
+
+  /**
+   */
+  async getLookupCurrentSeason(
+    initOverrides?: RequestInit | runtime.InitOverrideFunction,
+  ): Promise<IracingAPIResponse> {
+    const response = await this.getLookupCurrentSeasonRaw(initOverrides);
     return await response.value();
   }
 

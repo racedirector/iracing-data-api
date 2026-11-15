@@ -13,12 +13,21 @@
  */
 
 import * as runtime from "../runtime";
-import type { ErrorResponse, IracingAPIResponse } from "../models/index";
+import type {
+  ErrorResponse,
+  IracingAPIResponse,
+  MemberAwardInstancesResponse,
+  MemberAwardsResponse,
+} from "../models/index";
 import {
   ErrorResponseFromJSON,
   ErrorResponseToJSON,
   IracingAPIResponseFromJSON,
   IracingAPIResponseToJSON,
+  MemberAwardInstancesResponseFromJSON,
+  MemberAwardInstancesResponseToJSON,
+  MemberAwardsResponseFromJSON,
+  MemberAwardsResponseToJSON,
 } from "../models/index";
 
 export interface GetMemberRequest {
@@ -116,7 +125,7 @@ export class MemberApi extends runtime.BaseAPI {
   async getMemberAwardInstancesRaw(
     requestParameters: GetMemberAwardInstancesRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<MemberAwardInstancesResponse>> {
     if (requestParameters["award_id"] == null) {
       throw new runtime.RequiredError(
         "award_id",
@@ -158,7 +167,7 @@ export class MemberApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
+      MemberAwardInstancesResponseFromJSON(jsonValue),
     );
   }
 
@@ -167,7 +176,7 @@ export class MemberApi extends runtime.BaseAPI {
   async getMemberAwardInstances(
     requestParameters: GetMemberAwardInstancesRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<MemberAwardInstancesResponse> {
     const response = await this.getMemberAwardInstancesRaw(
       requestParameters,
       initOverrides,
@@ -180,7 +189,7 @@ export class MemberApi extends runtime.BaseAPI {
   async getMemberAwardsRaw(
     requestParameters: GetMemberAwardsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<MemberAwardsResponse>> {
     const queryParameters: any = {};
 
     if (requestParameters["cust_id"] != null) {
@@ -211,7 +220,7 @@ export class MemberApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
+      MemberAwardsResponseFromJSON(jsonValue),
     );
   }
 
@@ -220,7 +229,7 @@ export class MemberApi extends runtime.BaseAPI {
   async getMemberAwards(
     requestParameters: GetMemberAwardsRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<MemberAwardsResponse> {
     const response = await this.getMemberAwardsRaw(
       requestParameters,
       initOverrides,

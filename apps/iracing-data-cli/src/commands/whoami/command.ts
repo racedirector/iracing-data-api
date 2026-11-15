@@ -1,7 +1,6 @@
 import { Command } from "@commander-js/extra-typings";
 import { readCredentialOptions } from "../../schema.js";
 import type { CredentialOptions } from "../../credentials.js";
-import type { Diagnostics } from "../../diagnostics.js";
 
 /**
  * Minimal identity projection safe for CLI presentation; protocol-specific profile fields
@@ -18,54 +17,41 @@ export interface WhoamiProfile {
 /** Credential-selection options accepted by the identity command. */
 export type WhoamiOptions = CredentialOptions;
 
-/**
- * Per-invocation boundary that resolves identity and emits it without exposing client
- * construction to the command module.
- */
-export interface WhoamiCommandScope {
-  /** Reads the authenticated member profile. */
-  identity: {
-    getProfile(): Promise<WhoamiProfile>;
-  };
+/** Host-owned profile retrieval and presentation. */
+export interface CreateExecuteOptions {
+  /**
+   * Read the authenticated member's minimal profile.
+   * @param {WhoamiOptions} options - Parsed API credential selection.
+   * @returns {Promise<WhoamiProfile>} Safe identity projection.
+   */
+  getProfile(options: WhoamiOptions): Promise<WhoamiProfile>;
 
-  /** Writes the command result to the configured destination. */
-  output: {
-    write(profile: WhoamiProfile): void;
-  };
-
-  /** Secret-safe diagnostic sink for command progress and failures. */
-  diagnostics: Diagnostics;
+  /**
+   * Write the profile and report completion.
+   * @param {WhoamiProfile} profile - Safe identity projection.
+   */
+  present(profile: WhoamiProfile): void;
 }
 
 /**
- * Factory contract for constructing an isolated identity-command scope from normalized
- * options.
- * @param {WhoamiOptions} options - Configuration and injected capabilities for this operation.
- * @returns {Promise<WhoamiCommandScope>} Resolved capabilities for one command invocation.
+ * Bind profile retrieval to presentation without invocation scopes.
+ * @param {CreateExecuteOptions} service - Host operations.
+ * @returns {Function} Bound execution handler.
  */
-export type CreateWhoamiCommandScope = (
-  options: WhoamiOptions,
-) => Promise<WhoamiCommandScope>;
-
-/**
- * Application-registration dependencies for whoami; identity I/O remains delegated to the
- * invocation scope.
- */
-export interface WhoamiCommandDependencies {
-  /** Resolves dependencies once for each command invocation. */
-  createScope: CreateWhoamiCommandScope;
+export function createExecute(service: CreateExecuteOptions) {
+  return async (options: WhoamiOptions) => {
+    service.present(await service.getProfile(options));
+  };
 }
 
 /**
- * Build the whoami command, resolving one scope when its action runs to fetch
- * and write the profile. Scope, retrieval, and output failures reject `parseAsync()`.
- * @param {WhoamiCommandDependencies} root0 - Command composition inputs and dependency overrides.
- * @param {CreateWhoamiCommandScope} root0.createScope - Factory resolving dependencies once per command invocation.
+ * Parse credential options and call the injected service.
+ * @param {CreateExecuteOptions} service - Host profile retrieval and presentation.
  * @returns {Command} Configured CLI command ready for registration.
  */
-export function createWhoamiCommand({
-  createScope,
-}: WhoamiCommandDependencies) {
+export function createWhoamiCommand(service: CreateExecuteOptions) {
+  const execute = createExecute(service);
+
   return new Command("whoami")
     .description(
       "Check active credentials and show the authenticated iRacing profile",
@@ -75,13 +61,6 @@ export function createWhoamiCommand({
       "Override the shared JSON or YAML credential file",
     )
     .action(async (_raw, command) => {
-      const { identity, output, diagnostics } = await createScope(
-        readCredentialOptions(command),
-      );
-
-      const profile = await identity.getProfile();
-
-      output.write(profile);
-      diagnostics.info("iRacing identity verified.");
+      await execute(readCredentialOptions(command));
     });
 }

@@ -66,7 +66,7 @@ const { status, data } = await apiInstance.getMember(
 
 # **getMemberAwardInstances**
 
-> IracingAPIResponse getMemberAwardInstances()
+> MemberAwardInstancesResponse getMemberAwardInstances()
 
 ### Example
 
@@ -94,7 +94,7 @@ const { status, data } = await apiInstance.getMemberAwardInstances(
 
 ### Return type
 
-**IracingAPIResponse**
+**MemberAwardInstancesResponse**
 
 ### Authorization
 
@@ -107,18 +107,18 @@ const { status, data } = await apiInstance.getMemberAwardInstances(
 
 ### HTTP response details
 
-| Status code | Description                         | Response headers                                                                     |
-| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **401**     | Access token is missing or invalid. | -                                                                                    |
-| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **503**     | Maintenance                         | -                                                                                    |
+| Status code | Description                                            | Response headers                                                                     |
+| ----------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------ |
+| **200**     | Member award-instance metadata and download reference. | -                                                                                    |
+| **401**     | Access token is missing or invalid.                    | -                                                                                    |
+| **429**     | Rate limited                                           | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                                            | -                                                                                    |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getMemberAwards**
 
-> IracingAPIResponse getMemberAwards()
+> MemberAwardsResponse getMemberAwards()
 
 ### Example
 
@@ -141,7 +141,7 @@ const { status, data } = await apiInstance.getMemberAwards(cust_id);
 
 ### Return type
 
-**IracingAPIResponse**
+**MemberAwardsResponse**
 
 ### Authorization
 
@@ -154,12 +154,12 @@ const { status, data } = await apiInstance.getMemberAwards(cust_id);
 
 ### HTTP response details
 
-| Status code | Description                         | Response headers                                                                     |
-| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **401**     | Access token is missing or invalid. | -                                                                                    |
-| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **503**     | Maintenance                         | -                                                                                    |
+| Status code | Description                                   | Response headers                                                                     |
+| ----------- | --------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Member award metadata and download reference. | -                                                                                    |
+| **401**     | Access token is missing or invalid.           | -                                                                                    |
+| **429**     | Rate limited                                  | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                                   | -                                                                                    |
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 

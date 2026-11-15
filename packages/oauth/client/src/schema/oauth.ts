@@ -106,6 +106,12 @@ export const IRacingOAuthClientMetadataSchema = z
       description:
         "The client secret optionally provided by iRacing during client registration. See: https://oauth.iracing.com/oauth2/book/client_registration.html",
     }),
+    maskedClientSecret: z.string().optional().meta({
+      id: "maskedClientSecret",
+      title: "Masked client secret",
+      description:
+        "A pre-masked client secret sent unchanged instead of masking `clientSecret`.",
+    }),
     username: z.string().optional().meta({
       id: "username",
       title: "Email address or username.",
@@ -118,6 +124,12 @@ export const IRacingOAuthClientMetadataSchema = z
       description:
         "The password of the user. Only used in the password limited grant.",
     }),
+    maskedPassword: z.string().optional().meta({
+      id: "maskedPassword",
+      title: "Masked user password",
+      description:
+        "A pre-masked password sent unchanged instead of masking `password`. Only used in the password limited grant.",
+    }),
     redirectUri: z.url().optional().meta({
       id: "redirectUri",
       title: "Redirect URI",
@@ -126,13 +138,37 @@ export const IRacingOAuthClientMetadataSchema = z
     }),
   })
   .superRefine((value, ctx) => {
+    if (value.password !== undefined && value.maskedPassword !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Provide only one of `password` or `maskedPassword`.",
+        path: ["maskedPassword"],
+      });
+    }
+
+    if (
+      value.clientSecret !== undefined &&
+      value.maskedClientSecret !== undefined
+    ) {
+      ctx.addIssue({
+        code: "custom",
+        message: "Provide only one of `clientSecret` or `maskedClientSecret`.",
+        path: ["maskedClientSecret"],
+      });
+    }
+  })
+  .superRefine((value, ctx) => {
     const hasRedirectUri = Boolean(value.redirectUri);
 
     const hasUsername = value.username !== undefined;
 
-    const hasPassword = value.password !== undefined;
+    const hasPassword = [value.password, value.maskedPassword].some(
+      (credential) => credential !== undefined,
+    );
 
-    const hasClientSecret = value.clientSecret !== undefined;
+    const hasClientSecret = [value.clientSecret, value.maskedClientSecret].some(
+      (credential) => credential !== undefined,
+    );
 
     const passwordLimitedFieldsProvided = hasUsername || hasPassword;
 
@@ -143,7 +179,7 @@ export const IRacingOAuthClientMetadataSchema = z
       ctx.addIssue({
         code: "custom",
         message:
-          "Password limited flow requires `username` when `password` is provided.",
+          "Password limited flow requires `username` when `password` or `maskedPassword` is provided.",
         path: ["username"],
       });
     }
@@ -152,7 +188,7 @@ export const IRacingOAuthClientMetadataSchema = z
       ctx.addIssue({
         code: "custom",
         message:
-          "Password limited flow requires `password` when `username` is provided.",
+          "Password limited flow requires `password` or `maskedPassword` when `username` is provided.",
         path: ["password"],
       });
     }
@@ -161,7 +197,7 @@ export const IRacingOAuthClientMetadataSchema = z
       ctx.addIssue({
         code: "custom",
         message:
-          "Password limited flow requires `clientSecret` when using `username` and `password`.",
+          "Password limited flow requires `clientSecret` or `maskedClientSecret` when using `username` and a password.",
         path: ["clientSecret"],
       });
     }
@@ -170,7 +206,7 @@ export const IRacingOAuthClientMetadataSchema = z
       ctx.addIssue({
         code: "custom",
         message:
-          "Client must provide `redirectUri` for the authorization code flow or `username`, `password`, and `clientSecret` for the password limited flow.",
+          "Client must provide `redirectUri` for the authorization code flow or `username`, a raw or masked password, and a raw or masked client secret for the password limited flow.",
       });
     }
   })

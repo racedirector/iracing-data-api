@@ -2,23 +2,27 @@
 
 All URIs are relative to *https://members-ng.iracing.com*
 
-| Method                                                    | HTTP request                   | Description |
-| --------------------------------------------------------- | ------------------------------ | ----------- |
-| [**getLookup**](LookupApi.md#getlookup)                   | **GET** /data/lookup/get       |             |
-| [**getLookupCountries**](LookupApi.md#getlookupcountries) | **GET** /data/lookup/countries |             |
-| [**getLookupDrivers**](LookupApi.md#getlookupdrivers)     | **GET** /data/lookup/drivers   |             |
-| [**getLookupFlairs**](LookupApi.md#getlookupflairs)       | **GET** /data/lookup/flairs    |             |
-| [**getLookupLicenses**](LookupApi.md#getlookuplicenses)   | **GET** /data/lookup/licenses  |             |
+| Method                                                            | HTTP request                        | Description |
+| ----------------------------------------------------------------- | ----------------------------------- | ----------- |
+| [**getLookup**](LookupApi.md#getlookup)                           | **GET** /data/lookup/get            |             |
+| [**getLookupCountries**](LookupApi.md#getlookupcountries)         | **GET** /data/lookup/countries      |             |
+| [**getLookupCurrentSeason**](LookupApi.md#getlookupcurrentseason) | **GET** /data/lookup/current_season |             |
+| [**getLookupDrivers**](LookupApi.md#getlookupdrivers)             | **GET** /data/lookup/drivers        |             |
+| [**getLookupFlairs**](LookupApi.md#getlookupflairs)               | **GET** /data/lookup/flairs         |             |
+| [**getLookupLicenses**](LookupApi.md#getlookuplicenses)           | **GET** /data/lookup/licenses       |             |
 
 ## getLookup
 
-> IracingAPIResponse getLookup()
+> IracingAPIResponse getLookup(weather, licenselevels)
 
 ### Example
 
 ```ts
-import { Configuration, LookupApi } from "@iracing-data/api-client-fetch";
-import type { GetLookupRequest } from "@iracing-data/api-client-fetch";
+import {
+  Configuration,
+  LookupApi,
+} from '@iracing-data/api-client-fetch';
+import type { GetLookupRequest } from '@iracing-data/api-client-fetch';
 
 async function example() {
   console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
@@ -28,8 +32,15 @@ async function example() {
   });
   const api = new LookupApi(config);
 
+  const body = {
+    // Array<string> (optional)
+    weather: ...,
+    // Array<string> (optional)
+    licenselevels: ...,
+  } satisfies GetLookupRequest;
+
   try {
-    const data = await api.getLookup();
+    const data = await api.getLookup(body);
     console.log(data);
   } catch (error) {
     console.error(error);
@@ -42,7 +53,10 @@ example().catch(console.error);
 
 ### Parameters
 
-This endpoint does not need any parameter.
+| Name              | Type            | Description | Notes      |
+| ----------------- | --------------- | ----------- | ---------- |
+| **weather**       | `Array<string>` |             | [Optional] |
+| **licenselevels** | `Array<string>` |             | [Optional] |
 
 ### Return type
 
@@ -88,6 +102,64 @@ async function example() {
 
   try {
     const data = await api.getLookupCountries();
+    console.log(data);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Run the test
+example().catch(console.error);
+```
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**IracingAPIResponse**](IracingAPIResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: `application/json`
+
+### HTTP response details
+
+| Status code | Description                         | Response headers                                                                     |
+| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **401**     | Access token is missing or invalid. | -                                                                                    |
+| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                         | -                                                                                    |
+
+[[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
+
+## getLookupCurrentSeason
+
+> IracingAPIResponse getLookupCurrentSeason()
+
+### Example
+
+```ts
+import { Configuration, LookupApi } from "@iracing-data/api-client-fetch";
+import type { GetLookupCurrentSeasonRequest } from "@iracing-data/api-client-fetch";
+
+async function example() {
+  console.log("🚀 Testing @iracing-data/api-client-fetch SDK...");
+  const config = new Configuration({
+    // Configure HTTP bearer authorization: bearerAuth
+    accessToken: "YOUR BEARER TOKEN",
+  });
+  const api = new LookupApi(config);
+
+  try {
+    const data = await api.getLookupCurrentSeason();
     console.log(data);
   } catch (error) {
     console.error(error);

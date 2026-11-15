@@ -292,7 +292,7 @@ example().catch(console.error);
 
 ## getResultsSearchHosted
 
-> IracingAPIResponse getResultsSearchHosted(start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, host_cust_id, session_name, league_id, league_season_id, car_id, track_id, category_ids)
+> ResultsSearchHostedResponse getResultsSearchHosted(start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, host_cust_id, session_name, league_id, league_season_id, car_id, track_id, category_ids)
 
 ### Example
 
@@ -372,7 +372,7 @@ example().catch(console.error);
 
 ### Return type
 
-[**IracingAPIResponse**](IracingAPIResponse.md)
+[**ResultsSearchHostedResponse**](ResultsSearchHostedResponse.md)
 
 ### Authorization
 
@@ -387,7 +387,7 @@ example().catch(console.error);
 
 | Status code | Description                         | Response headers                                                                     |
 | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **200**     | Direct hosted-search chunk manifest | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
 | **401**     | Access token is missing or invalid. | -                                                                                    |
 | **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
 | **503**     | Maintenance                         | -                                                                                    |

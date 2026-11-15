@@ -1,6 +1,10 @@
 # Assets commands
 
-`iracing-data assets` is the CLI surface for runtime Data API `*/assets` operations. The command group is structural; executable leaves resolve their own authenticated invocation scope.
+`iracing-data assets` is the CLI surface for runtime Data API `*/assets` operations.
+`command.ts` validates inputs and invokes injected `fetchAssets`/`present`
+capabilities. `service.ts` owns credential resolution, generated-client calls,
+and the maintained returned-link materializer. `program.ts` injects transport
+and the shared JSON display writer. There are no invocation scope factories.
 
 Current authored leaves:
 

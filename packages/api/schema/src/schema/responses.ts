@@ -39,6 +39,54 @@ export const APIResponseSchema = z
     id: "iracingAPIResponse",
   });
 
+/** Validates the directly returned league roster metadata and download reference. */
+export const LeagueRosterResponseSchema = z
+  .object({
+    type: z.literal("league_roster"),
+    data: z.object({
+      success: z.boolean(),
+      subscribed: z.boolean(),
+      roster_count: z.int().nonnegative(),
+      league_id: z.number(),
+    }),
+    data_url: z.url(),
+  })
+  .meta({
+    description:
+      "Direct metadata and roster download URL observed from `/data/league/roster`.",
+    id: "leagueRosterResponse",
+  });
+
+/** Validates directly returned member award metadata and its download reference. */
+export const MemberAwardsResponseSchema = z
+  .object({
+    type: z.literal("member_awards"),
+    data: z.object({
+      success: z.boolean(),
+      cust_id: z.number(),
+      award_count: z.int().nonnegative(),
+    }),
+    data_url: z.url(),
+  })
+  .meta({
+    id: "memberAwardsResponse",
+    description:
+      "Direct metadata and award download URL observed from /data/member/awards.",
+  });
+
+/** Validates directly returned award-instance metadata and its download reference. */
+export const MemberAwardInstancesResponseSchema =
+  MemberAwardsResponseSchema.extend({
+    type: z.literal("member_award_instances"),
+    data: MemberAwardsResponseSchema.shape.data.extend({
+      award_id: z.number(),
+    }),
+  }).meta({
+    id: "memberAwardInstancesResponse",
+    description:
+      "Direct metadata and award-instance download URL observed from /data/member/award_instances.",
+  });
+
 // The official constants docs establish an array of objects, but not their fields.
 /** Validates constant rows without inventing contracts for their dynamic fields. */
 export const ConstantsResponseSchema = z
@@ -64,6 +112,33 @@ export const ResultsSearchSeriesResponseSchema = z
   .meta({
     description: "Direct manifest response from `/data/results/search_series`.",
     id: "resultsSearchSeriesResponse",
+  });
+
+/** Validates hosted-search success, chunk metadata, and echoed search parameters. */
+export const ResultsSearchHostedResponseSchema =
+  ResultsSearchSeriesResponseSchema.extend({
+    type: z.literal("search_hosted_results"),
+  }).meta({
+    description: "Direct manifest response from `/data/results/search_hosted`.",
+    id: "resultsSearchHostedResponse",
+  });
+
+/** Validates the directly returned world-record chunk manifest. */
+export const StatsWorldRecordsResponseSchema = z
+  .object({
+    type: z.literal("stats_world_records"),
+    data: z.object({
+      success: z.boolean(),
+      car_id: z.number(),
+      track_id: z.number(),
+      chunk_info: ResultsSearchSeriesResponseSchema.shape.data.shape.chunk_info,
+      last_updated: z.string(),
+    }),
+  })
+  .meta({
+    id: "statsWorldRecordsResponse",
+    description:
+      "Direct world-record chunk manifest observed from /data/stats/world_records.",
   });
 
 /** Validates a documented method parameter and its optional note and required flag. */
@@ -119,9 +194,20 @@ export const ServicesDocsResponseSchema = z
 
 export type ErrorResponse = z.infer<typeof ErrorResponseSchema>;
 export type APIResponse = z.infer<typeof APIResponseSchema>;
+export type LeagueRosterResponse = z.infer<typeof LeagueRosterResponseSchema>;
+export type MemberAwardsResponse = z.infer<typeof MemberAwardsResponseSchema>;
+export type MemberAwardInstancesResponse = z.infer<
+  typeof MemberAwardInstancesResponseSchema
+>;
+export type StatsWorldRecordsResponse = z.infer<
+  typeof StatsWorldRecordsResponseSchema
+>;
 export type ConstantsResponse = z.infer<typeof ConstantsResponseSchema>;
 export type ResultsSearchSeriesResponse = z.infer<
   typeof ResultsSearchSeriesResponseSchema
+>;
+export type ResultsSearchHostedResponse = z.infer<
+  typeof ResultsSearchHostedResponseSchema
 >;
 
 export type ServiceMethodParametersDocsResponse = z.infer<

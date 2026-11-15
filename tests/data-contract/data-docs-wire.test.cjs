@@ -40,6 +40,46 @@ function body(url) {
   return envelope;
 }
 const filters = { event_types: [2, 3], season_ids: [513, 937] };
+test("generated Fetch and Axios roster responses retain data_url and metadata", async () => {
+  const payload = {
+    type: "league_roster",
+    data: {
+      success: true,
+      subscribed: false,
+      roster_count: 1,
+      league_id: 6529,
+    },
+    data_url: "https://cache.example/roster.json",
+  };
+  const configuration = new fetchClient.Configuration({
+    fetchApi: async () => Response.json(payload),
+  });
+  const fetched = await new fetchClient.LeagueApi(
+    configuration,
+  ).getLeagueRoster({ league_id: 6529 });
+  assert.equal(fetched.dataUrl, payload.data_url);
+  assert.equal(fetched.data.rosterCount, 1);
+  assert.equal(fetched.data.leagueId, 6529);
+  const instance = axios.create({
+    adapter: async (config) => ({
+      data: payload,
+      status: 200,
+      statusText: "OK",
+      headers: {},
+      config,
+    }),
+  });
+  assert.deepEqual(
+    (
+      await new axiosClient.LeagueApi(
+        new axiosClient.Configuration(),
+        undefined,
+        instance,
+      ).getLeagueRoster({ league_id: 6529 })
+    ).data,
+    payload,
+  );
+});
 const tt = { season_id: 1, car_class_id: 2, race_week_num: 0 };
 
 test("Fetch consumer preserves docs notes, parses constants arrays and uses corrected query/path contracts", async () => {

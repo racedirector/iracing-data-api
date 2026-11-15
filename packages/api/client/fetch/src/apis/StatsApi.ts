@@ -17,6 +17,7 @@ import type {
   ErrorResponse,
   IracingAPIResponse,
   IracingDivision,
+  StatsWorldRecordsResponse,
 } from "../models/index";
 import {
   ErrorResponseFromJSON,
@@ -25,6 +26,8 @@ import {
   IracingAPIResponseToJSON,
   IracingDivisionFromJSON,
   IracingDivisionToJSON,
+  StatsWorldRecordsResponseFromJSON,
+  StatsWorldRecordsResponseToJSON,
 } from "../models/index";
 
 export interface GetStatsMemberBestsRequest {
@@ -1001,7 +1004,7 @@ export class StatsApi extends runtime.BaseAPI {
   async getStatsWorldRecordsRaw(
     requestParameters: GetStatsWorldRecordsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<StatsWorldRecordsResponse>> {
     if (requestParameters["car_id"] == null) {
       throw new runtime.RequiredError(
         "car_id",
@@ -1058,7 +1061,7 @@ export class StatsApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
+      StatsWorldRecordsResponseFromJSON(jsonValue),
     );
   }
 
@@ -1067,7 +1070,7 @@ export class StatsApi extends runtime.BaseAPI {
   async getStatsWorldRecords(
     requestParameters: GetStatsWorldRecordsRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<StatsWorldRecordsResponse> {
     const response = await this.getStatsWorldRecordsRaw(
       requestParameters,
       initOverrides,

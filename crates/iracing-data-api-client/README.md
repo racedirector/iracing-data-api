@@ -86,6 +86,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 | _DocApi_         | [**get_league_season_standings_docs**](docs/DocApi.md#get_league_season_standings_docs)                               | **GET** /data/doc/league/season_standings               |
 | _DocApi_         | [**get_league_seasons_docs**](docs/DocApi.md#get_league_seasons_docs)                                                 | **GET** /data/doc/league/seasons                        |
 | _DocApi_         | [**get_lookup_countries_docs**](docs/DocApi.md#get_lookup_countries_docs)                                             | **GET** /data/doc/lookup/countries                      |
+| _DocApi_         | [**get_lookup_current_season_docs**](docs/DocApi.md#get_lookup_current_season_docs)                                   | **GET** /data/doc/lookup/current_season                 |
 | _DocApi_         | [**get_lookup_docs**](docs/DocApi.md#get_lookup_docs)                                                                 | **GET** /data/doc/lookup                                |
 | _DocApi_         | [**get_lookup_drivers_docs**](docs/DocApi.md#get_lookup_drivers_docs)                                                 | **GET** /data/doc/lookup/drivers                        |
 | _DocApi_         | [**get_lookup_flairs_docs**](docs/DocApi.md#get_lookup_flairs_docs)                                                   | **GET** /data/doc/lookup/flairs                         |
@@ -120,6 +121,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | _DocApi_         | [**get_series_season_schedule_docs**](docs/DocApi.md#get_series_season_schedule_docs)                                 | **GET** /data/doc/series/season_schedule                |
 | _DocApi_         | [**get_series_seasons_docs**](docs/DocApi.md#get_series_seasons_docs)                                                 | **GET** /data/doc/series/seasons                        |
 | _DocApi_         | [**get_series_stats_series_docs**](docs/DocApi.md#get_series_stats_series_docs)                                       | **GET** /data/doc/series/stats_series                   |
+| _DocApi_         | [**get_session_docs**](docs/DocApi.md#get_session_docs)                                                               | **GET** /data/doc/session                               |
+| _DocApi_         | [**get_session_registered_drivers_docs**](docs/DocApi.md#get_session_registered_drivers_docs)                         | **GET** /data/doc/session/reg_drivers_list              |
 | _DocApi_         | [**get_stats_docs**](docs/DocApi.md#get_stats_docs)                                                                   | **GET** /data/doc/stats                                 |
 | _DocApi_         | [**get_stats_member_bests_docs**](docs/DocApi.md#get_stats_member_bests_docs)                                         | **GET** /data/doc/stats/member_bests                    |
 | _DocApi_         | [**get_stats_member_career_docs**](docs/DocApi.md#get_stats_member_career_docs)                                       | **GET** /data/doc/stats/member_career                   |
@@ -157,6 +160,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 | _LeagueApi_      | [**get_league_seasons**](docs/LeagueApi.md#get_league_seasons)                                                        | **GET** /data/league/seasons                            |
 | _LookupApi_      | [**get_lookup**](docs/LookupApi.md#get_lookup)                                                                        | **GET** /data/lookup/get                                |
 | _LookupApi_      | [**get_lookup_countries**](docs/LookupApi.md#get_lookup_countries)                                                    | **GET** /data/lookup/countries                          |
+| _LookupApi_      | [**get_lookup_current_season**](docs/LookupApi.md#get_lookup_current_season)                                          | **GET** /data/lookup/current_season                     |
 | _LookupApi_      | [**get_lookup_drivers**](docs/LookupApi.md#get_lookup_drivers)                                                        | **GET** /data/lookup/drivers                            |
 | _LookupApi_      | [**get_lookup_flairs**](docs/LookupApi.md#get_lookup_flairs)                                                          | **GET** /data/lookup/flairs                             |
 | _LookupApi_      | [**get_lookup_licenses**](docs/LookupApi.md#get_lookup_licenses)                                                      | **GET** /data/lookup/licenses                           |
@@ -185,6 +189,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 | _SeriesApi_      | [**get_series_season_schedule**](docs/SeriesApi.md#get_series_season_schedule)                                        | **GET** /data/series/season_schedule                    |
 | _SeriesApi_      | [**get_series_seasons**](docs/SeriesApi.md#get_series_seasons)                                                        | **GET** /data/series/seasons                            |
 | _SeriesApi_      | [**get_series_stats_series**](docs/SeriesApi.md#get_series_stats_series)                                              | **GET** /data/series/stats_series                       |
+| _SessionApi_     | [**get_session_registered_drivers**](docs/SessionApi.md#get_session_registered_drivers)                               | **GET** /data/session/reg_drivers_list                  |
 | _StatsApi_       | [**get_stats_member_bests**](docs/StatsApi.md#get_stats_member_bests)                                                 | **GET** /data/stats/member_bests                        |
 | _StatsApi_       | [**get_stats_member_career**](docs/StatsApi.md#get_stats_member_career)                                               | **GET** /data/stats/member_career                       |
 | _StatsApi_       | [**get_stats_member_division**](docs/StatsApi.md#get_stats_member_division)                                           | **GET** /data/stats/member_division                     |
@@ -215,10 +220,19 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [IracingServiceMethodDocs](docs/IracingServiceMethodDocs.md)
 - [IracingServiceMethodDocsNote](docs/IracingServiceMethodDocsNote.md)
 - [IracingServiceMethodParametersDocs](docs/IracingServiceMethodParametersDocs.md)
+- [LeagueRosterResponse](docs/LeagueRosterResponse.md)
+- [LeagueRosterResponseData](docs/LeagueRosterResponseData.md)
+- [MemberAwardInstancesResponse](docs/MemberAwardInstancesResponse.md)
+- [MemberAwardInstancesResponseData](docs/MemberAwardInstancesResponseData.md)
+- [MemberAwardsResponse](docs/MemberAwardsResponse.md)
+- [MemberAwardsResponseData](docs/MemberAwardsResponseData.md)
 - [PostAuthRequest](docs/PostAuthRequest.md)
+- [ResultsSearchHostedResponse](docs/ResultsSearchHostedResponse.md)
 - [ResultsSearchSeriesResponse](docs/ResultsSearchSeriesResponse.md)
 - [ResultsSearchSeriesResponseData](docs/ResultsSearchSeriesResponseData.md)
 - [ResultsSearchSeriesResponseDataChunkInfo](docs/ResultsSearchSeriesResponseDataChunkInfo.md)
+- [StatsWorldRecordsResponse](docs/StatsWorldRecordsResponse.md)
+- [StatsWorldRecordsResponseData](docs/StatsWorldRecordsResponseData.md)
 
 To get access to the crate's generated documentation, use:
 

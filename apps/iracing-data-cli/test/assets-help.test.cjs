@@ -5,7 +5,11 @@ const diagnostics = { info() {}, warn() {}, error() {} };
 
 test("help exposes the assets group and car leaf", async () => {
   const { createProgram } = await import("../dist/program.js");
-  const program = createProgram({ diagnostics, fetch: globalThis.fetch });
+  const program = createProgram({
+    diagnostics,
+    fetch: globalThis.fetch,
+    display: { display() {} },
+  });
 
   assert.match(program.helpInformation(), /\bassets\b/);
 

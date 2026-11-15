@@ -287,6 +287,11 @@ export const EventTypeSchema = z
 /** Coerces nonblank numeric query inputs to the event type domain contract. */
 export const EventTypeParameterSchema = numericParameter(EventTypeSchema);
 
+/** Coerces the documented time-trial/race event types used for member divisions. */
+export const DivisionEventTypeParameterSchema = numericParameter(
+  z.union([EventTypeTimeTrialSchema, EventTypeRaceSchema]),
+);
+
 /** Accepts the supported rating and license chart category numbers. */
 export const ChartTypeSchema = z
   .union([

@@ -5,6 +5,18 @@ import { ESLint } from "eslint";
 const eslint = new ESLint({ cwd: import.meta.dirname + "/.." });
 const runtime = "apps/iracing-data-cli/src/__jsdoc-policy-fixture__.ts";
 
+test("local credential and capture artifacts are globally excluded from lint", async () => {
+  for (const path of [
+    ".iracing-data/prepare-backfill.mjs",
+    ".iracing-data/league-123/backfill-sql.mjs",
+    ".iracing-data/nested/capture/helper.ts",
+  ]) {
+    assert.equal(await eslint.isPathIgnored(path), true, path);
+  }
+  assert.equal(await eslint.isPathIgnored("scripts/check-topology.js"), false);
+  assert.equal(await eslint.isPathIgnored(runtime), false);
+});
+
 async function messages(source, filePath = runtime) {
   const [result] = await eslint.lintText(source, { filePath });
   assert.ok(!result.fatalErrorCount, JSON.stringify(result.messages));

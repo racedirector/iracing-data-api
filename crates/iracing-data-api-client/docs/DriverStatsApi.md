@@ -10,6 +10,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 > models::IracingApiResponse get_driver_stats_by_category(category)
 
+Returns a cache link to a CSV driver-statistics document, not a JSON payload.
+
 ### Parameters
 
 | Name         | Type                       | Description      | Required   | Notes |

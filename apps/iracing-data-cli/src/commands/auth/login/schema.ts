@@ -11,7 +11,7 @@ export const LoginMethodSchema = z.enum(["browser", "password-limited"]).meta({
  */
 export const resolveOptions = z
   .object({
-    method: z.string(),
+    method: LoginMethodSchema.default("browser"),
     output: z.string().optional(),
     credentials: z.string().optional(),
     clientId: z.string().optional(),
@@ -19,22 +19,19 @@ export const resolveOptions = z
     redirectUri: z.string().optional(),
     username: z.string().optional(),
     password: z.string().optional(),
-    scope: z.array(z.string()).optional(),
-    format: z.string().optional(),
+    scope: IRacingOAuthScopesArraySchema.min(1)
+      .default(["iracing.auth", "iracing.profile"])
+      .transform((scopes) => [...new Set(scopes)]),
+    format: z.enum(["json", "yaml"]).default("json"),
     force: z.literal(true).optional(),
     open: z.boolean(),
-    timeoutSeconds: z.string(),
+    timeoutSeconds: z.coerce.number().int().positive(),
   })
   .refine(({ output, credentials }) => !(output && credentials), {
     error: "Use either --output or --credentials, not both.",
   })
   .transform((options) => ({
-    method: z
-      .string()
-      .optional()
-      .default("browser")
-      .pipe(LoginMethodSchema)
-      .parse(options.method),
+    method: options.method,
     output: options.output,
     credentials: options.credentials,
     clientId: options.clientId,
@@ -42,23 +39,11 @@ export const resolveOptions = z
     redirectUri: options.redirectUri,
     username: options.username,
     password: options.password,
-    scopes: IRacingOAuthScopesArraySchema.min(1)
-      .default(["iracing.auth", "iracing.profile"])
-      .transform((scopes) => [...new Set(scopes)])
-      .parse(options.scope),
-    format: z
-      .enum(["json", "yaml"])
-      .meta({
-        description: "Token serialization format",
-      })
-      .parse(options.format ?? "json"),
+    scopes: options.scope,
+    format: options.format,
     force: options.force ?? false,
     open: options.open,
-    timeoutSeconds: z.coerce
-      .number()
-      .int()
-      .positive()
-      .parse(options.timeoutSeconds),
+    timeoutSeconds: options.timeoutSeconds,
   }));
 
 /**

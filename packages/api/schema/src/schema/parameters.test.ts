@@ -4,6 +4,7 @@ import {
   LeagueDirectoryParametersSchema,
   LeagueSeasonStandingsParametersSchema,
   MemberGetParametersSchema,
+  LookupParametersSchema,
   ResultsGetParametersSchema,
   ResultsLapDataParametersSchema,
   ResultsSearchHostedParametersSchema,
@@ -12,9 +13,35 @@ import {
   SeasonSpectatorSubsessionidsParametersSchema,
   SeasonSpectatorSubsessionidsDetailParametersSchema,
   StatsMemberRecapParametersSchema,
+  StatsMemberDivisionParametersSchema,
   StatsSeasonDriverStandingsParametersSchema,
   StatsWorldRecordsParametersSchema,
 } from "./parameters";
+
+describe("LookupParameters", () => {
+  it("preserves repeated selectors and omission without inventing defaults", () => {
+    assert.deepEqual(LookupParametersSchema.parse({}), {});
+    assert.deepEqual(
+      LookupParametersSchema.parse({
+        weather: ["weather_wind_speed_units", "weather_wind_speed_max"],
+        licenselevels: ["licenselevels"],
+      }),
+      {
+        weather: ["weather_wind_speed_units", "weather_wind_speed_max"],
+        licenselevels: ["licenselevels"],
+      },
+    );
+  });
+
+  it("rejects empty selectors and scalar values", () => {
+    for (const weather of [[], [""], "weather_wind_speed_units"]) {
+      assert.equal(
+        LookupParametersSchema.safeParse({ weather }).success,
+        false,
+      );
+    }
+  });
+});
 
 describe("MemberGetParameters", () => {
   it("coerces single integers", () => {
@@ -46,6 +73,29 @@ describe("MemberGetParameters", () => {
 });
 
 describe("semantic endpoint parameters", () => {
+  it("coerces member division event types while retaining the documented 4/5 restriction", () => {
+    for (const event_type of [4, 5, "4", "5"]) {
+      assert.deepEqual(
+        StatsMemberDivisionParametersSchema.parse({
+          season_id: "6434",
+          event_type,
+        }),
+        {
+          season_id: 6434,
+          event_type: Number(event_type),
+        },
+      );
+    }
+    for (const event_type of ["", " ", "invalid", 2, 3]) {
+      assert.equal(
+        StatsMemberDivisionParametersSchema.safeParse({
+          season_id: 6434,
+          event_type,
+        }).success,
+        false,
+      );
+    }
+  });
   it("rejects blank required and optional numbers without losing field paths", () => {
     for (const [schema, valid, field] of [
       [ResultsGetParametersSchema, { subsession_id: 42 }, "subsession_id"],

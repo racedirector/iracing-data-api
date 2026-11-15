@@ -1,76 +1,187 @@
 # Live Data API compatibility workflow
 
-Use this procedure for a current authenticated Data API audit. Read root/scoped guidance and the current CLI help/documentation first. The CLI is private repository tooling; do not infer a published installation path.
+Use this ordered procedure, scoped to the user's request. The repository audit
+skill coordinates it; the package-local
+[api-command skill](../../../../apps/iracing-data-cli/.agents/skills/api-command/SKILL.md)
+owns command implementation. Do not replace the CLI with temporary clients.
 
-## Build the concrete owners
+## 1. Preflight and build
 
-Build the CLI and authored schema/generator dependencies from the repository root:
+Record revision/dirty tree, requested scope, current schema/mapping owners,
+credential selection, test cases, and live-gate availability. Read scoped guides
+and current manifests. Preserve unrelated work.
+Review the living [reconciliation log](../../../../docs/DATA-API-RECONCILIATION.md)
+and include applicable prior decisions in the scoped case plan. Revalidate them
+with fresh docs/live evidence, then record retain / revise / revert (or blocked)
+with a review date and git context; never treat old findings as current authority.
 
 ```bash
 pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-openapi...' build
 ```
 
-Use the repository Node/pnpm versions and frozen dependencies. This does not require write-mode code generation.
+Use the repository Node/pnpm versions. This build is not code generation.
+For ongoing command work, use the package skill's watch procedure rather than
+repeated temporary probes. Discover actual live-suite scripts in manifests;
+never invent them. The current CLI has only mocked full-endpoint coverage.
 
-## Retrieve current documentation
+## 2. Authentication: one explicit recovery path
 
-Resolve credentials without displaying values. Explicit `--credentials <path>` wins, then `IRACING_ACCESS_TOKEN` from the shell/root `.env`, then the repository's ignored `.iracing-data/credentials.json`. `iracing-data docs` uses the generated Fetch `DocApi`; it owns the modeled `/data/doc` request and does not fetch endpoint links returned by that response.
+Use the existing CLI and its private credential store, never a new auth helper.
+Select the credential path explicitly for the audit: an environment access token
+can otherwise override newly saved credentials. Explicit `--credentials` wins,
+then `IRACING_ACCESS_TOKEN`, then the ignored default credential file.
 
-For verification-only work that does not need to inspect the raw document separately, stream the current documentation directly into the comparator:
+If login is authorized and password-limited grants are registered/configured:
 
 ```bash
-node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs \
+pnpm iracing-data auth login --method=password-limited
+```
+
+Prefer existing selected credentials. Login is for requested authentication,
+missing credentials, or an identified authentication failure—not a mandatory
+rewrite on every audit. The docs request itself is the Data API access preflight;
+do not require `whoami` or `iracing.profile` for an auth-only Data API audit.
+
+Read current CLI help before selecting another supported method. Do not print
+secret values, add passwords to argv, silently fall back to another grant, or
+open a browser without arranging the required user interaction.
+
+| Failure                                                                      | Required operator action                                                                                                                                     |
+| ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Missing registration/account configuration or unsupported grant              | Explain which configuration category is missing; ask the operator to configure the registered method. Do not guess secrets or retry another grant.           |
+| Existing credential destination                                              | Respect overwrite protection. Ask for authorization to replace the selected file with `--force`, or use an operator-selected private destination.            |
+| Invalid credentials, rejected client, invalid scope, or denied authorization | Stop. Report the sanitized error category and ask the operator to correct registration/account/scope/access. No login loops.                                 |
+| HTTP 401 from docs or a batch                                                | Check selected credential path and expiry. Reauthenticate once when authorized; stop/resume the batch rather than misclassifying every case as schema drift. |
+| HTTP 403                                                                     | Check scope and account/endpoint access; do not assume expired credentials or broaden scopes automatically.                                                  |
+| HTTP 429, 5xx, timeout, or network failure                                   | Mark blocked; respect server recovery/rate-limit instructions. Do not change schemas or repeatedly log in.                                                   |
+
+Use the CLI's actual safe diagnostic to determine the action. If login fails,
+tell the user what to fix and stop the affected live gate. Authentication success
+alone does not establish Data API access or contract compatibility.
+
+## 3. Fetch current docs once
+
+`iracing-data docs` uses the generated Data API client (`DocApi`) for the modeled
+request; it does not crawl the returned endpoint links.
+
+For docs-only verification, preserve pipeline failures:
+
+```bash
+set -o pipefail
+node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs --credentials .iracing-data/credentials.json \
   | node -r ts-node/register scripts/audit-data-docs.cjs -
 ```
 
-Use `--credentials <path>` on `docs` when another ignored credential file is required. A selected invalid credential file must fail rather than silently falling back. Network failure is not proof that login is required; HTTP 401/403 requires checking expiry, scope, and account access before obtaining a new token.
-
-For compatibility maintenance, or when semantic review needs the plain current response, keep one private temporary copy for the duration of the run:
+For maintenance, retain one private plain response for same-input comparison:
 
 ```bash
 tmp_dir="$(mktemp -d)"
 chmod 700 "$tmp_dir"
-node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs --output "$tmp_dir/data-docs.json"
+node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js docs \
+  --credentials .iracing-data/credentials.json --output "$tmp_dir/data-docs.json"
 node -r ts-node/register scripts/audit-data-docs.cjs "$tmp_dir/data-docs.json"
 ```
 
-That file is an ephemeral input for the current run, not current authority for a later audit. Do not create a repository capture directory, durable normalized evidence format, hash history, or generic diff store. Retrieve authoritative documentation again on a later audit. Never print credentials, raw token values, or token-bearing errors.
+Use an operator-selected credential path when different. A selected invalid file
+must fail, not fall back. Verify each command's exit status before continuing.
+That document is private to the current run, not durable upstream authority;
+remove it afterward. Do not introduce response archives, hashes, or capture
+directories as a new evidence system.
 
-If current authenticated documentation cannot be retrieved, stop the current-contract claim and report **Unable to verify part of the contract** for the unavailable surface. Fixtures and earlier audit output may explain/test mechanics but cannot replace live authority.
+## 4. Diff and classify before probing
 
-## Deterministic structural comparison
+The comparator has no transport or persistence. It exits 0 for structural
+agreement, 2 for review candidates/schema rejection, or 1 for execution failure.
+Review its route/parameter findings against canonical schemas, authored endpoint
+mapping, and notes. Resolve references/templates first. Notes can document
+selectors absent from structured parameter maps; `numbers` can mean CSV.
+Absence from docs is not sufficient evidence to remove a local capability.
 
-```bash
-pnpm test:compatibility-audits
-pnpm check:service-client-boundary
-pnpm test:service-client-boundary
-```
-
-[`audit-data-docs.cjs`](../../../../scripts/audit-data-docs.cjs) performs no network access and writes no files. It compares the plain current documentation map with maintained schema/OpenAPI ownership, reports route/reference/parameter candidates, and exits 0 for structural agreement, 2 for reviewable discrepancies/schema rejection, or 1 for execution failure. These service-free tests establish repository mechanics only; they do not establish current live compatibility.
-
-## Semantic review remains necessary
-
-Follow every candidate to the authored schema/mapping and actual consumers. Inspect all covered parameters' enums/ranges and prose rules even when types match. A numeric type comparison cannot detect a calendar year constrained to quarter literals. Resolve path templates and schema references before calling a route or type missing. Upstream `numbers` often means comma-separated numbers; CSV string schemas can be correct, while array schemas require checking OpenAPI style/explode and actual client encoding. Conditional requiredness in notes is distinct from the `required` flag.
-
-Check optional/missing documentation fields and unknown-field stripping separately: successful parsing can still discard endpoint notes. Documentation parsing failures do not prove the generated Fetch client rejects the same wire document; inspect the boundary. Local-only paths are unverified capabilities, not proof of upstream removal. `/data/doc` does not establish full endpoint response schemas, live endpoint success, or errors; label these gaps rather than requesting arbitrary endpoints during the documentation audit.
-
-Application resolution of opaque signed/cache/chunk URLs returned by a typed Data API response is not a modeled-service bypass. Review that behavior under the application owner's host/path validation, expiry, caching, coalescing, retention, and materialization policy.
-
-Produce the [report contract](report-contract.md). Use the current official source URL, retrieval time, relevant JSON pointer/section, and current repository file/symbol for findings. State current mismatches without claiming historical drift. For verification-only requests, leave fixes and regeneration as recommendations. For requested compatibility maintenance, continue through the repair phase below.
+Create a scoped case plan before requests: endpoint, command, canonical input and
+output schema, valid selectors/prerequisites, expected success condition, and
+request budget. Do not adapt the offline dispatch test's fake IDs into live
+inputs. This stage produces a reproducible plan, not a spray of guessed requests.
 
 ## Repair and regenerate
 
-For compatibility maintenance, fix supported mismatches in authored schemas/mappings and add deterministic regression tests. Do not turn every structural candidate into a patch. Unsupported new endpoints, uncertain response shapes, and ambiguous requirements need further current authoritative evidence; leave them explicit when they cannot be resolved within scope. Preserve public operation IDs where only the wire path is wrong. Characterize existing behavior before behavior-changing refactors.
+In maintenance mode only, repair evidence-supported authored input/mapping
+discrepancies first. For a missing method, establish its documented route and
+request before generating it. Unknown outputs remain explicitly unverified,
+not invented shapes or generic-envelope fallbacks.
 
-After shared Data API contract changes, build the generator, generate both OpenAPI formats, then regenerate the Data API clients through the existing ownership path:
+Use the smallest development cycle for this CLI:
 
 ```bash
 pnpm --filter '@iracing-data/api-schema-to-openapi...' build
 pnpm codegen:openapi:api
 pnpm codegen:openapi:api:yaml
-pnpm codegen:client:api
+pnpm codegen:client:api:fetch
+pnpm --filter @iracing-data/api-client-fetch build
+pnpm --filter @iracing-data/cli build
 ```
 
-Follow current [OpenAPI guidance](../../../../openapi/AGENTS.md) and downstream scoped guides for consumer builds, tests, freshness, and Rust checks. Runtime-only fixes and generator-specific fixes stay at their authored owner with the scoped generation path. Do not regenerate OAuth solely because CLI authentication was used. Inspect generated diffs and preserve authored manifest versions/settings.
+Follow [OpenAPI guidance](../../../../openapi/AGENTS.md) and client scoped guides;
+inspect diffs and preserve reviewed versions/settings. Generated source is not
+an edit target. Runtime-only fixes need no contract regeneration. Verification-only
+mode reports repairs and commands without applying them.
 
-When a private temporary Data API documentation file was created for this run, rerun the comparator against that **same current response** after repository repairs so the before/after result isolates repository changes. Then run applicable lint/style/tests and `pnpm verify`; report actual failures and unavailable toolchains. Use impact tooling for independent release candidates, but do not bump/tag/publish automatically. Remove the temporary documentation file/directory at the end of the run.
+## 5. Validate our live inputs and outputs
+
+Apply the package-local
+[live validation boundary](../../../../apps/iracing-data-cli/.agents/skills/api-command/references/live-contract-validation.md).
+Invoke only an existing, explicitly opt-in live suite discovered in the manifest.
+**No such full suite exists at this revision**; report the gap rather than
+inventing a successful command. Missing response-only support is also a gap.
+
+For an available scoped case, execute the existing response-only command with
+reviewed valid inputs and explicit credential selection. Validate the raw
+modeled response with the endpoint's canonical API Zod schema before client
+normalization; check HTTP/content type and documented success invariants.
+Keep the original privately in memory so stripping does not hide fields.
+Test our input/output expectations, not generated classes, decoders, snapshots,
+or generator internals. A permissive schema's parse pass has limited evidential
+value; request acceptance does not prove the semantics of every optional filter.
+
+Classify each case as PASS, CONTRACT_MISMATCH, BLOCKED, or NOT_RUN. Missing
+schemas/cases, invalid prerequisites, access, expiry, network, and rate limits
+must not appear as passing contract tests. No automatic all-link or chunk crawl.
+An envelope pass does not validate a linked payload. Only changed command-owned
+payload interpretations justify an additional bounded JSON/CSV/materialization
+case through the maintained opaque-link resolver.
+
+## 6. Repair outputs and rerun
+
+Review each mismatch against current evidence and the canonical owner's
+requiredness, unions, coercion, and unknown-field policy. Do not loosen schemas
+or delete cases simply to pass. Add minimal authored acceptance/rejection tests
+for the confirmed rule, then repair schemas/mappings or the CLI adapter as
+appropriate. Rebuild/regenerate Fetch when required, rerun the failing case,
+then the declared set.
+
+Every case change must trace to an affected command and add/modify/retain/retire
+decision. A schema-only repair can retain the existing command with rationale.
+No response fixture or test-only update may conceal lost CLI/API coverage.
+
+## 7. Close the reconciliation
+
+Rerun the comparator against the **same current response** from this run; classify
+all remaining review candidates. After shared contract repairs pass scoped
+validation, regenerate every affected Data API client:
+
+```bash
+pnpm codegen:client:api
+pnpm verify
+```
+
+The existing generated freshness/build checks establish repository consistency,
+not upstream compatibility; do not add tests of the generator implementation.
+Do not regenerate OAuth merely because authentication was used. Assess public
+input/output changes and release candidates independently; do not publish.
+
+Report docs coverage separately from live case and selected payload coverage.
+Update the living reconciliation log for every contract change and prior-decision
+review using the [report contract](report-contract.md#living-decision-memory).
+A full reconciliation with a missing/blocked live gate is **Unable to verify
+part of the contract**, even if docs and offline tests pass. A requested docs-only
+result must say docs-only. Use the [report contract](report-contract.md), include
+command decisions and precise validation limits, and remove private run data.

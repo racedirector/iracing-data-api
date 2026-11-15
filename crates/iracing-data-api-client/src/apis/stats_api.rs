@@ -927,7 +927,7 @@ pub async fn get_stats_season_time_trial_standings(
 pub async fn get_stats_world_records(
     configuration: &configuration::Configuration,
     params: GetStatsWorldRecordsParams,
-) -> Result<models::IracingApiResponse, Error<GetStatsWorldRecordsError>> {
+) -> Result<models::StatsWorldRecordsResponse, Error<GetStatsWorldRecordsError>> {
     let uri_str = format!("{}/data/stats/world_records", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
@@ -961,8 +961,8 @@ pub async fn get_stats_world_records(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::IracingApiResponse`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::IracingApiResponse`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::StatsWorldRecordsResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::StatsWorldRecordsResponse`")))),
         }
     } else {
         let content = resp.text().await?;

@@ -1,86 +1,44 @@
 import { describe, it, expect } from "vitest";
-import { resolveLoginMethod, LoginScopesSchema } from "./schema";
+import { resolveOptions } from "./schema.js";
 
-describe("resolveLoginMethod", () => {
-  describe("accepts known values", () => {
-    it("accepts 'browser'", () => {
-      const result = resolveLoginMethod.safeParse("browser");
-      expect(result.error).toBeUndefined();
-      expect(result.data).toBeDefined();
-    });
-    it("accepts 'password-limited'", () => {
-      const result = resolveLoginMethod.safeParse("password-limited");
-      expect(result.error).toBeUndefined();
-      expect(result.data).toBeDefined();
-    });
+const defaults = { open: true, timeoutSeconds: "300" };
+
+describe("login input schema", () => {
+  it.each(["browser", "password-limited"])("accepts method %s", (method) => {
+    expect(resolveOptions.parse({ ...defaults, method }).method).toEqual(
+      method,
+    );
   });
 
-  describe("rejects unknown values", () => {
-    it("rejects arbitrary strings", () => {
-      const result = resolveLoginMethod.safeParse("unknown");
-      expect(result.error).toBeDefined();
-      expect(result.data).toBeUndefined();
-    });
-
-    it("defaults undefined to 'browser'", () => {
-      const result = resolveLoginMethod.safeParse(undefined);
-      expect(result.error).toBeUndefined();
-      expect(result.data).toBeDefined();
-      expect(result.data).toEqual("browser");
-    });
-  });
-});
-
-describe("LoginScopesSchema", () => {
-  describe("accepts known values", () => {
-    it("accepts single scopes", () => {
-      const result = LoginScopesSchema.safeParse(["iracing.auth"]);
-      expect(result.error).toBeUndefined();
-    });
-
-    it("accepts all scopes", () => {
-      const result = LoginScopesSchema.safeParse([
-        "iracing.profile",
-        "iracing.auth",
-      ]);
-
-      expect(result.error).toBeUndefined();
-    });
-
-    it("deduplicates scopes", () => {
-      const result = LoginScopesSchema.safeParse([
-        "iracing.profile",
-        "iracing.auth",
-        "iracing.auth",
-        "iracing.auth",
-      ]);
-
-      expect(result.error).toBeUndefined();
-      expect(result.data).toEqual(["iracing.profile", "iracing.auth"]);
-    });
-
-    it("provides defaults for undefined", () => {
-      const result = LoginScopesSchema.safeParse(undefined);
-
-      expect(result.error).toBeUndefined();
-      expect(result.data).toContain("iracing.profile");
-      expect(result.data).toContain("iracing.auth");
-    });
+  it("defaults to browser and the CLI scopes", () => {
+    const options = resolveOptions.parse(defaults);
+    expect(options.method).toEqual("browser");
+    expect(options.scopes).toEqual(["iracing.auth", "iracing.profile"]);
+    expect(options.timeoutSeconds).toEqual(300);
   });
 
-  it("rejects empty arrays", () => {
-    const result = LoginScopesSchema.safeParse([]);
-    expect(result.error).toBeDefined();
+  it.each([
+    ["iracing.auth"],
+    ["iracing.profile"],
+    ["iracing.profile", "iracing.auth"],
+    ["iracing.auth", "iracing.profile"],
+    ["iracing.auth", "iracing.profile", "iracing.profile"],
+  ])("accepts and deduplicates supported scopes: %j", (...scope) => {
+    const options = resolveOptions.parse({ ...defaults, scope });
+    expect(options.scopes).toEqual([...new Set(scope)]);
   });
 
-  it("rejects the whole value for invalid items", () => {
-    const result = LoginScopesSchema.safeParse([
-      "iracing.profile",
-      "iracing.auth",
-      "iracing.auth",
-      "iracing.unknown",
-    ]);
-
-    expect(result.error).toBeDefined();
+  it.each([
+    { method: "unknown" },
+    { scope: [] },
+    { scope: ["iracing.auth", "iracing.unknown"] },
+    { timeoutSeconds: "0" },
+    { timeoutSeconds: "bad" },
+    { format: "toml" },
+    { output: "one.json", credentials: "two.json" },
+  ])("rejects invalid inputs without throwing from safeParse: %j", (input) => {
+    expect(resolveOptions.safeParse({ ...defaults, ...input }).success).toBe(
+      false,
+    );
   });
 });

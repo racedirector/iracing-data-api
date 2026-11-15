@@ -51,33 +51,42 @@ test("a nested command can override shared defaults without repeating environmen
   );
 });
 
-test("league history binds hidden token and credential env options with explicit flag precedence", () => {
+test("league binds hidden credential env options with explicit flag precedence and excludes account secrets", () => {
   run(
     `
     import assert from "node:assert/strict";
-    import { createLeagueHistoryCommand } from "./dist/commands/league-history/command.js";
+    import { createLeagueCommand } from "./dist/commands/league/command.js";
     import { createRootCommand } from "./test/root-command.cjs";
     const seen = [];
     const service = {
-      capture: async (options) => { seen.push(options); return { directory: "out", leagueId: 6529, seasons: 0, results: 0 }; },
+      fetchLeague: async (options) => { seen.push(options); return {}; },
       present() {},
     };
-    const command = (await createRootCommand()).addCommand(createLeagueHistoryCommand(service));
+    const command = (await createRootCommand()).addCommand(createLeagueCommand(service));
     assert.ok(!command.helpInformation().includes("--access-token"));
-    await command.parseAsync(["league-history", "--league-id", "6529"], { from: "user" });
+    await command.parseAsync(["league", "get", "--league-id", "6529"], { from: "user" });
     assert.equal(seen[0].accessToken, "env-token");
     assert.equal(seen[0].credentials, "env.json");
-    await (await createRootCommand()).addCommand(createLeagueHistoryCommand(service)).parseAsync([
-      "league-history", "--league-id", "6529", "--access-token", "flag-token", "--credentials", "flag.json"
+    assert.equal(seen[0].output, undefined);
+    assert.equal(seen[0].password, undefined);
+    assert.equal(seen[0].clientSecret, undefined);
+    await (await createRootCommand()).addCommand(createLeagueCommand(service)).parseAsync([
+      "league", "get", "--league-id", "6529", "--access-token", "flag-token", "--credentials", "flag.json"
     ], { from: "user" });
     assert.equal(seen[1].accessToken, "flag-token");
     assert.equal(seen[1].credentials, "flag.json");
   `,
-    { IRACING_ACCESS_TOKEN: "env-token", IRACING_CREDENTIALS: "env.json" },
+    {
+      IRACING_ACCESS_TOKEN: "env-token",
+      IRACING_CREDENTIALS: "env.json",
+      IRACING_OUTPUT_DIR: "env-output",
+      IRACING_AUTH_PASSWORD: "synthetic-password",
+      IRACING_AUTH_SECRET: "synthetic-secret",
+    },
   );
 });
 
-test("login parses hidden registration and account env options before creating its scope", () => {
+test("login parses hidden registration and account env options before calling its service", () => {
   run(
     `
     import assert from "node:assert/strict";
@@ -85,14 +94,11 @@ test("login parses hidden registration and account env options before creating i
     import { createRootCommand } from "./test/root-command.cjs";
     const seen = [];
     const dependencies = {
-      createScope: async (options) => {
+      login: async (options) => {
         seen.push(options);
-        return {
-          authentication: { authenticate: async () => ({}) },
-          credentials: { destination: "tokens.json", write: async () => {} },
-          diagnostics: { info() {} },
-        };
+        return "tokens.json";
       },
+      present() {},
     };
     const command = (await createRootCommand()).addCommand(createLoginCommand(dependencies));
     for (const name of ["--client-id", "--client-secret", "--redirect-uri", "--username", "--password"]) {

@@ -40,7 +40,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_member_award_instances
 
-> models::IracingApiResponse get_member_award_instances(award_id, cust_id)
+> models::MemberAwardInstancesResponse get_member_award_instances(award_id, cust_id)
 
 ### Parameters
 
@@ -51,7 +51,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**models::MemberAwardInstancesResponse**](memberAwardInstancesResponse.md)
 
 ### Authorization
 
@@ -66,7 +66,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_member_awards
 
-> models::IracingApiResponse get_member_awards(cust_id)
+> models::MemberAwardsResponse get_member_awards(cust_id)
 
 ### Parameters
 
@@ -76,7 +76,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**models::MemberAwardsResponse**](memberAwardsResponse.md)
 
 ### Authorization
 

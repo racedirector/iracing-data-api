@@ -190,10 +190,90 @@ export interface IracingServiceMethodParametersDocs {
   note?: string;
   required?: boolean;
 }
+/**
+ * Direct metadata and roster download URL observed from `/data/league/roster`.
+ */
+export interface LeagueRosterResponse {
+  type: LeagueRosterResponseTypeEnum;
+  data: LeagueRosterResponseData;
+  data_url: string;
+}
+
+export const LeagueRosterResponseTypeEnum = {
+  LeagueRoster: "league_roster",
+} as const;
+
+export type LeagueRosterResponseTypeEnum =
+  (typeof LeagueRosterResponseTypeEnum)[keyof typeof LeagueRosterResponseTypeEnum];
+
+export interface LeagueRosterResponseData {
+  success: boolean;
+  subscribed: boolean;
+  roster_count: number;
+  league_id: number;
+}
+/**
+ * Direct metadata and award-instance download URL observed from /data/member/award_instances.
+ */
+export interface MemberAwardInstancesResponse {
+  type: MemberAwardInstancesResponseTypeEnum;
+  data: MemberAwardInstancesResponseData;
+  data_url: string;
+}
+
+export const MemberAwardInstancesResponseTypeEnum = {
+  MemberAwardInstances: "member_award_instances",
+} as const;
+
+export type MemberAwardInstancesResponseTypeEnum =
+  (typeof MemberAwardInstancesResponseTypeEnum)[keyof typeof MemberAwardInstancesResponseTypeEnum];
+
+export interface MemberAwardInstancesResponseData {
+  success: boolean;
+  cust_id: number;
+  award_count: number;
+  award_id: number;
+}
+/**
+ * Direct metadata and award download URL observed from /data/member/awards.
+ */
+export interface MemberAwardsResponse {
+  type: MemberAwardsResponseTypeEnum;
+  data: MemberAwardsResponseData;
+  data_url: string;
+}
+
+export const MemberAwardsResponseTypeEnum = {
+  MemberAwards: "member_awards",
+} as const;
+
+export type MemberAwardsResponseTypeEnum =
+  (typeof MemberAwardsResponseTypeEnum)[keyof typeof MemberAwardsResponseTypeEnum];
+
+export interface MemberAwardsResponseData {
+  success: boolean;
+  cust_id: number;
+  award_count: number;
+}
 export interface PostAuthRequest {
   email: string;
   password: string;
 }
+/**
+ * Direct manifest response from `/data/results/search_hosted`.
+ */
+export interface ResultsSearchHostedResponse {
+  type: ResultsSearchHostedResponseTypeEnum;
+  data: ResultsSearchSeriesResponseData;
+}
+
+export const ResultsSearchHostedResponseTypeEnum = {
+  SearchHostedResults: "search_hosted_results",
+} as const;
+
+export type ResultsSearchHostedResponseTypeEnum =
+  (typeof ResultsSearchHostedResponseTypeEnum)[keyof typeof ResultsSearchHostedResponseTypeEnum];
+
 /**
  * Direct manifest response from `/data/results/search_series`.
  */
@@ -220,6 +300,28 @@ export interface ResultsSearchSeriesResponseDataChunkInfo {
   rows: number;
   base_download_url: string;
   chunk_file_names: Array<string>;
+}
+/**
+ * Direct world-record chunk manifest observed from /data/stats/world_records.
+ */
+export interface StatsWorldRecordsResponse {
+  type: StatsWorldRecordsResponseTypeEnum;
+  data: StatsWorldRecordsResponseData;
+}
+
+export const StatsWorldRecordsResponseTypeEnum = {
+  StatsWorldRecords: "stats_world_records",
+} as const;
+
+export type StatsWorldRecordsResponseTypeEnum =
+  (typeof StatsWorldRecordsResponseTypeEnum)[keyof typeof StatsWorldRecordsResponseTypeEnum];
+
+export interface StatsWorldRecordsResponseData {
+  success: boolean;
+  car_id: number;
+  track_id: number;
+  chunk_info: ResultsSearchSeriesResponseDataChunkInfo;
+  last_updated: string;
 }
 
 /**
@@ -2153,6 +2255,48 @@ export const DocApiAxiosParamCreator = function (
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
+    getLookupCurrentSeasonDocs: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/data/doc/lookup/current_season`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication bearerAuth required
+      // http bearer authentication required
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
     getLookupDocs: async (
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
@@ -3543,6 +3687,90 @@ export const DocApiAxiosParamCreator = function (
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/data/doc/series/stats_series`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication bearerAuth required
+      // http bearer authentication required
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getSessionDocs: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/data/doc/session`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication bearerAuth required
+      // http bearer authentication required
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getSessionRegisteredDriversDocs: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/data/doc/session/reg_drivers_list`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
@@ -5289,6 +5517,34 @@ export const DocApiFp = function (configuration?: Configuration) {
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
+    async getLookupCurrentSeasonDocs(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<IracingServiceMethodDocs>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getLookupCurrentSeasonDocs(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["DocApi.getLookupCurrentSeasonDocs"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
     async getLookupDocs(
       options?: RawAxiosRequestConfig,
     ): Promise<
@@ -6232,6 +6488,64 @@ export const DocApiFp = function (configuration?: Configuration) {
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath =
         operationServerMap["DocApi.getSeriesStatsSeriesDocs"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getSessionDocs(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<{ [key: string]: IracingServiceMethodDocs }>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getSessionDocs(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["DocApi.getSessionDocs"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getSessionRegisteredDriversDocs(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<IracingServiceMethodDocs>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getSessionRegisteredDriversDocs(
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["DocApi.getSessionRegisteredDriversDocs"]?.[
           localVarOperationServerIndex
         ]?.url;
       return (axios, basePath) =>
@@ -7230,6 +7544,18 @@ export const DocApiFactory = function (
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
+    getLookupCurrentSeasonDocs(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<IracingServiceMethodDocs> {
+      return localVarFp
+        .getLookupCurrentSeasonDocs(options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
     getLookupDocs(
       options?: RawAxiosRequestConfig,
     ): AxiosPromise<{ [key: string]: IracingServiceMethodDocs }> {
@@ -7631,6 +7957,30 @@ export const DocApiFactory = function (
     ): AxiosPromise<IracingServiceMethodDocs> {
       return localVarFp
         .getSeriesStatsSeriesDocs(options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getSessionDocs(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<{ [key: string]: IracingServiceMethodDocs }> {
+      return localVarFp
+        .getSessionDocs(options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getSessionRegisteredDriversDocs(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<IracingServiceMethodDocs> {
+      return localVarFp
+        .getSessionRegisteredDriversDocs(options)
         .then((request) => request(axios, basePath));
     },
     /**
@@ -8221,6 +8571,17 @@ export class DocApi extends BaseAPI {
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
+  public getLookupCurrentSeasonDocs(options?: RawAxiosRequestConfig) {
+    return DocApiFp(this.configuration)
+      .getLookupCurrentSeasonDocs(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
   public getLookupDocs(options?: RawAxiosRequestConfig) {
     return DocApiFp(this.configuration)
       .getLookupDocs(options)
@@ -8597,6 +8958,28 @@ export class DocApi extends BaseAPI {
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
+  public getSessionDocs(options?: RawAxiosRequestConfig) {
+    return DocApiFp(this.configuration)
+      .getSessionDocs(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getSessionRegisteredDriversDocs(options?: RawAxiosRequestConfig) {
+    return DocApiFp(this.configuration)
+      .getSessionRegisteredDriversDocs(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
   public getStatsDocs(options?: RawAxiosRequestConfig) {
     return DocApiFp(this.configuration)
       .getStatsDocs(options)
@@ -8856,7 +9239,7 @@ export const DriverStatsApiAxiosParamCreator = function (
 ) {
   return {
     /**
-     *
+     * Returns a cache link to a CSV driver-statistics document, not a JSON payload.
      * @param {IracingCategory} category Racing category.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -8915,7 +9298,7 @@ export const DriverStatsApiFp = function (configuration?: Configuration) {
     DriverStatsApiAxiosParamCreator(configuration);
   return {
     /**
-     *
+     * Returns a cache link to a CSV driver-statistics document, not a JSON payload.
      * @param {IracingCategory} category Racing category.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -8961,7 +9344,7 @@ export const DriverStatsApiFactory = function (
   const localVarFp = DriverStatsApiFp(configuration);
   return {
     /**
-     *
+     * Returns a cache link to a CSV driver-statistics document, not a JSON payload.
      * @param {DriverStatsApiGetDriverStatsByCategoryRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
@@ -8992,7 +9375,7 @@ export interface DriverStatsApiGetDriverStatsByCategoryRequest {
  */
 export class DriverStatsApi extends BaseAPI {
   /**
-   *
+   * Returns a cache link to a CSV driver-statistics document, not a JSON payload.
    * @param {DriverStatsApiGetDriverStatsByCategoryRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
@@ -10078,7 +10461,7 @@ export const LeagueApiFp = function (configuration?: Configuration) {
       (
         axios?: AxiosInstance,
         basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      ) => AxiosPromise<LeagueRosterResponse>
     > {
       const localVarAxiosArgs = await localVarAxiosParamCreator.getLeagueRoster(
         league_id,
@@ -10337,7 +10720,7 @@ export const LeagueApiFactory = function (
     getLeagueRoster(
       requestParameters: LeagueApiGetLeagueRosterRequest,
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<LeagueRosterResponse> {
       return localVarFp
         .getLeagueRoster(
           requestParameters.league_id,
@@ -10774,13 +11157,67 @@ export const LookupApiAxiosParamCreator = function (
   return {
     /**
      *
+     * @param {Array<string>} [weather]
+     * @param {Array<string>} [licenselevels]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getLookup: async (
+      weather?: Array<string>,
+      licenselevels?: Array<string>,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/data/lookup/get`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication bearerAuth required
+      // http bearer authentication required
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+
+      if (weather) {
+        localVarQueryParameter["weather"] = weather;
+      }
+
+      if (licenselevels) {
+        localVarQueryParameter["licenselevels"] = licenselevels;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getLookupCountries: async (
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      const localVarPath = `/data/lookup/countries`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
@@ -10819,10 +11256,10 @@ export const LookupApiAxiosParamCreator = function (
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
-    getLookupCountries: async (
+    getLookupCurrentSeason: async (
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
-      const localVarPath = `/data/lookup/countries`;
+      const localVarPath = `/data/lookup/current_season`;
       // use dummy base URL string because the URL constructor only accepts absolute URLs.
       const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
       let baseOptions;
@@ -11007,10 +11444,14 @@ export const LookupApiFp = function (configuration?: Configuration) {
   return {
     /**
      *
+     * @param {Array<string>} [weather]
+     * @param {Array<string>} [licenselevels]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getLookup(
+      weather?: Array<string>,
+      licenselevels?: Array<string>,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (
@@ -11018,8 +11459,11 @@ export const LookupApiFp = function (configuration?: Configuration) {
         basePath?: string,
       ) => AxiosPromise<IracingAPIResponse>
     > {
-      const localVarAxiosArgs =
-        await localVarAxiosParamCreator.getLookup(options);
+      const localVarAxiosArgs = await localVarAxiosParamCreator.getLookup(
+        weather,
+        licenselevels,
+        options,
+      );
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath =
         operationServerMap["LookupApi.getLookup"]?.[
@@ -11051,6 +11495,34 @@ export const LookupApiFp = function (configuration?: Configuration) {
       const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
       const localVarOperationServerBasePath =
         operationServerMap["LookupApi.getLookupCountries"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getLookupCurrentSeason(
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<IracingAPIResponse>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getLookupCurrentSeason(options);
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["LookupApi.getLookupCurrentSeason"]?.[
           localVarOperationServerIndex
         ]?.url;
       return (axios, basePath) =>
@@ -11168,14 +11640,20 @@ export const LookupApiFactory = function (
   return {
     /**
      *
+     * @param {LookupApiGetLookupRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getLookup(
+      requestParameters: LookupApiGetLookupRequest = {},
       options?: RawAxiosRequestConfig,
     ): AxiosPromise<IracingAPIResponse> {
       return localVarFp
-        .getLookup(options)
+        .getLookup(
+          requestParameters.weather,
+          requestParameters.licenselevels,
+          options,
+        )
         .then((request) => request(axios, basePath));
     },
     /**
@@ -11188,6 +11666,18 @@ export const LookupApiFactory = function (
     ): AxiosPromise<IracingAPIResponse> {
       return localVarFp
         .getLookupCountries(options)
+        .then((request) => request(axios, basePath));
+    },
+    /**
+     *
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getLookupCurrentSeason(
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<IracingAPIResponse> {
+      return localVarFp
+        .getLookupCurrentSeason(options)
         .then((request) => request(axios, basePath));
     },
     /**
@@ -11236,6 +11726,15 @@ export const LookupApiFactory = function (
 };
 
 /**
+ * Request parameters for getLookup operation in LookupApi.
+ */
+export interface LookupApiGetLookupRequest {
+  readonly weather?: Array<string>;
+
+  readonly licenselevels?: Array<string>;
+}
+
+/**
  * Request parameters for getLookupDrivers operation in LookupApi.
  */
 export interface LookupApiGetLookupDriversRequest {
@@ -11256,12 +11755,20 @@ export interface LookupApiGetLookupDriversRequest {
 export class LookupApi extends BaseAPI {
   /**
    *
+   * @param {LookupApiGetLookupRequest} requestParameters Request parameters.
    * @param {*} [options] Override http request option.
    * @throws {RequiredError}
    */
-  public getLookup(options?: RawAxiosRequestConfig) {
+  public getLookup(
+    requestParameters: LookupApiGetLookupRequest = {},
+    options?: RawAxiosRequestConfig,
+  ) {
     return LookupApiFp(this.configuration)
-      .getLookup(options)
+      .getLookup(
+        requestParameters.weather,
+        requestParameters.licenselevels,
+        options,
+      )
       .then((request) => request(this.axios, this.basePath));
   }
 
@@ -11273,6 +11780,17 @@ export class LookupApi extends BaseAPI {
   public getLookupCountries(options?: RawAxiosRequestConfig) {
     return LookupApiFp(this.configuration)
       .getLookupCountries(options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+
+  /**
+   *
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getLookupCurrentSeason(options?: RawAxiosRequestConfig) {
+    return LookupApiFp(this.configuration)
+      .getLookupCurrentSeason(options)
       .then((request) => request(this.axios, this.basePath));
   }
 
@@ -11741,7 +12259,7 @@ export const MemberApiFp = function (configuration?: Configuration) {
       (
         axios?: AxiosInstance,
         basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      ) => AxiosPromise<MemberAwardInstancesResponse>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getMemberAwardInstances(
@@ -11775,7 +12293,7 @@ export const MemberApiFp = function (configuration?: Configuration) {
       (
         axios?: AxiosInstance,
         basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      ) => AxiosPromise<MemberAwardsResponse>
     > {
       const localVarAxiosArgs = await localVarAxiosParamCreator.getMemberAwards(
         cust_id,
@@ -11960,7 +12478,7 @@ export const MemberApiFactory = function (
     getMemberAwardInstances(
       requestParameters: MemberApiGetMemberAwardInstancesRequest,
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<MemberAwardInstancesResponse> {
       return localVarFp
         .getMemberAwardInstances(
           requestParameters.award_id,
@@ -11978,7 +12496,7 @@ export const MemberApiFactory = function (
     getMemberAwards(
       requestParameters: MemberApiGetMemberAwardsRequest = {},
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<MemberAwardsResponse> {
       return localVarFp
         .getMemberAwards(requestParameters.cust_id, options)
         .then((request) => request(axios, basePath));
@@ -13010,7 +13528,7 @@ export const ResultsApiFp = function (configuration?: Configuration) {
       (
         axios?: AxiosInstance,
         basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      ) => AxiosPromise<ResultsSearchHostedResponse>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getResultsSearchHosted(
@@ -13246,7 +13764,7 @@ export const ResultsApiFactory = function (
     getResultsSearchHosted(
       requestParameters: ResultsApiGetResultsSearchHostedRequest = {},
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<ResultsSearchHostedResponse> {
       return localVarFp
         .getResultsSearchHosted(
           requestParameters.start_range_begin,
@@ -15139,6 +15657,166 @@ export class SeriesApi extends BaseAPI {
 }
 
 /**
+ * SessionApi - axios parameter creator
+ */
+export const SessionApiAxiosParamCreator = function (
+  configuration?: Configuration,
+) {
+  return {
+    /**
+     *
+     * @param {number} subsession_id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getSessionRegisteredDrivers: async (
+      subsession_id: number,
+      options: RawAxiosRequestConfig = {},
+    ): Promise<RequestArgs> => {
+      // verify required parameter 'subsession_id' is not null or undefined
+      assertParamExists(
+        "getSessionRegisteredDrivers",
+        "subsession_id",
+        subsession_id,
+      );
+      const localVarPath = `/data/session/reg_drivers_list`;
+      // use dummy base URL string because the URL constructor only accepts absolute URLs.
+      const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+      let baseOptions;
+      if (configuration) {
+        baseOptions = configuration.baseOptions;
+      }
+
+      const localVarRequestOptions = {
+        method: "GET",
+        ...baseOptions,
+        ...options,
+      };
+      const localVarHeaderParameter = {} as any;
+      const localVarQueryParameter = {} as any;
+
+      // authentication bearerAuth required
+      // http bearer authentication required
+      await setBearerAuthToObject(localVarHeaderParameter, configuration);
+
+      if (subsession_id !== undefined) {
+        localVarQueryParameter["subsession_id"] = subsession_id;
+      }
+
+      setSearchParams(localVarUrlObj, localVarQueryParameter);
+      let headersFromBaseOptions =
+        baseOptions && baseOptions.headers ? baseOptions.headers : {};
+      localVarRequestOptions.headers = {
+        ...localVarHeaderParameter,
+        ...headersFromBaseOptions,
+        ...options.headers,
+      };
+
+      return {
+        url: toPathString(localVarUrlObj),
+        options: localVarRequestOptions,
+      };
+    },
+  };
+};
+
+/**
+ * SessionApi - functional programming interface
+ */
+export const SessionApiFp = function (configuration?: Configuration) {
+  const localVarAxiosParamCreator = SessionApiAxiosParamCreator(configuration);
+  return {
+    /**
+     *
+     * @param {number} subsession_id
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    async getSessionRegisteredDrivers(
+      subsession_id: number,
+      options?: RawAxiosRequestConfig,
+    ): Promise<
+      (
+        axios?: AxiosInstance,
+        basePath?: string,
+      ) => AxiosPromise<IracingAPIResponse>
+    > {
+      const localVarAxiosArgs =
+        await localVarAxiosParamCreator.getSessionRegisteredDrivers(
+          subsession_id,
+          options,
+        );
+      const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+      const localVarOperationServerBasePath =
+        operationServerMap["SessionApi.getSessionRegisteredDrivers"]?.[
+          localVarOperationServerIndex
+        ]?.url;
+      return (axios, basePath) =>
+        createRequestFunction(
+          localVarAxiosArgs,
+          globalAxios,
+          BASE_PATH,
+          configuration,
+        )(axios, localVarOperationServerBasePath || basePath);
+    },
+  };
+};
+
+/**
+ * SessionApi - factory interface
+ */
+export const SessionApiFactory = function (
+  configuration?: Configuration,
+  basePath?: string,
+  axios?: AxiosInstance,
+) {
+  const localVarFp = SessionApiFp(configuration);
+  return {
+    /**
+     *
+     * @param {SessionApiGetSessionRegisteredDriversRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    getSessionRegisteredDrivers(
+      requestParameters: SessionApiGetSessionRegisteredDriversRequest,
+      options?: RawAxiosRequestConfig,
+    ): AxiosPromise<IracingAPIResponse> {
+      return localVarFp
+        .getSessionRegisteredDrivers(requestParameters.subsession_id, options)
+        .then((request) => request(axios, basePath));
+    },
+  };
+};
+
+/**
+ * Request parameters for getSessionRegisteredDrivers operation in SessionApi.
+ */
+export interface SessionApiGetSessionRegisteredDriversRequest {
+  readonly subsession_id: number;
+}
+
+/**
+ * SessionApi - object-oriented interface
+ */
+export class SessionApi extends BaseAPI {
+  /**
+   *
+   * @param {SessionApiGetSessionRegisteredDriversRequest} requestParameters Request parameters.
+   * @param {*} [options] Override http request option.
+   * @throws {RequiredError}
+   */
+  public getSessionRegisteredDrivers(
+    requestParameters: SessionApiGetSessionRegisteredDriversRequest,
+    options?: RawAxiosRequestConfig,
+  ) {
+    return SessionApiFp(this.configuration)
+      .getSessionRegisteredDrivers(requestParameters.subsession_id, options)
+      .then((request) => request(this.axios, this.basePath));
+  }
+}
+
+/**
  * StatsApi - axios parameter creator
  */
 export const StatsApiAxiosParamCreator = function (
@@ -16556,7 +17234,7 @@ export const StatsApiFp = function (configuration?: Configuration) {
       (
         axios?: AxiosInstance,
         basePath?: string,
-      ) => AxiosPromise<IracingAPIResponse>
+      ) => AxiosPromise<StatsWorldRecordsResponse>
     > {
       const localVarAxiosArgs =
         await localVarAxiosParamCreator.getStatsWorldRecords(
@@ -16831,7 +17509,7 @@ export const StatsApiFactory = function (
     getStatsWorldRecords(
       requestParameters: StatsApiGetStatsWorldRecordsRequest,
       options?: RawAxiosRequestConfig,
-    ): AxiosPromise<IracingAPIResponse> {
+    ): AxiosPromise<StatsWorldRecordsResponse> {
       return localVarFp
         .getStatsWorldRecords(
           requestParameters.car_id,

@@ -2,13 +2,14 @@
 
 All URIs are relative to *https://members-ng.iracing.com*
 
-| Method                                        | HTTP request                   | Description |
-| --------------------------------------------- | ------------------------------ | ----------- |
-| [**getLookup**](#getlookup)                   | **GET** /data/lookup/get       |             |
-| [**getLookupCountries**](#getlookupcountries) | **GET** /data/lookup/countries |             |
-| [**getLookupDrivers**](#getlookupdrivers)     | **GET** /data/lookup/drivers   |             |
-| [**getLookupFlairs**](#getlookupflairs)       | **GET** /data/lookup/flairs    |             |
-| [**getLookupLicenses**](#getlookuplicenses)   | **GET** /data/lookup/licenses  |             |
+| Method                                                | HTTP request                        | Description |
+| ----------------------------------------------------- | ----------------------------------- | ----------- |
+| [**getLookup**](#getlookup)                           | **GET** /data/lookup/get            |             |
+| [**getLookupCountries**](#getlookupcountries)         | **GET** /data/lookup/countries      |             |
+| [**getLookupCurrentSeason**](#getlookupcurrentseason) | **GET** /data/lookup/current_season |             |
+| [**getLookupDrivers**](#getlookupdrivers)             | **GET** /data/lookup/drivers        |             |
+| [**getLookupFlairs**](#getlookupflairs)               | **GET** /data/lookup/flairs         |             |
+| [**getLookupLicenses**](#getlookuplicenses)           | **GET** /data/lookup/licenses       |             |
 
 # **getLookup**
 
@@ -22,12 +23,18 @@ import { LookupApi, Configuration } from "@iracing-data/api-client-axios";
 const configuration = new Configuration();
 const apiInstance = new LookupApi(configuration);
 
-const { status, data } = await apiInstance.getLookup();
+let weather: Array<string>; // (optional) (default to undefined)
+let licenselevels: Array<string>; // (optional) (default to undefined)
+
+const { status, data } = await apiInstance.getLookup(weather, licenselevels);
 ```
 
 ### Parameters
 
-This endpoint does not have any parameters.
+| Name              | Type                    | Description | Notes                            |
+| ----------------- | ----------------------- | ----------- | -------------------------------- |
+| **weather**       | **Array&lt;string&gt;** |             | (optional) defaults to undefined |
+| **licenselevels** | **Array&lt;string&gt;** |             | (optional) defaults to undefined |
 
 ### Return type
 
@@ -66,6 +73,49 @@ const configuration = new Configuration();
 const apiInstance = new LookupApi(configuration);
 
 const { status, data } = await apiInstance.getLookupCountries();
+```
+
+### Parameters
+
+This endpoint does not have any parameters.
+
+### Return type
+
+**IracingAPIResponse**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description                         | Response headers                                                                     |
+| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **401**     | Access token is missing or invalid. | -                                                                                    |
+| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                         | -                                                                                    |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getLookupCurrentSeason**
+
+> IracingAPIResponse getLookupCurrentSeason()
+
+### Example
+
+```typescript
+import { LookupApi, Configuration } from "@iracing-data/api-client-axios";
+
+const configuration = new Configuration();
+const apiInstance = new LookupApi(configuration);
+
+const { status, data } = await apiInstance.getLookupCurrentSeason();
 ```
 
 ### Parameters

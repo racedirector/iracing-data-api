@@ -2,6 +2,51 @@
 
 `apps/iracing-data-cli` is this repository's private Commander-based `iracing-data` CLI. `iracing-data auth login` obtains iRacing OAuth tokens with the browser Authorization Code flow; `iracing-data docs` fetches authenticated Data API documentation, `iracing-data assets` materializes runtime asset metadata, and `iracing-data whoami` checks the active profile. This is private repository tooling.
 
+The CLI exposes all 69 maintained runtime Data API GET routes through generated
+clients, with script-safe JSON output and offline OpenAPI dispatch coverage.
+See [the compatibility-maintenance report](COMPATIBILITY.md) for live validation,
+contract repairs, regeneration, and limitations.
+
+## Fetch constants
+
+```bash
+pnpm iracing-data constants categories
+pnpm iracing-data constants divisions
+pnpm iracing-data constants event-types
+```
+
+Each command makes one authenticated API request and writes the direct JSON array
+to stdout. Constants do not use cache-link downloads. Shared credential options
+work before or after the subcommand; omitted options retain normal credential
+precedence. The existing canonical constants schema preserves additional row fields.
+
+For iterative development, keep the CLI and its TypeScript dependencies rebuilding:
+
+```bash
+pnpm exec tsc --build apps/iracing-data-cli/tsconfig.build.json --watch --preserveWatchOutput
+```
+
+Run `pnpm iracing-data <command>` from another terminal against that watched build.
+Rebuild/regenerate OpenAPI and SDK output explicitly when changing contracts;
+TypeScript watch does not run code generation.
+
+## Discover lookup data
+
+```bash
+pnpm iracing-data lookup current-season
+pnpm iracing-data lookup countries
+pnpm iracing-data lookup flairs
+pnpm iracing-data lookup licenses
+pnpm iracing-data lookup drivers --search-term "Example" --league-id 6529
+pnpm iracing-data lookup get --weather weather_wind_speed_units weather_wind_speed_max --licenselevels licenselevels
+```
+
+Each leaf validates canonical parameters, calls the generated Fetch client, and
+materializes the returned HTTPS cache link without forwarding credentials.
+`get` accepts multiple weather or license-level lookup selectors; the API receives
+repeated query keys, not a comma-separated string. Without selectors the API may
+return an empty document. Results remain unmodified JSON on stdout.
+
 ## Fetch results
 
 ```bash
@@ -13,6 +58,150 @@ The command validates query flags with `@iracing-data/api-schema`, requests
 `/data/results/get`, follows the HTTPS cache link without forwarding credentials,
 and writes the downloaded JSON to stdout. Omit `--include-licenses` to use the API
 default. Use global `--credentials <path>` or `IRACING_ACCESS_TOKEN` for authentication.
+
+## Fetch league API documents
+
+```bash
+pnpm iracing-data league get --league-id 6529
+pnpm iracing-data league roster --league-id 6529 --include-licenses
+pnpm iracing-data league seasons --league-id 6529 --retired false
+pnpm iracing-data league sessions --league-id 6529 --season-id 123 --results-only
+pnpm iracing-data league standings --league-id 6529 --season-id 123
+pnpm iracing-data league points-systems --league-id 6529 --season-id 123
+pnpm iracing-data league membership --include-league
+pnpm iracing-data league directory --search "racing" --restrict-to-recruiting
+pnpm iracing-data league customer-sessions --mine
+```
+
+Each subcommand validates flags using the canonical API request schema and writes
+the downloaded JSON to stdout. Boolean flags accept an optional `true` or `false`;
+omitted flags retain upstream defaults. Use `league <subcommand> --help` for all
+filters. Global credential flags work before or after subcommands. Bearer tokens
+are sent only to the API, not the returned HTTPS cache URL. Unlike `league-history`,
+these commands make one API request and one cache download without capturing files.
+
+The roster endpoint returns a `league_roster` metadata envelope, not the standard
+`link` envelope. Its canonical schema and generated SDK expose `data_url`; the
+CLI validates the response and follows that URL when `data.success` is true.
+
+## Fetch team API documents
+
+```bash
+pnpm iracing-data team get --team-id 12345
+pnpm iracing-data team get --team-id 12345 --include-licenses false
+pnpm iracing-data team membership
+```
+
+`get` requires a team ID; `--include-licenses` accepts an optional `true` or
+`false`, with omission retaining the API default. `membership` fetches the
+authenticated member's teams. Both commands write downloaded JSON to stdout,
+support global credential options before or after subcommands, and never forward
+the bearer token to the returned HTTPS cache URL.
+
+## Hosted and scheduled league sessions
+
+```bash
+# Joinable sessions plus your pending non-league sessions
+pnpm iracing-data hosted combined-sessions
+pnpm iracing-data hosted combined-sessions --package-id 123
+
+# Currently driver-joinable sessions only
+pnpm iracing-data hosted sessions
+
+# League sessions available to your account, or only those you created
+pnpm iracing-data league customer-sessions
+pnpm iracing-data league customer-sessions --mine
+pnpm iracing-data league customer-sessions --mine false --package-id 123
+
+# A particular league season's sessions, including those without results
+pnpm iracing-data league sessions --league-id 6529 --season-id 123
+```
+
+`hosted combined-sessions` maps to `/data/hosted/combined_sessions`, which
+includes driver/spectator-joinable sessions and the authenticated user's pending
+non-league sessions. `hosted sessions` maps to `/data/hosted/sessions`, which
+excludes spectator-only and pending non-league sessions. Only the combined
+endpoint accepts a car/track package filter; neither has a league-ID or `mine`
+filter in the maintained API contract.
+
+For league scheduling use the existing league endpoints above. `--mine` selects
+sessions created by you; omit it to retain the API default. For a season schedule,
+omit `--results-only` (or pass `--results-only false`) so sessions without results
+are not excluded. These are endpoint views, not a synthesized upcoming-only list:
+returned sessions are preserved without local date filtering or merging.
+
+All commands write JSON to stdout and accept the shared credential options.
+Bearer credentials are sent only to the API, never the returned HTTPS cache URL.
+
+## Import-support data
+
+### Opt-in hosted-search contract check
+
+Build the CLI and mapping helper before running the scoped live case:
+
+```bash
+pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-openapi...' build
+IRACING_LIVE_HOSTED_QUERY='{"start_range_begin":"2023-10-08T00:00:00Z","start_range_end":"2023-10-11T00:00:00Z","session_name":"FTR","track_id":192}' \
+  pnpm --filter @iracing-data/cli test:live --run
+```
+
+Use reviewed bounded selectors in `IRACING_LIVE_HOSTED_QUERY`, and optionally
+`IRACING_CREDENTIALS` for an explicit credential file. Without `--run` no requests
+are made. The case performs one docs/auth preflight and one response-only search,
+checks HTTP/JSON content type and canonical raw-response acceptance, and emits
+only a sanitized PASS / CONTRACT_MISMATCH / BLOCKED / NOT_RUN result. It never
+downloads chunks or retries; reauthenticate explicitly after a 401 before rerunning.
+This is not an all-endpoint suite and does not prove filter semantics.
+`pnpm verify` remains offline. See the living
+[reconciliation log](../../docs/DATA-API-RECONCILIATION.md) for the repair history.
+
+### Commands
+
+```bash
+pnpm iracing-data results-search-hosted --league-id 6529 --league-season-id 123 --start-range-begin 2026-01-01T00:00:00Z --start-range-end 2026-04-01T00:00:00Z
+pnpm iracing-data results-search-hosted --team-id 12345 --session-name "Endurance"
+pnpm iracing-data member get --cust-ids 123,456 --include-licenses
+pnpm iracing-data metadata car
+pnpm iracing-data metadata car-class
+pnpm iracing-data metadata track
+```
+
+Additional member documents are available through the same group:
+
+```bash
+pnpm iracing-data member info
+pnpm iracing-data member profile --cust-id 123
+pnpm iracing-data member awards
+pnpm iracing-data member award-instances --award-id 88
+pnpm iracing-data member chart-data --category-id 1 --chart-type 1
+pnpm iracing-data member participation-credits
+```
+
+Omitting an optional customer ID selects the authenticated member. `info` and
+`participation-credits` always refer to your account. Awards and award instances
+use typed metadata envelopes with `data_url`; other member documents use
+`link` envelopes. Downloads never receive bearer credentials.
+
+Member, metadata, and hosted-search leaves accept `--response-only` to emit the
+modeled wire JSON without following cache URLs. This is useful for contract
+inspection and preserves unmodeled response fields. These responses can contain
+short-lived signed URLs: treat the output as sensitive and do not publish it.
+
+These commands validate canonical API parameters, download an HTTPS cache document
+without credentials only when a `link` is returned, and otherwise write the inline
+JSON document unchanged to stdout. Failures identify the request, decoding, or
+cache-processing stage rather than assuming an authentication problem. Global credential
+options work before or after commands. Metadata commands retrieve the complete
+reference lists, not asset images. Member lookup accepts a comma-separated ID list;
+license inclusion accepts an optional `true` or `false`.
+
+Hosted search supports start/finish date bounds, participant/team/host IDs, league
+and league-season IDs, session name, car, track, and category IDs. A team ID takes
+precedence over a participant customer ID. Date end bounds are exclusive; supply
+explicit bounds for historical backfills (see `results-search-hosted --help`).
+The search command preserves the returned document and does **not** expand nested
+chunk references or fetch individual race results. Feed discovered subsession IDs
+to the existing `results --subsession-id` command.
 
 ## Use locally from another project
 
@@ -158,7 +347,15 @@ Explicit `--format` wins. Otherwise `.yaml` and `.yml` paths select YAML; all ot
 
 By default, `auth login` atomically updates `.iracing-data/credentials.json` at the repository root. The directory is ignored by Git. An auth-only login with `--scope iracing.auth` instead targets `.iracing-data/iracing-data-mcp/credentials.json` so the MCP can own and refresh a distinct least-privilege credential lifecycle. Do not copy one refresh credential into both files or otherwise make independently refreshing consumers share the same rotating refresh token.
 
-Successful stdout is empty; diagnostics go to stderr. Existing credential files are protected: pass `--force` on subsequent logins to replace the selected file. `--credentials <path>` chooses another credential file to update; `--output <path>` selects an alternate output file with the same replacement protection. Explicit destinations override the scope-specific default. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
+Successful stdout is empty; diagnostics go to stderr. CLI diagnostics use `pino-pretty`, with colors only when stderr is a terminal; command data on stdout remains machine-readable. Existing credential files are protected: pass `--force` on subsequent logins to replace the selected file. `--credentials <path>` chooses another credential file to update; `--output <path>` selects an alternate output file with the same replacement protection. Explicit destinations override the scope-specific default. Do not combine `--credentials` and `--output`. Scripts that previously parsed login stdout must now read the credential file.
+
+Login wiring follows the other service-backed commands: `command.ts` validates
+flags with Zod and calls an injected `login(options)` capability. `service.ts`
+validates the destination, runs the selected OAuth flow, and saves credentials
+before returning the destination for a success diagnostic. The auth group binds
+the browser implementation, credential writer, and diagnostics; no invocation
+scope factory is involved. Environment-backed inputs are parsed once by the
+global option schema rather than reread inside the service.
 
 JSON writes use the shared [OAuth token-document implementation](../../packages/oauth/client/src/storage/token-document-store.ts).
 On POSIX keep credential directories owned with mode `0700` and files `0600`;
@@ -215,34 +412,78 @@ The commands preserve the returned JSON rather than rewriting it into a CLI-spec
 
 Canonical OpenAPI parity is verified offline: runtime `/data/**/assets` routes in `openapi/iracing.yaml` must have matching authored `assets` leaves, while `/data/doc/**/assets` documentation routes are excluded. See the [assets command documentation](src/commands/assets/README.md) for ownership and safety details.
 
-## Capture league history
+## Discover seasons and series
 
 ```bash
-pnpm --filter '@iracing-data/cli...' build
-pnpm run iracing-data league-history --league-id 6529 --output .iracing-data/ftr-history
+pnpm iracing-data season list --season-year 2026 --season-quarter 4
+pnpm iracing-data season race-guide
+pnpm iracing-data season spectator-subsessionids --event-types 2,5
+pnpm iracing-data season spectator-subsessionids-detail --event-types 2,5 --season-ids 6434
+pnpm iracing-data series get
+pnpm iracing-data series assets
+pnpm iracing-data series past-seasons --series-id 514
+pnpm iracing-data series seasons --include-series
+pnpm iracing-data series season-list
+pnpm iracing-data series season-schedule --season-id 6434
+pnpm iracing-data series stats-series
 ```
 
-`IRACING_OUTPUT_DIR` overrides `--output` (`-o`). Without either, a timestamped
-directory under `.iracing-data/` is used, relative to the working directory.
-The destination must not already exist: partial captures are retained on failure,
-and a new directory is required for a retry. Files are private JSON captures.
-Keep them out of Git because they contain member information.
+Spectator filters accept comma-separated numeric IDs and use the generated
+client's single-value CSV query encoding. Race-guide timestamps accept ISO-8601
+offsets. Omitted options preserve upstream defaults.
 
-Authentication follows the CLI's existing precedence: explicit `--credentials`,
-then `IRACING_ACCESS_TOKEN` (shell or root `.env`), then saved CLI credentials.
-Remove a stale environment token to use fresh `auth login` credentials.
+## Statistics
 
-The command captures active and retired seasons, sessions with results, and
-each distinct subsession's full results sequentially. `manifest.json` is written
-last, only after full success. Cache downloads do not receive the bearer token.
-This is capture only: no Neon schema or row changes are made.
+```bash
+pnpm iracing-data stats member-bests
+pnpm iracing-data stats member-career
+pnpm iracing-data stats member-division --season-id 6444 --event-type 5
+pnpm iracing-data stats member-recap --year 2026 --season 4
+pnpm iracing-data stats member-recent-races
+pnpm iracing-data stats member-summary
+pnpm iracing-data stats member-yearly
+pnpm iracing-data stats season-driver-standings --season-id 6444 --car-class-id 74
+pnpm iracing-data stats season-supersession-standings --season-id 6444 --car-class-id 74
+pnpm iracing-data stats season-team-standings --season-id 6434 --car-class-id 4109
+pnpm iracing-data stats season-tt-standings --season-id 6444 --car-class-id 74
+pnpm iracing-data stats season-tt-results --season-id 6444 --car-class-id 74 --race-week-num 0
+pnpm iracing-data stats season-qualify-results --season-id 6444 --car-class-id 74 --race-week-num 0
+pnpm iracing-data stats world-records --car-id 1 --track-id 1
+```
 
-The command owns its narrow operation contract and binds a `createExecute`
-handler, following FTR Discord's handler-owned service pattern. `program.ts`
-composes its service with networking, environment, clock and presentation.
-The capture service depends only on query/storage ports; the fetch SDK and
-filesystem adapters remain outside the command. Existing commands only gain
-shared credential-option plumbing; their service implementations are unchanged.
+Member queries default to your account when `--cust-id` is omitted. Member
+division accepts event type 4 (Time Trial) or 5 (Race). Race weeks and divisions
+are zero-based; division 10 is Rookie. World records emits its direct chunk
+manifest without downloading the chunks.
+
+## Result details and activity
+
+```bash
+pnpm iracing-data results-event-log --subsession-id 123 --simsession-number 0
+pnpm iracing-data results-lap-chart-data --subsession-id 123 --simsession-number 0
+pnpm iracing-data results-lap-data --subsession-id 123 --simsession-number 0 --cust-id 456
+pnpm iracing-data results-season-results --season-id 6444
+pnpm iracing-data results-search-series --season-year 2026 --season-quarter 4 --series-id 259
+pnpm iracing-data driver-stats-by-category --category sports_car
+pnpm iracing-data session registered-drivers --subsession-id 123
+pnpm iracing-data time-attack member-season-results --ta-comp-season-id 1
+```
+
+Simsession 0 is the main event; negative numbers select preceding events.
+Lap-data queries require a customer ID for single-driver events or team ID for
+team events. Series searches preserve the direct manifest and do not expand
+chunks. Driver-stat categories are `oval`, `road` (legacy), `dirt_oval`,
+`dirt_road`, `sports_car`, or `formula_car`.
+
+Season, series, statistics, result-detail, session, time-attack and driver-stat
+commands also accept `--response-only` for sensitive modeled-wire inspection.
+Driver statistics downloads CSV and emits JSON rows with string-valued columns;
+quoted commas, escaped quotes, BOMs, and additional columns are retained.
+Default output is downloaded JSON except for CSV driver statistics and direct chunk manifests. Use each
+leaf's `--help` to discover filters; shared credential precedence applies.
+
+`league-history` is retired. Compose the JSON-producing league and results
+commands instead of relying on CLI-owned capture directories or manifests.
 
 ## Use the access token with `data-api-first-call`
 
