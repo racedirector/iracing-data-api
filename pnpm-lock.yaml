@@ -347,9 +347,9 @@ importers:
       '@iracing-data/api-client-fetch':
         specifier: workspace:*
         version: link:../../packages/api/client/fetch
-      '@iracing-data/mcp-tools':
+      '@iracing-data/mcp':
         specifier: workspace:*
-        version: link:../../packages/mcp/tools
+        version: link:../../packages/mcp
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
@@ -460,7 +460,7 @@ importers:
     dependencies:
       '@iracing-data/api-schema':
         specifier: workspace:*
-        version: link:../../api/schema
+        version: link:../api/schema
       commander:
         specifier: ^15.0.0
         version: 15.0.0
@@ -500,11 +500,11 @@ importers:
         specifier: ^15.0.0
         version: 15.0.0(commander@15.0.0)
 
-  packages/mcp/tools:
+  packages/mcp:
     dependencies:
       '@iracing-data/api-client-fetch':
         specifier: workspace:*
-        version: link:../../api/client/fetch
+        version: link:../api/client/fetch
       '@iracing-data/api-schema':
         specifier: workspace:*
         version: link:../../api/schema

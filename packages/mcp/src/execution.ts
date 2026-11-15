@@ -106,10 +106,11 @@ function executionFailure(error: unknown, signal: AbortSignal): unknown {
  * @param {z.ZodType<unknown, unknown, z.core.$ZodTypeInternals<unknown, unknown>>} root2.outputSchema - Runtime contract for structured tool results.
  * @param {(input: T, access: IracingDataAccess, context: IracingToolContext) => Promise<ReturnType<typeof completeResult>>} root2.work - Handler executed with validated input and request-local API access.
  */
-export function registerTool<T>(
+export function registerTool<T, Access = IracingDataAccess>(
   server: IracingToolRegistry,
   services: IracingToolServices,
-  { name, description, inputSchema, outputSchema, work }: ToolDefinition<T>,
+  { name, description, inputSchema, outputSchema, work }: ToolDefinition<T, Access>,
+  resolveAccess?: (services: IracingToolServices, context: IracingToolContext) => Access | Promise<Access>,
 ): void {
   server.registerTool(
     name,
@@ -138,11 +139,13 @@ export function registerTool<T>(
         }
 
         context.signal.throwIfAborted();
-        if (!("getDataApiAccess" in services)) {
+        if (!resolveAccess && !("getDataApiAccess" in services)) {
           throw new ApplicationFailure("CONFIGURATION_ERROR");
         }
 
-        const access = await services.getDataApiAccess(context);
+        const access = resolveAccess
+          ? await resolveAccess(services, context)
+          : ((await services.getDataApiAccess(context)) as Access);
 
         const result = await work(checked.data, access, context);
 
@@ -202,7 +205,7 @@ function invalidPayload(error: unknown): boolean {
 }
 
 /** A tool's public contract and typed execution capability, independent of its host. */
-export interface ToolDefinition<T> {
+export interface ToolDefinition<T, Access = IracingDataAccess> {
   /** MCP tool name advertised to clients. */
   name: string;
 
@@ -224,7 +227,7 @@ export interface ToolDefinition<T> {
    */
   work: (
     input: T,
-    access: IracingDataAccess,
+    access: Access,
     context: IracingToolContext,
   ) => Promise<ReturnType<typeof completeResult>>;
 }

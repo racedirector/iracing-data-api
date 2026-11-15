@@ -1,4 +1,4 @@
-import { ApplicationFailure } from "@iracing-data/mcp-tools";
+import { ApplicationFailure } from "@iracing-data/mcp";
 import { z } from "zod";
 
 /** Validates the MCP application name and version and supplies local defaults. */

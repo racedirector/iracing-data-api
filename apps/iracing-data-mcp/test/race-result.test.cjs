@@ -36,7 +36,7 @@ const race = () => ({
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-tools")),
+    ...(await import("@iracing-data/mcp")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");

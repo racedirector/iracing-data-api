@@ -20,7 +20,7 @@ lockfile resolving one version, 4.6.5:
   response schemas; tests characterize coercion, metadata and compatibility.
 - `packages/oauth/schema` owns wire contracts, scopes, JWT claims and metadata;
   `packages/oauth/client/src/schema` owns runtime configuration and storage.
-- `packages/mcp/tools` owns tool inputs, output projections, continuation and
+- `packages/mcp` owns tool inputs, output projections, continuation and
   sanitized error schemas. Its narrower positive IDs are distinct from permissive
   upstream domain values.
 - MCP application configuration and JWT policy have local schemas. The CLI mostly
@@ -179,7 +179,7 @@ pnpm --filter @iracing-data/api-schema \
   --filter @iracing-data/api-schema-to-openapi \
   --filter @iracing-data/oauth-schema-to-openapi \
   --filter @iracing-data/oauth-client \
-  --filter @iracing-data/mcp-tools \
+  --filter @iracing-data/mcp \
   --filter @iracing-data/iracing-data-mcp \
   --filter iracing-password-limited-oauth test
 ```

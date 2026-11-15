@@ -16,7 +16,7 @@ import {
   ApplicationFailure,
   ProtocolFailure,
   type FailureDomain,
-} from "@iracing-data/mcp-tools";
+} from "@iracing-data/mcp";
 import {
   ClientMetadataError,
   OAuthClaimsError,

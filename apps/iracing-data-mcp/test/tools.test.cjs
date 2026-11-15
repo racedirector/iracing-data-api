@@ -60,7 +60,7 @@ const race = (id = 1) => ({
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-tools")),
+    ...(await import("@iracing-data/mcp")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
@@ -104,6 +104,11 @@ async function fixture(t, data = {}, options = {}) {
     accessToken: async () => "TOKEN_SECRET",
     fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const { createGeneratedDriverQueries } = await import("@iracing-data/mcp/generated-driver");
+  const driverQueries = createGeneratedDriverQueries({
+    accessTokenProvider: { getAccessToken: async () => "TOKEN_SECRET" },
+    fetchApi: configuration.fetchApi,
+  });
   const access = () => ({ configuration, continuationScope });
   const changeScope = () => {
     continuationScope = {};
@@ -112,6 +117,11 @@ async function fixture(t, data = {}, options = {}) {
   const services = {
     oauthClient: {},
     dataApiConfiguration: {},
+    getDriverQueries: () => {
+      if (state !== "ready")
+        throw new api.ApplicationFailure("AUTHORIZATION_REQUIRED");
+      return driverQueries;
+    },
     getDataApiAccess: () => {
       if (state !== "ready")
         throw new api.ApplicationFailure("AUTHORIZATION_REQUIRED");

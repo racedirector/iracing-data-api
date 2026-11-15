@@ -21,10 +21,11 @@
  * The generated Data API configuration shares this fixed owner.
  */
 import { Configuration } from "@iracing-data/api-client-fetch";
+import { createGeneratedDriverQueries } from "@iracing-data/mcp/generated-driver";
 import {
   ApplicationFailure,
   createRequestContext,
-} from "@iracing-data/mcp-tools";
+} from "@iracing-data/mcp";
 import {
   OAuthClient,
   OAuthRefreshError,
@@ -133,11 +134,15 @@ export async function createMcpServices(
     );
   }
 
-  const dataApiConfiguration = new Configuration({
-    accessToken: async () =>
-      validateSession(
-        await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
-      ).access_token,
+  const getAccessToken = async () =>
+    validateSession(
+      await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
+    ).access_token;
+
+  const dataApiConfiguration = new Configuration({ accessToken: getAccessToken });
+  const driverQueries = createGeneratedDriverQueries({
+    accessTokenProvider: { getAccessToken },
+    fetchApi: dataApiConfiguration.fetchApi,
   });
 
   const continuationScope = {};
@@ -147,6 +152,7 @@ export async function createMcpServices(
     oauthClient,
     authorizationState: () => owner.state,
     dataApiConfiguration,
+    getDriverQueries: () => driverQueries,
     getDataApiAccess: () => {
       if (owner.terminal) {
         throw authorization("invalid_session");

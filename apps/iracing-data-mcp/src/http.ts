@@ -5,11 +5,11 @@ import {
   ErrorEnvelopeSchema,
   createRequestContext,
   toolError,
-  registerIracingTools,
-} from "@iracing-data/mcp-tools";
+  createIracingMcpServer,
+} from "@iracing-data/mcp";
 import { toNodeHandler } from "@modelcontextprotocol/node";
 import {
-  McpServer,
+  type McpServer,
   WebStandardStreamableHTTPServerTransport,
   type JSONRPCMessage,
 } from "@modelcontextprotocol/server";
@@ -231,12 +231,13 @@ async function createMcpSession(
   sessions: Map<string, McpSession>,
   stateful: boolean,
 ) {
-  const mcp = new McpServer(
-    { name: options.config.name, version: options.config.version },
-    { supportedProtocolVersions: ["2025-11-25", "2025-06-18", "2025-03-26"] },
-  );
-
-  registerIracingTools(mcp, options.services);
+  const mcp = createIracingMcpServer({
+    serverInfo: { name: options.config.name, version: options.config.version },
+    serverOptions: {
+      supportedProtocolVersions: ["2025-11-25", "2025-06-18", "2025-03-26"],
+    },
+    services: options.services,
+  });
   options.registerTools?.(mcp, options.services);
 
   const transport = new WebStandardStreamableHTTPServerTransport({

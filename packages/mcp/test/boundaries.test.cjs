@@ -18,6 +18,7 @@ async function fixture(t, options = {}) {
   const { Client } = await import("@modelcontextprotocol/client");
   const requests = [];
   let scope = {};
+  const { createGeneratedDriverQueries } = await import("../dist/generated-driver.js");
   const configuration = new Configuration({
     accessToken: async () => {
       await Promise.resolve();
@@ -44,9 +45,16 @@ async function fixture(t, options = {}) {
       );
     },
   });
+  const driverQueries = createGeneratedDriverQueries({
+    accessTokenProvider: { getAccessToken: async () => "BEARER_SECRET" },
+    fetchApi: configuration.fetchApi,
+  });
   const services = {
-    getDataApiAccess: (context) => {
+    getDriverQueries: (context) => {
       options.context?.(context);
+      return driverQueries;
+    },
+    getDataApiAccess: (_context) => {
       return { configuration, continuationScope: scope };
     },
   };
@@ -93,7 +101,7 @@ test("caller-owned server registers native input/output contracts and independen
   }
   assert.equal((await f.call("before")).content[0].text, "before");
   assert.equal((await f.call("after")).content[0].text, "after");
-  assert.ok(!("createMcpServer" in f.api));
+  assert.equal(typeof f.api.createIracingMcpServer, "function");
   assert.ok(!("DataApiGateway" in f.api));
 });
 test("generated configuration owns async bearer injection; linked requests get no bearer or middleware headers", async (t) => {

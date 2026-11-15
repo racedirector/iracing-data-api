@@ -97,11 +97,17 @@ async function toolServices(_api) {
     accessToken: async () => "TOKEN_SECRET",
     fetchApi: (url, init) => transport(new URL(url), init),
   });
+  const { createGeneratedDriverQueries } = await import("@iracing-data/mcp/generated-driver");
+  const driverQueries = createGeneratedDriverQueries({
+    accessTokenProvider: { getAccessToken: async () => "TOKEN_SECRET" },
+    fetchApi: configuration.fetchApi,
+  });
   const access = () => ({ configuration, continuationScope });
 
   return Object.freeze({
     oauthClient: {},
     dataApiConfiguration: {},
+    getDriverQueries: () => driverQueries,
     getDataApiAccess: access,
     authorizationState: () => "ready",
     shutdownAuthorizationOwner: async () => {},

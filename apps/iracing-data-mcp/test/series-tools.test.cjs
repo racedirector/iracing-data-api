@@ -36,7 +36,7 @@ const week = (race_week_num, track_id = 30) => ({
 async function fixture(t, data = {}, options = {}) {
   const api = {
     ...(await import("../dist/index.js")),
-    ...(await import("@iracing-data/mcp-tools")),
+    ...(await import("@iracing-data/mcp")),
   };
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");

@@ -1,4 +1,6 @@
 export { registerIracingTools } from "./register.js";
+export { createIracingMcpServer } from "./factory.js";
+export type { DriverQueries, Driver } from "./driver.js";
 export type {
   IracingToolRegistry,
   IracingToolContext,

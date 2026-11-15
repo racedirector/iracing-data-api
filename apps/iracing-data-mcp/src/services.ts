@@ -1,5 +1,5 @@
 import type { Configuration } from "@iracing-data/api-client-fetch";
-import type { IracingToolServices } from "@iracing-data/mcp-tools";
+import type { IracingToolServices } from "@iracing-data/mcp";
 import type { OAuthClient } from "@iracing-data/oauth-client";
 import type { McpServer } from "@modelcontextprotocol/server";
 

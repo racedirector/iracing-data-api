@@ -1,5 +1,5 @@
 {
-  "name": "@iracing-data/mcp-tools",
+  "name": "@iracing-data/mcp",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -9,6 +9,10 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./generated-driver": {
+      "types": "./dist/generated-driver.d.ts",
+      "import": "./dist/generated-driver.js"
     }
   },
   "files": [

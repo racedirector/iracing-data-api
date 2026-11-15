@@ -1,4 +1,5 @@
 import type { Configuration } from "@iracing-data/api-client-fetch";
+import type { DriverQueries } from "./driver.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 
 /** Only the registration capability is required from a caller-owned server. */
@@ -24,6 +25,9 @@ export interface IracingDataAccess {
 
 /** The host owns credentials and selects access; tools interpret no claims. */
 export interface IracingToolServices {
+  /** Selects the request principal\u0027s domain-level driver query capability. */
+  getDriverQueries(context: IracingToolContext): DriverQueries | Promise<DriverQueries>;
+
   /**
    * Selects credentials and continuation ownership for one request without interpreting claims in tools.
    * @param {IracingToolContext} context - Request cancellation and verified ingress identity used by the host.
