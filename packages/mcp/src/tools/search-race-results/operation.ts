@@ -40,6 +40,8 @@ export async function handleSearchRaceResults(
     data.returned_count !== data.results.length ||
     data.query_complete !== (data.returned_count === data.total_matches) ||
     (data.total_matches === 0) !== (data.total_chunks === 0) ||
+    (data.total_matches > 0 && data.returned_count === 0) ||
+    (data.total_chunks === 1 && !data.query_complete) ||
     (data.total_chunks > 0 && data.chunk_index >= data.total_chunks)
   ) {
     return { ok: false, error: { code: "DATA_RESOLUTION_FAILED" } };
