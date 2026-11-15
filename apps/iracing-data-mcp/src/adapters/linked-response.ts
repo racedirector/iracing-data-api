@@ -5,18 +5,11 @@ import {
 import { ApplicationFailure } from "@iracing-data/mcp";
 import { z } from "zod";
 
-/**
- * The generated clients return signed link envelopes rather than the payload.
- * Only this concrete Fetch adapter knows how to resolve those envelopes.
- * @param envelope
- * @param signal
- * @param fetchApi
- */
-export async function readLinkedData(
-  envelope: IracingAPIResponse,
-  signal: AbortSignal,
-  fetchApi: typeof fetch = fetch,
-): Promise<unknown> {
+/** A generated iRacing response contains an expiring signed HTTPS URL. */
+function resolveLink(envelope: IracingAPIResponse): {
+  target: URL;
+  deadline: number;
+} {
   if (
     !(envelope.expires instanceof Date) ||
     !Number.isFinite(envelope.expires.getTime())
@@ -41,10 +34,6 @@ export async function readLinkedData(
     throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
   }
 
-  if (deadline <= Date.now()) {
-    throw new ApplicationFailure("CURSOR_EXPIRED");
-  }
-
   let target: URL;
 
   try {
@@ -61,9 +50,15 @@ export async function readLinkedData(
     });
   }
 
-  // Do not send Authorization, Cookie or any inherited API client headers.
-  // Signed links are not allowed to redirect to an uncontrolled destination.
-  signal.throwIfAborted();
+  return { target, deadline };
+}
+
+/** Fetch only the signed URL; never inherit headers or follow redirects. */
+async function fetchSignedPayload(
+  target: URL,
+  signal: AbortSignal,
+  fetchApi: typeof fetch,
+): Promise<unknown> {
   let response: Response;
 
   try {
@@ -84,13 +79,34 @@ export async function readLinkedData(
     throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
   }
 
-  let value: unknown;
-
   try {
-    value = await response.json();
+    return await response.json();
   } catch {
     throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
   }
+}
+
+/**
+ * Materialize a generated client's expiring linked response. The caller supplies
+ * the HTTP implementation; no bearer credentials or cookies are forwarded.
+ * @param {IracingAPIResponse} envelope - Generated API response with a signed HTTPS link and expiry.
+ * @param {AbortSignal} signal - Request cancellation propagated to the signed data fetch.
+ * @param {typeof fetch} fetchApi - Host's HTTP implementation, defaulting to the platform fetch.
+ * @returns {Promise<unknown>} Parsed linked data for the caller to validate and project.
+ */
+export async function readLinkedData(
+  envelope: IracingAPIResponse,
+  signal: AbortSignal,
+  fetchApi: typeof fetch = fetch,
+): Promise<unknown> {
+  const { target, deadline } = resolveLink(envelope);
+
+  if (deadline <= Date.now()) {
+    throw new ApplicationFailure("CURSOR_EXPIRED");
+  }
+
+  signal.throwIfAborted();
+  const value = await fetchSignedPayload(target, signal, fetchApi);
 
   signal.throwIfAborted();
   if (deadline <= Date.now()) {

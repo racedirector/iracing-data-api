@@ -4,8 +4,8 @@ import type { IracingToolRegistry, IracingToolServices } from "./services.js";
 
 /**
  * Register the two explicit, dependency-injected iRacing tools.
- * @param server
- * @param services
+ * @param {IracingToolRegistry} server - Caller-owned MCP tool registration surface.
+ * @param {IracingToolServices} services - Domain capability selectors resolved per request.
  */
 export function registerIracingTools(
   server: IracingToolRegistry,

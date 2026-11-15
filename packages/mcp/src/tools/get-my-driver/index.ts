@@ -14,8 +14,8 @@ import type {
 
 /**
  * Register the driver tool directly, without a generic executor.
- * @param server
- * @param services
+ * @param {IracingToolRegistry} server - MCP registry that receives the tool definition.
+ * @param {IracingToolServices} services - Host-provided selectors for request-local capabilities.
  */
 export function registerGetMyDriver(
   server: IracingToolRegistry,

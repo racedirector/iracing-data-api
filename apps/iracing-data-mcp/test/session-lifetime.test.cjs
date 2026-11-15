@@ -103,7 +103,6 @@ async function toolServices() {
 test("official MCP client preserves one logical session across initialize, list and real tool calls", async (t) => {
   const { Client, StreamableHTTPClientTransport } =
     await import("@modelcontextprotocol/client");
-  const api = await import("../dist/index.js");
   const services = await toolServices();
   let registrations = 0;
   let seenServices;

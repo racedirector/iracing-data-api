@@ -25,7 +25,8 @@ const SourceWindow = z.object({
  * Concrete Fetch adapter for the authenticated member's recent-race window.
  * The caller chooses the client and OAuth configuration; nothing here is
  * constructed or imported by the MCP package itself.
- * @param configuration
+ * @param {Configuration} configuration - Host-owned generated Fetch configuration with credentials and transport.
+ * @returns {RecentRaceQueries} Queries for the bounded upstream recent-race window.
  */
 export function createRecentRaceQueries(
   configuration: Configuration,

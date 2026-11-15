@@ -8,7 +8,8 @@ import type { DriverQueries } from "@iracing-data/mcp";
 /**
  * Concrete Fetch adapter. The host owns the configuration, including its
  * OAuth access-token callback. Neither tokens nor the SDK enter MCP contracts.
- * @param configuration
+ * @param {Configuration} configuration - Host-owned generated Fetch configuration with credentials and transport.
+ * @returns {DriverQueries} Queries for the authenticated driver.
  */
 export function createDriverQueries(
   configuration: Configuration,

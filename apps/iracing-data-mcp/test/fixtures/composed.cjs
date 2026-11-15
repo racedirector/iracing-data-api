@@ -60,12 +60,10 @@ const dataFetch = async (target, init = {}) => {
   if (url.hostname === "members-ng.iracing.com") {
     assert.match(headers.get("authorization"), /^Bearer /);
     routes.push(url.pathname);
-    const key =
-      url.pathname === "/data/member/info"
-        ? "member"
-        : url.pathname === "/data/stats/member_recent_races"
-          ? "recent"
-          : undefined;
+    const key = {
+      "/data/member/info": "member",
+      "/data/stats/member_recent_races": "recent",
+    }[url.pathname];
     assert.ok(key, "unexpected generated API route");
     return Response.json({
       link: `https://cache.example.test/${key}?signature=SECRET`,
@@ -286,7 +284,7 @@ async function main() {
   process.send?.({ checks });
 }
 
-main().catch((error) => {
+main().catch(() => {
   console.error("Independent two-tool composition contract failed");
   process.exitCode = 1;
 });

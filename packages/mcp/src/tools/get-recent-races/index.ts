@@ -18,8 +18,8 @@ import type {
 
 /**
  * Register a bounded recent-races query using an injected domain capability.
- * @param server
- * @param services
+ * @param {IracingToolRegistry} server - MCP registry that receives the tool definition.
+ * @param {IracingToolServices} services - Host-provided selectors for request-local capabilities.
  */
 export function registerGetRecentRaces(
   server: IracingToolRegistry,
