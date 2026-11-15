@@ -227,3 +227,52 @@ test("the 64 KiB result cap rejects oversized injected data", async (t) => {
     "RESPONSE_LIMIT_EXCEEDED",
   );
 });
+
+test("cancellation during capability selection prevents either domain query", async () => {
+  const { registerIracingTools } = await import("../dist/index.js");
+  for (const name of ["get_my_driver", "get_recent_races"]) {
+    const selected = Promise.withResolvers();
+    const release = Promise.withResolvers();
+    const control = new AbortController();
+    const callbacks = new Map();
+    let queried = 0;
+    const queries = {
+      getCurrent: async () => {
+        queried++;
+        return { cust_id: 1, display_name: "Fixture" };
+      },
+      getRecent: async () => {
+        queried++;
+        return { cust_id: 1, races: [] };
+      },
+    };
+    const select = async (context) => {
+      assert.equal(context.signal, control.signal);
+      assert.ok(context.request.request_id);
+      selected.resolve();
+      await release.promise;
+      return queries;
+    };
+    registerIracingTools(
+      {
+        registerTool(toolName, _config, callback) {
+          callbacks.set(toolName, callback);
+        },
+      },
+      { getDriverQueries: select, getRecentRaceQueries: select },
+    );
+    const pending = callbacks.get(name)(
+      {},
+      { mcpReq: { signal: control.signal } },
+    );
+    const rejected = assert.rejects(pending, {
+      name: "AbortError",
+      message: "Request cancelled.",
+    });
+    await selected.promise;
+    control.abort("TOKEN_SECRET");
+    release.resolve();
+    await rejected;
+    assert.equal(queried, 0);
+  }
+});

@@ -16,7 +16,8 @@
   ],
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
-    "test": "pnpm build && node --test test/*.test.cjs"
+    "test": "pnpm build && pnpm test:types && node --test test/*.test.cjs",
+    "test:types": "tsc --project test/tsconfig.types.json"
   },
   "dependencies": {
     "@modelcontextprotocol/server": "2.3.1",

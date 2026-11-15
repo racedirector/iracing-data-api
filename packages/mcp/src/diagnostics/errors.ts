@@ -92,6 +92,21 @@ const reasons = {
   ],
 } as const;
 
+/**
+ * Expected operation failure with code-specific, secret-safe reason metadata.
+ * Runtime serialization still passes through ApplicationFailure's allowlist.
+ */
+export type FailureFor<
+  Code extends ApplicationErrorCode = ApplicationErrorCode,
+> = {
+  [Key in Code]: {
+    readonly code: Key;
+    readonly retry_after_seconds?: number;
+  } & (Key extends keyof typeof reasons
+    ? { readonly reason?: (typeof reasons)[Key][number] }
+    : { readonly reason?: never });
+}[Code];
+
 /** Validates bounded, secret-safe tool errors and their correlation identifiers. */
 export const ErrorEnvelopeSchema = z
   .strictObject({

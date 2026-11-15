@@ -7,11 +7,26 @@ credential-free, client-agnostic and contains exactly two tools:
 - `get_my_driver`: current driver identity through tool-local `DriverQueries`.
 - `get_recent_races`: a bounded recent-race window through `RecentRaceQueries`.
 
-Both tools directly register with the MCP SDK. Their input/output schemas and
-narrow service interfaces live beside each tool. Each handler explicitly
-validates input, resolves a capability using request-local context, forwards
-cancellation, validates and projects results, and sanitizes errors. There is
-no generic execution framework, gateway, provider registry, or DI container.
+Both tools register explicitly through the package-internal
+[`registerApplicationTool`](src/execution.ts) adapter onto the MCP SDK.
+Their input/output schemas, narrow service interfaces and domain operations
+live beside each tool. Each execution callback visibly selects its request-local
+capability; operations retain source validation, identity checks and bounds.
+They return `Result` values, never MCP envelopes. There is no dynamic registry,
+middleware pipeline, gateway, provider registry or DI container.
+
+The adapter parses input once (including defaults and async refinements/transforms)
+before dependency effects, generates one correlation context, normalizes expected
+failures and exceptions, projects output, and builds equivalent structured/JSON-text
+results. SDK-native invalid-input errors are text-only, so input parsing is
+deliberately deferred to retain the fixed sanitized `INVALID_INPUT` envelope.
+The SDK still owns protocol validation, dispatch and final output validation.
+
+Wire output schemas must be JSON-compatible object schemas without transforms.
+Use source schemas or domain code for normalization; the adapter presents the
+parsed output, never unprojected service data. Unrepresentable schemas fail during
+registration. Expected failure descriptors preserve code-specific safe reasons;
+existing injected capabilities may still throw `ApplicationFailure`.
 
 ```ts
 import { createIracingMcpServer } from "@iracing-data/mcp";
@@ -44,6 +59,10 @@ Both tool outputs include equivalent structured content and JSON text
 within a combined 64 KiB cap. Errors use fixed allowlisted messages,
 codes, metadata and internally generated request IDs. Tool calls are
 read-only, require the host-selected authorization, and propagate cancellation.
+Selectors receive optional internally generated `context.request` correlation
+alongside the signal and host-verified identity. Cancellation stops work and
+propagates a fixed safe abort to the SDK, which suppresses cancelled responses;
+it is not an upstream outage. No arbitrary abort reason is serialized.
 `get_recent_races` returns up to ten upstream window entries (not complete
 race history) and has **no cursor or retained collection state**.
 
@@ -61,3 +80,7 @@ pnpm --filter @iracing-data/mcp test
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm --filter @iracing-data/iracing-data-mcp test
 ```
+
+Core tests include compile-only inference fixtures via `test:types`. No live
+iRacing credentials are required. OAuth interaction, caching, configurable
+presenters and lifecycle middleware are separate changes, not adapter hooks.

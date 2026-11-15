@@ -1,3 +1,4 @@
+import type { RequestContext } from "./diagnostics/errors.js";
 import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
@@ -12,6 +13,9 @@ export interface IracingToolContext {
 
   /** Verified ingress identity, when the host supplies one. */
   readonly authInfo?: AuthInfo;
+
+  /** Internal tool-call correlation, when selected through the execution adapter. */
+  readonly request?: RequestContext;
 }
 
 /** The host selects independently implemented capabilities for each request. */
