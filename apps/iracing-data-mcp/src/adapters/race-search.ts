@@ -95,7 +95,7 @@ async function readChunk(
   info: ChunkInfo,
   index: number,
   signal: AbortSignal,
-  fetchApi: typeof fetch,
+  downloadFetch: typeof fetch,
 ) {
   if (info.num_chunks === 0) {
     return [];
@@ -107,13 +107,27 @@ async function readChunk(
   let response: Response;
 
   try {
-    response = await fetchApi(target.href, { signal, redirect: "error" });
+    response = await downloadFetch(target.href, { signal, redirect: "error" });
   } catch {
     throw new ApplicationFailure("UPSTREAM_UNAVAILABLE");
   }
 
   if (!response.ok) {
-    throw new ApplicationFailure("UPSTREAM_UNAVAILABLE");
+    if (response.status === 403 || response.status === 404) {
+      throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+        reason: "link_rejected",
+      });
+    }
+
+    if (response.status === 429) {
+      throw new ApplicationFailure("RATE_LIMITED");
+    }
+
+    if (response.status >= 500 || response.status === 408) {
+      throw new ApplicationFailure("UPSTREAM_UNAVAILABLE");
+    }
+
+    throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
   }
 
   let payload: unknown;
@@ -170,10 +184,11 @@ async function searchManifest(
 /**
  * Bind historical session search to an actor-owned client.
  * @param {Configuration} configuration - Host-owned credentials and HTTP implementation.
- * @returns {RaceSearchQueries} Tool-local search with isolated signed chunk downloads.
+ * @param {typeof fetch} downloadFetch - Independent unsigned chunk transport, never an authenticated generated-client wrapper.\n * @returns {RaceSearchQueries} Tool-local search with isolated signed chunk downloads.
  */
 export function createRaceSearchQueries(
   configuration: Configuration,
+  downloadFetch: typeof fetch = fetch,
 ): RaceSearchQueries {
   const api = new ResultsApi(configuration);
 
@@ -193,7 +208,7 @@ export function createRaceSearchQueries(
         info,
         chunk_index,
         signal,
-        configuration.fetchApi ?? fetch,
+        downloadFetch,
       );
 
       signal.throwIfAborted();
