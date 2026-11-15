@@ -1,5 +1,5 @@
-import { createIracingMcpServer } from "@iracing-data/mcp";
 import { serve } from "@hono/node-server";
+import { createIracingMcpServer } from "@iracing-data/mcp";
 import { createMcpHonoApp } from "@modelcontextprotocol/hono";
 import {
   createMcpHandler,
@@ -7,18 +7,21 @@ import {
   requireBearerAuth,
 } from "@modelcontextprotocol/server";
 import { composeMcpServices } from "./composition.js";
-import type { OAuthTokenVerifier } from "@modelcontextprotocol/server";
 import type { McpRuntimeDependencies } from "./composition.js";
 import type { RuntimeConfig } from "./runtime-config.js";
+import type { OAuthTokenVerifier } from "@modelcontextprotocol/server";
 
 /** Optional remote OAuth protection. Actor-to-iRacing-account lookup is separate. */
 export interface McpIngressAuthorization {
   /** Exact public URL for this MCP resource. */
   readonly resourceUrl: string;
+
   /** OAuth verification supplied by the host, not the MCP tools. */
   readonly verifier: OAuthTokenVerifier;
+
   /** Issuer advertised in resource metadata. */
   readonly issuer?: string;
+
   /** Verified token scopes required to access MCP. */
   readonly requiredScopes?: readonly string[];
 }
@@ -27,10 +30,13 @@ export interface McpIngressAuthorization {
 export interface McpRuntimeOptions {
   /** Validated, defaulted and transformed listener configuration. */
   readonly config: RuntimeConfig;
+
   /** Injected identity and actor-specific query capabilities. */
   readonly dependencies: McpRuntimeDependencies;
+
   /** Optional OAuth ingress for remote callers. */
   readonly authorization?: McpIngressAuthorization;
+
   /**
    * Optional process shutdown callback, used only by the executable.
    * @param {0 | 1} exitCode - Clean shutdown or failure.
@@ -42,8 +48,10 @@ export interface McpRuntimeOptions {
 export interface McpRuntime {
   /** Fetch-standard Hono application for embedding or testing. */
   readonly app: ReturnType<typeof createMcpHonoApp>;
+
   /** Node listener after listen() has been called. */
   readonly server: ReturnType<typeof serve> | undefined;
+
   /**
    * Bind the application to the specified interface and port.
    * @param {number} port - Listening TCP port (zero for tests).
@@ -51,6 +59,7 @@ export interface McpRuntime {
    * @returns {Promise<void>} Resolves after the socket starts listening.
    */
   listen(port?: number, host?: string): Promise<void>;
+
   /**
    * Stop accepting requests, close MCP exchanges and release credentials.
    * @returns {Promise<void>} Completion after listener and credential shutdown.
@@ -66,45 +75,65 @@ export interface McpRuntime {
  */
 export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
   const { config, authorization } = options;
+
   const services = composeMcpServices(options.dependencies);
+
   const app = createMcpHonoApp({
     host: config.host,
-    allowedHosts: config.allowedHosts.map((host) => new URL(`http://${host}`).hostname),
-    allowedOrigins: config.allowedOrigins.map((origin) => new URL(origin).hostname),
+    allowedHosts: config.allowedHosts.map(
+      (host) => new URL(`http://${host}`).hostname,
+    ),
+    allowedOrigins: config.allowedOrigins.map(
+      (origin) => new URL(origin).hostname,
+    ),
     maxRequestBodySize: 64 * 1024,
   });
+
   const handler = createMcpHandler(
-    () => createIracingMcpServer({
-      serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
-      services,
-    }),
+    () =>
+      createIracingMcpServer({
+        serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
+        services,
+      }),
     { maxRequestBodySize: 64 * 1024 },
   );
 
   // The SDK protects hostnames; preserve the operator's exact port/origin list.
   app.use("*", async (c, next) => {
     const host = c.req.header("host");
+
     const origin = c.req.header("origin");
 
     if (
-      !host || !config.allowedHosts.includes(host) ||
+      !host ||
+      !config.allowedHosts.includes(host) ||
       (origin !== undefined && !config.allowedOrigins.includes(origin))
     ) {
-      return c.json({ jsonrpc: "2.0", error: { code: -32000, message: "Forbidden" }, id: null }, 403);
+      return c.json(
+        {
+          jsonrpc: "2.0",
+          error: { code: -32000, message: "Forbidden" },
+          id: null,
+        },
+        403,
+      );
     }
 
     return next();
   });
 
-  app.get("/healthz", (c) => c.json({
-    live: true,
-    auth_state: services.authorizationState?.() ?? "ready",
-  }));
+  app.get("/healthz", (c) =>
+    c.json({
+      live: true,
+      auth_state: services.authorizationState?.() ?? "ready",
+    }),
+  );
 
   if (authorization?.issuer) {
     const path = new URL(
       getOAuthProtectedResourceMetadataUrl(new URL(authorization.resourceUrl)),
     ).pathname;
+
     const resource = {
       resource: authorization.resourceUrl,
       authorization_servers: [authorization.issuer],
@@ -112,12 +141,17 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
         ? { scopes_supported: [...authorization.requiredScopes] }
         : {}),
     };
-    app.get(path, (c) => c.json(resource, 200, { "Access-Control-Allow-Origin": "*" }));
-    app.options(path, (c) => c.body(null, 204, {
-      "Access-Control-Allow-Origin": "*",
-      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, MCP-Protocol-Version",
-    }));
+
+    app.get(path, (c) =>
+      c.json(resource, 200, { "Access-Control-Allow-Origin": "*" }),
+    );
+    app.options(path, (c) =>
+      c.body(null, 204, {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, MCP-Protocol-Version",
+      }),
+    );
   }
 
   const authorize = authorization
@@ -133,6 +167,7 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
 
   app.all("/mcp", async (c) => {
     const auth = authorize ? await authorize(c.req.raw) : undefined;
+
     if (auth instanceof Response) {
       return auth;
     }
@@ -141,6 +176,7 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
   });
 
   let listener: ReturnType<typeof serve> | undefined;
+
   let stopped = false;
 
   return {
@@ -160,13 +196,17 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
       if (stopped) {
         return;
       }
+
       stopped = true;
       await handler.close();
       if (listener?.listening) {
         await new Promise<void>((resolve, reject) => {
-          listener!.close((error) => error ? reject(error) : resolve());
+          listener!.close((error) => {
+            error ? reject(error) : resolve();
+          });
         });
       }
+
       await services.shutdownAuthorizationOwner?.();
     },
   };
@@ -177,7 +217,9 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
  * @param {McpRuntimeOptions} options - Host and dependency injection options.
  * @returns {Promise<McpRuntime>} Running MCP host.
  */
-export async function startMcpRuntime(options: McpRuntimeOptions): Promise<McpRuntime> {
+export async function startMcpRuntime(
+  options: McpRuntimeOptions,
+): Promise<McpRuntime> {
   const runtime = createMcpRuntime(options);
 
   try {
@@ -194,6 +236,7 @@ export async function startMcpRuntime(options: McpRuntimeOptions): Promise<McpRu
         () => options.onStopped?.(1),
       );
     };
+
     process.once("SIGINT", stop);
     process.once("SIGTERM", stop);
   }

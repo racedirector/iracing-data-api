@@ -135,10 +135,10 @@ export async function startProduction(
   }
 
   const authorization = config.remoteAuthorization
-    ? ({
+    ? {
         ...config.remoteAuthorization,
         verifier: await createDefaultMcpJwtVerifier(config.remoteAuthorization),
-      })
+      }
     : undefined;
 
   await checkProductionDirectory(path.dirname(config.credentialFile));

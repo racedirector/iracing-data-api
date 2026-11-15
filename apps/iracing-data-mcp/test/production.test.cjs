@@ -84,7 +84,9 @@ test("Hono runtime checks exact configured hosts and origins", async (t) => {
     config,
     dependencies: {
       resolveActor: () => null,
-      resolveDependencies: () => { throw new Error("No actor"); },
+      resolveDependencies: () => {
+        throw new Error("No actor");
+      },
       authorizationState: () => "authorization_required",
     },
   });
@@ -98,7 +100,10 @@ test("Hono runtime checks exact configured hosts and origins", async (t) => {
   });
   assert.equal(rejected.status, 403);
   const badOrigin = await app.app.request("http://localhost:4321/healthz", {
-    headers: { Host: "localhost:4321", Origin: "http://localhost:4321.evil.example" },
+    headers: {
+      Host: "localhost:4321",
+      Origin: "http://localhost:4321.evil.example",
+    },
   });
   assert.equal(badOrigin.status, 403);
 });

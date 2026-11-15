@@ -2,23 +2,33 @@ const assert = require("node:assert/strict");
 const http = require("node:http");
 const { test } = require("node:test");
 
-function request(port, { method = "GET", route = "/healthz", headers = {}, body } = {}) {
+function request(
+  port,
+  { method = "GET", route = "/healthz", headers = {}, body } = {},
+) {
   return new Promise((resolve, reject) => {
-    const req = http.request({
-      host: "127.0.0.1",
-      port,
-      path: route,
-      method,
-      headers: { Host: "127.0.0.1:3000", ...headers },
-    }, (res) => {
-      const chunks = [];
+    const req = http.request(
+      {
+        host: "127.0.0.1",
+        port,
+        path: route,
+        method,
+        headers: { Host: "127.0.0.1:3000", ...headers },
+      },
+      (res) => {
+        const chunks = [];
 
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => resolve(new Response(
-        res.statusCode === 204 ? null : Buffer.concat(chunks),
-        { status: res.statusCode, headers: res.headers },
-      )));
-    });
+        res.on("data", (chunk) => chunks.push(chunk));
+        res.on("end", () =>
+          resolve(
+            new Response(
+              res.statusCode === 204 ? null : Buffer.concat(chunks),
+              { status: res.statusCode, headers: res.headers },
+            ),
+          ),
+        );
+      },
+    );
 
     req.on("error", reject);
     req.end(body);
@@ -79,12 +89,13 @@ test("official MCP client initializes, lists and calls both stateless tools", as
   const transport = new StreamableHTTPClientTransport(
     new URL("http://127.0.0.1:3000/mcp"),
     {
-      fetch: (_url, init) => request(port, {
-        method: init.method,
-        route: "/mcp",
-        body: init.body,
-        headers: Object.fromEntries(new Headers(init.headers)),
-      }),
+      fetch: (_url, init) =>
+        request(port, {
+          method: init.method,
+          route: "/mcp",
+          body: init.body,
+          headers: Object.fromEntries(new Headers(init.headers)),
+        }),
     },
   );
 
@@ -97,7 +108,10 @@ test("official MCP client initializes, lists and calls both stateless tools", as
     ["get_my_driver", "get_recent_races"],
   );
 
-  const driver = await client.callTool({ name: "get_my_driver", arguments: {} });
+  const driver = await client.callTool({
+    name: "get_my_driver",
+    arguments: {},
+  });
   assert.deepEqual(driver.structuredContent, {
     cust_id: 7,
     display_name: "fixture",

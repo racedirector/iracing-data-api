@@ -65,9 +65,8 @@ async function fixture(t) {
 
   t.after(() => runtime.shutdown());
 
-  const request = (method, options = {}) => runtime.app.request(
-    `http://127.0.0.1:3000${options.path ?? "/mcp"}`,
-    {
+  const request = (method, options = {}) =>
+    runtime.app.request(`http://127.0.0.1:3000${options.path ?? "/mcp"}`, {
       method: options.method ?? "POST",
       headers: {
         Host: "127.0.0.1:3000",
@@ -76,8 +75,7 @@ async function fixture(t) {
         ...(options.token ? { Authorization: `Bearer ${options.token}` } : {}),
       },
       body: options.body ?? body(method, options.params),
-    },
-  );
+    });
 
   return { request, observed };
 }
@@ -85,14 +83,20 @@ async function fixture(t) {
 test("remote MCP rejects missing bearer and insufficient scopes", async (t) => {
   const { request, observed } = await fixture(t);
   assert.equal((await request("tools/list")).status, 401);
-  assert.equal((await request("tools/list", { token: "no-scope" })).status, 403);
+  assert.equal(
+    (await request("tools/list", { token: "no-scope" })).status,
+    403,
+  );
   assert.deepEqual(observed, []);
 });
 
 test("Hono supplies verified request-local actors without shared credential context", async (t) => {
   const { request, observed } = await fixture(t);
 
-  for (const [token, expectedId] of [["alice", 1], ["bob", 2]]) {
+  for (const [token, expectedId] of [
+    ["alice", 1],
+    ["bob", 2],
+  ]) {
     const response = await request("tools/call", {
       token,
       params: { name: "get_my_driver", arguments: {} },

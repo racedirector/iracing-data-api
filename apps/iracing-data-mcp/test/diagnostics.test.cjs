@@ -132,7 +132,6 @@ test("protocol faults never become tool failures; unknown exceptions never leak"
       .error.code,
     "INTERNAL_ERROR",
   );
-
 });
 
 const cases = {
