@@ -65,14 +65,20 @@ service interface with an adapter; the reference host has
 and [safe linked-response](../../../apps/iracing-data-mcp/src/adapters/linked-response.ts)
 Fetch adapters. Other consumers may use Axios, fixtures, or another data source.
 
-The host [credential owner](../../../apps/iracing-data-mcp/src/session.ts)
-owns token refresh/persistence, while [runtime composition](../../../apps/iracing-data-mcp/src/composition.ts)
-uses Awilix to inject actor and capability resolvers per tool call. The
+For local stdio, the [credential adapter](../../../apps/iracing-data-mcp/src/credentials.ts)
+reads the CLI's dedicated token document on demand. The
 [Fetch factory](../../../apps/iracing-data-mcp/src/adapters/fetch.ts)
-constructs generated clients against the selected token provider. The MCP core knows only
-the service interface. Keep signed HTTPS data-link fetching in the concrete
-adapter, with no bearer/cookie forwarding and redirects rejected. Preserve
-abort signals throughout. Do not create a second token cache or refresh owner.
+constructs the concrete clients. For HTTP, the
+[mountable Hono router](../../../apps/iracing-data-mcp/src/http.ts)
+receives a host-verified actor and the actor's query capabilities.
+[Awilix composition](../../../apps/iracing-data-mcp/src/composition.ts)
+connects these capabilities to the two tool-local service selectors.
+The MCP core knows only the service interfaces.
+
+Keep signed HTTPS links in concrete adapters, with no bearer/cookie
+forwarding and redirects rejected. Preserve abort signals. Do not
+introduce an OAuth resource server, a separate refresh owner,
+an MCP session registry, or a generalized execution framework.
 
 ## Tests and review
 
@@ -80,12 +86,15 @@ abort signals throughout. Do not create a second token cache or refresh owner.
   with in-memory MCP transport and synthetic service implementations that need
   no generated client or credential. Prove direct registration, validation
   before effects, output projection, bounded results and sanitized failures.
-- Add [host adapter tests](../../../apps/iracing-data-mcp/test/tools.test.cjs)
-  for injected SDK configuration, token isolation, safe signed links, 401/429
-  mapping, OAuth failures and cancellation. Keep Hono ingress security, credential lifecycle, and shutdown behavior.
-- Update the [composed offline fixture](../../../apps/iracing-data-mcp/test/fixtures/composed.cjs)
-  and [tool list](../../../apps/iracing-data-mcp/test/fixtures/tool-list.json)
-  when the registered tool set changes.
+- Add [Fetch adapter tests](../../../apps/iracing-data-mcp/test/adapters.test.cjs)
+  covering token isolation, safe signed links, upstream error mapping and
+  cancellation.
+- Add [Hono router tests](../../../apps/iracing-data-mcp/test/http.test.cjs)
+  verifying that anonymous callers are denied before resolving capabilities,
+  that verified actors get their own providers, and that outputs are projected.
+- Use [configuration tests](../../../apps/iracing-data-mcp/test/config.test.cjs)
+  and a local stdio smoke when changes affect the executable. No live
+  iRacing account is required for synthetic verification.
 
 Run from the repository root:
 ```sh
@@ -108,6 +117,9 @@ Do not claim unavailable checks passed. Do not hand-edit generated code,
 change public release versions, add listeners to the MCP package, or
 introduce speculative infrastructure.
 
-The runtime host is [Hono](../../../apps/iracing-data-mcp/src/runtime.ts)
-using the official SDK MCP handler. New tools do not add HTTP routes or
-session state; only update tool-local contracts and injected adapters.
+The app supports both
+[stdio](../../../apps/iracing-data-mcp/src/stdio.ts) and a
+[mountable Hono HTTP router](../../../apps/iracing-data-mcp/src/http.ts)
+using the official MCP SDK. New tools do not add HTTP routes, token
+refresh infrastructure, or session state. Update the tool-local
+contract and concrete adapter instead.
