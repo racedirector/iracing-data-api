@@ -14,13 +14,14 @@ Use the current source and its `AGENTS.md` instructions as authority.
 
 `get_my_driver` is the smallest example. Its
 [handler](../../../packages/mcp/src/tools/get-my-driver/index.ts)
-registers the tool directly. `get_recent_races` demonstrates bounded input,
+registers one explicit tool through the internal execution adapter.
+`get_recent_races` demonstrates bounded input,
 customer-identity validation, and output projection in its
 [handler](../../../packages/mcp/src/tools/get-recent-races/index.ts).
 
 Each tool owns `schema.ts` and `service.ts` beside `index.ts`.
 [register.ts](../../../packages/mcp/src/register.ts) explicitly names
-the supported tools. Do not add a generic registry, executor, gateway,
+the supported tools. Do not add a generic registry, dispatcher, gateway,
 pagination engine, or dependency injection container to the MCP core.
 
 ## Tool contracts
@@ -29,11 +30,18 @@ Define strict Zod input and projected output schemas. Keep responses within
 64 KiB and exclude credentials or unrelated upstream fields. The tool-local
 `service.ts` defines domain operations, not generated client methods.
 
-Register directly with the SDK. Each handler validates its input before
-accessing services, resolves the request-local capability, forwards the
-`AbortSignal`, validates and projects output, and sanitizes errors.
-Small shared primitives in `input.ts`, `result.ts`, and `diagnostics/errors.ts`
-are reusable. Duplicated control flow between the two tools is intentional.
+Use the internal `registerApplicationTool` adapter in `execution.ts` for the
+schema boundary, safe failure conversion and MCP presentation. It parses input
+before dependency effects and projects output before serialization. Keep wire
+output schemas JSON-compatible and transformation-free; source normalization
+belongs in operations or concrete adapters. The SDK still owns protocol dispatch
+and final output validation.
+
+Keep capability selection explicit in `execute`, forward the request signal,
+and put business rules in the tool-local `operation.ts`. Operations accept parsed
+input and narrow query capabilities, returning the existing `Result` union with
+typed failure descriptors; they never build MCP envelopes. Do not add middleware,
+configurable presenters or automatic service selection without a concrete need.
 
 ## Host implementations
 
