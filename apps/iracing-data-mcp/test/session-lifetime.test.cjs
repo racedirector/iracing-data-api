@@ -61,7 +61,8 @@ function headers(sessionId) {
 
 async function toolServices() {
   const { createDriverQueries } = await import("../dist/adapters/driver.js");
-  const { createRecentRaceQueries } = await import("../dist/adapters/recent-races.js");
+  const { createRecentRaceQueries } =
+    await import("../dist/adapters/recent-races.js");
   const driver = {
     cust_id: 1,
     display_name: "Synthetic Driver",

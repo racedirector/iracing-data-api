@@ -9,13 +9,21 @@ export interface IracingMcpServerOptions {
   readonly services: IracingToolServices;
 }
 
-/** Construct an unconnected MCP server and register the two tools. */
+/**
+ * Construct an unconnected MCP server and register the two tools.
+ * @param root0
+ * @param root0.serverInfo
+ * @param root0.serverOptions
+ * @param root0.services
+ */
 export function createIracingMcpServer({
   serverInfo,
   serverOptions,
   services,
 }: IracingMcpServerOptions): McpServer {
   const server = new McpServer(serverInfo, serverOptions);
+
   registerIracingTools(server, services);
+
   return server;
 }

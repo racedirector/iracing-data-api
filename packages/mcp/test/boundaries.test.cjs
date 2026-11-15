@@ -3,7 +3,8 @@ const test = require("node:test");
 
 async function fixture(t, services = {}) {
   const api = await import("../dist/index.js");
-  const { McpServer, InMemoryTransport } = await import("@modelcontextprotocol/server");
+  const { McpServer, InMemoryTransport } =
+    await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
 
   const server = new McpServer({ name: "consumer", version: "1" });
@@ -15,11 +16,15 @@ async function fixture(t, services = {}) {
     content: [{ type: "text", text: "after" }],
   }));
 
-  const [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
+  const [serverTransport, clientTransport] =
+    InMemoryTransport.createLinkedPair();
   const client = new Client({ name: "test-client", version: "1" });
   await server.connect(serverTransport);
   await client.connect(clientTransport);
-  t.after(async () => { await client.close(); await server.close(); });
+  t.after(async () => {
+    await client.close();
+    await server.close();
+  });
   return {
     api,
     client,
@@ -30,9 +35,10 @@ async function fixture(t, services = {}) {
 test("caller-owned server exposes exactly two tools and accepts neighboring registrations", async (t) => {
   const f = await fixture(t);
   const tools = (await f.client.listTools()).tools;
-  assert.deepEqual(tools.map((tool) => tool.name), [
-    "before", "get_my_driver", "get_recent_races", "after",
-  ]);
+  assert.deepEqual(
+    tools.map((tool) => tool.name),
+    ["before", "get_my_driver", "get_recent_races", "after"],
+  );
   for (const tool of tools.slice(1, 3)) {
     assert.equal(tool.inputSchema.type, "object");
     assert.equal(tool.inputSchema.additionalProperties, false);
@@ -46,8 +52,14 @@ test("caller-owned server exposes exactly two tools and accepts neighboring regi
 test("input validation happens before resolving any dependencies", async (t) => {
   let selected = 0;
   const f = await fixture(t, {
-    getDriverQueries: () => { selected++; return {}; },
-    getRecentRaceQueries: () => { selected++; return {}; },
+    getDriverQueries: () => {
+      selected++;
+      return {};
+    },
+    getRecentRaceQueries: () => {
+      selected++;
+      return {};
+    },
   });
   const cases = [
     ["get_my_driver", { token: "SECRET" }],
@@ -72,32 +84,46 @@ test("custom driver and recent-race implementations are selected per request", a
     getDriverQueries: (context) => {
       assert.ok(context.signal instanceof AbortSignal);
       calls.push("driver-selected");
-      return { getCurrent: async ({ signal }) => {
-        assert.ok(signal instanceof AbortSignal);
-        calls.push("driver-called");
-        return { cust_id: 42, display_name: "Fixture Driver", secret: "SECRET" };
-      }};
+      return {
+        getCurrent: async ({ signal }) => {
+          assert.ok(signal instanceof AbortSignal);
+          calls.push("driver-called");
+          return {
+            cust_id: 42,
+            display_name: "Fixture Driver",
+            secret: "SECRET",
+          };
+        },
+      };
     },
     getRecentRaceQueries: (context) => {
       assert.ok(context.signal instanceof AbortSignal);
       calls.push("recent-selected");
-      return { getRecent: async ({ custId, signal }) => {
-        assert.ok(signal instanceof AbortSignal);
-        assert.equal(custId, 42);
-        calls.push("recent-called");
-        return {
-          cust_id: 42,
-          races: [
-            { subsession_id: 100, series_name: "Series", points: 3, private: "SECRET" },
-            { subsession_id: 101 },
-          ],
-        };
-      }};
+      return {
+        getRecent: async ({ custId, signal }) => {
+          assert.ok(signal instanceof AbortSignal);
+          assert.equal(custId, 42);
+          calls.push("recent-called");
+          return {
+            cust_id: 42,
+            races: [
+              {
+                subsession_id: 100,
+                series_name: "Series",
+                points: 3,
+                private: "SECRET",
+              },
+              { subsession_id: 101 },
+            ],
+          };
+        },
+      };
     },
   });
   const driver = await f.call("get_my_driver");
   assert.deepEqual(driver.structuredContent, {
-    cust_id: 42, display_name: "Fixture Driver",
+    cust_id: 42,
+    display_name: "Fixture Driver",
   });
   const recent = await f.call("get_recent_races", { cust_id: 42, limit: 1 });
   assert.equal(recent.structuredContent.races.length, 1);
@@ -105,9 +131,17 @@ test("custom driver and recent-race implementations are selected per request", a
   assert.equal(recent.structuredContent.returned_count, 1);
   assert.equal(recent.structuredContent.complete, true);
   assert.equal(recent.structuredContent.position_basis, "upstream");
-  assert.deepEqual(calls, ["driver-selected", "driver-called", "recent-selected", "recent-called"]);
+  assert.deepEqual(calls, [
+    "driver-selected",
+    "driver-called",
+    "recent-selected",
+    "recent-called",
+  ]);
   for (const result of [driver, recent]) {
-    assert.equal(result.content[0].text, JSON.stringify(result.structuredContent));
+    assert.equal(
+      result.content[0].text,
+      JSON.stringify(result.structuredContent),
+    );
     assert.doesNotMatch(JSON.stringify(result), /SECRET|private/);
   }
 });
@@ -115,21 +149,41 @@ test("custom driver and recent-race implementations are selected per request", a
 test("missing dependencies, mismatched identity and malformed results are sanitized", async (t) => {
   const f = await fixture(t);
   for (const name of ["get_my_driver", "get_recent_races"]) {
-    assert.equal((await f.call(name)).structuredContent.error.code, "CONFIGURATION_ERROR");
+    assert.equal(
+      (await f.call(name)).structuredContent.error.code,
+      "CONFIGURATION_ERROR",
+    );
   }
   const invalid = await fixture(t, {
-    getDriverQueries: () => ({ getCurrent: async () => ({ cust_id: "SECRET", display_name: "Name" }) }),
-    getRecentRaceQueries: () => ({ getRecent: async () => ({ cust_id: 1, races: [] }) }),
+    getDriverQueries: () => ({
+      getCurrent: async () => ({ cust_id: "SECRET", display_name: "Name" }),
+    }),
+    getRecentRaceQueries: () => ({
+      getRecent: async () => ({ cust_id: 1, races: [] }),
+    }),
   });
-  assert.equal((await invalid.call("get_my_driver")).structuredContent.error.code, "DATA_RESOLUTION_FAILED");
-  assert.equal((await invalid.call("get_recent_races", { cust_id: 2 })).structuredContent.error.code, "DATA_RESOLUTION_FAILED");
+  assert.equal(
+    (await invalid.call("get_my_driver")).structuredContent.error.code,
+    "DATA_RESOLUTION_FAILED",
+  );
+  assert.equal(
+    (await invalid.call("get_recent_races", { cust_id: 2 })).structuredContent
+      .error.code,
+    "DATA_RESOLUTION_FAILED",
+  );
 });
 
 test("the 64 KiB result cap rejects oversized injected data", async (t) => {
   const f = await fixture(t, {
-    getDriverQueries: () => ({ getCurrent: async () => ({
-      cust_id: 1, display_name: "x".repeat(40000),
-    }) }),
+    getDriverQueries: () => ({
+      getCurrent: async () => ({
+        cust_id: 1,
+        display_name: "x".repeat(40000),
+      }),
+    }),
   });
-  assert.equal((await f.call("get_my_driver")).structuredContent.error.code, "RESPONSE_LIMIT_EXCEEDED");
+  assert.equal(
+    (await f.call("get_my_driver")).structuredContent.error.code,
+    "RESPONSE_LIMIT_EXCEEDED",
+  );
 });

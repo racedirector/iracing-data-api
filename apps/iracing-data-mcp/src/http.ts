@@ -238,6 +238,7 @@ async function createMcpSession(
     },
     services: options.services,
   });
+
   options.registerTools?.(mcp, options.services);
 
   const transport = new WebStandardStreamableHTTPServerTransport({

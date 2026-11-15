@@ -26,7 +26,9 @@ test("independent concrete Fetch adapters acquire their own tokens on demand", a
         assert.equal(bearer, null);
         assert.equal(init.redirect, "error");
         return Response.json({
-          cust_id: id, display_name: "Driver " + id, private: token,
+          cust_id: id,
+          display_name: "Driver " + id,
+          private: token,
         });
       },
     });
@@ -42,17 +44,20 @@ test("independent concrete Fetch adapters acquire their own tokens on demand", a
 
   const signal = new AbortController().signal;
   assert.deepEqual(await first.queries.getCurrent({ signal }), {
-    cust_id: 1, display_name: "Driver 1",
+    cust_id: 1,
+    display_name: "Driver 1",
   });
   assert.equal(first.acquired(), 1);
   assert.equal(second.acquired(), 0);
   assert.deepEqual(await second.queries.getCurrent({ signal }), {
-    cust_id: 2, display_name: "Driver 2",
+    cust_id: 2,
+    display_name: "Driver 2",
   });
   assert.equal(second.acquired(), 1);
-  assert.deepEqual(calls.map(({ bearer }) => bearer), [
-    "Bearer TOKEN_ONE", null, "Bearer TOKEN_TWO", null,
-  ]);
+  assert.deepEqual(
+    calls.map(({ bearer }) => bearer),
+    ["Bearer TOKEN_ONE", null, "Bearer TOKEN_TWO", null],
+  );
 });
 
 test("reject unsafe signed links before any linked fetch", async () => {
@@ -86,13 +91,21 @@ test("request cancellation prevents credential acquisition and network effects",
   const { createDriverQueries } = await import("../dist/adapters/driver.js");
   let called = 0;
   const configuration = new Configuration({
-    accessToken: async () => { called++; return "SECRET"; },
-    fetchApi: async () => { called++; throw new Error("unexpected network"); },
+    accessToken: async () => {
+      called++;
+      return "SECRET";
+    },
+    fetchApi: async () => {
+      called++;
+      throw new Error("unexpected network");
+    },
   });
   const controller = new AbortController();
   controller.abort();
-  await assert.rejects(createDriverQueries(configuration).getCurrent({
-    signal: controller.signal,
-  }));
+  await assert.rejects(
+    createDriverQueries(configuration).getCurrent({
+      signal: controller.signal,
+    }),
+  );
   assert.equal(called, 0);
 });

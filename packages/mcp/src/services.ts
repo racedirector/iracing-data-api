@@ -1,6 +1,6 @@
-import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
+import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 
 /** Only tool registration is needed for an externally constructed MCP server. */
 export type IracingToolRegistry = Pick<McpServer, "registerTool">;

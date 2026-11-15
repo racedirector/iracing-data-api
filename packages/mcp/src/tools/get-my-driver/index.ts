@@ -12,7 +12,11 @@ import type {
   IracingToolServices,
 } from "../../services.js";
 
-/** Register the driver tool directly, without a generic executor. */
+/**
+ * Register the driver tool directly, without a generic executor.
+ * @param server
+ * @param services
+ */
 export function registerGetMyDriver(
   server: IracingToolRegistry,
   services: IracingToolServices,
@@ -56,10 +60,12 @@ async function handleGetMyDriver(
     }
 
     const queries = await services.getDriverQueries(context);
+
     const driver = await queries.getCurrent({ signal: context.signal });
 
     context.signal.throwIfAborted();
     const projection = DriverProjection.safeParse(driver);
+
     if (!projection.success) {
       throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
     }
