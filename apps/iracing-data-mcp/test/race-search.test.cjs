@@ -13,37 +13,38 @@ async function fixture({
   const { createRaceSearchQueries } =
     await import("../dist/adapters/race-search.js");
   const calls = [];
-  const queries = createRaceSearchQueries(
-    new Configuration({
-      accessToken: async () => "TOKEN",
-      fetchApi: async (url, options) => {
-        calls.push({ url: String(url), options });
-        return new Response(
-          JSON.stringify(
-            calls.length === 1
-              ? {
-                  type: String(url).includes("search_series")
-                    ? "search_series_results"
-                    : "search_hosted_results",
-                  data: {
-                    success: true,
-                    params: {},
-                    chunk_info: {
-                      rows,
-                      num_chunks: numChunks,
-                      chunk_size: 500,
-                      base_download_url: "https://assets.example/search/",
-                      chunk_file_names: names,
-                    },
-                  },
-                }
-              : payload,
-          ),
-          { headers: { "Content-Type": "application/json" } },
-        );
-      },
-    }),
-  );
+  const configuration = new Configuration({
+    accessToken: async () => "TOKEN",
+    fetchApi: async (url, options) => {
+      calls.push({ url: String(url), options });
+      // The manifest client is authenticated. It must not fetch chunks.
+      assert.equal(new Headers(options.headers).get("authorization"), "Bearer TOKEN");
+      return Response.json({
+        type: String(url).includes("search_series")
+          ? "search_series_results"
+          : "search_hosted_results",
+        data: {
+          success: true,
+          params: {},
+          chunk_info: {
+            rows,
+            num_chunks: numChunks,
+            chunk_size: 500,
+            base_download_url: "https://assets.example/search/",
+            chunk_file_names: names,
+          },
+        },
+      });
+    },
+  });
+  // A separate transport deliberately has no actor token, headers or cookies.
+  const downloadFetch = async (url, options) => {
+    calls.push({ url: String(url), options });
+    assert.equal(options.headers, undefined);
+    assert.equal(options.credentials, undefined);
+    return Response.json(payload);
+  };
+  const queries = createRaceSearchQueries(configuration, downloadFetch);
   return { queries, calls };
 }
 
