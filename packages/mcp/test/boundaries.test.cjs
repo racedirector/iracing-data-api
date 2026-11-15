@@ -11,7 +11,15 @@ async function fixture(t, services = {}) {
   server.registerTool("before", {}, async () => ({
     content: [{ type: "text", text: "before" }],
   }));
-  api.registerIracingTools(server, services);
+  api.registerIracingTools(server, {
+    getDriverQueries: () => ({
+      getCurrent: async () => ({ cust_id: 1, display_name: "Fixture" }),
+    }),
+    getRecentRaceQueries: () => ({
+      getRecent: async () => ({ cust_id: 1, races: [] }),
+    }),
+    ...services,
+  });
   server.registerTool("after", {}, async () => ({
     content: [{ type: "text", text: "after" }],
   }));
@@ -136,7 +144,7 @@ test("custom driver and recent-race implementations are selected per request", a
   assert.equal(recent.structuredContent.races.length, 1);
   assert.equal(recent.structuredContent.races[0].subsession_id, 100);
   assert.equal(recent.structuredContent.returned_count, 1);
-  assert.equal(recent.structuredContent.complete, true);
+  assert.equal(recent.structuredContent.complete, false);
   assert.equal(recent.structuredContent.position_basis, "upstream");
   assert.deepEqual(calls, [
     "driver-selected",
@@ -153,14 +161,39 @@ test("custom driver and recent-race implementations are selected per request", a
   }
 });
 
-test("missing dependencies, mismatched identity and malformed results are sanitized", async (t) => {
-  const f = await fixture(t);
-  for (const name of ["get_my_driver", "get_recent_races"]) {
-    assert.equal(
-      (await f.call(name)).structuredContent.error.code,
-      "CONFIGURATION_ERROR",
+test("missing selectors fail before publishing either tool", async () => {
+  const { registerIracingTools } = await import("../dist/index.js");
+  for (const services of [
+    {},
+    { getDriverQueries() {} },
+    { getRecentRaceQueries() {} },
+  ]) {
+    let registered = 0;
+    assert.throws(
+      () =>
+        registerIracingTools(
+          {
+            registerTool() {
+              registered++;
+            },
+          },
+          services,
+        ),
+      /Both iRacing capability selectors are required/,
     );
+    assert.equal(registered, 0);
   }
+});
+
+test("short upstream windows are complete only relative to that window", async (t) => {
+  const f = await fixture(t);
+  assert.equal(
+    (await f.call("get_recent_races")).structuredContent.complete,
+    true,
+  );
+});
+
+test("mismatched identity and malformed results are sanitized", async (t) => {
   const invalid = await fixture(t, {
     getDriverQueries: () => ({
       getCurrent: async () => ({ cust_id: "SECRET", display_name: "Name" }),

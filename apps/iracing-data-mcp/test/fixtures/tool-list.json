@@ -256,7 +256,7 @@
         },
         "complete": {
           "type": "boolean",
-          "const": true
+          "description": "True when the entire returned upstream window fits within the limit; never indicates exhaustive driver history."
         },
         "position_basis": {
           "type": "string",

@@ -16,6 +16,12 @@ async function fixture(t, { registerTools, services } = {}) {
   const sharedServices =
     services ??
     Object.freeze({
+      getDriverQueries: () => {
+        throw new Error("Unexpected query");
+      },
+      getRecentRaceQueries: () => {
+        throw new Error("Unexpected query");
+      },
       authorizationState: () => "ready",
       shutdownAuthorizationOwner: async () => {},
     });
@@ -248,6 +254,12 @@ test("request abort cancels tool work without terminating its MCP session", asyn
 test("shutdown disposes MCP sessions before the process authorization owner", async (t) => {
   let authorizationShutdowns = 0;
   const services = Object.freeze({
+    getDriverQueries: () => {
+      throw new Error("Unexpected query");
+    },
+    getRecentRaceQueries: () => {
+      throw new Error("Unexpected query");
+    },
     authorizationState: () => "ready",
     shutdownAuthorizationOwner: async () => {
       authorizationShutdowns++;

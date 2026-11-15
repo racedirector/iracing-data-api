@@ -16,11 +16,11 @@ import { z } from "zod";
 export const errorPolicy = Object.freeze({
   INVALID_INPUT: ["Correct the tool input and try again.", false],
   AUTHORIZATION_REQUIRED: [
-    "Stop the app, run host iracing-data auth login --scope iracing.auth, then restart.",
+    "Authorization is required. Ask the host to restore access.",
     false,
   ],
   TOKEN_REFRESH_FAILED: [
-    "Token refresh failed. Retry only when safe; otherwise stop and sign in again.",
+    "Token refresh failed. Retry only when marked retryable; otherwise ask the host to restore access.",
     false,
   ],
   UPSTREAM_UNAUTHORIZED: [
@@ -43,13 +43,12 @@ export const errorPolicy = Object.freeze({
     "Narrow the request. The source or response exceeds the app limit.",
     false,
   ],
-  CURSOR_EXPIRED: ["The cursor expired. Run the initial search again.", false],
   NOT_FOUND: [
     "No matching data was found. Check the requested identifiers.",
     false,
   ],
   CONFIGURATION_ERROR: [
-    "Repair the local app configuration or credential mount, then restart.",
+    "The host configuration needs repair. Contact the host operator.",
     false,
   ],
   INTERNAL_ERROR: [
@@ -85,8 +84,12 @@ const reasons = {
   ],
   TOKEN_REFRESH_FAILED: ["transient_refresh", "rotation_uncertain"],
   UPSTREAM_UNAUTHORIZED: ["account_entitlement", "upstream_access_denied"],
-  DATA_RESOLUTION_FAILED: ["invalid_data", "unsafe_link"],
-  CURSOR_EXPIRED: ["expired_or_evicted", "session_changed"],
+  DATA_RESOLUTION_FAILED: [
+    "invalid_data",
+    "unsafe_link",
+    "link_expired",
+    "link_rejected",
+  ],
 } as const;
 
 /** Validates bounded, secret-safe tool errors and their correlation identifiers. */

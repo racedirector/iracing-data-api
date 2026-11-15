@@ -86,10 +86,6 @@ async function handleGetRecentRaces(
   }
 
   context.signal.throwIfAborted();
-  if (!services.getRecentRaceQueries) {
-    return { ok: false, error: "CONFIGURATION_ERROR" };
-  }
-
   const queries = await services.getRecentRaceQueries(context);
 
   const window = await queries.getRecent({
@@ -119,7 +115,7 @@ async function handleGetRecentRaces(
       cust_id: resolved.data.cust_id,
       races,
       returned_count: races.length,
-      complete: true,
+      complete: races.length === resolved.data.races.length,
       position_basis: "upstream",
     }),
   };

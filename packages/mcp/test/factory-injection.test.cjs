@@ -12,6 +12,9 @@ test("factory creates independent listener-free servers and permits caller regis
     secret: "SECRET",
   };
   const services = {
+    getRecentRaceQueries: () => ({
+      getRecent: async () => ({ cust_id: 42, races: [] }),
+    }),
     getDriverQueries(context) {
       selected++;
       assert.ok(context.signal instanceof AbortSignal);

@@ -26,6 +26,10 @@ async function fixture(
     {},
     {
       get(_target, key) {
+        if (key === "getDriverQueries" || key === "getRecentRaceQueries")
+          return () => {
+            throw new Error("Unexpected upstream service access");
+          };
         if (
           key === "authorizationState" ||
           key === "shutdownAuthorizationOwner"

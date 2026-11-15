@@ -181,7 +181,7 @@ test("only two tools are listed, and both preserve stable projections", async (t
   const recent = success(await f.call("get_recent_races"));
   assert.equal(recent.races.length, 10);
   assert.equal(recent.position_basis, "upstream");
-  assert.equal(recent.complete, true);
+  assert.equal(recent.complete, false);
   assert.equal(recent.races[0].start_position, -1);
   assert.equal(recent.races[0].finish_position, 0);
   assert.equal(recent.races[0].track_id, 30);

@@ -78,6 +78,9 @@ export const RecentOutputSchema = z.object({
     }),
   ),
   returned_count: z.int(),
-  complete: z.literal(true),
+  complete: z.boolean().meta({
+    description:
+      "True when the entire returned upstream window fits within the limit; never indicates exhaustive driver history.",
+  }),
   position_basis: z.literal("upstream"),
 });

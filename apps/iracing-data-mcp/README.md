@@ -71,12 +71,14 @@ Errors return `isError:true`, safe JSON text and
 | `UPSTREAM_UNAUTHORIZED`   | Inspect account entitlement/access; no refresh loop.                                                                                                             |
 | `RATE_LIMITED`            | Wait for the bounded retry hint/cooldown, then retry.                                                                                                            |
 | `UPSTREAM_UNAVAILABLE`    | Network/timeout/5xx: bounded later retry.                                                                                                                        |
-| `DATA_RESOLUTION_FAILED`  | Malformed data/unsafe link: correct the source/query or report the request ID; no blind retry.                                                                   |
+| `DATA_RESOLUTION_FAILED`  | Malformed data/unsafe or rejected/expired link: inspect the source or report the request ID; no blind retry of the same signed URL.                              |
 | `RESPONSE_LIMIT_EXCEEDED` | Reduce result size or choose fewer races.                                                                                                                        |
-| `CURSOR_EXPIRED`          | The upstream signed link expired; retry a new operation.                                                                                                         |
 | `NOT_FOUND`               | Check supplied customer identity.                                                                                                                                |
 | `CONFIGURATION_ERROR`     | Repair client/configuration/mount permissions while stopped, then restart.                                                                                       |
 | `INTERNAL_ERROR`          | Report the safe request ID for support.                                                                                                                          |
+
+See [core contract review](review-537.md) for window completion, link reasons,
+host-neutral errors, account-policy boundaries and vendored-skill scope.
 
 There is no automatic retry/sleep. JSON stderr logs use fixed redacted diagnostics
 and application-generated request IDs. Do not share token documents, secrets,

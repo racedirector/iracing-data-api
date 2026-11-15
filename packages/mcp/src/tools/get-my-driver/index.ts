@@ -56,10 +56,6 @@ async function handleGetMyDriver(
     }
 
     context.signal.throwIfAborted();
-    if (!services.getDriverQueries) {
-      throw new ApplicationFailure("CONFIGURATION_ERROR");
-    }
-
     const queries = await services.getDriverQueries(context);
 
     const driver = await queries.getCurrent({ signal: context.signal });

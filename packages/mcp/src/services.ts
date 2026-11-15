@@ -21,7 +21,7 @@ export interface IracingToolServices {
    * @param {IracingToolContext} context - Request-local cancellation and verified ingress identity.
    * @returns {DriverQueries | Promise<DriverQueries>} Driver query implementation chosen for this request.
    */
-  getDriverQueries?(
+  getDriverQueries(
     context: IracingToolContext,
   ): DriverQueries | Promise<DriverQueries>;
 
@@ -30,7 +30,7 @@ export interface IracingToolServices {
    * @param {IracingToolContext} context - Request-local cancellation and verified ingress identity.
    * @returns {RecentRaceQueries | Promise<RecentRaceQueries>} Recent-race provider chosen for this request.
    */
-  getRecentRaceQueries?(
+  getRecentRaceQueries(
     context: IracingToolContext,
   ): RecentRaceQueries | Promise<RecentRaceQueries>;
 }

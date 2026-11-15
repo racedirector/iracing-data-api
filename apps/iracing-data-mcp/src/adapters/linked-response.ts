@@ -69,7 +69,9 @@ async function fetchSignedPayload(
 
   if (!response.ok) {
     if (response.status === 403 || response.status === 404) {
-      throw new ApplicationFailure("CURSOR_EXPIRED");
+      throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+        reason: "link_rejected",
+      });
     }
 
     if (response.status >= 500) {
@@ -102,7 +104,9 @@ export async function readLinkedData(
   const { target, deadline } = resolveLink(envelope);
 
   if (deadline <= Date.now()) {
-    throw new ApplicationFailure("CURSOR_EXPIRED");
+    throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+      reason: "link_expired",
+    });
   }
 
   signal.throwIfAborted();
@@ -110,7 +114,9 @@ export async function readLinkedData(
 
   signal.throwIfAborted();
   if (deadline <= Date.now()) {
-    throw new ApplicationFailure("CURSOR_EXPIRED");
+    throw new ApplicationFailure("DATA_RESOLUTION_FAILED", {
+      reason: "link_expired",
+    });
   }
 
   return value;
