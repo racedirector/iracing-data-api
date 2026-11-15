@@ -284,7 +284,6 @@ test("docs honors explicit JSON and YAML credentials over a direct token", async
   }
 });
 
-
 test("docs infers YAML file extension unless format was explicit", async () => {
   const { resolveOptions } = await import("../dist/commands/docs/schema.js");
   assert.equal(resolveOptions.parse({ output: "docs.yaml" }).format, "yaml");
