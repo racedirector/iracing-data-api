@@ -16,6 +16,7 @@ crates/iracing-data-api-client/**
 
 # Shared repository CLI credentials are private runtime output.
 .iracing-data/
+
 # Vendored upstream skills stay byte-for-byte syncable.
 .agents/skills/build-mcp-server/**
 .agents/skills/build-mcp-app/**
