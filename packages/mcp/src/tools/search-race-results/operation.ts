@@ -1,13 +1,13 @@
 import { SearchOutput } from "./schema.js";
 import type { FailureFor } from "../../diagnostics/errors.js";
 import type { OperationContext, Result } from "../types.js";
-import type { SearchInput } from "./schema.js";
+import type { RaceSearchInput } from "./schema.js";
 import type { RaceSearchQueries } from "./service.js";
 import type { z } from "zod";
 
 /**
  * Validate query-scoped coverage and project a single requested result chunk.
- * @param {z.output<typeof SearchInput>} input - Validated historical search criteria.
+ * @param {RaceSearchInput} input - Validated historical search criteria.
  * @param {RaceSearchQueries} queries - Actor-owned search capability.
  * @param {OperationContext} context - Request cancellation context.
  * @returns {Promise<Result<z.input<typeof SearchOutput>, FailureFor<"DATA_RESOLUTION_FAILED">>>} Projected search or safe data failure.
