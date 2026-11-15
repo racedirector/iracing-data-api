@@ -1,3 +1,4 @@
+import path from "node:path";
 import { z } from "zod";
 
 /**
@@ -8,14 +9,19 @@ export const resolveOptions = z
     output: z.string().optional(),
     credentials: z.string().optional(),
     accessToken: z.string().optional(),
-    format: z.enum(["json", "yaml"]).default("json"),
+    format: z.enum(["json", "yaml"]).optional(),
     force: z.boolean().default(false),
   })
   .transform((options) => ({
     output: options.output,
     credentials: options.credentials,
     accessToken: options.accessToken,
-    format: options.format,
+    format:
+      options.format ??
+      (options.output &&
+      [".yaml", ".yml"].includes(path.extname(options.output).toLowerCase())
+        ? "yaml"
+        : "json"),
     force: options.force,
   }));
 

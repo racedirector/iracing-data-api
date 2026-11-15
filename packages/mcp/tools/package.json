@@ -22,7 +22,7 @@
     "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/api-schema": "workspace:*",
     "@modelcontextprotocol/server": "2.3.1",
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/node": "^26.6.2",

@@ -22,7 +22,7 @@
     "test": "pnpm --filter @iracing-data/api-schema --filter '@iracing-data/oauth-client...' build && pnpm -w test:schema-compatibility"
   },
   "dependencies": {
-    "zod": "^4.3.6"
+    "zod": "^4.6.7"
   },
   "homepage": "https://github.com/racedirector/iracing-data-api/tree/main/packages/oauth/schema#readme",
   "bugs": {
