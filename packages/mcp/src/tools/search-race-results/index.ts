@@ -56,7 +56,6 @@ export function registerSearchRaceResults(
         const queries = await services.getRaceSearchQueries(context);
 
         const result = await queries.search(checked.data, context);
-
         context.signal.throwIfAborted();
         const output = SearchOutput.safeParse(result);
 
