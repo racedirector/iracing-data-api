@@ -10,8 +10,11 @@ import type { McpConfig } from "./config.js";
  * @param {Pick<McpConfig, "credentialsFile">} config - Local credential document selection.
  * @returns {ReturnType<typeof serveStdio>} Handle for closing the stdio connection.
  */
-export function startMcpStdio(config: Pick<McpConfig, "credentialsFile">): ReturnType<typeof serveStdio> {
+export function startMcpStdio(
+  config: Pick<McpConfig, "credentialsFile">,
+): ReturnType<typeof serveStdio> {
   const capabilities = createCliCapabilities(config.credentialsFile);
+
   const services = composeMcpServices(
     { id: "local", provider: "cli" },
     () => capabilities,

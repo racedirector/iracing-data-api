@@ -30,6 +30,7 @@ export function createMcpRouter(options: McpRouterOptions): Hono {
     }
 
     const services = composeMcpServices(actor, options.resolveCapabilities);
+
     const handler = createMcpHandler(
       () =>
         createIracingMcpServer({

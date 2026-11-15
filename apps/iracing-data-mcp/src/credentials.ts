@@ -9,8 +9,11 @@ import type { McpCapabilities } from "./composition.js";
  * @param {string} credentialsFile - Dedicated CLI MCP token document path.
  * @returns {McpCapabilities} Concrete Fetch queries without a shared token cache.
  */
-export function createCliCapabilities(credentialsFile: string): McpCapabilities {
+export function createCliCapabilities(
+  credentialsFile: string,
+): McpCapabilities {
   const sessionKey = "iracing-data-mcp-local";
+
   const store = new OAuthTokenDocumentSessionStore({
     filePath: credentialsFile,
     sessionKey,
@@ -19,7 +22,7 @@ export function createCliCapabilities(credentialsFile: string): McpCapabilities 
   return createFetchQueries(async () => {
     const token = await store.get(sessionKey);
 
-    if (!token?.access_token?.trim()) {
+    if (!token?.access_token.trim()) {
       throw new ApplicationFailure("AUTHORIZATION_REQUIRED");
     }
 

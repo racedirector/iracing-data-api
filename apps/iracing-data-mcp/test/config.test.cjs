@@ -10,7 +10,10 @@ test("Zod applies environment defaults and maps directly to runtime options", as
   assert.equal(config.port, 3000);
   assert.equal(
     config.credentialsFile,
-    path.resolve(__dirname, "../../../.iracing-data/iracing-data-mcp/credentials.json"),
+    path.resolve(
+      __dirname,
+      "../../../.iracing-data/iracing-data-mcp/credentials.json",
+    ),
   );
   assert.equal(parseConfig({ IRACING_MCP_PORT: "4555" }).port, 4555);
   for (const invalid of [
@@ -24,7 +27,9 @@ test("Zod applies environment defaults and maps directly to runtime options", as
 
 test("local stdio capabilities are constructed lazily without network calls", async () => {
   const { createCliCapabilities } = await import("../dist/credentials.js");
-  const queries = createCliCapabilities("/tmp/unconfigured-iracing-mcp-test-token.json");
+  const queries = createCliCapabilities(
+    "/tmp/unconfigured-iracing-mcp-test-token.json",
+  );
   assert.equal(typeof queries.driverQueries.getCurrent, "function");
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
 });

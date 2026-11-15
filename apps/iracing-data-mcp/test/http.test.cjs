@@ -5,13 +5,16 @@ test("mountable Hono router denies anonymous callers before constructing service
   const { Hono } = await import("hono");
   const { createMcpRouter } = await import("../dist/http.js");
   let created = 0;
-  const app = new Hono().route("/mcp", createMcpRouter({
-    resolveActor: () => null,
-    resolveCapabilities: () => {
-      created++;
-      throw new Error("Must not resolve anonymous capabilities");
-    },
-  }));
+  const app = new Hono().route(
+    "/mcp",
+    createMcpRouter({
+      resolveActor: () => null,
+      resolveCapabilities: () => {
+        created++;
+        throw new Error("Must not resolve anonymous capabilities");
+      },
+    }),
+  );
 
   const response = await app.request("http://localhost/mcp", {
     method: "POST",
@@ -27,29 +30,37 @@ test("mountable Hono router resolves tool capabilities against the verified acto
   const { Hono } = await import("hono");
   const { createMcpRouter } = await import("../dist/http.js");
   const actors = [];
-  const app = new Hono().route("/mcp", createMcpRouter({
-    resolveActor: (request) => {
-      const id = request.headers.get("x-test-actor");
-      return id ? { id, provider: "test" } : null;
-    },
-    resolveCapabilities: (actor) => {
-      actors.push(actor.id);
-      return {
-        driverQueries: {
-          getCurrent: async () => ({
-            cust_id: actor.id === "alice" ? 1 : 2,
-            display_name: actor.id,
-            secret: "MUST_NOT_LEAK",
-          }),
-        },
-        recentRaceQueries: {
-          getRecent: async () => ({ cust_id: 1, races: [] }),
-        },
-      };
-    },
-  }));
+  const app = new Hono().route(
+    "/mcp",
+    createMcpRouter({
+      resolveActor: (request) => {
+        const id = request.headers.get("x-test-actor");
 
-  for (const [id, expected] of [["alice", 1], ["bob", 2]]) {
+        return id ? { id, provider: "test" } : null;
+      },
+      resolveCapabilities: (actor) => {
+        actors.push(actor.id);
+
+        return {
+          driverQueries: {
+            getCurrent: async () => ({
+              cust_id: actor.id === "alice" ? 1 : 2,
+              display_name: actor.id,
+              secret: "MUST_NOT_LEAK",
+            }),
+          },
+          recentRaceQueries: {
+            getRecent: async () => ({ cust_id: 1, races: [] }),
+          },
+        };
+      },
+    }),
+  );
+
+  for (const [id, expected] of [
+    ["alice", 1],
+    ["bob", 2],
+  ]) {
     const response = await app.request("http://localhost/mcp", {
       method: "POST",
       headers: {
@@ -64,8 +75,11 @@ test("mountable Hono router resolves tool capabilities against the verified acto
         params: { name: "get_my_driver", arguments: {} },
       }),
     });
+
     assert.equal(response.status, 200);
+
     const body = await response.text();
+
     assert.match(body, new RegExp(id));
     assert.match(body, new RegExp(String(expected)));
     assert.doesNotMatch(body, /MUST_NOT_LEAK/);
@@ -82,6 +96,7 @@ test("the HTTP router is owned by its host, not a listener or OAuth service", as
       throw new Error("unreachable");
     },
   });
+
   assert.equal(typeof router.fetch, "function");
   assert.equal(router.routes.length, 1);
 });

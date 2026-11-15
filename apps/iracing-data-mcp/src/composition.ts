@@ -1,13 +1,17 @@
-import { ApplicationFailure } from "@iracing-data/mcp";
 import { asValue, createContainer } from "awilix";
-import type { DriverQueries, IracingToolContext, IracingToolServices, RecentRaceQueries } from "@iracing-data/mcp";
+import type {
+  DriverQueries,
+  IracingToolContext,
+  IracingToolServices,
+  RecentRaceQueries,
+} from "@iracing-data/mcp";
 
 /** Principal verified by the HTTP host or fixed for local stdio. */
 export interface McpActor {
   /** Actor ID in the host's identity provider. */
   readonly id: string;
 
-  /** Provider namespace, e.g. ftr-events or cli. */
+  /** Provider namespace, such as FTR Events or CLI. */
   readonly provider: string;
 }
 
@@ -25,7 +29,9 @@ export interface McpCapabilities {
  * @param {Request} request - Raw incoming HTTP request.
  * @returns {Promise<McpActor | null> | McpActor | null} Verified actor or null.
  */
-export type ResolveActor = (request: Request) => Promise<McpActor | null> | McpActor | null;
+export type ResolveActor = (
+  request: Request,
+) => Promise<McpActor | null> | McpActor | null;
 
 /**
  * Select actor-specific data capabilities; the host owns credential resolution.
@@ -63,15 +69,12 @@ export function composeMcpServices(
 
     context.signal.throwIfAborted();
 
-    if (!resolved?.driverQueries || !resolved.recentRaceQueries) {
-      throw new ApplicationFailure("CONFIGURATION_ERROR");
-    }
-
     return resolved;
   }
 
   return {
     getDriverQueries: async (context) => (await select(context)).driverQueries,
-    getRecentRaceQueries: async (context) => (await select(context)).recentRaceQueries,
+    getRecentRaceQueries: async (context) =>
+      (await select(context)).recentRaceQueries,
   };
 }

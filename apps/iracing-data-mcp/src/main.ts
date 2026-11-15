@@ -5,6 +5,8 @@ import { startMcpStdio } from "./stdio.js";
 try {
   startMcpStdio(parseConfig(process.env));
 } catch {
-  process.stderr.write("MCP startup failed. Check the local credential path.\n");
+  process.stderr.write(
+    "MCP startup failed. Check the local credential path.\n",
+  );
   process.exitCode = 1;
 }
