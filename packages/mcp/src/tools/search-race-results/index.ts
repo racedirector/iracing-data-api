@@ -31,7 +31,9 @@ export function registerSearchRaceResults(
     async execute(input, context) {
       const queries = await context.services.getRaceSearchQueries(context);
 
-      return handleSearchRaceResults(input, queries, { signal: context.signal });
+      return handleSearchRaceResults(input, queries, {
+        signal: context.signal,
+      });
     },
   });
 }
