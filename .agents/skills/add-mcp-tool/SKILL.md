@@ -1,114 +1,92 @@
 ---
 name: add-mcp-tool
-description: Define or extend iRacing MCP tools with tool-local input/output schemas, narrow service contracts, explicit host injection, generated Data API adapters, and synthetic contract tests. Use for changes in packages/mcp tools.
+description: Add an iRacing MCP tool with explicit tool-local Zod contracts, a narrow injected service interface, direct MCP registration and a consumer-owned adapter.
 ---
 
 # Add or extend an iRacing MCP tool
 
-Read [root guidance](../../../AGENTS.md), [MCP package scope](../../../packages/mcp/AGENTS.md),
-[reference-host scope](../../../apps/iracing-data-mcp/AGENTS.md), and the actual
-source. This skill is for **tool definition and composition**, not the OAuth
-onboarding workflow. Use the [verification procedure](../../../docs/VERIFICATION.md)
-and the current package manifests for executable checks.
+Read [root guidance](../../../AGENTS.md),
+[MCP package guidance](../../../packages/mcp/AGENTS.md),
+[reference host guidance](../../../apps/iracing-data-mcp/AGENTS.md)
+and the owning sources first. Follow [verification](../../../docs/VERIFICATION.md)
+and inspect package manifests for actual scripts.
 
-## Existing implementation to follow
+## Two intentionally explicit examples
 
-- [get_my_driver](../../../packages/mcp/src/tools/get-my-driver/index.ts) owns
-  its registered tool name/description, input/output binding, validated handler,
-  and service selection.
-- Its [schema](../../../packages/mcp/src/tools/get-my-driver/schema.ts) owns the
-  strict input schema, projection and result type. Its
-  [service](../../../packages/mcp/src/tools/get-my-driver/service.ts) declares
-  only the operations the handler needs. Do not define tool dependencies in a
-  central domain-wide provider catalog.
-- Its [adapter](../../../packages/mcp/src/tools/get-my-driver/adapter.ts)
-  implements the service using the generated SDK. It is separate from the
-  handler, imported by the consumer through the package's explicit export.
-- [register.ts](../../../packages/mcp/src/register.ts) is the explicit list of
-  registered tools; [factory.ts](../../../packages/mcp/src/factory.ts) and the
-  lower-level registrar both use that same list.
-- [services.ts](../../../packages/mcp/src/services.ts) defines the narrow host
-  selectors, and [execution.ts](../../../packages/mcp/src/execution.ts) owns
-  sanitized validation and MCP result/error handling.
-- [session.ts](../../../apps/iracing-data-mcp/src/session.ts) composes host
-  credentials, domain adapters and access selection; [http.ts](../../../apps/iracing-data-mcp/src/http.ts)
-  owns MCP transport, session lifetime and cancellation.
+- [get_my_driver/index.ts](../../../packages/mcp/src/tools/get-my-driver/index.ts)
+  is the smallest example: no arguments, one query method, projection, direct
+  `server.registerTool`, request-local capability selection, and sanitized failures.
+- [get_recent_races/index.ts](../../../packages/mcp/src/tools/get-recent-races/index.ts)
+  demonstrates strict optional arguments, a bounded result, source-identity
+  verification and output normalization without a generic pagination engine.
+- Each tool's `schema.ts` owns the input, projection, and output; `service.ts`
+  owns the smallest transport-independent capability contract.
+- [register.ts](../../../packages/mcp/src/register.ts) explicitly lists tools;
+  [factory.ts](../../../packages/mcp/src/factory.ts) creates an *unconnected*
+  server using that registrar. Never introduce a second catalog.
 
-These are navigation references, **not a template to split every small tool into
-four files**. A simple tool can remain in one module. Group `index.ts`,
-`schema.ts`, `service.ts` and an adapter when real responsibilities require it.
+## Define the complete tool contract
 
-## Define the tool's complete contract
+1. State the behavior and boundaries. Add `schema.ts` beside the tool using
+   Zod; strict input prevents accidental secrets or unexpected arguments.
+   Project only allowed output fields, with a 64 KiB total response cap.
+2. Declare the **operations the tool requires** in adjacent `service.ts`.
+   Name real operations (for example `getRecent`); accept `AbortSignal` and
+   return domain-specific typed data. Do not expose SDK `Configuration`, tokens,
+   Fetch, Axios, MCP SDK types, or a generic gateway in this interface.
+3. In `index.ts`, directly call `server.registerTool` with metadata, schemas
+   and annotations. In its callback, explicitly:
+   - create request context from the SDK signal and host-verified auth info
+   - validate input *before* accessing any injected capability
+   - abort early, check that the host provided the required selector
+   - resolve the capability using the request context
+   - call the capability with validated arguments and cancellation
+   - validate/project the output and enforce its size
+   - catch and return a sanitized `toolError` with an owned request ID
+4. Reuse tiny shared primitives such as
+   [input.ts](../../../packages/mcp/src/input.ts),
+   [result.ts](../../../packages/mcp/src/result.ts), and
+   [diagnostics/errors.ts](../../../packages/mcp/src/diagnostics/errors.ts).
+   **Do not reintroduce `execution.ts`, a `ToolDefinition` descriptor,
+   generic tool invoker, resolver registry, or generalized dispatch pipeline.**
+   Some repeated lines between the two tools are intentional: reviewers should
+   see all decision points and dependency interactions in each handler.
+5. Add only the intended tool to
+   [register.ts](../../../packages/mcp/src/register.ts); both factory-owned
+   and caller-owned servers use the same list.
 
-1. Identify the requested capability, existing tool and consumers. Inspect
-   [register.ts](../../../packages/mcp/src/register.ts) for current names.
-   Avoid adding a duplicate endpoint tool or migrating unrelated tools.
-2. Define input and projected output using Zod next to the owning tool. Choose
-   strict input for no-argument tools, validate before selecting services or
-   making effects, and project only the intended public fields. Reuse established
-   primitives and MCP error/result helpers. Canonical upstream modeled schemas
-   remain in [Data API](../../../packages/api/AGENTS.md); do not copy them into
-   MCP or hand-edit generated code.
-3. Declare the handler's **required operations** beside the tool, in a
-   tool-local `service.ts` when injection is needed (as FTR Discord commands do).
-   Make the interface transport-agnostic and narrow: named methods, argument
-   shapes (including `AbortSignal`), and typed returns. Do not make it aware of
-   the MCP SDK, credentials, generated client configuration, request metadata
-   or a generic resolver. Export a type needed by a consumer through
-   [index.ts](../../../packages/mcp/src/index.ts) only when useful.
-4. Implement a tool handler that translates validated MCP arguments into
-   service calls and returns the existing structured/text result contract.
-   Describe the tool, register its schemas and retain correct annotations.
-   `registerTool` handles invalid-input, output-validation and sanitized
-   failures. For an injected capability, use its request-local selector; do
-   not resolve generated access first or construct the adapter in the handler.
-5. Add the tool to the explicit [registration list](../../../packages/mcp/src/register.ts).
-   The listener-free factory registers that list; do not add a second catalog,
-   file-discovery system, registration decorator or server singleton.
+## Implement the concrete data source in the consumer
 
-## Implement and bind effects
+The MCP package **does not choose Fetch or Axios**, create an OAuth owner,
+or expose generated SDK configuration. A consumer implements the tool-local
+service interface with an adapter; the reference host has
+[driver](../../../apps/iracing-data-mcp/src/adapters/driver.ts),
+[recent races](../../../apps/iracing-data-mcp/src/adapters/recent-races.ts),
+and [safe linked-response](../../../apps/iracing-data-mcp/src/adapters/linked-response.ts)
+Fetch adapters. Other consumers may use Axios, fixtures, or another data source.
 
-A consumer constructs or selects concrete implementations and passes them
-through the narrow `IracingToolServices` selector. It may use verified ingress
-identity to select a principal; tool handlers do not infer identity from claims.
-Use explicit factories/constructors, not Awilix, service locators, generic
-gateways or a provider registry.
+The host [session composition](../../../apps/iracing-data-mcp/src/session.ts)
+owns credentials and token refresh/persistence, constructs the concrete
+clients, and selects the capability on each request. The MCP core knows only
+the service interface. Keep signed HTTPS data-link fetching in the concrete
+adapter, with no bearer/cookie forwarding and redirects rejected. Preserve
+abort signals throughout. Do not create a second token cache or refresh owner.
 
-For modeled Data API requests, use the generated Fetch SDK in the **concrete
-adapter**, not handwritten endpoint calls. Inject an asynchronous access-token
-provider (refresh/persistence remain in the host) and any HTTP fetch
-implementation. Reuse [linked-response](../../../packages/mcp/src/linked-response.ts)
-for signed HTTPS responses; never forward bearer credentials or other inherited
-headers to opaque links, permit unsafe schemes/embedded credentials, or follow
-redirects. Propagate cancellation into generated and linked requests. Do not
-duplicate OAuth owners or create credential caches in the package.
+## Tests and review
 
-The seven unmigrated tools currently use `getDataApiAccess(context)` and
-stable, opaque continuation scopes. Leave them alone unless the issue asks for
-their migration. Keep the existing 5-minute, 32-entry, 32-MiB and MCP response
-limits; do not add a generic request pipeline, new caching framework, or
-transport lifecycle.
+- Use [package contract tests](../../../packages/mcp/test/boundaries.test.cjs)
+  with in-memory MCP transport and synthetic service implementations that need
+  no generated client or credential. Prove direct registration, validation
+  before effects, output projection, bounded results and sanitized failures.
+- Add [host adapter tests](../../../apps/iracing-data-mcp/test/tools.test.cjs)
+  for injected SDK configuration, token isolation, safe signed links, 401/429
+  mapping, OAuth failures and cancellation. Keep the host's existing HTTP
+  session, ingress, and shutdown behavior.
+- Update the [composed offline fixture](../../../apps/iracing-data-mcp/test/fixtures/composed.cjs)
+  and [tool list](../../../apps/iracing-data-mcp/test/fixtures/tool-list.json)
+  when the registered tool set changes.
 
-## Prove the contract
-
-Add focused synthetic tests under [package tests](../../../packages/mcp/test)
-and host tests under [host tests](../../../apps/iracing-data-mcp/test) only
-where composition changes.
-
-- In-memory MCP client discovers the registered tool and calls it, including
-  strict invalid-input rejection before dependency effects.
-- Inject a fake tool-local service; assert exact structured/text projection,
-  service invocation, sanitized validation failures, and no unexpected
-  generated-client/credential/network access.
-- For a generated adapter, prove lazy token acquisition, correct upstream
-  authorization, **no bearer on linked fetch**, HTTPS/redirect safety,
-  cancellation, nonleaking 401/network/data errors and account isolation.
-- Check the reference host's sessionful protocol, optional registrations,
-  OAuth refresh/quarantine, ingress authorization and shutdown when touched.
-  Preserve existing tools' input/output/continuation contracts.
-
-Run the actual manifest commands from the repository root, starting with:
-
+Run from the repository root:
 ```sh
 pnpm install --frozen-lockfile
 pnpm check:topology
@@ -117,13 +95,14 @@ pnpm --filter '@iracing-data/mcp...' build
 pnpm --filter @iracing-data/mcp test
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm --filter @iracing-data/iracing-data-mcp test
+pnpm --filter @iracing-data/cli test
 pnpm verify
 pnpm impact --base main
 git diff --check
 ```
 
-For a change to repository guidance or skills, follow
-[agent regressions](../../../agent-regressions/README.md): fixture validation
-does not establish the five manual agent evaluations. Do not claim skipped
-checks, Docker, or live upstream tests passed. Describe what was run and the
-limitations; do not publish or modify generated packages for an MCP-only tool.
+Changes to skills or `AGENTS.md` also require the manual
+[agent regression scenarios](../../../agent-regressions/README.md).
+Do not claim unavailable checks passed. Do not hand-edit generated code,
+change public release versions, add listeners to the MCP package, or
+introduce speculative infrastructure.

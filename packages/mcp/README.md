@@ -1,67 +1,59 @@
 # iRacing MCP
 
-`@iracing-data/mcp` is a private, listener-free package. It owns eight
-tool registrations, projections, sanitized errors, bounded continuations,
-and an optional factory for a fresh, **unconnected** `McpServer`.
+`@iracing-data/mcp` defines **what** an iRacing Data API MCP server provides
+and **which capabilities** it requires. It is private, listener-free,
+credential-free, client-agnostic and contains exactly two tools:
+
+- `get_my_driver`: current driver identity through tool-local `DriverQueries`.
+- `get_recent_races`: a bounded recent-race window through `RecentRaceQueries`.
+
+Both tools directly register with the MCP SDK. Their input/output schemas and
+narrow service interfaces live beside each tool. Each handler explicitly
+validates input, resolves a capability using request-local context, forwards
+cancellation, validates and projects results, and sanitizes errors. There is
+no generic execution framework, gateway, provider registry, or DI container.
 
 ```ts
-import { Configuration } from "@iracing-data/api-client-fetch";
 import { createIracingMcpServer } from "@iracing-data/mcp";
-import { createGeneratedDriverQueries } from "@iracing-data/mcp/generated-driver";
-
-const tokenProvider = { getAccessToken: () => obtainTokenFromHost() };
-const driverQueries = createGeneratedDriverQueries({
-  accessTokenProvider: tokenProvider,
-});
-const configuration = new Configuration({
-  accessToken: () => tokenProvider.getAccessToken(),
-});
-const continuationScope = {}; // stable within one credential owner
 
 const server = createIracingMcpServer({
-  serverInfo: { name: "consumer-service", version: "1.0.0" },
+  serverInfo: { name: "consumer", version: "1.0.0" },
   services: {
-    getDriverQueries: (_context) => driverQueries,
-    getDataApiAccess: (_context) => ({ configuration, continuationScope }),
+    getDriverQueries: (context) => myDriverQueriesFor(context.authInfo),
+    getRecentRaceQueries: (context) => myRecentRaceQueriesFor(context.authInfo),
   },
 });
-// Consumer controls server.connect(transport), session lifetime, and close().
+// Consumer owns connection, transport, session lifetime, and close().
 ```
 
-Existing consumers can call `registerIracingTools(server, services)` on
-their own server. Both APIs register the same eight tools once. No listener,
-transport, OAuth grant, process handler, or credential store is constructed
-or installed by this package.
+Consumers with their own MCP server may instead call
+`registerIracingTools(server, services)`. Neither API connects transport,
+starts listeners, resolves credentials, or installs process handlers.
 
-The [tool-local service](src/tools/get-my-driver/service.ts) defines
-`DriverQueries.getCurrent({signal})` as a domain-specific, transport-free
-contract. The [schema](src/tools/get-my-driver/schema.ts) owns its strict
-input and projected output. The host selects the capability using request-local
-`getDriverQueries(context)` and optional verified ingress identity.
-The `get_my_driver` tool has no generated-client or token dependencies.
-The separately exported [tool-local adapter](src/tools/get-my-driver/adapter.ts)
-uses the generated `MemberApi`,
-a lazily invoked `AccessTokenProvider.getAccessToken()`, and an injectable
-`fetchApi`. Signed HTTPS links are validated and fetched without inherited
-bearer credentials or headers, with redirects rejected. Custom fetch
-implementations must honor these options. The host remains responsible
-for refresh/persistence and choosing the correct principal.
+The package never selects an HTTP implementation. Its two tool-local
+interfaces are implemented in the consuming application. The reference
+host uses generated Fetch clients in its
+[driver adapter](../../apps/iracing-data-mcp/src/adapters/driver.ts),
+[recent-races adapter](../../apps/iracing-data-mcp/src/adapters/recent-races.ts),
+and [linked-response handler](../../apps/iracing-data-mcp/src/adapters/linked-response.ts).
+A separate consumer can use generated Axios, mocks or another data source.
+OAuth refresh and persistence belong only to the host. Signed HTTPS data links
+are fetched by adapters without forwarded bearer credentials or redirects.
 
-The seven unmigrated tools retain generated access via
-`getDataApiAccess(context)` and a stable opaque `continuationScope`
-to isolate retained cursors. Each scope retains at most 32 tokens and
-32 MiB for up to five minutes; MCP results are limited to 64 KiB.
-Do not share scopes between users.
+Both tool outputs include equivalent structured content and JSON text
+within a combined 64 KiB cap. Errors use fixed allowlisted messages,
+codes, metadata and internally generated request IDs. Tool calls are
+read-only, require the host-selected authorization, and propagate cancellation.
+`get_recent_races` returns up to ten upstream window entries (not complete
+race history) and has **no cursor or retained collection state**.
 
-Issue #533 intentionally supersedes two historical prohibitions in #473
-and #382: this package may construct *unconnected* servers, and tool
-handlers may consume narrow domain-level capabilities. Their remaining
-restrictions apply: no generic gateway, DI container, listener, session
-registry, ingress auth, credential persistence, or process lifecycle here.
-Issue #478's historical export/name guidance requires eventual reconciliation.
+Issue #533 supersedes the old restrictions in #473 and #382 only for
+the unconnected server factory and narrow domain capability injection.
+No generic transport/host lifecycle, credential management, or generated
+API client dependency belongs in this package.
 
-See [the reference host](../../apps/iracing-data-mcp/architecture.md) and
-[add-mcp-tool instructions](../../.agents/skills/add-mcp-tool/SKILL.md).
+See the [reference host](../../apps/iracing-data-mcp/README.md) and the
+[add-mcp-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
 
 ```sh
 pnpm --filter '@iracing-data/mcp...' build
@@ -69,10 +61,3 @@ pnpm --filter @iracing-data/mcp test
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm --filter @iracing-data/iracing-data-mcp test
 ```
-
-Package exports: `createIracingMcpServer`, `registerIracingTools`,
-`DriverQueries`, `Driver`, `IracingToolServices`,
-`IracingToolContext`, `IracingDataAccess`, `IracingToolRegistry`
-and the existing failure/diagnostic surface. The
-`./generated-driver` subpath exports `createGeneratedDriverQueries`,
-`GeneratedDriverOptions`, and `AccessTokenProvider`.

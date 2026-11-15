@@ -1,39 +1,22 @@
-import type { Configuration } from "@iracing-data/api-client-fetch";
-import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
+import type { DriverQueries } from "./tools/get-my-driver/service.js";
+import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
 
-/** Only the registration capability is required from a caller-owned server. */
+/** Only tool registration is needed for an externally constructed MCP server. */
 export type IracingToolRegistry = Pick<McpServer, "registerTool">;
 
-/** Request-local cancellation and optional ingress authentication for host selection. */
+/** Request-local cancellation and host-verified identity for capability selection. */
 export interface IracingToolContext {
-  /** Cancels upstream work for this request when the caller disconnects or aborts. */
   readonly signal: AbortSignal;
-
-  /** Verified ingress identity supplied by the host; absent for unauthenticated local transport. */
   readonly authInfo?: AuthInfo;
 }
 
-/** Generated execution configuration and opaque retained-continuation isolation. */
-export interface IracingDataAccess {
-  /** Caller-owned generated-client configuration carrying endpoint, transport, and credential policy. */
-  readonly configuration: Configuration;
-
-  /** Opaque owner identity isolating retained cursors and replay state between accounts. */
-  readonly continuationScope: object;
-}
-
-/** The host owns credentials and selects access; tools interpret no claims. */
+/** The host selects independently implemented capabilities for each request. */
 export interface IracingToolServices {
-  /** Selects the request principal\u0027s domain-level driver query capability. */
-  getDriverQueries(context: IracingToolContext): DriverQueries | Promise<DriverQueries>;
-
-  /**
-   * Selects credentials and continuation ownership for one request without interpreting claims in tools.
-   * @param {IracingToolContext} context - Request cancellation and verified ingress identity used by the host.
-   * @returns {IracingDataAccess | Promise<IracingDataAccess>} Generated-client access and the identity that owns retained continuations.
-   */
-  getDataApiAccess?(
+  getDriverQueries?(
     context: IracingToolContext,
-  ): IracingDataAccess | Promise<IracingDataAccess>;
+  ): DriverQueries | Promise<DriverQueries>;
+  getRecentRaceQueries?(
+    context: IracingToolContext,
+  ): RecentRaceQueries | Promise<RecentRaceQueries>;
 }

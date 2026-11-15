@@ -40,11 +40,7 @@ test("factory creates independent listener-free servers and permits caller regis
   });
 
   const tools = (await client.listTools()).tools;
-  assert.deepEqual(tools.map((item) => item.name), [
-    "get_my_driver", "find_drivers", "get_recent_races", "lookup_content",
-    "list_series_seasons", "get_series_schedule", "get_race_result",
-    "search_driver_races", "extra",
-  ]);
+  assert.deepEqual(tools.map((item) => item.name), ["get_my_driver", "get_recent_races", "extra"]);
   const rejected = await client.callTool({
     name: "get_my_driver", arguments: { access_token: "SECRET" },
   });

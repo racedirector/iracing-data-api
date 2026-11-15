@@ -1,24 +1,24 @@
 # packages/mcp guidance
 
-Inherit [root guidance](../../AGENTS.md). Consult
-[host guidance](../../apps/iracing-data-mcp/AGENTS.md) for transport and
-authorization changes.
+Inherit [repository guidance](../../AGENTS.md) and read the
+[add-mcp-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md)
+before modifying tools. For host composition follow
+[reference host guidance](../../apps/iracing-data-mcp/AGENTS.md).
 
-This is a private workspace. Issue #533 supersedes restrictions in #473
-and #382 **only** to allow the listener-free server factory and narrow,
-request-local injected driver queries. Keep `registerIracingTools`
-available for consumer-owned servers.
+This private workspace defines two explicit MCP tool contracts,
+`get_my_driver` and `get_recent_races`. The core must remain independent
+of generated Fetch/Axios clients, API configuration, OAuth, and transport.
+Its input/output schemas and service contracts are tool-local. Tool handlers
+use direct `registerTool` calls with visible validation, request-local
+capability selection, cancellation, result projection, and safe failures.
 
-This package owns tool registration, projections, sanitized errors, safe
-linked-response handling, and bounded continuations. The consuming host
-owns HTTP transports, logical sessions, ingress auth, upstream OAuth
-refresh/persistence, and shutdown. Core tool modules must not import
-the generated driver adapter. Explicit factory injection only: no
-Awilix, generic gateway, service locator, speculative caching, or
-provider registry. Keep the other seven tools' generated-client
-behavior unchanged. Follow [verification](../../docs/VERIFICATION.md).
+Keep `createIracingMcpServer` unconnected and
+`registerIracingTools` available for consumer-owned servers.
+The consumer owns transport, session lifetime, process lifecycle,
+credentials, token refresh, concrete client and linked data fetching.
+Do not add a DI container, generic executor, `ToolDefinition` registry,
+gateway, shared pipeline, cursor infrastructure or speculative caching.
 
-For new tools and service contract changes, follow the
-[add-mcp-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
-Keep input/output schemas and required service contracts next to the tool;
-the consumer composes concrete capabilities, not the tool handler.
+`#533` supersedes `#473`/`#382` only on the factory and injected domain
+contracts; retain their security and lifecycle restrictions.
+Run [verification](../../docs/VERIFICATION.md) and report checks accurately.

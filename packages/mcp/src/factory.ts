@@ -2,14 +2,14 @@ import { McpServer } from "@modelcontextprotocol/server";
 import { registerIracingTools } from "./register.js";
 import type { IracingToolServices } from "./services.js";
 
-/** Constructor inputs for a fresh, unconnected MCP server. */
+/** Dependencies for constructing a new listener-free server. */
 export interface IracingMcpServerOptions {
   readonly serverInfo: ConstructorParameters<typeof McpServer>[0];
   readonly serverOptions?: ConstructorParameters<typeof McpServer>[1];
   readonly services: IracingToolServices;
 }
 
-/** Create a new, unconnected MCP server with exactly eight standard tools. */
+/** Construct an unconnected MCP server and register the two tools. */
 export function createIracingMcpServer({
   serverInfo,
   serverOptions,

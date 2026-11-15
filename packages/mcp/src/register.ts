@@ -1,28 +1,12 @@
-import { registerFindDrivers } from "./tools/find-drivers.js";
 import { registerGetMyDriver } from "./tools/get-my-driver/index.js";
-import { registerGetRaceResult } from "./tools/get-race-result.js";
-import { registerGetRecentRaces } from "./tools/get-recent-races.js";
-import { registerGetSeriesSchedule } from "./tools/get-series-schedule.js";
-import { registerListSeriesSeasons } from "./tools/list-series-seasons.js";
-import { registerLookupContent } from "./tools/lookup-content.js";
-import { registerSearchDriverRaces } from "./tools/search-driver-races.js";
+import { registerGetRecentRaces } from "./tools/get-recent-races/index.js";
 import type { IracingToolRegistry, IracingToolServices } from "./services.js";
 
-/**
- * Register the eight iRacing tools without configuring or creating the server.
- * @param {IracingToolRegistry} server - Caller-owned MCP tool registration capability.
- * @param {IracingToolServices} services - Host-owned API access and continuation services.
- */
+/** Register the two explicit, dependency-injected iRacing tools. */
 export function registerIracingTools(
   server: IracingToolRegistry,
   services: IracingToolServices,
 ): void {
   registerGetMyDriver(server, services);
-  registerFindDrivers(server, services);
   registerGetRecentRaces(server, services);
-  registerLookupContent(server, services);
-  registerListSeriesSeasons(server, services);
-  registerGetSeriesSchedule(server, services);
-  registerGetRaceResult(server, services);
-  registerSearchDriverRaces(server, services);
 }

@@ -21,7 +21,6 @@
  * The generated Data API configuration shares this fixed owner.
  */
 import { Configuration } from "@iracing-data/api-client-fetch";
-import { createGeneratedDriverQueries } from "@iracing-data/mcp/generated-driver";
 import {
   ApplicationFailure,
   createRequestContext,
@@ -35,6 +34,8 @@ import {
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
 import { createDiagnosticLogger } from "./diagnostics/logging.js";
+import { createDriverQueries } from "./adapters/driver.js";
+import { createRecentRaceQueries } from "./adapters/recent-races.js";
 import type { AuthorizationState, McpServices } from "./services.js";
 
 /** Stable key for the single locally owned MCP OAuth session. */
@@ -134,35 +135,34 @@ export async function createMcpServices(
     );
   }
 
+  // OAuth/session storage remains the only owner of access credentials.
   const getAccessToken = async () =>
     validateSession(
       await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
     ).access_token;
 
   const dataApiConfiguration = new Configuration({ accessToken: getAccessToken });
-  const driverQueries = createGeneratedDriverQueries({
-    accessTokenProvider: { getAccessToken },
-    fetchApi: dataApiConfiguration.fetchApi,
-  });
+  const driverQueries = createDriverQueries(dataApiConfiguration);
+  const recentRaceQueries = createRecentRaceQueries(dataApiConfiguration);
 
-  const continuationScope = {};
+  const selectAccount = () => {
+    if (owner.terminal || owner.ownerClosing) {
+      throw authorization("invalid_session");
+    }
+  };
 
   return Object.freeze({
     shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
     oauthClient,
     authorizationState: () => owner.state,
     dataApiConfiguration,
-    getDriverQueries: () => driverQueries,
-    getDataApiAccess: () => {
-      if (owner.terminal) {
-        throw authorization("invalid_session");
-      }
-
-      if (owner.ownerClosing) {
-        throw authorization("invalid_session");
-      }
-
-      return { configuration: dataApiConfiguration, continuationScope };
+    getDriverQueries: () => {
+      selectAccount();
+      return driverQueries;
+    },
+    getRecentRaceQueries: () => {
+      selectAccount();
+      return recentRaceQueries;
     },
   });
 }

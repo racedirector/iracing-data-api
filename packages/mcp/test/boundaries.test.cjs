@@ -1,64 +1,12 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
-const { Configuration } = require("@iracing-data/api-client-fetch");
-const names = [
-  "get_my_driver",
-  "find_drivers",
-  "get_recent_races",
-  "lookup_content",
-  "list_series_seasons",
-  "get_series_schedule",
-  "get_race_result",
-  "search_driver_races",
-];
-async function fixture(t, options = {}) {
+
+async function fixture(t, services = {}) {
   const api = await import("../dist/index.js");
-  const { McpServer, InMemoryTransport } =
-    await import("@modelcontextprotocol/server");
+  const { McpServer, InMemoryTransport } = await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
-  const requests = [];
-  let scope = {};
-  const { createGeneratedDriverQueries } = await import("../dist/tools/get-my-driver/adapter.js");
-  const configuration = new Configuration({
-    accessToken: async () => {
-      await Promise.resolve();
-      return "BEARER_SECRET";
-    },
-    fetchApi: async (url, init) => {
-      requests.push({ url: new URL(url), init });
-      if (options.fetchApi) return options.fetchApi(url, init);
-      if (new URL(url).hostname === "members-ng.iracing.com")
-        return Response.json({
-          link: "https://cache.example.test/payload?signature=SECRET",
-          expires: new Date(Date.now() + 900000).toISOString(),
-        });
-      return Response.json(
-        options.payload ??
-          (new URL(requests[requests.length - 2].url).pathname.includes(
-            "lookup",
-          )
-            ? [
-                { cust_id: 1, display_name: "One" },
-                { cust_id: 2, display_name: "Two" },
-              ]
-            : { cust_id: 1, display_name: "One", secret: "SECRET" }),
-      );
-    },
-  });
-  const driverQueries = createGeneratedDriverQueries({
-    accessTokenProvider: { getAccessToken: async () => "BEARER_SECRET" },
-    fetchApi: configuration.fetchApi,
-  });
-  const services = {
-    getDriverQueries: (context) => {
-      options.context?.(context);
-      return driverQueries;
-    },
-    getDataApiAccess: (_context) => {
-      return { configuration, continuationScope: scope };
-    },
-  };
-  const server = new McpServer({ name: "consumer-service", version: "1.0.0" });
+
+  const server = new McpServer({ name: "consumer", version: "1" });
   server.registerTool("before", {}, async () => ({
     content: [{ type: "text", text: "before" }],
   }));
@@ -66,185 +14,122 @@ async function fixture(t, options = {}) {
   server.registerTool("after", {}, async () => ({
     content: [{ type: "text", text: "after" }],
   }));
-  const client = new Client({ name: "contract-test", version: "1" });
-  const [serverTransport, clientTransport] =
-    InMemoryTransport.createLinkedPair();
+
+  const [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
+  const client = new Client({ name: "test-client", version: "1" });
   await server.connect(serverTransport);
   await client.connect(clientTransport);
-  t.after(async () => {
-    await client.close();
-    await server.close();
-  });
+  t.after(async () => { await client.close(); await server.close(); });
   return {
     api,
-    server,
     client,
-    requests,
-    configuration,
-    services,
-    changeScope: () => {
-      scope = {};
-    },
     call: (name, args = {}) => client.callTool({ name, arguments: args }),
   };
 }
-test("caller-owned server registers native input/output contracts and independent tools", async (t) => {
+
+test("caller-owned server exposes exactly two tools and accepts neighboring registrations", async (t) => {
   const f = await fixture(t);
   const tools = (await f.client.listTools()).tools;
-  assert.deepEqual(
-    tools.map((x) => x.name),
-    ["before", ...names, "after"],
-  );
-  for (const tool of tools.filter((x) => names.includes(x.name))) {
+  assert.deepEqual(tools.map((tool) => tool.name), [
+    "before", "get_my_driver", "get_recent_races", "after",
+  ]);
+  for (const tool of tools.slice(1, 3)) {
     assert.equal(tool.inputSchema.type, "object");
-    assert.equal(tool.outputSchema.type, "object");
+    assert.equal(tool.inputSchema.additionalProperties, false);
+    assert.equal(tool.annotations.readOnlyHint, true);
   }
   assert.equal((await f.call("before")).content[0].text, "before");
   assert.equal((await f.call("after")).content[0].text, "after");
   assert.equal(typeof f.api.createIracingMcpServer, "function");
-  assert.ok(!("DataApiGateway" in f.api));
 });
-test("generated configuration owns async bearer injection; linked requests get no bearer or middleware headers", async (t) => {
-  let context;
+
+test("input validation happens before resolving any dependencies", async (t) => {
+  let selected = 0;
   const f = await fixture(t, {
-    context: (x) => {
-      context = x;
+    getDriverQueries: () => { selected++; return {}; },
+    getRecentRaceQueries: () => { selected++; return {}; },
+  });
+  const cases = [
+    ["get_my_driver", { token: "SECRET" }],
+    ["get_my_driver", { cust_id: 1 }],
+    ["get_recent_races", { cust_id: "1" }],
+    ["get_recent_races", { cust_id: -1 }],
+    ["get_recent_races", { limit: 11 }],
+    ["get_recent_races", { limit: 0 }],
+    ["get_recent_races", { access_token: "SECRET" }],
+  ];
+  for (const [name, args] of cases) {
+    const result = await f.call(name, args);
+    assert.equal(result.structuredContent.error.code, "INVALID_INPUT");
+    assert.doesNotMatch(JSON.stringify(result), /SECRET|stack|cause/);
+  }
+  assert.equal(selected, 0);
+});
+
+test("custom driver and recent-race implementations are selected per request", async (t) => {
+  const calls = [];
+  const f = await fixture(t, {
+    getDriverQueries: (context) => {
+      assert.ok(context.signal instanceof AbortSignal);
+      calls.push("driver-selected");
+      return { getCurrent: async ({ signal }) => {
+        assert.ok(signal instanceof AbortSignal);
+        calls.push("driver-called");
+        return { cust_id: 42, display_name: "Fixture Driver", secret: "SECRET" };
+      }};
+    },
+    getRecentRaceQueries: (context) => {
+      assert.ok(context.signal instanceof AbortSignal);
+      calls.push("recent-selected");
+      return { getRecent: async ({ custId, signal }) => {
+        assert.ok(signal instanceof AbortSignal);
+        assert.equal(custId, 42);
+        calls.push("recent-called");
+        return {
+          cust_id: 42,
+          races: [
+            { subsession_id: 100, series_name: "Series", points: 3, private: "SECRET" },
+            { subsession_id: 101 },
+          ],
+        };
+      }};
     },
   });
-  const result = await f.call("get_my_driver");
-  assert.deepEqual(result.structuredContent, {
-    cust_id: 1,
-    display_name: "One",
+  const driver = await f.call("get_my_driver");
+  assert.deepEqual(driver.structuredContent, {
+    cust_id: 42, display_name: "Fixture Driver",
   });
-  assert.equal(
-    new Headers(f.requests[0].init.headers).get("authorization"),
-    "Bearer BEARER_SECRET",
-  );
-  assert.equal(
-    new Headers(f.requests[1].init.headers).has("authorization"),
-    false,
-  );
-  assert.equal(f.requests[1].init.redirect, "error");
-  assert.ok(context.signal instanceof AbortSignal);
-  assert.doesNotMatch(JSON.stringify(result), /SECRET|signature/);
-});
-test("linked payloads and invalid inputs are sanitized; generated HTTP failures map safely", async (t) => {
-  const f = await fixture(t, {
-    payload: { cust_id: "SECRET", display_name: "One" },
-  });
-  const bad = await f.call("get_my_driver");
-  assert.equal(bad.structuredContent.error.code, "DATA_RESOLUTION_FAILED");
-  assert.doesNotMatch(JSON.stringify(bad), /SECRET|stack|cause/);
-  const input = await f.call("get_my_driver", { token: "SECRET" });
-  assert.equal(input.structuredContent.error.code, "INVALID_INPUT");
-  assert.equal(f.requests.length, 2);
-  const denied = await fixture(t, {
-    fetchApi: async () => new Response("SECRET", { status: 401 }),
-  });
-  assert.equal(
-    (await denied.call("get_my_driver")).structuredContent.error.code,
-    "UPSTREAM_UNAUTHORIZED",
-  );
-});
-test("continuations replay deterministically and cannot cross opaque scopes", async (t) => {
-  const f = await fixture(t);
-  const first = (await f.call("find_drivers", { query: "On", limit: 1 }))
-    .structuredContent;
-  const page = await f.call("find_drivers", { cursor: first.next_cursor });
-  assert.equal(page.structuredContent.items[0].cust_id, 2);
-  assert.deepEqual(
-    await f.call("find_drivers", { cursor: first.next_cursor }),
-    page,
-  );
-  assert.equal(f.requests.length, 2);
-  f.changeScope();
-  assert.equal(
-    (await f.call("find_drivers", { cursor: first.next_cursor }))
-      .structuredContent.error.code,
-    "CURSOR_EXPIRED",
-  );
-});
-test("cancellation reaches the generated request signal", async (t) => {
-  let signal;
-  let started;
-  const ready = new Promise((resolve) => {
-    started = resolve;
-  });
-  const f = await fixture(t, {
-    fetchApi: async (_url, init) => {
-      signal = init.signal;
-      started();
-      return new Promise((_resolve, reject) =>
-        signal.addEventListener("abort", () => reject(signal.reason), {
-          once: true,
-        }),
-      );
-    },
-  });
-  const cancel = new AbortController();
-  const pending = f.client
-    .callTool(
-      { name: "get_my_driver", arguments: {} },
-      { signal: cancel.signal },
-    )
-    .catch(() => undefined);
-  await ready;
-  cancel.abort();
-  await pending;
-  for (let i = 0; i < 50 && !signal.aborted; i++)
-    await new Promise(setImmediate);
-  assert.equal(signal.aborted, true);
-});
-test("native SDK output validation rejects an invalid structured result", async (t) => {
-  const { z } = await import("zod");
-  const f = await fixture(t);
-  f.server.registerTool(
-    "invalid_output",
-    {
-      inputSchema: z.object({}),
-      outputSchema: z.object({ required: z.number() }),
-    },
-    async () => ({ content: [], structuredContent: { required: "invalid" } }),
-  );
-  const result = await f.call("invalid_output");
-  assert.equal(result.isError, true);
-});
-test("linked URLs require HTTPS and reject embedded credentials", async (t) => {
-  for (const link of [
-    "http://cache.example.test/",
-    "https://user:secret@cache.example.test/",
-  ]) {
-    const f = await fixture(t, {
-      fetchApi: async () =>
-        Response.json({
-          link,
-          expires: new Date(Date.now() + 900000).toISOString(),
-        }),
-    });
-    assert.equal(
-      (await f.call("get_my_driver")).structuredContent.error.code,
-      "DATA_RESOLUTION_FAILED",
-    );
-    assert.equal(f.requests.length, 1);
+  const recent = await f.call("get_recent_races", { cust_id: 42, limit: 1 });
+  assert.equal(recent.structuredContent.races.length, 1);
+  assert.equal(recent.structuredContent.races[0].subsession_id, 100);
+  assert.equal(recent.structuredContent.returned_count, 1);
+  assert.equal(recent.structuredContent.complete, true);
+  assert.equal(recent.structuredContent.position_basis, "upstream");
+  assert.deepEqual(calls, ["driver-selected", "driver-called", "recent-selected", "recent-called"]);
+  for (const result of [driver, recent]) {
+    assert.equal(result.content[0].text, JSON.stringify(result.structuredContent));
+    assert.doesNotMatch(JSON.stringify(result), /SECRET|private/);
   }
 });
 
-test("content projections validate numeric IDs in application-owned linked payloads", async () => {
-  const { CarProjection, TrackProjection } =
-    await import("../dist/tools/lookup-content.js");
-  for (const [schema, key, name] of [
-    [CarProjection, "car_id", "car_name"],
-    [TrackProjection, "track_id", "track_name"],
-  ]) {
-    assert.equal(
-      schema.safeParse({ [key]: 7, [name]: "Example" }).success,
-      true,
-    );
-    for (const id of ["7", null, undefined]) {
-      assert.equal(
-        schema.safeParse({ [key]: id, [name]: "Example" }).success,
-        false,
-      );
-    }
+test("missing dependencies, mismatched identity and malformed results are sanitized", async (t) => {
+  const f = await fixture(t);
+  for (const name of ["get_my_driver", "get_recent_races"]) {
+    assert.equal((await f.call(name)).structuredContent.error.code, "CONFIGURATION_ERROR");
   }
+  const invalid = await fixture(t, {
+    getDriverQueries: () => ({ getCurrent: async () => ({ cust_id: "SECRET", display_name: "Name" }) }),
+    getRecentRaceQueries: () => ({ getRecent: async () => ({ cust_id: 1, races: [] }) }),
+  });
+  assert.equal((await invalid.call("get_my_driver")).structuredContent.error.code, "DATA_RESOLUTION_FAILED");
+  assert.equal((await invalid.call("get_recent_races", { cust_id: 2 })).structuredContent.error.code, "DATA_RESOLUTION_FAILED");
+});
+
+test("the 64 KiB result cap rejects oversized injected data", async (t) => {
+  const f = await fixture(t, {
+    getDriverQueries: () => ({ getCurrent: async () => ({
+      cust_id: 1, display_name: "x".repeat(40000),
+    }) }),
+  });
+  assert.equal((await f.call("get_my_driver")).structuredContent.error.code, "RESPONSE_LIMIT_EXCEEDED");
 });
