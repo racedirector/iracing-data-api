@@ -18,6 +18,19 @@ async function fixture(t, services = {}) {
     getRecentRaceQueries: () => ({
       getRecent: async () => ({ cust_id: 1, races: [] }),
     }),
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 0,
+        total_chunks: 0,
+        chunk_index: 0,
+        returned_count: 0,
+        query_complete: true,
+        results: [],
+        position_basis: "upstream",
+      }),
+    }),
     ...services,
   });
   server.registerTool("after", {}, async () => ({
@@ -216,6 +229,8 @@ test("missing selectors fail before publishing either tool", async () => {
     {},
     { getDriverQueries() {} },
     { getRecentRaceQueries() {} },
+    { getRaceSearchQueries() {} },
+    { getDriverQueries() {}, getRecentRaceQueries() {} },
   ]) {
     let registered = 0;
     assert.throws(
@@ -228,7 +243,7 @@ test("missing selectors fail before publishing either tool", async () => {
           },
           services,
         ),
-      /Both iRacing capability selectors are required/,
+      /All iRacing capability selectors are required/,
     );
     assert.equal(registered, 0);
   }
@@ -279,7 +294,7 @@ test("the 64 KiB result cap rejects oversized injected data", async (t) => {
 
 test("cancellation during capability selection prevents either domain query", async () => {
   const { registerIracingTools } = await import("../dist/index.js");
-  for (const name of ["get_my_driver", "get_recent_races"]) {
+  for (const name of ["get_my_driver", "get_recent_races", "search_race_results"]) {
     const selected = Promise.withResolvers();
     const release = Promise.withResolvers();
     const control = new AbortController();
@@ -293,6 +308,10 @@ test("cancellation during capability selection prevents either domain query", as
       getRecent: async () => {
         queried++;
         return { cust_id: 1, races: [] };
+      },
+      search: async () => {
+        queried++;
+        return { source: "hosted", total_matches: 0 };
       },
     };
     const select = async (context) => {
@@ -308,10 +327,12 @@ test("cancellation during capability selection prevents either domain query", as
           callbacks.set(toolName, callback);
         },
       },
-      { getDriverQueries: select, getRecentRaceQueries: select },
+      { getDriverQueries: select, getRecentRaceQueries: select, getRaceSearchQueries: select },
     );
     const pending = callbacks.get(name)(
-      {},
+      name === "search_race_results"
+        ? { source: "hosted", start_range_begin: "2026-11-01T00:00:00Z" }
+        : {},
       { mcpReq: { signal: control.signal } },
     );
     const rejected = assert.rejects(pending, {
