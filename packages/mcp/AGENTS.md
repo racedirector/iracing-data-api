@@ -5,10 +5,10 @@ Inherit [repository guidance](../../AGENTS.md) and read the
 before modifying tools. For host composition follow
 [reference host guidance](../../apps/iracing-data-mcp/AGENTS.md).
 
-This private workspace defines two explicit MCP tool contracts,
-`get_my_driver` and `get_recent_races`. The core must remain independent
+This private workspace defines three explicit MCP tool contracts:
+`get_my_driver`, `get_recent_races`, and `search_race_results`. The core must remain independent
 of generated Fetch/Axios clients, API configuration, OAuth, and transport.
-Its input/output schemas and service contracts are tool-local. The internal
+Its input/output schemas and service contracts are tool-local. All three\ncapability selectors are required because all three tools are advertised. The internal
 `registerApplicationTool` adapter owns input validation, final projection,
 safe MCP results and cancellation. Keep request-local capability selection
 explicit in each tool and business rules in its transport-independent operation.
