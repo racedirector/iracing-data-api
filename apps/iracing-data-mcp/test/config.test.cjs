@@ -33,3 +33,25 @@ test("local stdio capabilities are constructed lazily without network calls", as
   assert.equal(typeof queries.driverQueries.getCurrent, "function");
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
 });
+
+test("local stdio executable initializes and advertises both tools", async () => {
+  const { Client } = await import("@modelcontextprotocol/client");
+  const { StdioClientTransport } = await import(
+    "@modelcontextprotocol/client/stdio"
+  );
+  const client = new Client({ name: "offline-stdio-test", version: "1" });
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [path.resolve(__dirname, "../dist/main.js")],
+  });
+
+  try {
+    await client.connect(transport);
+    assert.deepEqual(
+      (await client.listTools()).tools.map((tool) => tool.name),
+      ["get_my_driver", "get_recent_races"],
+    );
+  } finally {
+    await client.close();
+  }
+});
