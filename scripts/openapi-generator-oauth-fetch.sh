@@ -6,6 +6,8 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 ROOT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
 export OPENAPI_GENERATOR="$ROOT_DIR/node_modules/.bin/openapi-generator-cli"
+# Suppress generator INFO chatter while retaining warnings, errors and JVM options.
+export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"
 export TS_POST_PROCESS_FILE="$SCRIPT_DIR/openapi-generator-ts-post-process.sh"
 export OPENAPI_DOC="${OPENAPI_DOC:-$ROOT_DIR/openapi/oauth.json}"
 export OUTPUT_PACKAGE="${OUTPUT_PACKAGE:-$ROOT_DIR/packages/oauth/client/generated}"
