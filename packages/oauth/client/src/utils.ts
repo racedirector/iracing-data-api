@@ -194,12 +194,14 @@ export async function validateAccessToken(
   return token;
 }
 
-function isJWTExpired(token: string) {
+function isJWTExpired(token: string, earlyRefreshWindowMs = 0) {
   const { exp } = decodeJwt<{ exp?: number }>(token);
 
   const expiry = new Date((exp ?? 0) * 1000);
 
-  return Date.now() > expiry.getTime();
+  return earlyRefreshWindowMs === 0
+    ? Date.now() > expiry.getTime()
+    : expiry.getTime() - Date.now() <= earlyRefreshWindowMs;
 }
 
 /**
@@ -207,11 +209,20 @@ function isJWTExpired(token: string) {
  *
  * @throws {Error} If the token is not a valid JWT.
  * @param {string} accessToken - Compact JWT to decode; opaque credentials cannot be inspected by this helper.
- * @returns {boolean} True when the current millisecond clock is past exp in seconds; missing exp is treated as zero.
+ * @param {number} earlyRefreshWindowMs - Finite nonnegative milliseconds before expiry; omitted/zero retains strict expiry.
+ * @returns {boolean} True past expiry, or at/inside a positive early refresh window; missing exp is treated as zero.
+ * @throws {RangeError} If the early refresh window is not finite and nonnegative.
  * @see {@link https://oauth.iracing.com/oauth2/book/access_token.html|iRacing access tokens}
  */
-export function isAccessTokenExpired(accessToken: string) {
-  return isJWTExpired(accessToken);
+export function isAccessTokenExpired(
+  accessToken: string,
+  earlyRefreshWindowMs = 0,
+) {
+  if (!Number.isFinite(earlyRefreshWindowMs) || earlyRefreshWindowMs < 0) {
+    throw new RangeError("earlyRefreshWindowMs must be finite and nonnegative");
+  }
+
+  return isJWTExpired(accessToken, earlyRefreshWindowMs);
 }
 
 /**

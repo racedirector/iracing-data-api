@@ -32,6 +32,7 @@ import {
   OAuthPasswordLimitedGrantParametersSchema,
 } from "@iracing-data/oauth-schema";
 import * as oauth from "oauth4webapi";
+import { z } from "zod";
 import { OAuthApiClient, type OAuthApiClientFactory } from "./api-client";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
@@ -80,7 +81,37 @@ export interface OAuthClientOptions {
   // wire client while tests or applications may inject a compatible boundary.
   /** Optional factory for the low-level OAuth API facade. */
   createOAuthApi?: OAuthApiClientFactory;
+
+  /** Refresh stored access tokens this many milliseconds before expiry; finite and nonnegative. */
+  earlyRefreshWindowMs?: number;
 }
+
+const storeSchema = z.custom<StateStore | SessionStore>(
+  (value) =>
+    value !== null &&
+    typeof value === "object" &&
+    "get" in value &&
+    typeof value.get === "function" &&
+    "set" in value &&
+    typeof value.set === "function" &&
+    "del" in value &&
+    typeof value.del === "function",
+  "Expected a store with get, set, and del methods",
+);
+
+/** Validates lifecycle composition before construction without wrapping injected dependencies. */
+export const OAuthClientOptionsSchema = z.object({
+  clientMetadata: IRacingOAuthClientMetadataSchema,
+  stateStore: storeSchema as z.ZodType<StateStore>,
+  sessionStore: storeSchema as z.ZodType<SessionStore>,
+  createOAuthApi: z
+    .custom<OAuthApiClientFactory>(
+      (value) => typeof value === "function",
+      "Expected an OAuth API factory",
+    )
+    .optional(),
+  earlyRefreshWindowMs: z.number().nonnegative().default(0),
+});
 
 /**
  * The `OAuthClient` is responsible for coordinating access and refresh tokens
@@ -93,6 +124,7 @@ export class OAuthClient {
   private readonly stateStore: StateStore;
   private readonly sessionStore: SessionStore;
   private readonly createOAuthApi: OAuthApiClientFactory;
+  private readonly earlyRefreshWindowMs: number;
   private readonly sessionRefreshes = new Map<
     string,
     Promise<OAuthTokenResponse>
@@ -109,15 +141,21 @@ export class OAuthClient {
    * @throws {Error} If the client metadata does not match the expected schema.
    */
   constructor(options: OAuthClientOptions) {
-    const { clientMetadata, stateStore, sessionStore } = options;
+    const {
+      clientMetadata,
+      stateStore,
+      sessionStore,
+      createOAuthApi,
+      earlyRefreshWindowMs,
+    } = OAuthClientOptionsSchema.parse(options);
 
-    this.clientMetadata =
-      IRacingOAuthClientMetadataSchema.parse(clientMetadata);
+    this.earlyRefreshWindowMs = earlyRefreshWindowMs;
+
+    this.clientMetadata = clientMetadata;
     this.stateStore = stateStore;
     this.sessionStore = sessionStore;
     this.createOAuthApi =
-      options.createOAuthApi ??
-      ((apiOptions) => new OAuthApiClient(apiOptions));
+      createOAuthApi ?? ((apiOptions) => new OAuthApiClient(apiOptions));
 
     this.authorizationServer = {
       issuer: this.clientMetadata.issuer,
@@ -495,7 +533,7 @@ export class OAuthClient {
 
     // A delayed restoration may have read the old session before another
     // refresh finished. Recheck storage before using a single-use token.
-    if (!isAccessTokenExpired(session.access_token)) {
+    if (!this.shouldRefreshAccessToken(session.access_token)) {
       return session;
     }
 
@@ -528,8 +566,12 @@ export class OAuthClient {
     return decodeAccessToken(accessToken);
   }
 
+  private shouldRefreshAccessToken(accessToken: string) {
+    return isAccessTokenExpired(accessToken, this.earlyRefreshWindowMs);
+  }
+
   /**
-   * Restores a session from storage, refreshing it if the access token has expired.
+   * Restores a session, refreshing expired tokens or tokens within the configured early refresh window.
    *
    * @param {string} sessionId - The session identifier to load.
    * @returns {Promise<OAuthTokenResponse | undefined>} The stored session, or `undefined` when no session exists.
@@ -543,10 +585,7 @@ export class OAuthClient {
     const session = await this.getSession(sessionId);
 
     if (session) {
-      // Check if the session is expired
-      const isExpired = isAccessTokenExpired(session.access_token);
-
-      if (isExpired) {
+      if (this.shouldRefreshAccessToken(session.access_token)) {
         let refresh = this.sessionRefreshes.get(sessionId);
 
         if (!refresh) {
