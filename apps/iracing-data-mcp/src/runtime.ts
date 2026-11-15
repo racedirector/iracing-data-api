@@ -137,10 +137,7 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
       return auth;
     }
 
-    return handler.fetch(c.req.raw, {
-      parsedBody: c.get("parsedBody"),
-      authInfo: auth,
-    });
+    return handler.fetch(c.req.raw, { authInfo: auth });
   });
 
   let listener: ReturnType<typeof serve> | undefined;
@@ -153,7 +150,9 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
     },
     listen(port = config.port, host = config.host) {
       return new Promise<void>((resolve, reject) => {
-        listener = serve({ fetch: app.fetch, port, hostname: host }, resolve);
+        listener = serve({ fetch: app.fetch, port, hostname: host }, () => {
+          resolve();
+        });
         listener.once("error", reject);
       });
     },
