@@ -9,75 +9,69 @@ import {
 import { composeMcpServices } from "./composition.js";
 import type { McpRuntimeDependencies } from "./composition.js";
 import type { RuntimeConfig } from "./runtime-config.js";
+import type { McpServices } from "./services.js";
 import type { OAuthTokenVerifier } from "@modelcontextprotocol/server";
 
-/** Optional remote OAuth protection. Actor-to-iRacing-account lookup is separate. */
+/** Optional remote OAuth ingress; account resolution remains separate. */
 export interface McpIngressAuthorization {
-  /** Exact public URL for this MCP resource. */
+  /** Canonical URL for this MCP resource. */
   readonly resourceUrl: string;
 
-  /** OAuth verification supplied by the host, not the MCP tools. */
+  /** Verifies the caller's bearer token. */
   readonly verifier: OAuthTokenVerifier;
 
-  /** Issuer advertised in resource metadata. */
+  /** Optional advertised OAuth issuer. */
   readonly issuer?: string;
 
-  /** Verified token scopes required to access MCP. */
+  /** Scopes required for incoming requests. */
   readonly requiredScopes?: readonly string[];
 }
 
-/** All configuration needed to compose a listener-free Hono MCP app. */
+/** Inputs for the Hono MCP listener. */
 export interface McpRuntimeOptions {
-  /** Validated, defaulted and transformed listener configuration. */
+  /** Zod-validated listener settings. */
   readonly config: RuntimeConfig;
 
-  /** Injected identity and actor-specific query capabilities. */
+  /** Request-local actor and capability resolution. */
   readonly dependencies: McpRuntimeDependencies;
 
-  /** Optional OAuth ingress for remote callers. */
+  /** Optional remote bearer verification. */
   readonly authorization?: McpIngressAuthorization;
 
   /**
-   * Optional process shutdown callback, used only by the executable.
-   * @param {0 | 1} exitCode - Clean shutdown or failure.
+   * Called after an executable receives a termination signal.
+   * @param {0 | 1} exitCode - Zero for a clean shutdown, one otherwise.
    */
   readonly onStopped?: (exitCode: 0 | 1) => void;
 }
 
-/** The Hono app and its minimal Node listener lifecycle. */
+/** Hono application and Node listener lifecycle. */
 export interface McpRuntime {
-  /** Fetch-standard Hono application for embedding or testing. */
+  /** Hono app for embedding or HTTP testing. */
   readonly app: ReturnType<typeof createMcpHonoApp>;
 
-  /** Node listener after listen() has been called. */
+  /** Node listener once started. */
   readonly server: ReturnType<typeof serve> | undefined;
 
   /**
-   * Bind the application to the specified interface and port.
-   * @param {number} port - Listening TCP port (zero for tests).
-   * @param {string} host - Listening host.
-   * @returns {Promise<void>} Resolves after the socket starts listening.
+   * Listen on the validated interface, or an explicit test override.
+   * @param {number} port - TCP port, or zero for an ephemeral port.
+   * @param {string} host - TCP interface.
+   * @returns {Promise<void>} Resolves when listening.
    */
   listen(port?: number, host?: string): Promise<void>;
 
   /**
-   * Stop accepting requests, close MCP exchanges and release credentials.
-   * @returns {Promise<void>} Completion after listener and credential shutdown.
+   * Close MCP requests, the listener, and the credential owner.
+   * @returns {Promise<void>} Completion of the shutdown.
    */
   shutdown(): Promise<void>;
 }
 
-/**
- * Compose two MCP tools into a single Hono handler. The SDK owns MCP request
- * classification and stateless transport; the host owns actor resolution.
- * @param {McpRuntimeOptions} options - Validated listener and injected providers.
- * @returns {McpRuntime} Unstarted Hono application with a small Node lifecycle.
- */
-export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
-  const { config, authorization } = options;
+type HonoApp = ReturnType<typeof createMcpHonoApp>;
+type Handler = ReturnType<typeof createMcpHandler>;
 
-  const services = composeMcpServices(options.dependencies);
-
+function createHttpApp(config: RuntimeConfig): HonoApp {
   const app = createMcpHonoApp({
     host: config.host,
     allowedHosts: config.allowedHosts.map(
@@ -89,27 +83,18 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
     maxRequestBodySize: 64 * 1024,
   });
 
-  const handler = createMcpHandler(
-    () =>
-      createIracingMcpServer({
-        serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
-        services,
-      }),
-    { maxRequestBodySize: 64 * 1024 },
-  );
+  // SDK hostname validation is augmented by the operator's exact port policy.
+  app.use("*", async (context, next) => {
+    const host = context.req.header("host");
 
-  // The SDK protects hostnames; preserve the operator's exact port/origin list.
-  app.use("*", async (c, next) => {
-    const host = c.req.header("host");
-
-    const origin = c.req.header("origin");
+    const origin = context.req.header("origin");
 
     if (
       !host ||
       !config.allowedHosts.includes(host) ||
       (origin !== undefined && !config.allowedOrigins.includes(origin))
     ) {
-      return c.json(
+      return context.json(
         {
           jsonrpc: "2.0",
           error: { code: -32000, message: "Forbidden" },
@@ -122,38 +107,46 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
     return next();
   });
 
-  app.get("/healthz", (c) =>
-    c.json({
-      live: true,
-      auth_state: services.authorizationState?.() ?? "ready",
-    }),
-  );
+  return app;
+}
 
-  if (authorization?.issuer) {
-    const path = new URL(
-      getOAuthProtectedResourceMetadataUrl(new URL(authorization.resourceUrl)),
-    ).pathname;
-
-    const resource = {
-      resource: authorization.resourceUrl,
-      authorization_servers: [authorization.issuer],
-      ...(authorization.requiredScopes?.length
-        ? { scopes_supported: [...authorization.requiredScopes] }
-        : {}),
-    };
-
-    app.get(path, (c) =>
-      c.json(resource, 200, { "Access-Control-Allow-Origin": "*" }),
-    );
-    app.options(path, (c) =>
-      c.body(null, 204, {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, MCP-Protocol-Version",
-      }),
-    );
+function mountResourceMetadata(
+  app: HonoApp,
+  authorization: McpIngressAuthorization | undefined,
+): void {
+  if (!authorization?.issuer) {
+    return;
   }
 
+  const path = new URL(
+    getOAuthProtectedResourceMetadataUrl(new URL(authorization.resourceUrl)),
+  ).pathname;
+
+  const resource = {
+    resource: authorization.resourceUrl,
+    authorization_servers: [authorization.issuer],
+    ...(authorization.requiredScopes?.length
+      ? { scopes_supported: [...authorization.requiredScopes] }
+      : {}),
+  };
+
+  app.get(path, (context) =>
+    context.json(resource, 200, { "Access-Control-Allow-Origin": "*" }),
+  );
+  app.options(path, (context) =>
+    context.body(null, 204, {
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "GET, HEAD, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type, MCP-Protocol-Version",
+    }),
+  );
+}
+
+function mountMcp(
+  app: HonoApp,
+  handler: Handler,
+  authorization: McpIngressAuthorization | undefined,
+): void {
   const authorize = authorization
     ? requireBearerAuth({
         verifier: authorization.verifier,
@@ -165,16 +158,23 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
       })
     : undefined;
 
-  app.all("/mcp", async (c) => {
-    const auth = authorize ? await authorize(c.req.raw) : undefined;
+  app.all("/mcp", async (context) => {
+    const auth = authorize ? await authorize(context.req.raw) : undefined;
 
     if (auth instanceof Response) {
       return auth;
     }
 
-    return handler.fetch(c.req.raw, { authInfo: auth });
+    return handler.fetch(context.req.raw, { authInfo: auth });
   });
+}
 
+function createLifecycle(
+  app: HonoApp,
+  handler: Handler,
+  services: McpServices,
+  config: RuntimeConfig,
+): McpRuntime {
   let listener: ReturnType<typeof serve> | undefined;
 
   let stopped = false;
@@ -189,6 +189,7 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
         listener = serve({ fetch: app.fetch, port, hostname: host }, () => {
           resolve();
         });
+
         listener.once("error", reject);
       });
     },
@@ -198,11 +199,20 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
       }
 
       stopped = true;
+
       await handler.close();
-      if (listener?.listening) {
+
+      const activeListener = listener;
+
+      if (activeListener?.listening) {
         await new Promise<void>((resolve, reject) => {
-          listener!.close((error) => {
-            error ? reject(error) : resolve();
+          activeListener.close((error) => {
+            if (error) {
+              reject(error);
+              return;
+            }
+
+            resolve();
           });
         });
       }
@@ -213,9 +223,41 @@ export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
 }
 
 /**
- * Compose Hono and start the Node listener at the configured host and port.
- * @param {McpRuntimeOptions} options - Host and dependency injection options.
- * @returns {Promise<McpRuntime>} Running MCP host.
+ * Compose two MCP tools into an unstarted Hono application.
+ * @param {McpRuntimeOptions} options - Listener configuration and injected providers.
+ * @returns {McpRuntime} Hono app with a small Node lifecycle.
+ */
+export function createMcpRuntime(options: McpRuntimeOptions): McpRuntime {
+  const services = composeMcpServices(options.dependencies);
+
+  const app = createHttpApp(options.config);
+
+  const handler = createMcpHandler(
+    () =>
+      createIracingMcpServer({
+        serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
+        services,
+      }),
+    { maxRequestBodySize: 64 * 1024 },
+  );
+
+  app.get("/healthz", (context) =>
+    context.json({
+      live: true,
+      auth_state: services.authorizationState?.() ?? "ready",
+    }),
+  );
+
+  mountResourceMetadata(app, options.authorization);
+  mountMcp(app, handler, options.authorization);
+
+  return createLifecycle(app, handler, services, options.config);
+}
+
+/**
+ * Compose the Hono app and listen on the configured interface and port.
+ * @param {McpRuntimeOptions} options - Runtime and lifecycle configuration.
+ * @returns {Promise<McpRuntime>} Running Hono MCP app.
  */
 export async function startMcpRuntime(
   options: McpRuntimeOptions,
