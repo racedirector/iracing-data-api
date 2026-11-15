@@ -8,7 +8,8 @@ before modifying tools. For host composition follow
 This private workspace defines three explicit MCP tool contracts:
 `get_my_driver`, `get_recent_races`, and `search_race_results`. The core must remain independent
 of generated Fetch/Axios clients, API configuration, OAuth, and transport.
-Its input/output schemas and service contracts are tool-local. All three\ncapability selectors are required because all three tools are advertised. The internal
+Its input/output schemas and service contracts are tool-local. All three
+capability selectors are required because all three tools are advertised. The internal
 `registerApplicationTool` adapter owns input validation, final projection,
 safe MCP results and cancellation. Keep request-local capability selection
 explicit in each tool and business rules in its transport-independent operation.
