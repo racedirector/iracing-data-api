@@ -11,6 +11,14 @@ import type {
   IracingToolServices,
 } from "../../services.js";
 
+const annotations = {
+  title: "Search race results",
+  readOnlyHint: true,
+  destructiveHint: false,
+  idempotentHint: true,
+  openWorldHint: true,
+};
+
 /**
  * Register historical search with explicit validation and request-local services.
  * @param {IracingToolRegistry} server - Caller-owned registration surface.
@@ -27,13 +35,7 @@ export function registerSearchRaceResults(
         "Search series or hosted results (including league races) for any driver/team or explicit criteria. No implicit current driver or race-only filter. Supply a season or UTC time range. team_id overrides cust_id upstream. Returns one zero-based upstream chunk, in upstream order; query_complete covers only this query. Repeat with chunk_index to retrieve other chunks; searches are rerun and are not a stable snapshot. Narrow criteria on RESPONSE_LIMIT_EXCEEDED. No special-event classification or name lookup; requires iracing.auth.",
       inputSchema: toolInputSchema(SearchInput),
       outputSchema: SearchOutput,
-      annotations: {
-        title: "Search race results",
-        readOnlyHint: true,
-        destructiveHint: false,
-        idempotentHint: true,
-        openWorldHint: true,
-      },
+      annotations,
     },
     async (input, request) => {
       const context = {
@@ -56,6 +58,7 @@ export function registerSearchRaceResults(
         const queries = await services.getRaceSearchQueries(context);
 
         const result = await queries.search(checked.data, context);
+
         context.signal.throwIfAborted();
         const output = SearchOutput.safeParse(result);
 
