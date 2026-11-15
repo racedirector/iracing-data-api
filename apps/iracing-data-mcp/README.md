@@ -35,8 +35,11 @@ node apps/iracing-data-mcp/dist/main.js --credentials /absolute/path/to/credenti
 Selection order is `--credentials`, then `IRACING_MCP_CREDENTIAL_FILE`, then
 the dedicated MCP default. Relative paths resolve from the process working
 directory. There is no fallback to another credential file. Reconnect the
-MCP client after selecting or replacing a file: the current session store
-caches its first read.
+MCP client after selecting a different path. Each tool request restores the
+selected file afresh, so replacing its credentials does not require reconnecting.
+Restoration is serialized within the local connection so concurrent requests
+observe persisted refresh-token rotation. The OAuth client refreshes expired
+access tokens during restoration; it does not use an early-refresh window.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run

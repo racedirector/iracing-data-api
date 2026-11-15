@@ -2,6 +2,7 @@ import { ApplicationFailure } from "@iracing-data/mcp";
 import {
   InMemoryStore,
   OAuthClient,
+  OAuthRefreshError,
   OAuthTokenDocumentSessionStore,
   type IRacingOAuthClientMetadataInput,
   type OAuthTokenResponse,
@@ -26,32 +27,49 @@ export function createCliCapabilities(
 ): McpCapabilities {
   const sessionKey = "iracing-data-mcp-local";
 
-  const store = new OAuthTokenDocumentSessionStore({
-    filePath: credentialsFile,
-    sessionKey,
-  });
-
-  const client = new OAuthClient({
-    // The lifecycle client requires authorization-code metadata even for
-    // restoration. No authorization request or callback is started here.
-    clientMetadata: { redirectUri: "http://127.0.0.1", ...clientMetadata },
-    stateStore: new InMemoryStore(),
-    sessionStore: store,
-  });
+  // Serialize restoration through durable refresh persistence, not API requests.
+  // Each operation gets a fresh store so external CLI logins are observed.
+  let restorationTail: Promise<void> = Promise.resolve();
 
   return createFetchQueries(async () => {
-    let token: OAuthTokenResponse | undefined;
+    const restoration = restorationTail.then(async () => {
+      const store = new OAuthTokenDocumentSessionStore({
+        filePath: credentialsFile,
+        sessionKey,
+      });
 
-    try {
-      token = await client.restoreSessionForId(sessionKey);
-    } catch {
-      throw new ApplicationFailure("AUTHORIZATION_REQUIRED");
-    }
+      const client = new OAuthClient({
+        clientMetadata: { redirectUri: "http://127.0.0.1", ...clientMetadata },
+        stateStore: new InMemoryStore(),
+        sessionStore: store,
+      });
 
-    if (!token?.access_token.trim()) {
-      throw new ApplicationFailure("AUTHORIZATION_REQUIRED");
-    }
+      let token: OAuthTokenResponse | undefined;
 
-    return token.access_token;
+      try {
+        token = await client.restoreSessionForId(sessionKey);
+      } catch (error) {
+        throw new ApplicationFailure(
+          error instanceof OAuthRefreshError
+            ? "TOKEN_REFRESH_FAILED"
+            : "AUTHORIZATION_REQUIRED",
+        );
+      }
+
+      if (!token?.access_token.trim()) {
+        throw new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+          reason: "missing_session",
+        });
+      }
+
+      return token.access_token;
+    });
+
+    restorationTail = restoration.then(
+      () => undefined,
+      () => undefined,
+    );
+
+    return restoration;
   });
 }

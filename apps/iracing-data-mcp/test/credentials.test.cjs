@@ -68,4 +68,36 @@ test("local credentials refresh once and persist rotated tokens before API use",
   await Promise.all([query(), query()]);
   await query();
   assert.equal(refreshes, 1);
+
+  // A long-running connection must observe a subsequent CLI login.
+  const replacement = {
+    ...issued,
+    access_token: jwt(Math.floor(Date.now() / 1000) + 7200),
+    refresh_token: "replacement-refresh",
+  };
+  await fs.writeFile(file, JSON.stringify(replacement), { mode: 0o600 });
+  globalThis.fetch = async (input, init) => {
+    const url = new URL(input);
+    assert.notEqual(url.hostname, "oauth.iracing.com");
+    if (url.hostname === "members-ng.iracing.com") {
+      assert.equal(
+        new Headers(init.headers).get("authorization"),
+        `Bearer ${replacement.access_token}`,
+      );
+      return Response.json({
+        link: "https://cache.example.test/member",
+        expires: new Date(Date.now() + 60000).toISOString(),
+      });
+    }
+    return Response.json({ cust_id: 42, display_name: "Fixture Driver" });
+  };
+  await query();
+  assert.equal(refreshes, 1);
+
+  // Missing credentials fail before any protected-resource request.
+  await fs.unlink(file);
+  globalThis.fetch = async () => {
+    assert.fail("No network request is allowed without credentials");
+  };
+  await assert.rejects(query(), { name: "ApplicationFailure" });
 });
