@@ -1,7 +1,7 @@
 import { StatsApi } from "@iracing-data/api-client-fetch";
 import { ApplicationFailure, RecentRaceWindowSchema } from "@iracing-data/mcp";
 import { z } from "zod";
-import { mapFailure } from "../diagnostics/mapping.js";
+import { mapUpstreamFailure } from "./errors.js";
 import { readLinkedData } from "./linked-response.js";
 import type { Configuration } from "@iracing-data/api-client-fetch";
 import type { RecentRaceQueries } from "@iracing-data/mcp";
@@ -47,7 +47,7 @@ export function createRecentRaceQueries(
 
         raw = await readLinkedData(envelope, signal, configuration.fetchApi);
       } catch (error) {
-        throw mapFailure(error, { domain: "upstream" });
+        throw mapUpstreamFailure(error);
       }
 
       const source = SourceWindow.safeParse(raw);
