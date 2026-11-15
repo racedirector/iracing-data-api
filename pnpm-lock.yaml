@@ -344,6 +344,15 @@ importers:
 
   apps/iracing-data-mcp:
     dependencies:
+      '@hono/node-server':
+        specifier: 1.19.17
+        version: 1.19.17(hono@4.13.13)
+      '@modelcontextprotocol/hono':
+        specifier: 2.0.2
+        version: 2.0.2(@modelcontextprotocol/server@2.3.1)(hono@4.13.13)
+      hono:
+        specifier: 4.13.13
+        version: 4.13.13
       awilix:
         specifier: ^13.0.5
         version: 13.0.5
@@ -356,21 +365,9 @@ importers:
       '@iracing-data/oauth-client':
         specifier: workspace:*
         version: link:../../packages/oauth/client
-      '@modelcontextprotocol/express':
-        specifier: ^2.0.2
-        version: 2.0.2(@modelcontextprotocol/server@2.3.1)(express@5.3.0(supports-color@10.2.2))
-      '@modelcontextprotocol/node':
-        specifier: 2.1.1
-        version: 2.1.1(@modelcontextprotocol/server@2.3.1)
       '@modelcontextprotocol/server':
         specifier: 2.3.1
         version: 2.3.1
-      cors:
-        specifier: 2.8.6
-        version: 2.8.6
-      express:
-        specifier: ^5.3.0
-        version: 5.3.0(supports-color@10.2.2)
       jose:
         specifier: ^6.2.12
         version: 6.2.12
@@ -381,12 +378,6 @@ importers:
       '@modelcontextprotocol/client':
         specifier: 2.3.1
         version: 2.3.1
-      '@types/cors':
-        specifier: ^2.8.19
-        version: 2.8.19
-      '@types/express':
-        specifier: ^5.0.6
-        version: 5.0.6
       '@types/node':
         specifier: ^26.6.2
         version: 26.6.3
@@ -3504,6 +3495,13 @@ packages:
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
 
+  '@modelcontextprotocol/hono@2.0.2':
+    resolution: {tarball: https://registry.npmjs.org/@modelcontextprotocol/hono/-/hono-2.0.2.tgz}
+    engines: {node: '>=20'}
+    peerDependencies:
+      '@modelcontextprotocol/server': ^2.0.0
+      hono: ^4
+
 snapshots:
 
   '@better-auth/utils@0.5.0':
@@ -6430,3 +6428,8 @@ snapshots:
   reusify@1.1.0: {}
 
   queue-microtask@1.2.3: {}
+
+  '@modelcontextprotocol/hono@2.0.2(@modelcontextprotocol/server@2.3.1)(hono@4.13.13)':
+    dependencies:
+      '@modelcontextprotocol/server': 2.3.1
+      hono: 4.13.13

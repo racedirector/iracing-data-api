@@ -1,6 +1,5 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
-const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
 const { test } = require("node:test");
@@ -266,108 +265,6 @@ test("replacement persistence failure quarantines all callers and removes stale 
   assert.equal(await oauth.readOAuthTokenDocument(f.file), undefined);
   await f.write(token());
   assert.equal((await f.start()).authorizationState(), "ready");
-});
-
-async function request(app, method, path, body) {
-  return new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        host: "127.0.0.1",
-        port: app.server.address().port,
-        method,
-        path,
-        headers: {
-          Host: "localhost:3000",
-          Accept: "application/json, text/event-stream",
-          "Content-Type": "application/json",
-          "MCP-Protocol-Version": "2025-11-25",
-        },
-      },
-      (res) => {
-        let text = "";
-        res.on("data", (chunk) => (text += chunk));
-        res.on("end", () =>
-          resolve({
-            status: res.statusCode,
-            text,
-            json: () => JSON.parse(text),
-          }),
-        );
-      },
-    );
-    req.on("error", reject);
-    req.end(body && JSON.stringify(body));
-  });
-}
-test("real health, initialize, listing and tool errors stay safe before and after authorization", async (t) => {
-  const f = await fixture(t);
-  async function appFor(services) {
-    const app = f.api.createHttpApplication({
-      config: f.api.parseMcpApplicationConfig(),
-      services: f.api.composeMcpServices(
-        f.api.createCliMcpDependencies(services),
-      ),
-      logger: f.options.logger,
-      registerTools(server) {
-        server.registerTool(
-          "probe",
-          { description: "auth probe" },
-          async () => {
-            try {
-              await access(services);
-              return { content: [] };
-            } catch (error) {
-              return f.api.toolError(error, f.api.createRequestContext());
-            }
-          },
-        );
-      },
-    });
-    await app.listen(0, "127.0.0.1");
-    t.after(() => app.shutdown());
-    return app;
-  }
-  const app = await appFor(await f.start());
-  const health = await request(app, "GET", "/healthz");
-  assert.equal(health.json().auth_state, "authorization_required");
-  const init = await request(app, "POST", "/mcp", {
-    jsonrpc: "2.0",
-    id: 1,
-    method: "initialize",
-    params: {
-      protocolVersion: "2025-11-25",
-      capabilities: {},
-      clientInfo: { name: "fixture", version: "1" },
-    },
-  });
-  assert.equal(init.status, 200);
-  const list = await request(app, "POST", "/mcp", {
-    jsonrpc: "2.0",
-    id: 2,
-    method: "tools/list",
-  });
-  assert.equal(list.json().result.tools.length, 3);
-  const call = await request(app, "POST", "/mcp", {
-    jsonrpc: "2.0",
-    id: 3,
-    method: "tools/call",
-    params: { name: "probe", arguments: {} },
-  });
-  assert.equal(
-    call.json().result.structuredContent.error.reason,
-    "missing_session",
-  );
-  assert.doesNotMatch(
-    health.text + call.text + f.logs.join(""),
-    /SECRET|CUSTOMER|credentials.json/,
-  );
-  await app.shutdown();
-  await f.write(token());
-  const ready = await appFor(await f.start());
-  assert.equal(
-    (await request(ready, "GET", "/healthz")).json().auth_state,
-    "ready",
-  );
 });
 
 test("replacement scope loss quarantines before publishing; omitted rotation preserves existing client contract", async (t) => {

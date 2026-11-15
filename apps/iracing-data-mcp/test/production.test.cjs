@@ -91,41 +91,33 @@ test("production directory and secret enforce ownership/modes without exposing v
   await assert.rejects(readProductionSecret(file));
 });
 
-test("configured HTTP Host/Origin list stays exact without accepting default hosts", async (t) => {
+test("Hono runtime checks exact configured hosts and origins", async (t) => {
   const api = await import("../dist/index.js");
-  const app = api.createHttpApplication({
-    config: api.parseMcpApplicationConfig(),
-    services: { authorizationState: () => "authorization_required" },
-    allowedHosts: ["localhost:4321"],
-    allowedOrigins: ["http://localhost:4321"],
-    logger: api.createDiagnosticLogger(() => {}),
+  const config = api.parseRuntimeConfig({
+    IRACING_MCP_ALLOWED_HOSTS: "localhost:4321",
+    IRACING_MCP_ALLOWED_ORIGINS: "http://localhost:4321",
   });
-  await app.listen(0, "127.0.0.1");
+  const app = api.createMcpRuntime({
+    config,
+    dependencies: {
+      resolveActor: () => null,
+      resolveDependencies: () => { throw new Error("No actor"); },
+      authorizationState: () => "authorization_required",
+    },
+  });
   t.after(() => app.shutdown());
-  const url = `http://127.0.0.1:${app.server.address().port}/healthz`;
-  assert.equal(
-    (
-      await request(url, {
-        headers: { Host: "localhost:4321", Origin: "http://localhost:4321" },
-      })
-    ).status,
-    200,
-  );
-  assert.equal(
-    (await request(url, { headers: { Host: "127.0.0.1:3000" } })).status,
-    403,
-  );
-  assert.equal(
-    (
-      await request(url, {
-        headers: {
-          Host: "localhost:4321",
-          Origin: "http://localhost:4321.evil.example",
-        },
-      })
-    ).status,
-    403,
-  );
+  const ok = await app.app.request("http://localhost:4321/healthz", {
+    headers: { Host: "localhost:4321", Origin: "http://localhost:4321" },
+  });
+  assert.equal(ok.status, 200);
+  const rejected = await app.app.request("http://localhost:4321/healthz", {
+    headers: { Host: "127.0.0.1:3000" },
+  });
+  assert.equal(rejected.status, 403);
+  const badOrigin = await app.app.request("http://localhost:4321/healthz", {
+    headers: { Host: "localhost:4321", Origin: "http://localhost:4321.evil.example" },
+  });
+  assert.equal(badOrigin.status, 403);
 });
 
 test("production rejects non-loopback and unpaired configuration", async () => {

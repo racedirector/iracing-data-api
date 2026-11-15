@@ -106,9 +106,9 @@ async function main() {
   const services = api.composeMcpServices(
     api.createCliMcpDependencies(credentials),
   );
-  const app = api.createHttpApplication({
-    config: api.parseMcpApplicationConfig(),
-    services,
+  const app = api.createMcpRuntime({
+    config: api.parseRuntimeConfig({}),
+    dependencies: api.createCliMcpDependencies(credentials),
   });
   await app.listen(0, "127.0.0.1");
   const port = app.server.address().port;

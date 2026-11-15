@@ -17,7 +17,6 @@
 import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
-import { createMcpAuthorizationBoundary } from "./authorization.js";
 import { createCliMcpRuntimeDependencies } from "./composition.js";
 import { createDefaultMcpJwtVerifier } from "./jwt-verifier.js";
 import { parseRuntimeConfig } from "./runtime-config.js";
@@ -136,7 +135,7 @@ export async function startProduction(
   }
 
   const authorization = config.remoteAuthorization
-    ? createMcpAuthorizationBoundary({
+    ? ({
         ...config.remoteAuthorization,
         verifier: await createDefaultMcpJwtVerifier(config.remoteAuthorization),
       })
