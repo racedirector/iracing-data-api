@@ -12,13 +12,25 @@ Public packages are independently versioned. `dist-workspace.toml` defines the m
 
 Inspect the owning module and descend through its scoped guide:
 
-| Work                        | Implementation owner                                                                                                                                                                   | Scoped guidance                                                                                       |
-| --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Data API contracts          | [schema composition](packages/api/schema/src/schema/responses.ts), [document mapping](packages/helpers/api-schema-to-openapi/src/index.ts)                                             | [API](packages/api/AGENTS.md), [helpers](packages/helpers/AGENTS.md), [OpenAPI](openapi/AGENTS.md)    |
-| OAuth contracts/runtime     | [wire schemas](packages/oauth/schema/src/index.ts), [client](packages/oauth/client/src/index.ts), [document mapping](packages/helpers/oauth-schema-to-openapi/src/index.ts)            | [OAuth](packages/oauth/AGENTS.md)                                                                     |
-| SDK generation/presentation | [freshness orchestrator](scripts/check-generated.mjs), [presentation normalizer](scripts/normalize-client-presentation.js), [Rust normalizer](scripts/normalize-rust-presentation.mjs) | [TypeScript clients](packages/api/client/AGENTS.md), [Rust](crates/iracing-data-api-client/AGENTS.md) |
-| Local applications          | [MCP host composition](apps/iracing-data-mcp/src/session.ts), [MCP implementation](packages/mcp/src/register.ts), [CLI authentication](apps/iracing-data-cli/src/authenticate.ts)      | [MCP](apps/iracing-data-mcp/AGENTS.md)                                                                |
-| Workspace/check policy      | [topology](scripts/check-topology.js), [impact](scripts/workspace-impact.mjs), [verification](scripts/verify.mjs)                                                                      | [maintenance](docs/WORKSPACE-POLICY.md), [verification procedure](docs/VERIFICATION.md)               |
+- **Data API:** [schema composition](packages/api/schema/src/schema/responses.ts)
+  and [document mapping](packages/helpers/api-schema-to-openapi/src/index.ts).
+  See [API](packages/api/AGENTS.md) and [OpenAPI](openapi/AGENTS.md).
+- **OAuth:** [wire schemas](packages/oauth/schema/src/index.ts),
+  [client](packages/oauth/client/src/index.ts), and
+  [document mapping](packages/helpers/oauth-schema-to-openapi/src/index.ts).
+  Follow [OAuth guidance](packages/oauth/AGENTS.md).
+- **SDK generation:** [freshness orchestration](scripts/check-generated.mjs),
+  [presentation](scripts/normalize-client-presentation.js), and
+  [Rust normalization](scripts/normalize-rust-presentation.mjs).
+  See [TypeScript client guidance](packages/api/client/AGENTS.md).
+- **Local applications:** [MCP composition](apps/iracing-data-mcp/src/composition.ts),
+  [MCP tool registry](packages/mcp/src/register.ts), and
+  [CLI authentication](apps/iracing-data-cli/src/authenticate.ts).
+  See [MCP guidance](apps/iracing-data-mcp/AGENTS.md).
+- **Workspace checks:** [topology](scripts/check-topology.js),
+  [change impact](scripts/workspace-impact.mjs), and
+  [verification](scripts/verify.mjs).
+  See [workspace maintenance](docs/WORKSPACE-POLICY.md).
 
 The OAuth client is **authored runtime code**, not a generated client. OAuth OpenAPI does not feed the current Data API SDK generation scripts.
 
@@ -50,3 +62,7 @@ Repository skills must reference this guide, applicable scoped guidance, and exe
 ## Pull requests
 
 Keep changes focused. Update the nearest documentation for behavior or command changes. Describe the problem, resulting behavior, validation results and limitations, and package/release impact. List exact generation commands and affected generated files; say when none were regenerated. Separate unrelated fixes or broad generated churn from the requested work.
+
+When defining or extending an MCP tool, follow the
+[add-mcp-tool skill](.agents/skills/add-mcp-tool/SKILL.md)
+and [MCP package guidance](packages/mcp/AGENTS.md).

@@ -1,13 +1,24 @@
-/**
- * Executable startup boundary. Production owns configuration and lifetimes;
- * this entry point projects startup failure to fixed remediation text and nonzero
- * exit status. Raw configuration, filesystem and credential exceptions stay private.
- */
-import { startProduction } from "./production.js";
+import { parseArgs } from "node:util";
+import { parseConfig } from "./config.js";
+import { startMcpStdio } from "./stdio.js";
 
-void startProduction().catch(() => {
-  console.error(
-    "MCP startup failed. Check the client ID, exact Host/Origin configuration, optional client-secret file, and Docker-managed data volume. See the local Docker guide; stop the server before repairing credentials.",
+/** Local executable: stdio is the default; an HTTP host mounts the router. */
+try {
+  const { values } = parseArgs({
+    options: { credentials: { type: "string" } },
+    allowPositionals: false,
+  });
+
+  startMcpStdio(
+    parseConfig({
+      ...process.env,
+      IRACING_MCP_CREDENTIAL_FILE:
+        values.credentials ?? process.env.IRACING_MCP_CREDENTIAL_FILE,
+    }),
+  );
+} catch {
+  process.stderr.write(
+    "MCP startup failed. Check the local credential path.\n",
   );
   process.exitCode = 1;
-});
+}

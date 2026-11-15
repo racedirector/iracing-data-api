@@ -1,16 +1,29 @@
-# iracing-data-mcp guidance
+# MCP runtime guidance
 
-Inherits [root guidance](../../AGENTS.md). Inspect [`workspace-policy.json`](../../workspace-policy.json) and this workspace manifest for ownership and publication eligibility.
+Inherit [repository guidance](../../AGENTS.md), consult the
+[MCP package guidance](../../packages/mcp/AGENTS.md), and read the
+[add-MCP-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
 
-The app is a concrete Fetch adapter over the maintained Data API and OAuth packages. MCP tool contracts remain client-independent. Follow [Data API guidance](../../packages/api/AGENTS.md), [generated client guidance](../../packages/api/client/AGENTS.md), and [OAuth guidance](../../packages/oauth/AGENTS.md) for their owned surfaces. Do not duplicate or hand-edit generated Data API contracts in this app. App-local Zod schemas are appropriate only for MCP-specific narrowing, projection, or composition.
+This private app hosts only `get_my_driver` and `get_recent_races`.
+Keep it limited to an embeddable Hono router, optional standalone HTTP
+listener and local stdio transport. Both compose the listener-free
+`@iracing-data/mcp` factory with injected tool-local capabilities.
+Use Awilix in `composition.ts` and a Zod defaults/transform boundary in
+`config.ts`; do not introduce a generic execution framework.
 
-Inspect [services](../../packages/mcp/src/services.ts), [session ownership](src/session.ts),
-[HTTP lifecycle](src/http.ts), and [tool registration](../../packages/mcp/src/register.ts)
-before changing composition. The full source map is in [architecture navigation](architecture.md).
-Preserve the characterized protocol/recovery contracts when moving boundaries.
+The HTTP host must resolve a verified actor from each Request and inject
+the actor's iRacing account capabilities. Never read the local CLI
+credential document on behalf of an HTTP caller. Null actors fail closed.
+Local stdio loads the selected file-backed OAuth session; the current setup
+uses the CLI for initial credential acquisition, independently of file loading.
+The OAuth client restores sessions
+and persists refreshed credentials through its token-document session store.
+Only concrete
+adapters in `src/adapters` may select a generated Fetch client.
 
-The local startup/onboarding contract is also consumed by the [repo-local MCP onboarding skill](../../.agents/skills/iracing-data-mcp-onboarding/SKILL.md). Any change to local prerequisites, `.env` keys, OAuth/login flow, Docker/Compose startup, credential import/storage, health checks, recovery commands, or MCP-client connection instructions must update that skill and its deterministic scripts in the same change. Keep the skill orchestration aligned with [the local Docker guide](local-container.md); do not let it invent a parallel startup path.
-
-Do not introduce telemetry support, hosted/multi-user authorization, arbitrary Data API proxy tools, or application-to-application imports. Use generated Fetch only within the host's concrete `src/adapters` files. Both `get_my_driver` and `get_recent_races` consume request-selected tool-local service interfaces; the MCP package must not import generated clients. Do not add a second credential owner, generic execution pipeline or gateway.
-
-Validate changes with the package build/tests plus the repository topology, impact, and verification commands described in [verification guidance](../../docs/VERIFICATION.md). Changes to this `AGENTS.md` or the repo-local onboarding skill also require the manual [agent regression scenarios](../../agent-regressions/README.md) before review; CI validates only their structure and references, not model behavior. Private app changes do not authorize or require a public npm version bump.
+Do not rebuild discarded OAuth ingress/JWT flows, Docker credential
+import/recovery infrastructure, long-lived HTTP sessions, or SSE transport
+unless there is a concrete use case and a separate reviewed change.
+Follow [verification](../../docs/VERIFICATION.md) and report executed
+checks. When the local workflow changes, update
+[onboarding guidance](../../.agents/skills/iracing-data-mcp-onboarding/SKILL.md).

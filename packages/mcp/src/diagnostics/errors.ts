@@ -24,7 +24,7 @@ export const errorPolicy = Object.freeze({
     false,
   ],
   UPSTREAM_UNAUTHORIZED: [
-    "Check your iRacing account access and entitlement. Repeated refresh will not repair access.",
+    "iRacing rejected access (401/403). Check the selected credentials, token validity, scopes, and account permissions.",
     false,
   ],
   RATE_LIMITED: [

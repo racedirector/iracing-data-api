@@ -1,142 +1,112 @@
-# Local iRacing Data API MCP
+# iRacing Data MCP runtime
 
-This private application exposes two explicit, read-only MCP tools over a consumer-owned
-Data API client and OAuth lifecycle. Run one local Docker
-container and connect an MCP client on the same machine. It supports Data API
-queries with `iracing.auth`; it provides no telemetry, full profile lookup,
-arbitrary API proxy, writes, unbounded history or hosted multi-user service.
+Two read-only tools: `get_my_driver` and `get_recent_races`. The private
+`@iracing-data/mcp` package owns the listener-free MCP server and contracts.
+This app supplies an optional Hono adapter, an optional Node listener, and a
+local stdio executable. It does not implement an OAuth server, JWT verifier,
+Docker credential importer, or session registry.
 
-## Set up and connect
+## Local stdio (default)
 
-Follow the [local container guide](local-container.md) for the exact frozen build,
-Compose commands, host CLI login, credential directory and optional secret file.
-Login requests `iracing.auth` and uses the same registered client ID as the
-container. The host CLI owns browser authorization; the container has no browser
-OAuth routes. Auth-only credentials cannot use the CLI's profile-based `whoami`.
+From the repository root:
 
-After starting the container, follow the [client connection guide](clients.md).
-The checkout includes project configs for Claude Code, VS Code/Copilot, Cursor,
-Gemini CLI, Codex, and OpenCode, plus a Cline merge template. Ollama can provide
-OpenCode's local model. ChatGPT web uses the documented private-tunnel workflow.
+```sh
+pnpm install --frozen-lockfile
+pnpm --filter '@iracing-data/iracing-data-mcp...' build
+pnpm iracing-data auth login --scope iracing.auth
+pnpm mcp:local
+```
 
-Automated tests validate client config invariants and use the official MCP client
-over local Streamable HTTP with synthetic data; they do not establish every
-client's native UI or live iRacing behavior. Registration alone does not establish
-valid iRacing authorization. Other local clients must support Streamable HTTP at
-`http://127.0.0.1:3000/mcp`. The supported protocol versions are
-`2025-11-25`, `2025-06-18` and `2025-03-26`; stdio is unsupported.
+The local executable loads a file-backed OAuth session, defaulting to
+`.iracing-data/iracing-data-mcp/credentials.json`. Override its location
+using `IRACING_MCP_CREDENTIAL_FILE`. The setup above uses the CLI for initial
+credential acquisition; loading the selected file is independent of the CLI.
+The runtime refreshes expired access tokens on demand and saves rotated
+credentials to the same file. Set `IRACING_AUTH_CLIENT` and, for confidential
+clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
+If renewal fails, sign in again through the CLI. Do not start two
+credential owners against the same rotating refresh token.
 
-`GET /healthz`, initialization and tool listing remain available when credentials
-are missing or corrupt. Health reports liveness and authorization state, not proof
-that an upstream API operation will succeed. Authenticated tool calls require a
-valid durable credential document.
+For an explicit path in a client command, pass `--credentials`:
 
-## Tool inputs and results
+```sh
+node apps/iracing-data-mcp/dist/main.js --credentials /absolute/path/to/credentials.json
+```
 
-The MCP package exposes exactly two tools. Both reject unknown input keys,
-numeric strings and credential arguments before selecting dependencies. The
-host composes generated Fetch clients, OAuth credentials, safe signed-link
-fetching and normalized data behind the tool-local service contracts.
-A separate consumer may supply its own Axios or fake implementations.
+Selection order is `--credentials`, then `IRACING_MCP_CREDENTIAL_FILE`, then
+the dedicated MCP default. Relative paths resolve from the process working
+directory. There is no fallback to another credential file. Reconnect the
+MCP client after selecting a different path. Each tool request restores the
+selected file afresh, so replacing its credentials does not require reconnecting.
+Restoration is serialized within the local connection so concurrent requests
+observe persisted refresh-token rotation. The OAuth client refreshes expired
+access tokens during restoration; it does not use an early-refresh window.
 
-| Tool               | Arguments                                      | Output                                                                                                              |
-| ------------------ | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
-| `get_my_driver`    | `{}`                                           | Authenticated customer ID and display name                                                                          |
-| `get_recent_races` | Optional `cust_id`, `limit` (1–10, default 10) | At most ten entries from the upstream recent-race window, including season, track, car, incidents and finish fields |
+The stdio process writes MCP protocol messages only to stdout. It does not
+listen on a port or start a browser login. Configure your MCP client to run
+`node apps/iracing-data-mcp/dist/main.js` with the project root as its
+working directory after building.
 
-Recent races preserve upstream order and position indexing, including
-negative sentinels. `position_basis: "upstream"` identifies the source
-convention. This is **not** a comprehensive race history; there are no
-continuation cursors. Both tools return allowlisted `structuredContent`
-plus equivalent JSON text; the combined serialized response is capped at
-64 KiB. Optional missing race fields normalize to `null`.
+## Embedding in Hono HTTP
 
-Typical workflow: call `get_my_driver` with `{}`, then
-`get_recent_races` with `{ "limit": 10 }`. For a particular customer,
-pass a positive integer `cust_id` and verify that the upstream response
-identifies the same customer. Unknown data, auth failures and unsafe links
-are sanitized rather than presented to the model.
+The HTTP router does not choose an iRacing account or trust incoming identity
+headers. An embedding host must authenticate each incoming `Request`, then
+provide actor-owned query capabilities:
 
-## Error handling
+```ts
+import { createMcpRouter } from "@iracing-data/iracing-data-mcp";
+import { Hono } from "hono";
 
-Errors return `isError:true`, safe JSON text and
-`structuredContent.error` with fixed `code`, `message`, `retryable`, generated
-`request_id`, and bounded optional `reason`/`retry_after_seconds`.
+const app = new Hono().route(
+  "/mcp",
+  createMcpRouter({
+    resolveActor: async (request) => {
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
 
-| Code                      | Action                                                                                                                                                           |
-| ------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `INVALID_INPUT`           | Correct arguments; no retry until changed.                                                                                                                       |
-| `AUTHORIZATION_REQUIRED`  | Stop/drain, host login with `iracing.auth`, restart. Missing, invalid, insufficient-scope and persistence failures have bounded reasons.                         |
-| `TOKEN_REFRESH_FAILED`    | Retry only when the envelope has `retryable:true` and `reason:"transient_refresh"`. Unknown consumption or rotation is non-retryable: keep stopped and re-login. |
-| `UPSTREAM_UNAUTHORIZED`   | Inspect account entitlement/access; no refresh loop.                                                                                                             |
-| `RATE_LIMITED`            | Wait for the bounded retry hint/cooldown, then retry.                                                                                                            |
-| `UPSTREAM_UNAVAILABLE`    | Network/timeout/5xx: bounded later retry.                                                                                                                        |
-| `DATA_RESOLUTION_FAILED`  | Malformed data/unsafe or rejected/expired link: inspect the source or report the request ID; no blind retry of the same signed URL.                              |
-| `RESPONSE_LIMIT_EXCEEDED` | Reduce result size or choose fewer races.                                                                                                                        |
-| `NOT_FOUND`               | Check supplied customer identity.                                                                                                                                |
-| `CONFIGURATION_ERROR`     | Repair client/configuration/mount permissions while stopped, then restart.                                                                                       |
-| `INTERNAL_ERROR`          | Report the safe request ID for support.                                                                                                                          |
+      return session?.user
+        ? { provider: "host-session", id: session.user.id }
+        : null;
+    },
+    resolveCapabilities: async (actor, context) =>
+      linkedIracingQueriesForActor(actor, context.signal),
+  }),
+);
+```
 
-See [core contract review](review-537.md) for window completion, link reasons,
-host-neutral errors, account-policy boundaries and vendored-skill scope.
+The `auth` and `linkedIracingQueriesForActor` values above are provided by
+the embedding application, not this package. Only the host may decide
+which linked iRacing account a verified actor may access.
 
-There is no automatic retry/sleep. JSON stderr logs use fixed redacted diagnostics
-and application-generated request IDs. Do not share token documents, secrets,
-environment dumps, bearer headers, cookies or signed cache URLs for support.
+For a separate HTTP process, call `startMcpHttpServer` with
+`config`, `resolveActor`, and `resolveCapabilities`.
+`parseConfig(process.env)` applies the default listener address
+`127.0.0.1:3000`. Standalone HTTP still **requires** caller-provided
+authentication; it never uses the local CLI account by default.
 
-Stop before re-login, logout, permission repair, import or credential replacement;
-see [tested recovery commands](local-container.md#stop-repair-restart-logout).
-For uncertain rotation or failed shutdown cleanup, keep stopped and re-login before
-restart. Never restore consumed refresh-token backups; follow the container guide.
-The [session owner](src/session.ts) documents quarantine and shutdown semantics.
+The SDK handles MCP protocol classification and stateless requests.
+No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 
-## Security and supported deployment
+## Implementation
 
-Use the provided [Compose configuration](compose.yaml) and operator guide. Keep the
-published port loopback-only and run exactly one credential owner. Multiple
-refreshing owners and hot credential replacement are unsupported. Local processes
-can access this unauthenticated boundary; it does not defend against malicious
-same-user processes. Treat upstream names/text as untrusted data.
+- `src/config.ts`: Zod defaults and transformation to runtime options
+- `src/composition.ts`: Awilix dependency composition around an already verified actor
+- `src/http.ts`: mountable Hono MCP router
+- `src/http-server.ts`: optional Node listener
+- `src/stdio.ts`: stdio host using the same MCP factory
+- `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
+- `src/adapters/`: generated Fetch implementation and safe linked-response handling
 
-See [production configuration](src/production.ts), [HTTP security](src/http.ts)
-and [linked responses](src/adapters/linked-response.ts) for the enforced boundaries.
-
-Local packaging and 22 Docker recovery acceptance groups passed on macOS arm64
-with Docker 29.5.2, a linux/arm64 runtime and Node 24.21.0. The same 22 groups
-[passed in CI](https://github.com/racedirector/iracing-data-api/actions/runs/37411801261/job/112101646317)
-on Ubuntu 24.04.5/Linux amd64, Docker 28.0.4 and Node 24.21.0.
-Windows/other architectures are unverified. Windows ACLs do not prove
-POSIX modes/ownership; use an environment enforcing that contract rather than
-bypassing checks. See [platform and deployment evidence](local-container.md).
-
-## Development, compatibility and rollout
-
-From the repository root with frozen dependencies:
+Neither the MCP core nor the HTTP router depends on generated Fetch clients.
+The Fetch choice is confined to `src/adapters/` and the local credential
+adapter. A host can inject Axios, fixtures, or another provider instead.
 
 ```sh
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm --filter @iracing-data/iracing-data-mcp test
 pnpm verify
-pnpm verify:docker
 ```
 
-[Verification](../../docs/VERIFICATION.md) distinguishes service-free verification
-from explicit Docker recovery. Normal CI uses synthetic fixtures without accounts;
-live upstream evidence is separate and opt-in, following
-[upstream contract guidance](../../docs/UPSTREAM-CONTRACT.md). Fixture success does
-not establish live completeness. Follow [scoped guidance](AGENTS.md) and the
-[composition/lifetime record](architecture.md) before changing ownership.
-
-Application compatibility is owned by the two [tool modules](../../packages/mcp/src/tools)
-and [registration](../../packages/mcp/src/register.ts). This is a private app;
-independent publication/release policy requires a separate decision.
-
-Rollout stops/drains the current owner, builds the reviewed SHA image, preserves
-currently valid credential ownership/modes, then starts exactly one owner. Rollback
-stops/drains and restores the prior application/image, discarding all active requests.
-Never restore consumed refresh-token backups. If persistence/rotation is uncertain
-or the credential document is incompatible, perform stopped host login first.
-
-The optional [MCP ingress authorization contract](remote-authorization.md) is the
-resource-server prerequisite for remote deployment. Local defaults remain unchanged;
-remote hosting and final network policy are tracked in #443.
+See [architecture](architecture.md), [agent guidance](AGENTS.md), and
+[the tool-authoring skill](../../.agents/skills/add-mcp-tool/SKILL.md).

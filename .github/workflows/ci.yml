@@ -2,8 +2,6 @@
 # Full history lets dependency impact use the PR's exact base SHA against the
 # checked-out merge revision. Its artifact informs review, never release selection.
 # Read-only permissions and frozen installation keep verification non-publishing.
-# Docker recovery is separate because it requires a daemon and POSIX host identity;
-# the production-image harness owns its synthetic persistence/failure evidence.
 name: CI
 
 on:
@@ -62,34 +60,3 @@ jobs:
 
       - name: Verify repository
         run: pnpm verify
-
-  docker-offline:
-    name: Docker offline recovery
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v7
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6.1.0
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version-file: ".nvmrc"
-          cache: pnpm
-      - name: Install frozen dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Configure Docker Hub cache
-        run: |
-          sudo mkdir -p /etc/docker
-          if [ ! -f /etc/docker/daemon.json ]; then
-            printf '{}\n' | sudo tee /etc/docker/daemon.json > /dev/null
-          fi
-          sudo jq '."registry-mirrors" = (["https://mirror.gcr.io"] + ((."registry-mirrors" // []) - ["https://mirror.gcr.io"]))' /etc/docker/daemon.json > "$RUNNER_TEMP/docker-daemon.json"
-          sudo cp "$RUNNER_TEMP/docker-daemon.json" /etc/docker/daemon.json
-          sudo systemctl restart docker
-          docker info --format '{{json .RegistryConfig.Mirrors}}'
-      - name: Verify Docker prerequisites
-        run: docker version
-      - name: Verify offline Docker persistence and recovery
-        run: pnpm verify:docker

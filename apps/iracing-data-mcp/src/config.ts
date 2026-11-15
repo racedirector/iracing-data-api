@@ -1,35 +1,53 @@
-import { ApplicationFailure } from "@iracing-data/mcp";
+import { fileURLToPath } from "node:url";
 import { z } from "zod";
 
-/** Validates the MCP application name and version and supplies local defaults. */
-export const McpApplicationConfigSchema = z.object({
-  name: z.string().trim().min(1).default("iracing-data-mcp"),
-  version: z.string().trim().min(1).default("0.0.0"),
-});
+/** The CLI's dedicated MCP token document, separate from its main login. */
+export const DEFAULT_CREDENTIAL_FILE = fileURLToPath(
+  new URL(
+    "../../../.iracing-data/iracing-data-mcp/credentials.json",
+    import.meta.url,
+  ),
+);
+
+/** Validate environment values and map them directly to listener/stdio options. */
+export const EnvironmentSchema = z
+  .object({
+    IRACING_MCP_LISTEN_HOST: z.string().min(1).default("127.0.0.1"),
+    IRACING_MCP_PORT: z.coerce.number().int().min(1).max(65535).default(3000),
+    IRACING_MCP_CREDENTIAL_FILE: z
+      .string()
+      .min(1)
+      .default(DEFAULT_CREDENTIAL_FILE),
+  })
+  .transform(
+    ({
+      IRACING_MCP_LISTEN_HOST,
+      IRACING_MCP_PORT,
+      IRACING_MCP_CREDENTIAL_FILE,
+    }) => ({
+      host: IRACING_MCP_LISTEN_HOST,
+      port: IRACING_MCP_PORT,
+      credentialsFile: IRACING_MCP_CREDENTIAL_FILE,
+    }),
+  );
+
+/** Validated runtime settings with defaults already applied. */
+export type McpConfig = z.infer<typeof EnvironmentSchema>;
 
 /**
- * Frozen application identity configuration consumed by MCP composition after schema
- * validation and defaulting.
+ * Parse runtime configuration without printing untrusted values.
+ * @param {NodeJS.ProcessEnv} environment - Source environment.
+ * @returns {McpConfig} Validated listener and local credential settings.
+ * @throws {Error} When environment configuration is invalid.
  */
-export type McpApplicationConfig = Readonly<
-  z.infer<typeof McpApplicationConfigSchema>
->;
+export function parseConfig(
+  environment: NodeJS.ProcessEnv = process.env,
+): McpConfig {
+  const result = EnvironmentSchema.safeParse(environment);
 
-/**
- * Validates and freezes MCP application configuration, mapping invalid startup input to the
- * repository configuration-failure contract.
- * @param {unknown} input - Untrusted input to validate or project.
- * @returns {McpApplicationConfig} Frozen validated application identity with defaults applied.
- * @throws {ApplicationFailure} If the application identity fails configuration validation.
- */
-export function parseMcpApplicationConfig(
-  input: unknown = {},
-): McpApplicationConfig {
-  const parsed = McpApplicationConfigSchema.safeParse(input);
-
-  if (!parsed.success) {
-    throw new ApplicationFailure("CONFIGURATION_ERROR");
+  if (!result.success) {
+    throw new Error("Invalid MCP runtime configuration.");
   }
 
-  return Object.freeze(parsed.data);
+  return result.data;
 }

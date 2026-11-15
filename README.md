@@ -11,11 +11,18 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 - Validate OAuth requests/responses: use [@iracing-data/oauth-schema](packages/oauth/schema/README.md).
 - Use Rust: start with [iracing-data-api-client](crates/iracing-data-api-client/README.md) and its runnable member lookup example.
 
-## Local MCP application
+## MCP application
 
-For bounded read-only agent queries, use the private [local Data API MCP](apps/iracing-data-mcp/README.md). Its [Docker setup and credential recovery](apps/iracing-data-mcp/local-container.md) use host CLI auth-only login and a loopback Streamable HTTP connection. It is separate from public npm package releases.
+The private [two-tool MCP package](packages/mcp/README.md) defines a
+client-agnostic server. The [runtime app](apps/iracing-data-mcp/README.md)
+offers a **local stdio executable** and a **mountable Hono router** for an
+existing authenticated HTTP service such as FTR Events. It no longer
+includes the Docker credential importer, HTTP OAuth resource server, or
+custom session manager.
 
-The [client connection guide](apps/iracing-data-mcp/clients.md) covers checked-in configurations for common AI clients, Ollama-backed OpenCode, and ChatGPT private tunnels. Any capable agent can follow the [repository onboarding skill](.agents/skills/iracing-data-mcp-onboarding/SKILL.md).
+The [client connection guide](apps/iracing-data-mcp/clients.md) and
+[repository onboarding skill](.agents/skills/iracing-data-mcp-onboarding/SKILL.md)
+cover local stdio setup and actor-resolved HTTP embedding.
 
 ## First Data API call
 
@@ -55,7 +62,7 @@ Discover workspace scripts from their manifests; use `pnpm --filter <package>` f
 - [Contributing workflow](CONTRIBUTING.md) and [security policy](SECURITY.md)
 
 For implementation details, go directly to the [Data API document builder](packages/helpers/api-schema-to-openapi/src/index.ts),
-[OAuth client](packages/oauth/client/src/index.ts), [MCP composition](apps/iracing-data-mcp/src/session.ts),
+[OAuth client](packages/oauth/client/src/index.ts), [MCP composition](apps/iracing-data-mcp/src/composition.ts),
 [CLI authentication command](apps/iracing-data-cli/src/authenticate.ts),
 [generation/freshness orchestrator](scripts/check-generated.mjs), or
 [client presentation normalizer](scripts/normalize-client-presentation.js).
