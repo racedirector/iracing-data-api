@@ -65,9 +65,11 @@ service interface with an adapter; the reference host has
 and [safe linked-response](../../../apps/iracing-data-mcp/src/adapters/linked-response.ts)
 Fetch adapters. Other consumers may use Axios, fixtures, or another data source.
 
-The host [session composition](../../../apps/iracing-data-mcp/src/session.ts)
-owns credentials and token refresh/persistence, constructs the concrete
-clients, and selects the capability on each request. The MCP core knows only
+The host [credential owner](../../../apps/iracing-data-mcp/src/session.ts)
+owns token refresh/persistence, while [runtime composition](../../../apps/iracing-data-mcp/src/composition.ts)
+uses Awilix to inject actor and capability resolvers per tool call. The
+[Fetch factory](../../../apps/iracing-data-mcp/src/adapters/fetch.ts)
+constructs generated clients against the selected token provider. The MCP core knows only
 the service interface. Keep signed HTTPS data-link fetching in the concrete
 adapter, with no bearer/cookie forwarding and redirects rejected. Preserve
 abort signals throughout. Do not create a second token cache or refresh owner.

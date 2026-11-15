@@ -1,8 +1,6 @@
-import { Configuration } from "@iracing-data/api-client-fetch";
 import { ApplicationFailure } from "@iracing-data/mcp";
 import { asFunction, asValue, createContainer, InjectionMode } from "awilix";
-import { createDriverQueries } from "./adapters/driver.js";
-import { createRecentRaceQueries } from "./adapters/recent-races.js";
+import { createFetchQueries } from "./adapters/fetch.js";
 import { createMcpCredentialOwner } from "./session.js";
 import type { McpServices } from "./services.js";
 import type { McpCredentialOwner } from "./session.js";
@@ -137,14 +135,7 @@ export function composeMcpServices(dependencies: McpRuntimeDependencies): McpSer
 export function createCliMcpDependencies(
   credentials: McpCredentialOwner,
 ): McpRuntimeDependencies {
-  const configuration = new Configuration({
-    accessToken: () => credentials.getAccessToken(),
-  });
-
-  const queries = {
-    driverQueries: createDriverQueries(configuration),
-    recentRaceQueries: createRecentRaceQueries(configuration),
-  };
+  const queries = createFetchQueries(() => credentials.getAccessToken());
 
   return {
     resolveActor: (context) =>
