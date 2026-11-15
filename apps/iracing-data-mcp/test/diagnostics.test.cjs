@@ -116,133 +116,10 @@ test("retry/reason policy drops inappropriate values and bounds retry delay", as
   );
 });
 
-test("mapping seams preserve OAuth, entitlement, cache and internal distinctions", async () => {
-  const m = await app();
-  const oauth = await import("@iracing-data/oauth-client");
-  const api = await import("@iracing-data/api-client-fetch");
-  const map = (error, context) =>
-    m.errorEnvelope(m.mapFailure(error, context), m.createRequestContext())
-      .error;
-  assert.equal(
-    map(new oauth.SessionNotFoundError("synthetic"), {
-      domain: "oauth_session",
-    }).code,
-    "AUTHORIZATION_REQUIRED",
-  );
-  assert.equal(
-    map(oauth.OAuthClaimsError.scopeMissing("synthetic"), {
-      domain: "oauth_session",
-    }).code,
-    "AUTHORIZATION_REQUIRED",
-  );
-  for (const error of [
-    oauth.OAuthRefreshError.missingRefreshToken("synthetic"),
-    oauth.OAuthRefreshError.tokenExpired("synthetic"),
-    oauth.OAuthRefreshError.from({
-      message: "synthetic",
-      code: "OAUTH_RESPONSE_BODY_ERROR",
-      cause: { error: "invalid_grant", access_token: "MARK_IGNORED" },
-    }),
-  ]) {
-    assert.equal(
-      map(error, { domain: "oauth_session" }).reason,
-      "revoked_authorization",
-    );
-  }
-  assert.equal(
-    map(new oauth.OAuthTokenDocumentError("invalid_document", "synthetic"), {
-      domain: "oauth_session",
-    }).reason,
-    "invalid_session",
-  );
-  assert.equal(
-    map(new Error(), {
-      domain: "oauth_session",
-      refreshOutcome: "persistence_failed",
-    }).reason,
-    "persistence_failed",
-  );
-  assert.equal(
-    map(new Error(), {
-      domain: "oauth_session",
-      refreshOutcome: "rotation_uncertain",
-    }).retryable,
-    false,
-  );
-  assert.equal(
-    map(new Error(), {
-      domain: "oauth_session",
-      refreshOutcome: "safe_to_retry",
-    }).retryable,
-    true,
-  );
-  assert.equal(map(new Error(), { domain: "oauth_session" }).retryable, false);
-  assert.equal(
-    map(oauth.ClientMetadataError.missingClientSecret(), {
-      domain: "oauth_session",
-    }).code,
-    "CONFIGURATION_ERROR",
-  );
-  for (const [status, code] of [
-    [401, "UPSTREAM_UNAUTHORIZED"],
-    [403, "UPSTREAM_UNAUTHORIZED"],
-    [404, "NOT_FOUND"],
-    [429, "RATE_LIMITED"],
-    [503, "UPSTREAM_UNAVAILABLE"],
-    [408, "UPSTREAM_UNAVAILABLE"],
-    [400, "DATA_RESOLUTION_FAILED"],
-  ]) {
-    const error = new api.ResponseError(
-      new Response("synthetic", { status, headers: { "retry-after": "120" } }),
-    );
-    const result = map(error, { domain: "upstream" });
-    assert.equal(result.code, code);
-    if (status === 429) assert.equal(result.retry_after_seconds, 120);
-    if (status === 403) {
-      assert.equal(result.reason, "upstream_access_denied");
-      assert.equal(
-        map(error, {
-          domain: "upstream",
-          upstreamAuthorization: "account_entitlement",
-        }).reason,
-        "account_entitlement",
-      );
-    }
-    assert.equal(map(error, { domain: "internal" }).code, "INTERNAL_ERROR");
-  }
-  const badRetry = new api.ResponseError(
-    new Response(null, {
-      status: 429,
-      headers: { "retry-after": "Bearer synthetic" },
-    }),
-  );
-  assert.equal(
-    map(badRetry, { domain: "upstream" }).retry_after_seconds,
-    undefined,
-  );
-  assert.equal(
-    map(new api.FetchError(new Error("synthetic")), { domain: "upstream" })
-      .code,
-    "UPSTREAM_UNAVAILABLE",
-  );
-  assert.equal(
-    map(new api.RequiredError("synthetic"), { domain: "upstream" }).code,
-    "INVALID_INPUT",
-  );
-  assert.equal(
-    map(new SyntaxError("synthetic"), { domain: "upstream" }).code,
-    "DATA_RESOLUTION_FAILED",
-  );
-  assert.equal(
-    map(new Error("synthetic"), { domain: "internal" }).code,
-    "INTERNAL_ERROR",
-  );
-});
-
 test("protocol faults never become tool failures; unknown exceptions never leak", async () => {
   const m = await app();
   for (const domain of ["http", "mcp_protocol"]) {
-    const failure = m.mapFailure(new Error("secret"), { domain });
+    const failure = new m.ProtocolFailure(domain);
     assert.equal(failure.domain, domain);
     assert.throws(
       () => m.toolError(failure, m.createRequestContext()),
@@ -341,7 +218,7 @@ for (const [label, secret] of Object.entries(cases)) {
       ...lines,
     ];
     try {
-      throw m.mapFailure(error, { domain: "internal" });
+      throw new m.ApplicationFailure("INTERNAL_ERROR");
     } catch (safe) {
       outputs.push(safe.message);
     }
@@ -395,82 +272,6 @@ test("allowlisted diagnostics retain useful fields without invoking nested seria
   );
   assert.equal(JSON.parse(lines[0]).elapsed_ms, 12);
   assert.ok(lines[0].endsWith("\n"));
-});
-
-test("typed OAuth/API/cache/storage failures redact every exercised channel", async () => {
-  const m = await app();
-  const oauth = await import("@iracing-data/oauth-client");
-  const api = await import("@iracing-data/api-client-fetch");
-  const nested = {
-    access_token: "MARK_ACCESS",
-    refresh_token: "MARK_REFRESH",
-    cause: { state: "MARK_STATE", credential: { body: "MARK_BODY" } },
-  };
-  const failures = [
-    [
-      oauth.OAuthRefreshError.from({
-        message: "MARK_OAUTH",
-        code: "OAUTH_RESPONSE_BODY_ERROR",
-        error_description: "MARK_DESCRIPTION",
-        cause: { ...nested, error: "invalid_grant" },
-      }),
-      { domain: "oauth_session" },
-    ],
-    [
-      new oauth.OAuthTokenDocumentError(
-        "io_error",
-        "/private/MARK_PATH",
-        nested,
-      ),
-      { domain: "oauth_session", refreshOutcome: "persistence_failed" },
-    ],
-    [
-      new api.ResponseError(
-        new Response("MARK_UPSTREAM_BODY", {
-          status: 403,
-          headers: { "set-cookie": "MARK_COOKIE" },
-        }),
-        "MARK_API_MESSAGE",
-      ),
-      { domain: "upstream" },
-    ],
-    [
-      new api.FetchError(
-        new Error("MARK_FETCH", { cause: nested }),
-        "MARK_FETCH_MESSAGE",
-      ),
-      { domain: "upstream" },
-    ],
-    [
-      new SyntaxError(
-        "MARK_CACHE_JSON https://cache/MARK_URL?signature=MARK_SIGNED",
-      ),
-      { domain: "upstream" },
-    ],
-  ];
-  for (const [raw, mapping] of failures) {
-    const context = m.createRequestContext();
-    const safe = m.mapFailure(raw, mapping);
-    const lines = [];
-    const logger = m.createDiagnosticLogger((line) => lines.push(line));
-    logger.failure(context, safe, { ...nested, error: raw });
-    logger.log("debug", context, raw);
-    const channels = [
-      m.toolError(safe, context),
-      m.errorEnvelope(safe, context),
-      m.healthDiagnostics(raw),
-      m.redactDiagnostics(raw),
-      safe.message,
-      JSON.stringify(safe),
-      ...lines,
-    ];
-    for (const output of channels)
-      assert.doesNotMatch(
-        typeof output === "string" ? output : JSON.stringify(output),
-        /MARK_/,
-      );
-    assert.equal(Object.isFrozen(safe), true);
-  }
 });
 
 test("default logger writes only JSON to stderr", () => {

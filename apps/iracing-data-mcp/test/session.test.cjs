@@ -44,7 +44,7 @@ async function fixture(t) {
     write: (value) =>
       oauth.writeOAuthTokenDocument(file, value, { overwrite: true }),
     start: (overrides = {}) =>
-      api.createMcpServices({ ...options, ...overrides }),
+      api.createMcpCredentialOwner({ ...options, ...overrides }),
   };
 }
 function failure(api, reason, retryable = false) {
@@ -62,7 +62,7 @@ function failure(api, reason, retryable = false) {
   };
 }
 async function access(services) {
-  return services.dataApiConfiguration.accessToken();
+  return services.getAccessToken();
 }
 
 test("auth-only bare document loads without network, rotates once, and restarts with replacement", async (t) => {
@@ -304,7 +304,7 @@ test("real health, initialize, listing and tool errors stay safe before and afte
   async function appFor(services) {
     const app = f.api.createHttpApplication({
       config: f.api.parseMcpApplicationConfig(),
-      services,
+      services: f.api.composeMcpServices(f.api.createCliMcpDependencies(services)),
       logger: f.options.logger,
       registerTools(server) {
         server.registerTool(
@@ -344,7 +344,7 @@ test("real health, initialize, listing and tool errors stay safe before and afte
     id: 2,
     method: "tools/list",
   });
-  assert.equal(list.json().result.tools.length, 9);
+  assert.equal(list.json().result.tools.length, 3);
   const call = await request(app, "POST", "/mcp", {
     jsonrpc: "2.0",
     id: 3,

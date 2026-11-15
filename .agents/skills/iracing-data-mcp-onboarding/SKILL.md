@@ -89,3 +89,8 @@ refresh/persistence inside the selected credential provider.
 
 The deterministic Docker helper scripts and their volume checks are unchanged:
 new embedding options do not authorize alternative Docker onboarding steps.
+
+For source-level troubleshooting, `session.ts` owns only token lifecycle;
+`composition.ts` creates CLI Fetch capabilities and Awilix selectors. The
+previous `createMcpServices()` facade and generic diagnostics mapper no
+longer exist. Do not reintroduce either to solve local onboarding problems.

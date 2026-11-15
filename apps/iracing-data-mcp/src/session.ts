@@ -20,7 +20,6 @@
  * no hot credential reload. Repair/re-login creates a new owner after stopping.
  * Concrete Data API clients belong to the host composition, not this credential owner.
  */
-import { Configuration } from "@iracing-data/api-client-fetch";
 import { ApplicationFailure, createRequestContext } from "@iracing-data/mcp";
 import {
   OAuthClient,
@@ -30,10 +29,8 @@ import {
   type OAuthTokenResponse,
   type OAuthTokenDocumentFileSystem,
 } from "@iracing-data/oauth-client";
-import { createDriverQueries } from "./adapters/driver.js";
-import { createRecentRaceQueries } from "./adapters/recent-races.js";
 import { createDiagnosticLogger } from "./diagnostics/logging.js";
-import type { AuthorizationState, McpServices } from "./services.js";
+import type { AuthorizationState } from "./services.js";
 
 /** Stable key for the single locally owned MCP OAuth session. */
 export const MCP_LOCAL_SESSION_KEY = "iracing-data-mcp-local";
@@ -84,9 +81,6 @@ function validateSession(token: OAuthTokenResponse | undefined) {
 
 /** Local credential owner; the API adapter is resolved separately by the runtime. */
 export interface McpCredentialOwner {
-  /** Authored OAuth client holding the credential lifecycle. */
-  readonly oauthClient: OAuthClient;
-
   /**
    * Get a token only when an actual tool operation needs it.
    * @returns {Promise<string>} Resolved access token for the selected local session.
@@ -166,48 +160,10 @@ export async function createMcpCredentialOwner(
   };
 
   return Object.freeze({
-    oauthClient,
     getAccessToken,
     authorizationState: () => owner.state,
     shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
     assertActive,
-  });
-}
-
-/**
- * Compatibility composition for existing one-account consumers.
- * New runtime composition should inject an actor resolver and query resolver.
- * @param {SessionCompositionOptions} options - Local OAuth configuration and file.
- * @returns {Promise<McpServices>} Local services with concrete Fetch adapters.
- */
-export async function createMcpServices(
-  options: SessionCompositionOptions,
-): Promise<McpServices> {
-  const credentials = await createMcpCredentialOwner(options);
-
-  const dataApiConfiguration = new Configuration({
-    accessToken: () => credentials.getAccessToken(),
-  });
-
-  const driverQueries = createDriverQueries(dataApiConfiguration);
-
-  const recentRaceQueries = createRecentRaceQueries(dataApiConfiguration);
-
-  return Object.freeze({
-    oauthClient: credentials.oauthClient,
-    dataApiConfiguration,
-    authorizationState: () => credentials.authorizationState(),
-    shutdownAuthorizationOwner: () => credentials.shutdownAuthorizationOwner(),
-    getDriverQueries: () => {
-      credentials.assertActive();
-
-      return driverQueries;
-    },
-    getRecentRaceQueries: () => {
-      credentials.assertActive();
-
-      return recentRaceQueries;
-    },
   });
 }
 

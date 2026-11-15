@@ -102,7 +102,8 @@ async function main() {
       scopes: ["iracing.auth"],
     },
   };
-  const services = await api.createMcpServices(options);
+  const credentials = await api.createMcpCredentialOwner(options);
+  const services = api.composeMcpServices(api.createCliMcpDependencies(credentials));
   const app = api.createHttpApplication({
     config: api.parseMcpApplicationConfig(),
     services,
@@ -247,12 +248,12 @@ async function main() {
     checks++;
     mode = "normal";
 
-    const missing = await api.createMcpServices({
+    const missing = await api.createMcpCredentialOwner({
       ...options,
       credentialFile: path.join(dir, "missing.json"),
     });
     assert.equal(missing.authorizationState(), "authorization_required");
-    await assert.rejects(missing.dataApiConfiguration.accessToken());
+    await assert.rejects(missing.getAccessToken());
     checks++;
 
     mode = "hold";

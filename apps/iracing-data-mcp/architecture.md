@@ -14,7 +14,7 @@ the generated Fetch client.
 | Awilix actor and query resolution | [composition.ts](src/composition.ts) |
 | Runtime host and port | [runtime-config.ts](src/runtime-config.ts), [runtime.ts](src/runtime.ts) |
 | HTTP transport, ingress, cancellation, session lifetime, shutdown | [http.ts](src/http.ts) |
-| Safe tool/host errors and diagnostics | [MCP errors](../../packages/mcp/src/diagnostics/errors.ts), [host mapping](src/diagnostics/mapping.ts), [logging](src/diagnostics/logging.ts) |
+| Safe tool/host errors and diagnostics | [MCP errors](../../packages/mcp/src/diagnostics/errors.ts), [logging](src/diagnostics/logging.ts) |
 
 The host's `composeMcpServices()` uses Awilix to inject `resolveActor(context)`
 and `resolveDependencies(actor, context)` into request-local tool selectors.
@@ -60,3 +60,8 @@ returns an unstarted HTTP runtime for embedding and tests. The Zod
 `RuntimeEnvironmentSchema` applies defaults and transforms environment
 keys directly into those runtime options. The Docker `startProduction()`
 entry point retains its secure volume, OAuth and shutdown policy.
+
+The retired generic error mapper and one-account `createMcpServices()`
+facade are removed. Adapter-specific errors are handled at their concrete
+Fetch boundary; token rotation, persistence and refresh failures remain in
+the credential owner. The transport sees only request-selected query services.

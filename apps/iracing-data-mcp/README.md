@@ -163,3 +163,8 @@ or the credential document is incompatible, perform stopped host login first.
 The optional [MCP ingress authorization contract](remote-authorization.md) is the
 resource-server prerequisite for remote deployment. Local defaults remain unchanged;
 remote hosting and final network policy are tracked in #443.
+
+The previous `createMcpServices()` compatibility facade and generic
+`diagnostics/mapping.ts` have been removed. Use `createMcpCredentialOwner()`
+for the local credential lifecycle and `composeMcpServices()` for injected
+per-actor query selection.
