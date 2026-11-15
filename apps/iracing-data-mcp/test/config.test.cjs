@@ -86,3 +86,26 @@ test("explicit credential path overrides an invalid environment path", async () 
     await client.close();
   }
 });
+
+test("invalid actor search capabilities fail closed with a safe configuration error", async () => {
+  const { composeMcpServices } = await import("../dist/composition.js");
+  const { errorEnvelope, createRequestContext } =
+    await import("@iracing-data/mcp");
+  const services = composeMcpServices(
+    { id: "alice", provider: "test" },
+    () => ({
+      driverQueries: { getCurrent: async () => ({ cust_id: 1 }) },
+      recentRaceQueries: { getRecent: async () => ({ cust_id: 1, races: [] }) },
+    }),
+  );
+  await assert.rejects(
+    services.getRaceSearchQueries({
+      signal: new AbortController().signal,
+    }),
+    (error) => {
+      const envelope = errorEnvelope(error, createRequestContext());
+      assert.equal(envelope.error.code, "CONFIGURATION_ERROR");
+      return true;
+    },
+  );
+});
