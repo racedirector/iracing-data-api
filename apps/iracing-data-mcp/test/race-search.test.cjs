@@ -4,6 +4,7 @@ const test = require("node:test");
 async function fixture({
   rows = 1,
   numChunks = 1,
+  downloadStatus = 200,
   names = ["chunk.json"],
   payload = [
     { subsession_id: 1, start_time: "2026-11-01T00:00:00Z", secret: "SECRET" },
@@ -42,7 +43,7 @@ async function fixture({
     calls.push({ url: String(url), options });
     assert.equal(options.headers, undefined);
     assert.equal(options.credentials, undefined);
-    return Response.json(payload);
+    return Response.json(payload, { status: downloadStatus });
   };
   const queries = createRaceSearchQueries(configuration, downloadFetch);
   return { queries, calls };
@@ -175,4 +176,23 @@ test("search input rejects unsupported filters and invalid scopes", async () => 
     { ...input, token: "SECRET" },
   ])
     assert.equal(SearchInput.safeParse(value).success, false);
+});
+
+test("signed chunk rejections preserve safe error categories", async () => {
+  const { createRequestContext, errorEnvelope } = await import("@iracing-data/mcp");
+  for (const [status, code, reason] of [
+    [403, "DATA_RESOLUTION_FAILED", "link_rejected"],
+    [404, "DATA_RESOLUTION_FAILED", "link_rejected"],
+    [429, "RATE_LIMITED", undefined],
+    [503, "UPSTREAM_UNAVAILABLE", undefined],
+  ]) {
+    const { queries } = await fixture({ downloadStatus: status });
+    await assert.rejects(queries.search(input, context()), (error) => {
+      const result = errorEnvelope(error, createRequestContext()).error;
+      assert.equal(result.code, code);
+      assert.equal(result.reason, reason);
+      assert.doesNotMatch(JSON.stringify(result), /SECRET|signature/);
+      return true;
+    });
+  }
 });
