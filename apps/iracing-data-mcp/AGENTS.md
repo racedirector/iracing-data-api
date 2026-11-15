@@ -5,9 +5,8 @@ Inherit [repository guidance](../../AGENTS.md), consult the
 [add-MCP-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
 
 This private app hosts `get_my_driver`, `get_recent_races`, and
-`search_race_results`.
-Keep it limited to an embeddable Hono router, optional standalone HTTP
-listener and local stdio transport. They compose the listener-free
+`search_race_results`. Keep it limited to an embeddable Hono router, optional standalone HTTP
+listener and local stdio transport. These hosts compose the listener-free
 `@iracing-data/mcp` factory with injected tool-local capabilities.
 Use Awilix in `composition.ts` and a Zod defaults/transform boundary in
 `config.ts`; do not introduce a generic execution framework.
