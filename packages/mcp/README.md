@@ -33,11 +33,14 @@ their own server. Both APIs register the same eight tools once. No listener,
 transport, OAuth grant, process handler, or credential store is constructed
 or installed by this package.
 
-`DriverQueries.getCurrent({signal})` is a domain-specific, transport-free
-contract. The host selects the capability using request-local
+The [tool-local service](src/tools/get-my-driver/service.ts) defines
+`DriverQueries.getCurrent({signal})` as a domain-specific, transport-free
+contract. The [schema](src/tools/get-my-driver/schema.ts) owns its strict
+input and projected output. The host selects the capability using request-local
 `getDriverQueries(context)` and optional verified ingress identity.
 The `get_my_driver` tool has no generated-client or token dependencies.
-The optional `./generated-driver` adapter uses the generated `MemberApi`,
+The separately exported [tool-local adapter](src/tools/get-my-driver/adapter.ts)
+uses the generated `MemberApi`,
 a lazily invoked `AccessTokenProvider.getAccessToken()`, and an injectable
 `fetchApi`. Signed HTTPS links are validated and fetched without inherited
 bearer credentials or headers, with redirects rejected. Custom fetch
@@ -57,7 +60,8 @@ restrictions apply: no generic gateway, DI container, listener, session
 registry, ingress auth, credential persistence, or process lifecycle here.
 Issue #478's historical export/name guidance requires eventual reconciliation.
 
-See [the reference host](../../apps/iracing-data-mcp/architecture.md).
+See [the reference host](../../apps/iracing-data-mcp/architecture.md) and
+[add-mcp-tool instructions](../../.agents/skills/add-mcp-tool/SKILL.md).
 
 ```sh
 pnpm --filter '@iracing-data/mcp...' build

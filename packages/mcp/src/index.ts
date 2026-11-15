@@ -1,6 +1,7 @@
 export { registerIracingTools } from "./register.js";
 export { createIracingMcpServer } from "./factory.js";
-export type { DriverQueries, Driver } from "./driver.js";
+export type { DriverQueries } from "./tools/get-my-driver/service.js";
+export type { Driver } from "./tools/get-my-driver/schema.js";
 export type {
   IracingToolRegistry,
   IracingToolContext,

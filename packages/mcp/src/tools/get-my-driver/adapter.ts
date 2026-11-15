@@ -1,6 +1,7 @@
 import { Configuration, MemberApi } from "@iracing-data/api-client-fetch";
-import { DriverProjection, type DriverQueries } from "./driver.js";
-import { materialize } from "./linked-response.js";
+import { DriverProjection } from "./schema.js";
+import type { DriverQueries } from "./service.js";
+import { materialize } from "../../linked-response.js";
 
 /** The consumer controls access-token issue, refresh and persistence. */
 export interface AccessTokenProvider {

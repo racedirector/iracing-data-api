@@ -1,5 +1,5 @@
 import { registerFindDrivers } from "./tools/find-drivers.js";
-import { registerGetMyDriver } from "./tools/get-my-driver.js";
+import { registerGetMyDriver } from "./tools/get-my-driver/index.js";
 import { registerGetRaceResult } from "./tools/get-race-result.js";
 import { registerGetRecentRaces } from "./tools/get-recent-races.js";
 import { registerGetSeriesSchedule } from "./tools/get-series-schedule.js";

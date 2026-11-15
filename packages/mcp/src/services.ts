@@ -1,5 +1,5 @@
 import type { Configuration } from "@iracing-data/api-client-fetch";
-import type { DriverQueries } from "./driver.js";
+import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 
 /** Only the registration capability is required from a caller-owned server. */

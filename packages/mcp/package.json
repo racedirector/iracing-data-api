@@ -11,8 +11,8 @@
       "import": "./dist/index.js"
     },
     "./generated-driver": {
-      "types": "./dist/generated-driver.d.ts",
-      "import": "./dist/generated-driver.js"
+      "types": "./dist/tools/get-my-driver/adapter.d.ts",
+      "import": "./dist/tools/get-my-driver/adapter.js"
     }
   },
   "files": [

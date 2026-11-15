@@ -2,7 +2,7 @@ const assert = require("node:assert/strict");
 const test = require("node:test");
 
 test("generated adapters acquire independent tokens lazily and isolate signed-link requests", async () => {
-  const { createGeneratedDriverQueries } = await import("../dist/generated-driver.js");
+  const { createGeneratedDriverQueries } = await import("../dist/tools/get-my-driver/adapter.js");
   const calls = [];
   const make = (token, id) => {
     let acquired = 0;
@@ -57,7 +57,7 @@ test("generated adapters acquire independent tokens lazily and isolate signed-li
 });
 
 test("unsafe signed links never trigger a second fetch", async () => {
-  const { createGeneratedDriverQueries } = await import("../dist/generated-driver.js");
+  const { createGeneratedDriverQueries } = await import("../dist/tools/get-my-driver/adapter.js");
   for (const link of ["http://cache.example.test/driver", "https://x:y@cache.example.test/"]) {
     let requests = 0;
     const driver = createGeneratedDriverQueries({

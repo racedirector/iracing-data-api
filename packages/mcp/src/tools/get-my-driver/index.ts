@@ -1,18 +1,14 @@
-import { z } from "zod";
-import { ApplicationFailure } from "../diagnostics/errors.js";
-import { DriverProjection, type DriverQueries } from "../driver.js";
-import { registerTool } from "../execution.js";
-import { parse } from "../linked-response.js";
-import { completeResult } from "./collections.js";
-import type { ToolDefinition } from "../execution.js";
-import type { IracingToolRegistry, IracingToolServices } from "../services.js";
+import { ApplicationFailure } from "../../diagnostics/errors.js";
+import { registerTool } from "../../execution.js";
+import { parse } from "../../linked-response.js";
+import { completeResult } from "../collections.js";
+import { DriverProjection, SelfInput } from "./schema.js";
+import type { ToolDefinition } from "../../execution.js";
+import type { IracingToolRegistry, IracingToolServices } from "../../services.js";
+import type { DriverQueries } from "./service.js";
+import type { z } from "zod";
 
-export { DriverProjection } from "../driver.js";
-
-/** Rejects arguments for the authenticated-member lookup. */
-export const SelfInput = z.strictObject({});
-
-/** Register the request-selected driver capability without generated access. */
+/** Register get_my_driver against the host-selected driver capability. */
 export function registerGetMyDriver(
   server: IracingToolRegistry,
   services: IracingToolServices,

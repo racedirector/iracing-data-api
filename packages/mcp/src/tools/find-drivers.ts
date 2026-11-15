@@ -3,7 +3,7 @@ import { z } from "zod";
 import { continuation } from "../continuation.js";
 import { registerTool, pageOutput } from "../execution.js";
 import { materialize } from "../linked-response.js";
-import { DriverProjection } from "./get-my-driver.js";
+import { DriverProjection } from "./get-my-driver/schema.js";
 import { Id, query, limit, ContinuationInput } from "./primitives.js";
 import type { ToolDefinition } from "../execution.js";
 import type { IracingToolRegistry, IracingToolServices } from "../services.js";

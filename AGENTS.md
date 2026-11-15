@@ -50,3 +50,7 @@ Repository skills must reference this guide, applicable scoped guidance, and exe
 ## Pull requests
 
 Keep changes focused. Update the nearest documentation for behavior or command changes. Describe the problem, resulting behavior, validation results and limitations, and package/release impact. List exact generation commands and affected generated files; say when none were regenerated. Separate unrelated fixes or broad generated churn from the requested work.
+
+When defining or extending an MCP tool, follow the
+[add-mcp-tool skill](.agents/skills/add-mcp-tool/SKILL.md)
+and [MCP package guidance](packages/mcp/AGENTS.md).

@@ -17,3 +17,8 @@ the generated driver adapter. Explicit factory injection only: no
 Awilix, generic gateway, service locator, speculative caching, or
 provider registry. Keep the other seven tools' generated-client
 behavior unchanged. Follow [verification](../../docs/VERIFICATION.md).
+
+For new tools and service contract changes, follow the
+[add-mcp-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
+Keep input/output schemas and required service contracts next to the tool;
+the consumer composes concrete capabilities, not the tool handler.

@@ -18,7 +18,7 @@ async function fixture(t, options = {}) {
   const { Client } = await import("@modelcontextprotocol/client");
   const requests = [];
   let scope = {};
-  const { createGeneratedDriverQueries } = await import("../dist/generated-driver.js");
+  const { createGeneratedDriverQueries } = await import("../dist/tools/get-my-driver/adapter.js");
   const configuration = new Configuration({
     accessToken: async () => {
       await Promise.resolve();
