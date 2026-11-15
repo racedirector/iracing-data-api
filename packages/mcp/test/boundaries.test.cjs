@@ -385,11 +385,13 @@ test("historical search refuses oversized projected chunks", async (t) => {
         chunk_index: 0,
         returned_count: 1,
         query_complete: true,
-        results: [{
-          subsession_id: 1,
-          start_time: "2026-11-01T00:00:00Z",
-          series_name: "X".repeat(40000),
-        }],
+        results: [
+          {
+            subsession_id: 1,
+            start_time: "2026-11-01T00:00:00Z",
+            series_name: "X".repeat(40000),
+          },
+        ],
         position_basis: "upstream",
       }),
     }),
