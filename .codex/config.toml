@@ -1,2 +1,3 @@
 [mcp_servers.iracing-data]
-url = "http://127.0.0.1:3000/mcp"
+command = "node"
+args = ["apps/iracing-data-mcp/dist/main.js"]
