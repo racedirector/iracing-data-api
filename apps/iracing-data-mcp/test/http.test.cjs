@@ -27,6 +27,10 @@ async function fixture(t, registerTools, clock = timers()) {
     {},
     {
       get(_target, key) {
+        if (key === "getDriverQueries" || key === "getRecentRaceQueries")
+          return () => {
+            throw new Error("Unexpected upstream service access");
+          };
         if (
           key === "authorizationState" ||
           key === "shutdownAuthorizationOwner"
@@ -229,17 +233,7 @@ test("official MCP client initializes, lists and calls stateless JSON tools", as
   assert.equal(transport.sessionId, undefined);
   assert.deepEqual(
     (await client.listTools()).tools.map((x) => x.name),
-    [
-      "get_my_driver",
-      "find_drivers",
-      "get_recent_races",
-      "lookup_content",
-      "list_series_seasons",
-      "get_series_schedule",
-      "get_race_result",
-      "search_driver_races",
-      "probe",
-    ],
+    ["get_my_driver", "get_recent_races", "probe"],
   );
   assert.equal(
     (await client.callTool({ name: "probe", arguments: {} })).content[0].text,

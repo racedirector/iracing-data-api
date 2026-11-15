@@ -1,53 +1,50 @@
-# Application source navigation
+# MCP reference host architecture
 
-The app hosts `@iracing-data/mcp`, which owns MCP registration, tools and
-Data API orchestration. The app retains HTTP/session composition, ingress auth,
-credential lifecycle and process configuration. Current lifetimes are documented
-beside their owners:
+The private `@iracing-data/mcp` package defines the server factory,
+registration and the two tool-local contracts. **It does not import
+a generated HTTP client.** The reference host is one consumer and chooses
+the generated Fetch client.
 
-| Question                                                      | Authoritative source                                                                                                                                                                                  |
-| ------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Startup/configuration                                         | [production.ts](src/production.ts), [main.ts](src/main.ts)                                                                                                                                            |
-| Process credentials/access                                    | [session.ts](src/session.ts), [services.ts](src/services.ts)                                                                                                                                          |
-| Caller-owned server, Express, ingress, cancellation and drain | [http.ts](src/http.ts)                                                                                                                                                                                |
-| Registrar and generated access seam                           | [register.ts](../../packages/mcp/src/register.ts), [services.ts](../../packages/mcp/src/services.ts)                                                                                                  |
-| Tool contracts, invocations and projection                    | [tools](../../packages/mcp/src/tools)                                                                                                                                                                 |
-| Linked materialization                                        | [linked-response.ts](../../packages/mcp/src/linked-response.ts)                                                                                                                                       |
-| Scoped collection/search state                                | [continuation.ts](../../packages/mcp/src/continuation.ts), [collections.ts](../../packages/mcp/src/tools/collections.ts), [search cursor](../../packages/mcp/src/tools/search-driver-races/cursor.ts) |
-| Safe failures and host diagnostics                            | [errors.ts](../../packages/mcp/src/diagnostics/errors.ts), [logging.ts](src/diagnostics/logging.ts), [mapping.ts](src/diagnostics/mapping.ts)                                                         |
+| Responsibility                                                    | Owner                                                                                                                                                                                             |
+| ----------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tool contracts and explicit registration                          | [get_my_driver](../../packages/mcp/src/tools/get-my-driver/index.ts), [get_recent_races](../../packages/mcp/src/tools/get-recent-races/index.ts), [registrar](../../packages/mcp/src/register.ts) |
+| Unconnected server factory                                        | [factory.ts](../../packages/mcp/src/factory.ts)                                                                                                                                                   |
+| Client-specific adapters and safe signed links                    | [adapters](src/adapters)                                                                                                                                                                          |
+| OAuth owner, refresh, persistence and capability composition      | [session.ts](src/session.ts)                                                                                                                                                                      |
+| HTTP transport, ingress, cancellation, session lifetime, shutdown | [http.ts](src/http.ts)                                                                                                                                                                            |
+| Safe tool/host errors and diagnostics                             | [MCP errors](../../packages/mcp/src/diagnostics/errors.ts), [host mapping](src/diagnostics/mapping.ts), [logging](src/diagnostics/logging.ts)                                                     |
 
-Production uses the 2025-era Streamable HTTP session model: initialize owns one
-SDK server/transport pair, subsequent requests route by `Mcp-Session-Id`, and
-DELETE or process shutdown disposes that pair. OAuth/session persistence remains process-owned. Retained tool state is isolated
-by the host-provided opaque continuation scope across logical MCP sessions.
-Request abort state remains request/tool-operation scoped and must not
-be captured by those longer-lived owners. The HTTP factory can still be composed
-without a session ID generator for explicitly stateless protocol tests/embeddings.
+The host's `createMcpServices()` constructs a generated Fetch
+`Configuration` using one OAuth-owner token callback, then independently
+constructs `DriverQueries` and `RecentRaceQueries` adapters from that
+configuration. Request-local selectors guard against closed credential
+owners; the MCP tools see only their capability interfaces. The concrete
+adapters handle linked HTTPS response envelopes without bearer forwarding,
+cookies or redirect following, and map generated-client failures into safe
+application codes. Neither tool retains cursors or account state.
 
-Use the [README](README.md) for tools/workflows and [container guide](local-container.md)
-for deployment, stopped credential recovery and rollback. Source describes the
-shipped architecture. The [package boundary](../../packages/mcp/README.md)
-documents the final registrar and generated-client access boundary.
+Production uses the 2025-era Streamable HTTP session model: initialization
+owns one SDK server/transport pair, subsequent requests route by
+`Mcp-Session-Id`, and DELETE or shutdown disposes that pair. OAuth refresh
+and durable credentials remain process-owned. Cancellation propagates
+from HTTP disconnects into MCP handlers, through the injected query service,
+and into generated and signed-link requests. The reference host can also
+compose a stateless transport for explicit embedding/tests.
 
-See [remote authorization](remote-authorization.md) for the optional MCP ingress
-resource-server boundary, distinct from the durable iRacing credential owner.
+Express 5 owns route dispatch and bounded JSON parsing (64 KiB), including
+rejection of compressed uploads. MCP bearer middleware runs before body
+parsing when configured; Host/Origin checks remain app-owned. The
+`@modelcontextprotocol/server` 2.3.1 SDK still requires the existing
+session registry/transport path for sessionful HTTP compatibility. The
+host preserves the ten-second shutdown drain, then cancels unfinished
+work before shutting down the credential owner. It does not add tool
+admission caps or automatic retries.
 
-Express 5 owns route dispatch, bounded JSON parsing (64 KiB, compressed uploads
-rejected), ordinary 404 responses and async error dispatch. Official MCP Express
-bearer middleware runs before parsing; the Node adapter forwards request-local
-AuthInfo and owns HTTP conversion. Exact Host/Origin checks remain app-owned
-because the SDK host check ignores ports and the established policy also rejects
-duplicate Host headers.
+This changes the historical #473/#382 restrictions only to permit a
+listener-free factory and request-local domain capability injection.
+It deliberately removes the earlier eight-tool registry, generic
+`execution.ts` wrapper and all retained cursor/search state.
 
-The installed server SDK 2.3.1 only offers stateless legacy fallback in
-createMcpHandler, so the host retains the #432 session registry and legacy
-Streamable HTTP transport for initialize/list/call continuity and DELETE cleanup.
-The transport hooks remain solely to bridge HTTP disconnect/shutdown to legacy
-SDK cancellation and sanitize protocol/tool errors; regressions cover both.
-
-The speculative eight-call admission cap and 30-second tool deadline are removed.
-Node owns ordinary header/upload timeouts. A ten-second shutdown drain remains:
-it lets active HTTP work finish, then cancels unfinished work and closes sessions
-before the credential owner's shutdown hook, so process termination cannot hang
-on an incomplete upload, SSE connection or stalled upstream tool. The active
-request set exists only to cancel that work during shutdown.
+See [README](README.md), [container guide](local-container.md),
+[remote authorization](remote-authorization.md), and the
+[MCP package boundary](../../packages/mcp/README.md).

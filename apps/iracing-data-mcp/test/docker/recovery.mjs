@@ -244,7 +244,10 @@ async function stop(app) {
 
 async function checkUnauthenticated(app) {
   assert.equal((await app.health()).auth_state, "authorization_required");
-  assert.equal((await app.client.listTools()).tools.length, 8);
+  assert.deepEqual(
+    (await app.client.listTools()).tools.map((tool) => tool.name).sort(),
+    ["get_my_driver", "get_recent_races"],
+  );
   const result = await app.call();
 
   assert.equal(result.isError, true);

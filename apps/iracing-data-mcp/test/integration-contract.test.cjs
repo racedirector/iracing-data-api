@@ -46,7 +46,7 @@ test(
       /SECRET|Bearer|scorpio-assets|credentials\.json/,
     );
     assert.equal(status, 0, stderr);
-    assert.ok(report?.checks >= 50);
+    assert.ok(report?.checks >= 12);
     assert.equal(stdout, "", "server must reserve stdout");
   },
 );
