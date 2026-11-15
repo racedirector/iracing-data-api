@@ -1,18 +1,16 @@
 const assert = require("node:assert/strict");
-const test = require("node:test");
+const { test } = require("node:test");
 
-async function moduleUnderTest() {
-  return import("../dist/index.js");
-}
+test("host configuration is a Zod parse and transform with defaults", async () => {
+  const { RuntimeEnvironmentSchema, parseRuntimeConfig } =
+    await import("../dist/index.js");
 
-test("application config has stable private-app defaults", async () => {
-  const { parseMcpApplicationConfig } = await moduleUnderTest();
+  assert.equal(typeof RuntimeEnvironmentSchema.parse, "function");
 
-  assert.deepEqual(parseMcpApplicationConfig(), {
-    name: "iracing-data-mcp",
-    version: "0.0.0",
-  });
-  assert.throws(() =>
-    parseMcpApplicationConfig({ name: "", version: "0.0.0" }),
+  assert.deepEqual(
+    RuntimeEnvironmentSchema.parse({}),
+    parseRuntimeConfig({}),
   );
+  assert.equal(parseRuntimeConfig({}).host, "127.0.0.1");
+  assert.equal(parseRuntimeConfig({}).port, 3000);
 });
