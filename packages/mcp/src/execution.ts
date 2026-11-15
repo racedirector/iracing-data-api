@@ -139,13 +139,13 @@ export function registerTool<T, Access = IracingDataAccess>(
         }
 
         context.signal.throwIfAborted();
-        if (!resolveAccess && !("getDataApiAccess" in services)) {
+        if (!resolveAccess && typeof services.getDataApiAccess !== "function") {
           throw new ApplicationFailure("CONFIGURATION_ERROR");
         }
 
         const access = resolveAccess
           ? await resolveAccess(services, context)
-          : ((await services.getDataApiAccess(context)) as Access);
+          : ((await services.getDataApiAccess!(context)) as Access);
 
         const result = await work(checked.data, access, context);
 

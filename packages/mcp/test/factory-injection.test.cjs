@@ -6,7 +6,6 @@ test("factory creates independent listener-free servers and permits caller regis
   const { InMemoryTransport } = await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
   let selected = 0;
-  let generated = 0;
   let value = { cust_id: 42, display_name: "Synthetic Driver", secret: "SECRET" };
   const services = {
     getDriverQueries(context) {
@@ -17,10 +16,6 @@ test("factory creates independent listener-free servers and permits caller regis
         return value;
       } };
     },
-    getDataApiAccess() {
-      generated++;
-      throw new Error("generated access must not be resolved");
-    },
   };
   const signals = ["SIGINT", "SIGTERM"];
   const before = signals.map((signal) => process.listenerCount(signal));
@@ -30,7 +25,6 @@ test("factory creates independent listener-free servers and permits caller regis
   assert.notEqual(first, second);
   assert.deepEqual(signals.map((signal) => process.listenerCount(signal)), before);
   assert.equal(selected, 0);
-  assert.equal(generated, 0);
   first.registerTool("extra", {}, async () => ({
     content: [{ type: "text", text: "extra" }],
   }));
@@ -56,19 +50,16 @@ test("factory creates independent listener-free servers and permits caller regis
   });
   assert.equal(rejected.structuredContent.error.code, "INVALID_INPUT");
   assert.equal(selected, 0);
-  assert.equal(generated, 0);
 
   const result = await client.callTool({ name: "get_my_driver", arguments: {} });
   assert.deepEqual(result.structuredContent, { cust_id: 42, display_name: "Synthetic Driver" });
   assert.equal(result.content[0].text, JSON.stringify(result.structuredContent));
   assert.equal(selected, 1);
-  assert.equal(generated, 0);
   assert.doesNotMatch(JSON.stringify(result), /SECRET|access_token/);
 
   value = { cust_id: "SECRET", display_name: "Synthetic Driver" };
   const invalid = await client.callTool({ name: "get_my_driver", arguments: {} });
   assert.equal(invalid.structuredContent.error.code, "DATA_RESOLUTION_FAILED");
   assert.doesNotMatch(JSON.stringify(invalid), /SECRET|stack|cause/);
-  assert.equal(generated, 0);
   assert.equal((await client.callTool({ name: "extra", arguments: {} })).content[0].text, "extra");
 });

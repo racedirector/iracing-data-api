@@ -33,7 +33,7 @@ export interface IracingToolServices {
    * @param {IracingToolContext} context - Request cancellation and verified ingress identity used by the host.
    * @returns {IracingDataAccess | Promise<IracingDataAccess>} Generated-client access and the identity that owns retained continuations.
    */
-  getDataApiAccess(
+  getDataApiAccess?(
     context: IracingToolContext,
   ): IracingDataAccess | Promise<IracingDataAccess>;
 }
