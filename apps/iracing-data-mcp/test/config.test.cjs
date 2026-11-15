@@ -36,9 +36,8 @@ test("local stdio capabilities are constructed lazily without network calls", as
 
 test("local stdio executable initializes and advertises both tools", async () => {
   const { Client } = await import("@modelcontextprotocol/client");
-  const { StdioClientTransport } = await import(
-    "@modelcontextprotocol/client/stdio"
-  );
+  const { StdioClientTransport } =
+    await import("@modelcontextprotocol/client/stdio");
   const client = new Client({ name: "offline-stdio-test", version: "1" });
   const transport = new StdioClientTransport({
     command: process.execPath,
