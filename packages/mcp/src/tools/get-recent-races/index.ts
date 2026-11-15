@@ -15,6 +15,8 @@ import type {
   IracingToolRegistry,
   IracingToolServices,
 } from "../../services.js";
+import type { Result } from "../types.js";
+import type { z } from "zod";
 
 /**
  * Register a bounded recent-races query using an injected domain capability.
@@ -39,11 +41,29 @@ export function registerGetRecentRaces(
         openWorldHint: true,
       },
     },
-    (input, request) =>
-      handleGetRecentRaces(input, services, {
+    async (input, request) => {
+      const context = {
         signal: request.mcpReq.signal,
         authInfo: request.http?.authInfo,
-      }),
+      };
+
+      try {
+        const result = await handleGetRecentRaces(input, services, context);
+
+        if (!result.ok) {
+          throw new ApplicationFailure(result.error);
+        }
+
+        return completeResult(result.data);
+      } catch (error) {
+        return toolError(
+          context.signal.aborted
+            ? new ApplicationFailure("UPSTREAM_UNAVAILABLE")
+            : error,
+          createRequestContext(),
+        );
+      }
+    },
   );
 }
 
@@ -52,57 +72,54 @@ async function handleGetRecentRaces(
   input: unknown,
   services: IracingToolServices,
   context: IracingToolContext,
-) {
-  try {
-    const checked = RecentInput.safeParse(input);
+): Promise<
+  Result<
+    z.infer<typeof RecentOutputSchema>,
+    "INVALID_INPUT" | "CONFIGURATION_ERROR" | "DATA_RESOLUTION_FAILED"
+  >
+> {
+  const checked = RecentInput.safeParse(input);
 
-    if (!checked.success) {
-      throw new ApplicationFailure("INVALID_INPUT");
-    }
+  if (!checked.success) {
+    return { ok: false, error: "INVALID_INPUT" };
+  }
 
-    context.signal.throwIfAborted();
-    if (!services.getRecentRaceQueries) {
-      throw new ApplicationFailure("CONFIGURATION_ERROR");
-    }
+  context.signal.throwIfAborted();
+  if (!services.getRecentRaceQueries) {
+    return { ok: false, error: "CONFIGURATION_ERROR" };
+  }
 
-    const queries = await services.getRecentRaceQueries(context);
+  const queries = await services.getRecentRaceQueries(context);
 
-    const window = await queries.getRecent({
-      custId: checked.data.cust_id,
-      signal: context.signal,
-    });
+  const window = await queries.getRecent({
+    custId: checked.data.cust_id,
+    signal: context.signal,
+  });
 
-    context.signal.throwIfAborted();
-    const resolved = RecentRaceWindowSchema.safeParse(window);
+  context.signal.throwIfAborted();
+  const resolved = RecentRaceWindowSchema.safeParse(window);
 
-    if (!resolved.success) {
-      throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
-    }
+  if (!resolved.success) {
+    return { ok: false, error: "DATA_RESOLUTION_FAILED" };
+  }
 
-    if (
-      checked.data.cust_id !== undefined &&
-      resolved.data.cust_id !== checked.data.cust_id
-    ) {
-      throw new ApplicationFailure("DATA_RESOLUTION_FAILED");
-    }
+  if (
+    checked.data.cust_id !== undefined &&
+    resolved.data.cust_id !== checked.data.cust_id
+  ) {
+    return { ok: false, error: "DATA_RESOLUTION_FAILED" };
+  }
 
-    const races = resolved.data.races.slice(0, checked.data.limit);
+  const races = resolved.data.races.slice(0, checked.data.limit);
 
-    const output = RecentOutputSchema.parse({
+  return {
+    ok: true,
+    data: RecentOutputSchema.parse({
       cust_id: resolved.data.cust_id,
       races,
       returned_count: races.length,
       complete: true,
       position_basis: "upstream",
-    });
-
-    return completeResult(output);
-  } catch (error) {
-    return toolError(
-      context.signal.aborted
-        ? new ApplicationFailure("UPSTREAM_UNAVAILABLE")
-        : error,
-      createRequestContext(),
-    );
-  }
+    }),
+  };
 }
