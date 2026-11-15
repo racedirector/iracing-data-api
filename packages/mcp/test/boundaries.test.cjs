@@ -223,7 +223,7 @@ test("custom driver and recent-race implementations are selected per request", a
   }
 });
 
-test("missing selectors fail before publishing either tool", async () => {
+test("missing selectors fail before publishing any tools", async () => {
   const { registerIracingTools } = await import("../dist/index.js");
   for (const services of [
     {},
@@ -292,7 +292,7 @@ test("the 64 KiB result cap rejects oversized injected data", async (t) => {
   );
 });
 
-test("cancellation during capability selection prevents either domain query", async () => {
+test("cancellation during capability selection prevents domain queries", async () => {
   const { registerIracingTools } = await import("../dist/index.js");
   for (const name of ["get_my_driver", "get_recent_races", "search_race_results"]) {
     const selected = Promise.withResolvers();
@@ -327,7 +327,11 @@ test("cancellation during capability selection prevents either domain query", as
           callbacks.set(toolName, callback);
         },
       },
-      { getDriverQueries: select, getRecentRaceQueries: select, getRaceSearchQueries: select },
+      {
+        getDriverQueries: select,
+        getRecentRaceQueries: select,
+        getRaceSearchQueries: select,
+      },
     );
     const pending = callbacks.get(name)(
       name === "search_race_results"
@@ -345,4 +349,55 @@ test("cancellation during capability selection prevents either domain query", as
     await rejected;
     assert.equal(queried, 0);
   }
+});
+
+test("historical search refuses inconsistent injected chunk totals", async (t) => {
+  const f = await fixture(t, {
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 1,
+        total_chunks: 1,
+        chunk_index: 0,
+        returned_count: 0,
+        query_complete: false,
+        results: [],
+        position_basis: "upstream",
+      }),
+    }),
+  });
+  const result = await f.call("search_race_results", {
+    source: "hosted",
+    start_range_begin: "2026-11-01T00:00:00Z",
+  });
+  assert.equal(result.structuredContent.error.code, "DATA_RESOLUTION_FAILED");
+});
+
+test("historical search refuses oversized projected chunks", async (t) => {
+  const f = await fixture(t, {
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 1,
+        total_chunks: 1,
+        chunk_index: 0,
+        returned_count: 1,
+        query_complete: true,
+        results: [{
+          subsession_id: 1,
+          start_time: "2026-11-01T00:00:00Z",
+          series_name: "X".repeat(40000),
+        }],
+        position_basis: "upstream",
+      }),
+    }),
+  });
+  const result = await f.call("search_race_results", {
+    source: "hosted",
+    start_range_begin: "2026-11-01T00:00:00Z",
+  });
+  assert.equal(result.structuredContent.error.code, "RESPONSE_LIMIT_EXCEEDED");
+  assert.ok(Buffer.byteLength(JSON.stringify(result)) <= 64 * 1024);
 });
