@@ -15,7 +15,9 @@ The HTTP host must resolve a verified actor from each Request and inject
 the actor's iRacing account capabilities. Never read the local CLI
 credential document on behalf of an HTTP caller. Null actors fail closed.
 Local stdio uses the CLI's dedicated MCP credential document; acquiring
-or refreshing credentials remains the CLI's concern. Only concrete
+credentials remains the CLI's concern. The OAuth client restores sessions
+and persists refreshed credentials through its token-document session store.
+Only concrete
 adapters in `src/adapters` may select a generated Fetch client.
 
 Do not rebuild discarded OAuth ingress/JWT flows, Docker credential

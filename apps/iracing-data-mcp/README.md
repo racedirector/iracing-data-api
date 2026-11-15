@@ -19,9 +19,11 @@ pnpm mcp:local
 
 The local executable uses the CLI's dedicated MCP credential document at
 `.iracing-data/iracing-data-mcp/credentials.json`. Override its location
-using `IRACING_MCP_CREDENTIAL_FILE`. The CLI is responsible for login and
-token renewal; this runtime only reads the selected document on demand.
-If the access token expires, sign in again through the CLI. Do not start two
+using `IRACING_MCP_CREDENTIAL_FILE`. The CLI is responsible for initial login.
+The runtime refreshes expired access tokens on demand and saves rotated
+credentials to the same file. Set `IRACING_AUTH_CLIENT` and, for confidential
+clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
+If renewal fails, sign in again through the CLI. Do not start two
 credential owners against the same rotating refresh token.
 
 For an explicit path in a client command, pass `--credentials`:
@@ -91,7 +93,7 @@ No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 - `src/http.ts`: mountable Hono MCP router
 - `src/http-server.ts`: optional Node listener
 - `src/stdio.ts`: stdio host using the same MCP factory
-- `src/credentials.ts`: read-only local CLI credential adapter
+- `src/credentials.ts`: local CLI credential restoration and durable refresh
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 
 Neither the MCP core nor the HTTP router depends on generated Fetch clients.

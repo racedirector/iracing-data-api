@@ -32,8 +32,12 @@ first read. Do not silently fall back to another account's credential file.
 Run `pnpm mcp:local` for a manual stdio session, or configure the MCP
 client to execute `node apps/iracing-data-mcp/dist/main.js` from the
 repository root. Never put ordinary logs on stdout: it belongs to MCP.
-The runtime reads the token only when a tool needs it. The CLI remains
-responsible for login and renewing expired tokens.
+The runtime restores the session only when a tool needs it. Its OAuth client
+refreshes expired access tokens and persists rotated credentials through the
+token-document session store. Set `IRACING_AUTH_CLIENT` and, for confidential
+clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
+The CLI remains responsible for initial login. Run only one credential owner
+per document; do not refresh the same credentials concurrently from the CLI.
 
 ## HTTP embedding
 
