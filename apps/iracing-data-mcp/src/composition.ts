@@ -1,3 +1,4 @@
+import { ApplicationFailure } from "@iracing-data/mcp";
 import { asValue, createContainer } from "awilix";
 import type {
   DriverQueries,
@@ -77,7 +78,21 @@ export function composeMcpServices(
   }
 
   return {
-    getRaceSearchQueries: async (context) => (await select(context)).raceSearchQueries,
+    getRaceSearchQueries: async (context) => {
+      // The host callback may be untyped at runtime despite its TS contract.
+      const candidate: unknown = (await select(context)).raceSearchQueries;
+
+      if (
+        !candidate ||
+        typeof candidate !== "object" ||
+        !("search" in candidate) ||
+        typeof candidate.search !== "function"
+      ) {
+        throw new ApplicationFailure("CONFIGURATION_ERROR");
+      }
+
+      return candidate as RaceSearchQueries;
+    },
     getDriverQueries: async (context) => (await select(context)).driverQueries,
     getRecentRaceQueries: async (context) =>
       (await select(context)).recentRaceQueries,
