@@ -66,6 +66,19 @@ for opaque refresh, rotation and same-instance concurrency contracts. JWT conven
 helpers are separate from refresh restoration. Direct `refresh()` does not persist
 its returned token.
 
+Set `earlyRefreshWindowMs` on `OAuthClient` to opt into refreshing stored access
+tokens before expiry, for example `earlyRefreshWindowMs: 30_000`. The value must
+be a finite, nonnegative number of milliseconds; invalid values throw during
+construction. A positive window refreshes at or inside the window boundary.
+Omitting the option (or setting it to zero) preserves the existing behavior:
+refresh only when the current clock is strictly past expiry.
+This policy applies to `restoreSessionForId()` and therefore
+`makeProtectedRequest()`, not direct `refresh()` calls or JWT validation.
+Early refresh uses the same opaque refresh credential, rotation, persistence,
+and same-instance single-flight behavior as expired-token refresh. It requires
+a stored refresh token even if the access token is still valid; it does not
+add cross-instance coordination or safe automatic retry after uncertain grants.
+
 ## Durable single-document token storage
 
 `OAuthTokenDocumentSessionStore` is the narrow durable `SessionStore` for a

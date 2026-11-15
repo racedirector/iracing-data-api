@@ -18,8 +18,9 @@ const token = (overrides = {}) => ({
 });
 const json = (body, status = 200) => Response.json(body, { status });
 
-function setup(sessionStore = new InMemoryStore()) {
+function setup(sessionStore = new InMemoryStore(), options = {}) {
   const client = new OAuthClient({
+    ...options,
     clientMetadata: {
       clientId: "fixture-client",
       redirectUri: "https://client.example/callback",
@@ -201,4 +202,109 @@ test("opaque refresh persistence failure rejects all callers and clears coordina
 test("JWT refresh-token convenience helper remains JWT-only", () => {
   assert.equal(isRefreshTokenExpired(jwt(1)), true);
   assert.throws(() => isRefreshTokenExpired(opaqueRefreshToken));
+});
+
+test("early refresh policy preserves exact expiry by default and honors millisecond boundaries", async (t) => {
+  const now = 2_000_000_000_000;
+  t.mock.method(Date, "now", () => now);
+  for (const [options, remaining, refresh] of [
+    [{}, 1, false],
+    [{}, 0, false],
+    [{}, -1, true],
+    [{ earlyRefreshWindowMs: 0 }, 0, false],
+    [{ earlyRefreshWindowMs: 1500 }, 2000, false],
+    [{ earlyRefreshWindowMs: 1500 }, 1000, true],
+    [{ earlyRefreshWindowMs: 1500 }, 1500, true],
+    [{ earlyRefreshWindowMs: 1500 }, 1501, false],
+    [{ earlyRefreshWindowMs: 1500 }, -1000, true],
+  ]) {
+    const { client, sessionStore } = setup(new InMemoryStore(), options);
+    const stored = token({
+      access_token: jwt((now + remaining) / 1000),
+      refresh_token: opaqueRefreshToken,
+    });
+    const issued = token({ refresh_token: "rotated.opaque" });
+    sessionStore.set("session", stored);
+    let requests = 0;
+    mockFetch(async () => {
+      requests++;
+      return json(issued);
+    });
+    assert.deepEqual(
+      await client.restoreSessionForId("session"),
+      refresh ? issued : stored,
+    );
+    assert.equal(requests, refresh ? 1 : 0);
+    assert.deepEqual(sessionStore.get("session"), refresh ? issued : stored);
+  }
+});
+
+test("early refresh rejects invalid configuration", () => {
+  for (const value of [-1, NaN, Infinity, -Infinity, "1000", null]) {
+    assert.throws(
+      () => setup(new InMemoryStore(), { earlyRefreshWindowMs: value }),
+      /earlyRefreshWindowMs must be finite and nonnegative/,
+    );
+  }
+});
+
+test("early refresh shares rotated credentials through persistence and rechecks delayed readers", async (t) => {
+  const now = 2_000_000_000_000;
+  t.mock.method(Date, "now", () => now);
+  const backing = new InMemoryStore();
+  const writeStarted = deferred();
+  const allowWrite = deferred();
+  const delayedRead = deferred();
+  const allowRead = deferred();
+  let reads = 0;
+  let writes = 0;
+  const stored = token({
+    access_token: jwt((now + 1000) / 1000),
+    refresh_token: opaqueRefreshToken,
+  });
+  backing.set("session", stored);
+  const { client } = setup(
+    {
+      async get(id) {
+        const session = backing.get(id);
+        if (++reads === 1) {
+          delayedRead.resolve();
+          await allowRead.promise;
+        }
+        return session;
+      },
+      del: (id) => backing.del(id),
+      async set(id, session) {
+        writes++;
+        writeStarted.resolve();
+        await allowWrite.promise;
+        backing.set(id, session);
+      },
+    },
+    { earlyRefreshWindowMs: 1500 },
+  );
+  const issued = token({ refresh_token: "rotated.opaque" });
+  let requests = 0;
+  mockFetch(async (_url, options) => {
+    requests++;
+    assert.equal(
+      new URLSearchParams(options.body).get("refresh_token"),
+      opaqueRefreshToken,
+    );
+    return json(issued);
+  });
+  const delayed = client.restoreSessionForId("session");
+  await delayedRead.promise;
+  const callers = Array.from({ length: 4 }, () =>
+    client.restoreSessionForId("session"),
+  );
+  await writeStarted.promise;
+  assert.deepEqual(backing.get("session"), stored);
+  allowWrite.resolve();
+  for (const result of await Promise.all(callers))
+    assert.deepEqual(result, issued);
+  allowRead.resolve();
+  assert.deepEqual(await delayed, issued);
+  assert.equal(requests, 1);
+  assert.equal(writes, 1);
 });

@@ -31,6 +31,7 @@ import {
   OAuthTokenResponseSchema,
   OAuthPasswordLimitedGrantParametersSchema,
 } from "@iracing-data/oauth-schema";
+import { decodeJwt } from "jose";
 import * as oauth from "oauth4webapi";
 import { OAuthApiClient, type OAuthApiClientFactory } from "./api-client";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
@@ -80,6 +81,9 @@ export interface OAuthClientOptions {
   // wire client while tests or applications may inject a compatible boundary.
   /** Optional factory for the low-level OAuth API facade. */
   createOAuthApi?: OAuthApiClientFactory;
+
+  /** Refresh stored access tokens this many milliseconds before expiry; finite and nonnegative. */
+  earlyRefreshWindowMs?: number;
 }
 
 /**
@@ -93,6 +97,7 @@ export class OAuthClient {
   private readonly stateStore: StateStore;
   private readonly sessionStore: SessionStore;
   private readonly createOAuthApi: OAuthApiClientFactory;
+  private readonly earlyRefreshWindowMs: number;
   private readonly sessionRefreshes = new Map<
     string,
     Promise<OAuthTokenResponse>
@@ -110,6 +115,16 @@ export class OAuthClient {
    */
   constructor(options: OAuthClientOptions) {
     const { clientMetadata, stateStore, sessionStore } = options;
+
+    const { earlyRefreshWindowMs = 0 } = options;
+
+    if (!Number.isFinite(earlyRefreshWindowMs) || earlyRefreshWindowMs < 0) {
+      throw new TypeError(
+        "earlyRefreshWindowMs must be finite and nonnegative",
+      );
+    }
+
+    this.earlyRefreshWindowMs = earlyRefreshWindowMs;
 
     this.clientMetadata =
       IRacingOAuthClientMetadataSchema.parse(clientMetadata);
@@ -495,7 +510,7 @@ export class OAuthClient {
 
     // A delayed restoration may have read the old session before another
     // refresh finished. Recheck storage before using a single-use token.
-    if (!isAccessTokenExpired(session.access_token)) {
+    if (!this.shouldRefreshAccessToken(session.access_token)) {
       return session;
     }
 
@@ -528,8 +543,20 @@ export class OAuthClient {
     return decodeAccessToken(accessToken);
   }
 
+  private shouldRefreshAccessToken(accessToken: string) {
+    if (this.earlyRefreshWindowMs === 0) {
+      return isAccessTokenExpired(accessToken);
+    }
+
+    const { exp } = decodeJwt<{ exp?: number }>(accessToken);
+
+    const expiry = new Date((exp ?? 0) * 1000).getTime();
+
+    return expiry - Date.now() <= this.earlyRefreshWindowMs;
+  }
+
   /**
-   * Restores a session from storage, refreshing it if the access token has expired.
+   * Restores a session, refreshing expired tokens or tokens within the configured early refresh window.
    *
    * @param {string} sessionId - The session identifier to load.
    * @returns {Promise<OAuthTokenResponse | undefined>} The stored session, or `undefined` when no session exists.
@@ -543,10 +570,7 @@ export class OAuthClient {
     const session = await this.getSession(sessionId);
 
     if (session) {
-      // Check if the session is expired
-      const isExpired = isAccessTokenExpired(session.access_token);
-
-      if (isExpired) {
+      if (this.shouldRefreshAccessToken(session.access_token)) {
         let refresh = this.sessionRefreshes.get(sessionId);
 
         if (!refresh) {
