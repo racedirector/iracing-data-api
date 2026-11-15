@@ -15,6 +15,10 @@ import { ApplicationFailure } from "@iracing-data/mcp";
 export function mapUpstreamFailure(
   error: unknown,
 ): ApplicationFailure {
+  if (error instanceof ApplicationFailure) {
+    return error;
+  }
+
   if (error instanceof RequiredError || namedError(error, "RequiredError")) {
     return new ApplicationFailure("INVALID_INPUT");
   }
