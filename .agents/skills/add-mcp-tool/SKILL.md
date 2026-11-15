@@ -15,7 +15,7 @@ Use the current source and its `AGENTS.md` instructions as authority.
 `get_my_driver` is the smallest example. Its
 [handler](../../../packages/mcp/src/tools/get-my-driver/index.ts)
 registers one explicit tool through the internal execution adapter.
-`get_recent_races` demonstrates bounded input,
+`search_race_results` demonstrates explicit search scope, upstream chunk bounds,\nand signed-link isolation. `get_recent_races` demonstrates bounded input,
 customer-identity validation, and output projection in its
 [handler](../../../packages/mcp/src/tools/get-recent-races/index.ts).
 
