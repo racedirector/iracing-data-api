@@ -19,8 +19,12 @@ pub struct StatsWorldRecordsResponseData {
     pub car_id: f64,
     #[serde(rename = "track_id")]
     pub track_id: f64,
-    #[serde(rename = "chunk_info")]
-    pub chunk_info: Box<models::ResultsSearchSeriesResponseDataChunkInfo>,
+    #[serde(rename = "season_year", skip_serializing_if = "Option::is_none")]
+    pub season_year: Option<f64>,
+    #[serde(rename = "season_quarter", skip_serializing_if = "Option::is_none")]
+    pub season_quarter: Option<f64>,
+    #[serde(rename = "chunk_info", deserialize_with = "Option::deserialize")]
+    pub chunk_info: Option<Box<models::StatsWorldRecordsResponseDataChunkInfo>>,
     #[serde(rename = "last_updated")]
     pub last_updated: String,
 }
@@ -30,14 +34,20 @@ impl StatsWorldRecordsResponseData {
         success: bool,
         car_id: f64,
         track_id: f64,
-        chunk_info: models::ResultsSearchSeriesResponseDataChunkInfo,
+        chunk_info: Option<models::StatsWorldRecordsResponseDataChunkInfo>,
         last_updated: String,
     ) -> StatsWorldRecordsResponseData {
         StatsWorldRecordsResponseData {
             success,
             car_id,
             track_id,
-            chunk_info: Box::new(chunk_info),
+            season_year: None,
+            season_quarter: None,
+            chunk_info: if let Some(x) = chunk_info {
+                Some(Box::new(x))
+            } else {
+                None
+            },
             last_updated,
         }
     }

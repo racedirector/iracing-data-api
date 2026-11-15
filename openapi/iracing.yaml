@@ -3163,8 +3163,10 @@ components:
                   minimum: 0
                   maximum: 9007199254740991
                 base_download_url:
-                  type: string
-                  format: uri
+                  anyOf:
+                    - type: string
+                      format: uri
+                    - type: "null"
                 chunk_file_names:
                   type: array
                   items:
@@ -3218,8 +3220,10 @@ components:
                   minimum: 0
                   maximum: 9007199254740991
                 base_download_url:
-                  type: string
-                  format: uri
+                  anyOf:
+                    - type: string
+                      format: uri
+                    - type: "null"
                 chunk_file_names:
                   type: array
                   items:
@@ -3432,35 +3436,43 @@ components:
               type: number
             track_id:
               type: number
+            season_year:
+              type: number
+            season_quarter:
+              type: number
             chunk_info:
-              type: object
-              properties:
-                chunk_size:
-                  type: integer
-                  minimum: 0
-                  maximum: 9007199254740991
-                num_chunks:
-                  type: integer
-                  minimum: 0
-                  maximum: 9007199254740991
-                rows:
-                  type: integer
-                  minimum: 0
-                  maximum: 9007199254740991
-                base_download_url:
-                  type: string
-                  format: uri
-                chunk_file_names:
-                  type: array
-                  items:
-                    type: string
-              required:
-                - chunk_size
-                - num_chunks
-                - rows
-                - base_download_url
-                - chunk_file_names
-              additionalProperties: false
+              anyOf:
+                - type: object
+                  properties:
+                    chunk_size:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    num_chunks:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    rows:
+                      type: integer
+                      minimum: 0
+                      maximum: 9007199254740991
+                    base_download_url:
+                      anyOf:
+                        - type: string
+                          format: uri
+                        - type: "null"
+                    chunk_file_names:
+                      type: array
+                      items:
+                        type: string
+                  required:
+                    - chunk_size
+                    - num_chunks
+                    - rows
+                    - base_download_url
+                    - chunk_file_names
+                  additionalProperties: false
+                - type: "null"
             last_updated:
               type: string
           required:

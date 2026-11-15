@@ -215,6 +215,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [ResultsSearchSeriesResponseDataChunkInfo](docs/ResultsSearchSeriesResponseDataChunkInfo.md)
 - [StatsWorldRecordsResponse](docs/StatsWorldRecordsResponse.md)
 - [StatsWorldRecordsResponseData](docs/StatsWorldRecordsResponseData.md)
+- [StatsWorldRecordsResponseDataChunkInfo](docs/StatsWorldRecordsResponseDataChunkInfo.md)
 
 <a id="documentation-for-authorization"></a>
 

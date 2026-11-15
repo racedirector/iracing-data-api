@@ -103,7 +103,9 @@ export const ResultsSearchSeriesResponseSchema = z
         chunk_size: z.int().nonnegative(),
         num_chunks: z.int().nonnegative(),
         rows: z.int().nonnegative(),
-        base_download_url: z.url(),
+
+        // Empty searches return zero chunks and no download base.
+        base_download_url: z.url().nullable(),
         chunk_file_names: z.array(z.string()),
       }),
       params: z.record(z.string(), z.unknown()),
@@ -131,7 +133,12 @@ export const StatsWorldRecordsResponseSchema = z
       success: z.boolean(),
       car_id: z.number(),
       track_id: z.number(),
-      chunk_info: ResultsSearchSeriesResponseSchema.shape.data.shape.chunk_info,
+      season_year: z.number().optional(),
+      season_quarter: z.number().optional(),
+
+      // No records for the car/track returns null chunk metadata.
+      chunk_info:
+        ResultsSearchSeriesResponseSchema.shape.data.shape.chunk_info.nullable(),
       last_updated: z.string(),
     }),
   })

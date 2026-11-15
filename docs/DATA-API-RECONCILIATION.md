@@ -114,3 +114,108 @@ OAuth was not regenerated. Further checks are recorded below as they finish.
   regenerate/retest all affected clients first.
 - Preserve this history even when superseded; add date, git revision, evidence
   and rationale for the next retain/revise/revert decision.
+
+## DATA-002 — Empty-result manifests omit chunk downloads and world-record chunks
+
+- **Status:** repaired; all-route shape pass verified 68 of 69 runtime routes,
+  with one route `NOT_RUN`. Not a complete upstream-equality claim.
+- **Observed:** 2026-11-14 EST (2026-11-15 UTC). Current authenticated docs via
+  `iracing-data docs` at 2026-11-14T21:37-05:00; all-route live batch from
+  2026-11-14T22:00-05:00 to 22:01-05:00.
+- **Git context:** branch `feature/cli-refactor`, working tree dirty from the CLI,
+  schema and SDK work. Implementation commit: **pending — uncommitted
+  working-tree changes**.
+- **Command decision:** **retain** `results-search-series`, `results-search-hosted`
+  and `stats-world-records`; this is a schema-only correction with unchanged CLI
+  request behavior.
+- **Sources:** current official <https://members-ng.iracing.com/data/doc> pointers
+  `/results/search_series`, `/results/search_hosted`, `/stats/world_records`, and
+  the existing CLI commands executed against the live API with reviewed inputs.
+- **Current facts:**
+  - A search-series manifest whose filters match zero rows has
+    `data.success: true`, `data.chunk_info.num_chunks: 0`,
+    `data.chunk_info.base_download_url: null`, and an empty chunk-file list.
+  - An empty world-record response has `data.success: true`,
+    `data.chunk_info: null`, echoes the supplied `season_year` and
+    `season_quarter`, and includes `last_updated`.
+- **Repository mismatch (P1):** the canonical chunk schema required a URL for
+  `base_download_url`, so the zero-row search-series manifest was rejected. The
+  world-record schema required a non-null chunk object and did not model the
+  echoed season fields, so the empty response was both rejected and stripped.
+  Hosted search inherits the same chunk shape through schema extension and
+  therefore shared the first mismatch.
+- **Interpretation:** confirmed repository contract gaps for documented
+  empty-result variants. This does not establish that these fields were always
+  nullable upstream or that the schemas are complete for populated variants.
+- **Repair/rationale:** make `base_download_url` nullable on the shared search
+  chunk schema; make world-record `chunk_info` nullable; add optional
+  `season_year`/`season_quarter` echoes. Nullable content is modeled as data, not
+  treated as an error envelope. Add acceptance/rejection tests for empty and
+  populated manifests.
+- **Canonical owners:** `packages/api/schema/src/schema/responses.ts`,
+  `packages/api/schema/src/schema/responses.test.ts`.
+- **Public impact:** generated Fetch/Axios/Rust clients now expose nullable
+  chunk download bases and world-record chunk metadata, plus optional echoed
+  season fields. This is a widening of accepted response types, not a request
+  change. CLI remains private. No version bumps, commits, releases or publication
+  authorized.
+
+### Validation and generation
+
+The opt-in all-route gate in `apps/iracing-data-cli/test/live/` derives runtime
+GET routes and canonical response schemas from `openapi/iracing.json`, drives the
+existing CLI through an injected transport, and validates the raw wire response
+before decoder normalization. It stubs returned cache URLs and never downloads
+linked JSON, CSV, or chunk payloads. Reviewed inputs are private to the run.
+
+- Before repair, the live batch covered 69 of 69 documented routes and reported
+  `CONTRACT_MISMATCH` for `/data/results/search_series` at
+  `data.chunk_info.base_download_url` and for `/data/stats/world_records` at
+  `data.chunk_info`.
+- After repair, regeneration and rebuild: **68 PASS, 0 CONTRACT_MISMATCH,
+  0 BLOCKED, 1 NOT_RUN** across the same 69 routes.
+- `NOT_RUN`: `/data/time_attack/member_season_results` needs a reviewed
+  `ta_comp_season_id`; none was available, and the operator deferred this route.
+  The full reconciliation therefore remains **Unable to verify part of the
+  contract**, not `Compatible`.
+- Docs comparison against the same private response is unchanged: 74 matched
+  documentation entries / 139 parameters / 74 matched endpoints, comparator
+  exit 2 for the five previously reviewed lookup-note and spectator-array
+  candidates, and no local-only path.
+- Authored schema tests pass (44), including empty/populated search-series and
+  world-record manifests and rejection of malformed or absent required fields.
+  The CLI includes offline classification tests for the all-route runner.
+- The runner made 91 documented-route requests and 22 stubbed data-plane
+  requests with reviewed serial spacing; no retries and no automatic login.
+
+Commands used from repository root:
+
+```bash
+pnpm --filter '@iracing-data/api-schema-to-openapi...' build
+pnpm codegen:openapi:api
+pnpm codegen:openapi:api:yaml
+pnpm codegen:client:api
+pnpm --filter '@iracing-data/cli...' build
+IRACING_LIVE_INPUTS=<private-inputs> IRACING_CREDENTIALS=.iracing-data/credentials.json \
+  pnpm --filter @iracing-data/cli test:live:all --run
+pnpm verify
+```
+
+Generated destinations: `openapi/iracing.{json,yaml}`, Fetch/Axios source,
+endpoint/model docs and generator bookkeeping under `packages/api/client/`, and
+Rust source/model/docs/bookkeeping under `crates/iracing-data-api-client/`. OAuth
+was not regenerated. No generated source was hand-edited.
+
+### Limits and next review
+
+- The pass establishes one reviewed successful envelope per executable route and
+  the two empty-result variants above. It does not prove completeness, exact
+  upstream equality, every filter's semantics, permissions, error payloads, or
+  any linked payload.
+- The all-route suite depends on reviewed private inputs; missing IDs yield
+  `NOT_RUN` and keep the overall verdict incomplete. Do not brute-force IDs or
+  commit account data to turn a route green.
+- **Retain** while live responses match these schemas. **Revise** for
+  evidence-supported additional variants with acceptance tests. Consider
+  **revert** only for contrary fresh evidence, assessing public migration and
+  regenerating all affected clients first.

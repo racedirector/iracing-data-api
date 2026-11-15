@@ -150,16 +150,19 @@ test("live cases test our input/output contracts, never generated implementation
   assert.match(live, /cannot[\s\S]*establish[\s\S]*filter was honored/);
 });
 
-test("missing runtime tooling and blocked cases cannot produce a full-live compatible verdict", () => {
-  assert.match(live, /no executable all-endpoint live contract suite/i);
+test("blocked cases cannot produce a full-live compatible verdict", () => {
+  assert.match(live, /test:live:all/);
   assert.match(live, /response-only[\s\S]*not every runtime endpoint/);
   assert.match(live, /PASS \/ CONTRACT_MISMATCH \/ BLOCKED \/ NOT_RUN/);
   assert.match(live, /not valid live cases/i);
-  assert.match(skill, /cannot receive a full live[\s\S]*Compatible/);
+  assert.match(
+    skill,
+    /Compatible\*\* verdict while any declared route is unverified/,
+  );
   assert.match(report, /full live gate is absent or[\s\S]*blocked/);
-  assert.match(live, /Normal `pnpm verify` must remain service-free/);
-  assert.match(skill, /test:live --run/);
-  assert.match(skill, /one endpoint, not the full/);
+  assert.match(live, /normal `pnpm verify` must remain service-free/i);
+  assert.match(skill, /test:live:all --run/);
+  assert.match(skill, /NOT_RUN[\s\S]*BLOCKED[\s\S]*not passes/);
 });
 
 test("reconciliation decisions have dated living memory and require fresh revalidation", () => {

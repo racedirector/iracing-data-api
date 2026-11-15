@@ -40,3 +40,5 @@ pub mod stats_world_records_response;
 pub use self::stats_world_records_response::StatsWorldRecordsResponse;
 pub mod stats_world_records_response_data;
 pub use self::stats_world_records_response_data::StatsWorldRecordsResponseData;
+pub mod stats_world_records_response_data_chunk_info;
+pub use self::stats_world_records_response_data_chunk_info::StatsWorldRecordsResponseDataChunkInfo;

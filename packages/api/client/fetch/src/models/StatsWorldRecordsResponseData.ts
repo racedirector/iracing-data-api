@@ -13,13 +13,13 @@
  */
 
 import { mapValues } from "../runtime";
-import type { ResultsSearchSeriesResponseDataChunkInfo } from "./ResultsSearchSeriesResponseDataChunkInfo";
+import type { StatsWorldRecordsResponseDataChunkInfo } from "./StatsWorldRecordsResponseDataChunkInfo";
 import {
-  ResultsSearchSeriesResponseDataChunkInfoFromJSON,
-  ResultsSearchSeriesResponseDataChunkInfoFromJSONTyped,
-  ResultsSearchSeriesResponseDataChunkInfoToJSON,
-  ResultsSearchSeriesResponseDataChunkInfoToJSONTyped,
-} from "./ResultsSearchSeriesResponseDataChunkInfo";
+  StatsWorldRecordsResponseDataChunkInfoFromJSON,
+  StatsWorldRecordsResponseDataChunkInfoFromJSONTyped,
+  StatsWorldRecordsResponseDataChunkInfoToJSON,
+  StatsWorldRecordsResponseDataChunkInfoToJSONTyped,
+} from "./StatsWorldRecordsResponseDataChunkInfo";
 
 /**
  *
@@ -47,10 +47,22 @@ export interface StatsWorldRecordsResponseData {
   trackId: number;
   /**
    *
-   * @type {ResultsSearchSeriesResponseDataChunkInfo}
+   * @type {number}
    * @memberof StatsWorldRecordsResponseData
    */
-  chunkInfo: ResultsSearchSeriesResponseDataChunkInfo;
+  seasonYear?: number;
+  /**
+   *
+   * @type {number}
+   * @memberof StatsWorldRecordsResponseData
+   */
+  seasonQuarter?: number;
+  /**
+   *
+   * @type {StatsWorldRecordsResponseDataChunkInfo}
+   * @memberof StatsWorldRecordsResponseData
+   */
+  chunkInfo: StatsWorldRecordsResponseDataChunkInfo | null;
   /**
    *
    * @type {string}
@@ -91,7 +103,10 @@ export function StatsWorldRecordsResponseDataFromJSONTyped(
     success: json["success"],
     carId: json["car_id"],
     trackId: json["track_id"],
-    chunkInfo: ResultsSearchSeriesResponseDataChunkInfoFromJSON(
+    seasonYear: json["season_year"] == null ? undefined : json["season_year"],
+    seasonQuarter:
+      json["season_quarter"] == null ? undefined : json["season_quarter"],
+    chunkInfo: StatsWorldRecordsResponseDataChunkInfoFromJSON(
       json["chunk_info"],
     ),
     lastUpdated: json["last_updated"],
@@ -116,7 +131,9 @@ export function StatsWorldRecordsResponseDataToJSONTyped(
     success: value["success"],
     car_id: value["carId"],
     track_id: value["trackId"],
-    chunk_info: ResultsSearchSeriesResponseDataChunkInfoToJSON(
+    season_year: value["seasonYear"],
+    season_quarter: value["seasonQuarter"],
+    chunk_info: StatsWorldRecordsResponseDataChunkInfoToJSON(
       value["chunkInfo"],
     ),
     last_updated: value["lastUpdated"],

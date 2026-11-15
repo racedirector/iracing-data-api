@@ -41,6 +41,7 @@ docs/SessionApi.md
 docs/StatsApi.md
 docs/StatsWorldRecordsResponse.md
 docs/StatsWorldRecordsResponseData.md
+docs/StatsWorldRecordsResponseDataChunkInfo.md
 docs/TeamApi.md
 docs/TimeAttackApi.md
 docs/TrackApi.md

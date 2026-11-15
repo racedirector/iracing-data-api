@@ -135,25 +135,49 @@ Bearer credentials are sent only to the API, never the returned HTTPS cache URL.
 
 ## Import-support data
 
-### Opt-in hosted-search contract check
+### Opt-in contract-shape checks
 
-Build the CLI and mapping helper before running the scoped live case:
+Build the CLI and mapping helper before running any live case:
 
 ```bash
 pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-openapi...' build
+```
+
+The all-route gate derives every runtime Data API GET route from
+`openapi/iracing.json`, runs the corresponding CLI command through an injected
+transport, and validates the **raw wire response** with that route's canonical
+Zod schema before decoder normalization. It never follows `link`, `data_url`,
+chunks, or CSV payloads. Supply reviewed inputs privately:
+
+```bash
+IRACING_LIVE_INPUTS=/path/to/private-inputs.json \
+IRACING_CREDENTIALS=.iracing-data/credentials.json \
+  pnpm --filter @iracing-data/cli test:live:all --run
+```
+
+`IRACING_LIVE_INPUTS` accepts a JSON document with shared `inputs` and optional
+per-route `routes` overrides. `IRACING_LIVE_DELAY_MS` spaces requests serially.
+Without `--run` no requests are made and the result is `NOT_RUN`. Output is a
+sanitized PASS / CONTRACT_MISMATCH / BLOCKED / NOT_RUN record naming the route,
+schema symbol, and field paths only. Missing required inputs, authentication
+failure, and access/rate limits are not passes; a single `NOT_RUN` route prevents
+a full `Compatible` verdict. Reauthenticate explicitly after a 401 before rerunning.
+
+A scoped hosted-search case remains available for a quick single-endpoint check:
+
+```bash
 IRACING_LIVE_HOSTED_QUERY='{"start_range_begin":"2023-10-08T00:00:00Z","start_range_end":"2023-10-11T00:00:00Z","session_name":"FTR","track_id":192}' \
   pnpm --filter @iracing-data/cli test:live --run
 ```
 
 Use reviewed bounded selectors in `IRACING_LIVE_HOSTED_QUERY`, and optionally
-`IRACING_CREDENTIALS` for an explicit credential file. Without `--run` no requests
-are made. The case performs one docs/auth preflight and one response-only search,
-checks HTTP/JSON content type and canonical raw-response acceptance, and emits
-only a sanitized PASS / CONTRACT_MISMATCH / BLOCKED / NOT_RUN result. It never
-downloads chunks or retries; reauthenticate explicitly after a 401 before rerunning.
-This is not an all-endpoint suite and does not prove filter semantics.
+`IRACING_CREDENTIALS` for an explicit credential file. It performs one docs/auth
+preflight and one response-only search, checks HTTP/JSON content type and
+canonical raw-response acceptance, and emits a sanitized result. It never
+downloads chunks or retries. Neither live gate proves filter semantics, and
 `pnpm verify` remains offline. See the living
-[reconciliation log](../../docs/DATA-API-RECONCILIATION.md) for the repair history.
+[reconciliation log](../../docs/DATA-API-RECONCILIATION.md) and the
+[compatibility report](COMPATIBILITY.md) for current results and repair history.
 
 ### Commands
 

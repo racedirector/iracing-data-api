@@ -233,6 +233,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 - [ResultsSearchSeriesResponseDataChunkInfo](docs/ResultsSearchSeriesResponseDataChunkInfo.md)
 - [StatsWorldRecordsResponse](docs/StatsWorldRecordsResponse.md)
 - [StatsWorldRecordsResponseData](docs/StatsWorldRecordsResponseData.md)
+- [StatsWorldRecordsResponseDataChunkInfo](docs/StatsWorldRecordsResponseDataChunkInfo.md)
 
 To get access to the crate's generated documentation, use:
 

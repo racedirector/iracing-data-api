@@ -13,7 +13,8 @@
     "dev": "node --env-file-if-exists=.env --import tsx src/index.ts",
     "test": "pnpm --filter '@iracing-data/api-schema-to-openapi...' build && pnpm build && node --test test/*.test.cjs",
     "test:vi": "vitest",
-    "test:live": "node --env-file-if-exists=../../.env test/live/run.mjs"
+    "test:live": "node --env-file-if-exists=../../.env test/live/run.mjs",
+    "test:live:all": "node --env-file-if-exists=../../.env test/live/run-all.mjs"
   },
   "dependencies": {
     "@commander-js/extra-typings": "^15.0.0",

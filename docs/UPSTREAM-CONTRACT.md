@@ -37,10 +37,15 @@ Canonical schemas and endpoint mappings own acceptance. An envelope parse does
 not validate a linked JSON/CSV/chunk payload, and a permissive Zod parse does not
 prove complete upstream equality or every optional parameter's behavior.
 
-The CLI's current full-endpoint test uses mocked transport. There is no executable
-all-endpoint live contract suite yet, and response-only support is not universal.
-Do not treat either gap as passing coverage or put authenticated tests into normal
-`pnpm verify`. The package-local
+The CLI's opt-in all-route gate (`pnpm --filter @iracing-data/cli test:live:all
+--run`) derives runtime GET routes and canonical response schemas from the
+maintained OpenAPI contract, drives the CLI through an injected transport, and
+validates raw wire responses before decoder normalization. It does not follow
+linked JSON/CSV/chunk payloads. Reviewed inputs are supplied privately through
+`IRACING_LIVE_INPUTS`; missing inputs, authentication, access, and rate limits
+are blocking outcomes, never passes. A route-level `NOT_RUN` keeps the whole
+result at **Unable to verify part of the contract**, and the gate never runs in
+normal `pnpm verify`. The package-local
 [API command skill](../apps/iracing-data-cli/.agents/skills/api-command/SKILL.md)
 owns command work; its
 [live validation boundary](../apps/iracing-data-cli/.agents/skills/api-command/references/live-contract-validation.md)

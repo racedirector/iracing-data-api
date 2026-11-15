@@ -51,8 +51,8 @@ Use the [report contract](references/report-contract.md#living-decision-memory).
 1. **Preflight.** Record revision, branch, dirty paths, requested scope, credential
    availability, and actual executable tests. Rebuild the [runtime inventory](references/runtime-inventory.md).
    Read [current tooling](../../../docs/UPSTREAM-CONTRACT.md) and the
-   [live workflow](references/live-workflow.md). Do not assume an all-endpoint live
-   suite or universal response-only support exists.
+   [live workflow](references/live-workflow.md). The all-route live gate exists but
+   requires reviewed private inputs; response-only support is not universal.
 2. **Authenticate and fetch docs.** Use the existing CLI credential lifecycle.
    Prefer current selected credentials. When login is needed, authorized, and
    configured, run it once; on failure give the
@@ -95,19 +95,24 @@ Use the [report contract](references/report-contract.md#living-decision-memory).
    interpretation; historical evidence is required for claims about upstream
    changes over time. Remove private temporary audit data. Never publish.
 
-## Required live-gate availability
+## Live-gate availability
 
-The CLI manifest includes an explicitly opt-in scoped hosted-search case:
-`pnpm --filter @iracing-data/cli test:live --run`, with reviewed query JSON in
-`IRACING_LIVE_HOSTED_QUERY`. Read its README for build prerequisites and credential
-selection. This covers one endpoint, not the full declared runtime set.
+The CLI manifest includes two explicitly opt-in live gates:
 
-The current CLI has offline mocked endpoint-dispatch tests, **not an executable
-all-endpoint live contract suite**, and response-only support is not universal.
-The package-local validation boundary specifies the missing gate; it does not
-implement it. A requested full reconciliation cannot receive a full live
-**Compatible** verdict until that runtime gap is addressed. Docs-only results
-must be explicitly scoped as docs-only.
+- `pnpm --filter @iracing-data/cli test:live:all --run` is the all-route
+  contract-shape gate. It derives runtime GET routes, command bindings, and
+  canonical response schemas from `openapi/iracing.json`, validates raw wire
+  responses before decoder normalization, and never follows linked JSON/CSV/chunk
+  payloads. Reviewed inputs are supplied privately through `IRACING_LIVE_INPUTS`.
+- `pnpm --filter @iracing-data/cli test:live --run` is the scoped hosted-search
+  case, with reviewed query JSON in `IRACING_LIVE_HOSTED_QUERY`.
+
+Read the CLI README for build prerequisites and credential selection. Missing
+reviewed inputs, authentication, access, rate limits, and network failure are
+`NOT_RUN`/`BLOCKED`, not passes. A full reconciliation cannot receive a
+**Compatible** verdict while any declared route is unverified. The package-local
+validation boundary specifies these rules; offline suite tests prove the runner's
+classification behavior, not upstream compatibility.
 
 ## Verification
 

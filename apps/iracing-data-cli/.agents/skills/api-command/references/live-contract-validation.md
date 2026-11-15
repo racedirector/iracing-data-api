@@ -5,7 +5,7 @@ It is deliberately narrower than a generic upstream crawler or generator test
 framework. Repository reconciliation orders its execution; the CLI owns the
 command path and effects; API schemas own acceptance.
 
-## Current tooling and explicit gap
+## Current tooling
 
 Inspect the [manifest](../../../../package.json) before invoking anything.
 At this revision:
@@ -13,24 +13,25 @@ At this revision:
 - `test/endpoint-coverage.test.cjs` checks command dispatch with mocked transport.
   Its synthetic numeric placeholders are **not valid live cases**.
 - `test` is an offline suite, not authenticated contract validation.
+- `test:live` is an opt-in scoped hosted-search case; `test:live:all` is the
+  opt-in all-route contract-shape gate.
 - `--response-only` exists on some command groups, not every runtime endpoint.
-- There is **no executable all-endpoint live contract suite**.
+  The all-route runner uses it automatically where available and otherwise stubs
+  the returned cache URL so linked payloads are never followed.
 
-Do not invent a live-suite script name, describe the mocked test as live, or
-claim a full reconciliation passed without this gate. Report **Unable to verify
-part of the contract** for missing live coverage. Implementing the runner or
-adding missing response-only support is explicit runtime work, not something
-accomplished by changing skill prose.
+Do not describe the mocked test as live or claim a full reconciliation passed
+while any route is `NOT_RUN`/`BLOCKED`. Assigning a schema binding to a route is a
+contract lookup; it is not evidence that the live response was observed.
 
 For a requested individual command, one reviewed CLI invocation can establish
-that case's current observation. It cannot replace the absent full suite.
+that case's current observation. It cannot replace the declared all-route set.
 No scratch clients or guessed-input loops.
 
 ## Required suite contract
 
-When runtime implementation is authorized, keep the suite package-local and
-explicitly opt-in. Normal `pnpm verify` must remain service-free. Test these
-authored contracts only:
+`test:live:all` implements this contract. Keep it package-local and explicitly
+opt-in; normal `pnpm verify` must remain service-free. Test these authored
+contracts only:
 
 1. **Coverage.** Derive expected read-only runtime endpoints from the current docs
    comparison and maintained endpoint mapping. Account for path templates,
@@ -44,11 +45,12 @@ authored contracts only:
    Test one representative valid request per endpoint plus cases justified by
    changed authored rules—not every flag permutation.
 3. **Outputs.** Execute the existing command in response-only mode through the
-   generated client. Check HTTP success and content type; validate the **raw wire
-   response before decoder normalization** with the endpoint's canonical Zod
-   response schema. Schema bindings belong to authored schema/endpoint ownership,
-   not a second hard-coded endpoint table in a test. An unmapped schema is a gap,
-   never an automatic generic-envelope fallback.
+   generated client where supported; otherwise stub the returned cache URL so the
+   linked payload is never fetched. Check HTTP success and content type; validate
+   the **raw wire response before decoder normalization** with the endpoint's
+   canonical Zod response schema. Schema bindings belong to authored
+   schema/endpoint ownership, not a second hard-coded endpoint table in a test. An
+   unmapped schema is a gap, never an automatic generic-envelope fallback.
 4. **Minimal semantic assertion.** Apply only documented invariants needed to
    recognize the expected outcome: success discriminator, echoed selector when
    supplied, or required response variant. An error object with HTTP 200 is not

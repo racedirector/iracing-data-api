@@ -35,6 +35,7 @@ docs/SessionApi.md
 docs/StatsApi.md
 docs/StatsWorldRecordsResponse.md
 docs/StatsWorldRecordsResponseData.md
+docs/StatsWorldRecordsResponseDataChunkInfo.md
 docs/TeamApi.md
 docs/TimeAttackApi.md
 docs/TrackApi.md
@@ -82,3 +83,4 @@ src/models/results_search_series_response_data.rs
 src/models/results_search_series_response_data_chunk_info.rs
 src/models/stats_world_records_response.rs
 src/models/stats_world_records_response_data.rs
+src/models/stats_world_records_response_data_chunk_info.rs

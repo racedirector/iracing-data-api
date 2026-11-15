@@ -7,6 +7,7 @@ import {
   MemberAwardInstancesResponseSchema,
   ResultsSearchSeriesResponseSchema,
   ResultsSearchHostedResponseSchema,
+  StatsWorldRecordsResponseSchema,
   ServiceMethodDocsResponseSchema,
   ServicesDocsResponseSchema,
 } from "./responses";
@@ -188,7 +189,10 @@ it("validates zero, one, and multi-chunk search-series manifests", () => {
           chunk_size: 500,
           num_chunks: fixture.chunkFileNames.length,
           rows: fixture.rows,
-          base_download_url: "https://scorpio-assets.s3.amazonaws.com/results/",
+          base_download_url:
+            fixture.rows === 0
+              ? null
+              : "https://scorpio-assets.s3.amazonaws.com/results/",
           chunk_file_names: fixture.chunkFileNames,
         },
         params: {
@@ -242,6 +246,55 @@ it("rejects link envelopes and malformed search-series manifests", () => {
   ])
     assert.equal(
       ResultsSearchSeriesResponseSchema.safeParse(invalid).success,
+      false,
+    );
+});
+
+it("accepts empty and populated world-record manifests", () => {
+  const empty = {
+    type: "stats_world_records" as const,
+    data: {
+      success: true,
+      car_id: 1,
+      track_id: 1,
+      season_year: 2026,
+      season_quarter: 4,
+      chunk_info: null,
+      last_updated: "2026-11-15T03:00:00Z",
+    },
+  };
+  assert.deepEqual(StatsWorldRecordsResponseSchema.parse(empty), empty);
+
+  const populated = {
+    ...empty,
+    data: {
+      ...empty.data,
+      chunk_info: {
+        chunk_size: 500,
+        num_chunks: 1,
+        rows: 1,
+        base_download_url: "https://scorpio-assets.s3.amazonaws.com/results/",
+        chunk_file_names: ["chunk-0.json"],
+      },
+    },
+  };
+  assert.deepEqual(StatsWorldRecordsResponseSchema.parse(populated), populated);
+
+  for (const invalid of [
+    { ...empty, data: { ...empty.data, chunk_info: undefined } },
+    {
+      ...populated,
+      data: {
+        ...populated.data,
+        chunk_info: {
+          ...populated.data.chunk_info,
+          base_download_url: "invalid",
+        },
+      },
+    },
+  ])
+    assert.equal(
+      StatsWorldRecordsResponseSchema.safeParse(invalid).success,
       false,
     );
 });

@@ -21,3 +21,4 @@ export * from "./ResultsSearchSeriesResponseData";
 export * from "./ResultsSearchSeriesResponseDataChunkInfo";
 export * from "./StatsWorldRecordsResponse";
 export * from "./StatsWorldRecordsResponseData";
+export * from "./StatsWorldRecordsResponseDataChunkInfo";

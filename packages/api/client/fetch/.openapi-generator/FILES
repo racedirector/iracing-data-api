@@ -37,6 +37,7 @@ docs/SessionApi.md
 docs/StatsApi.md
 docs/StatsWorldRecordsResponse.md
 docs/StatsWorldRecordsResponseData.md
+docs/StatsWorldRecordsResponseDataChunkInfo.md
 docs/TeamApi.md
 docs/TimeAttackApi.md
 docs/TrackApi.md
@@ -82,6 +83,7 @@ src/models/ResultsSearchSeriesResponseData.ts
 src/models/ResultsSearchSeriesResponseDataChunkInfo.ts
 src/models/StatsWorldRecordsResponse.ts
 src/models/StatsWorldRecordsResponseData.ts
+src/models/StatsWorldRecordsResponseDataChunkInfo.ts
 src/models/index.ts
 src/runtime.ts
 tsconfig.json

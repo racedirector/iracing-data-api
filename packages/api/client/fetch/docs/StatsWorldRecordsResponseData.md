@@ -2,13 +2,15 @@
 
 ## Properties
 
-| Name          | Type                                                                                    |
-| ------------- | --------------------------------------------------------------------------------------- |
-| `success`     | boolean                                                                                 |
-| `carId`       | number                                                                                  |
-| `trackId`     | number                                                                                  |
-| `chunkInfo`   | [ResultsSearchSeriesResponseDataChunkInfo](ResultsSearchSeriesResponseDataChunkInfo.md) |
-| `lastUpdated` | string                                                                                  |
+| Name            | Type                                                                                |
+| --------------- | ----------------------------------------------------------------------------------- |
+| `success`       | boolean                                                                             |
+| `carId`         | number                                                                              |
+| `trackId`       | number                                                                              |
+| `seasonYear`    | number                                                                              |
+| `seasonQuarter` | number                                                                              |
+| `chunkInfo`     | [StatsWorldRecordsResponseDataChunkInfo](StatsWorldRecordsResponseDataChunkInfo.md) |
+| `lastUpdated`   | string                                                                              |
 
 ## Example
 
@@ -20,6 +22,8 @@ const example = {
   success: null,
   carId: null,
   trackId: null,
+  seasonYear: null,
+  seasonQuarter: null,
   chunkInfo: null,
   lastUpdated: null,
 } satisfies StatsWorldRecordsResponseData;

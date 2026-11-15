@@ -298,7 +298,7 @@ export interface ResultsSearchSeriesResponseDataChunkInfo {
   chunk_size: number;
   num_chunks: number;
   rows: number;
-  base_download_url: string;
+  base_download_url: string | null;
   chunk_file_names: Array<string>;
 }
 /**
@@ -320,8 +320,17 @@ export interface StatsWorldRecordsResponseData {
   success: boolean;
   car_id: number;
   track_id: number;
-  chunk_info: ResultsSearchSeriesResponseDataChunkInfo;
+  season_year?: number;
+  season_quarter?: number;
+  chunk_info: StatsWorldRecordsResponseDataChunkInfo | null;
   last_updated: string;
+}
+export interface StatsWorldRecordsResponseDataChunkInfo {
+  chunk_size: number;
+  num_chunks: number;
+  rows: number;
+  base_download_url: string | null;
+  chunk_file_names: Array<string>;
 }
 
 /**

@@ -21,8 +21,9 @@ pnpm --filter '@iracing-data/cli...' --filter '@iracing-data/api-schema-to-opena
 
 Use the repository Node/pnpm versions. This build is not code generation.
 For ongoing command work, use the package skill's watch procedure rather than
-repeated temporary probes. Discover actual live-suite scripts in manifests;
-never invent them. The current CLI has only mocked full-endpoint coverage.
+repeated temporary probes. Discover actual live-suite scripts in manifests; never
+invent them. The current CLI has an opt-in all-route live gate and a scoped
+hosted-search case, plus offline mocked endpoint-dispatch coverage.
 
 ## 2. Authentication: one explicit recovery path
 
@@ -130,17 +131,20 @@ mode reports repairs and commands without applying them.
 Apply the package-local
 [live validation boundary](../../../../apps/iracing-data-cli/.agents/skills/api-command/references/live-contract-validation.md).
 Invoke only an existing, explicitly opt-in live suite discovered in the manifest.
-**No such full suite exists at this revision**; report the gap rather than
-inventing a successful command. Missing response-only support is also a gap.
+`test:live:all` runs the full declared runtime set; `test:live` remains the scoped
+hosted-search case.
 
-For an available scoped case, execute the existing response-only command with
-reviewed valid inputs and explicit credential selection. Validate the raw
-modeled response with the endpoint's canonical API Zod schema before client
-normalization; check HTTP/content type and documented success invariants.
-Keep the original privately in memory so stripping does not hide fields.
-Test our input/output expectations, not generated classes, decoders, snapshots,
-or generator internals. A permissive schema's parse pass has limited evidential
-value; request acceptance does not prove the semantics of every optional filter.
+For the all-route gate, supply reviewed inputs privately through
+`IRACING_LIVE_INPUTS` and an explicit credential selection. The runner derives
+route/schema bindings from the maintained OpenAPI contract, executes the existing
+CLI through an injected transport, and validates the raw modeled response with the
+endpoint's canonical Zod schema before client normalization. It checks HTTP/content
+type and documented success invariants, stubs cache URLs, and never follows linked
+payloads. Keep any original response privately in memory so stripping does not
+hide fields. Test our input/output expectations, not generated classes, decoders,
+snapshots, or generator internals. A permissive schema's parse pass has limited
+evidential value; request acceptance does not prove the semantics of every
+optional filter.
 
 Classify each case as PASS, CONTRACT_MISMATCH, BLOCKED, or NOT_RUN. Missing
 schemas/cases, invalid prerequisites, access, expiry, network, and rate limits
