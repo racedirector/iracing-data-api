@@ -28,6 +28,7 @@ export function registerSearchRaceResults(
       inputSchema: toolInputSchema(SearchInput),
       outputSchema: SearchOutput,
       annotations: {
+        title: "Search race results",
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
