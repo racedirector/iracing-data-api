@@ -54,7 +54,8 @@ const app = new Hono().route(
     resolveCapabilities: async (actor, context) =>
       linkedIracingQueriesForActor(actor, context.signal),
   }),
-);```
+);
+```
 
 The `auth` and `linkedIracingQueriesForActor` values above are provided by
 the embedding application, not this package. This follows the separation in
