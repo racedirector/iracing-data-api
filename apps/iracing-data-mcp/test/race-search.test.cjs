@@ -19,7 +19,10 @@ async function fixture({
     fetchApi: async (url, options) => {
       calls.push({ url: String(url), options });
       // The manifest client is authenticated. It must not fetch chunks.
-      assert.equal(new Headers(options.headers).get("authorization"), "Bearer TOKEN");
+      assert.equal(
+        new Headers(options.headers).get("authorization"),
+        "Bearer TOKEN",
+      );
       return Response.json({
         type: String(url).includes("search_series")
           ? "search_series_results"
@@ -179,7 +182,8 @@ test("search input rejects unsupported filters and invalid scopes", async () => 
 });
 
 test("signed chunk rejections preserve safe error categories", async () => {
-  const { createRequestContext, errorEnvelope } = await import("@iracing-data/mcp");
+  const { createRequestContext, errorEnvelope } =
+    await import("@iracing-data/mcp");
   for (const [status, code, reason] of [
     [403, "DATA_RESOLUTION_FAILED", "link_rejected"],
     [404, "DATA_RESOLUTION_FAILED", "link_rejected"],
