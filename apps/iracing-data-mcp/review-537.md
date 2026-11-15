@@ -16,8 +16,8 @@ enter the core envelope. An operator may investigate or initiate a new operation
 to obtain fresh data. These are not continuation cursors.
 
 The core's fixed errors contain no transport-specific operational instructions.
-The existing local host retains its stopped-owner login/import and restart
-procedure in [the local guide](local-container.md). A consumer selecting actors
+Local credential recovery is described in [the runtime guide](README.md).
+A consumer selecting actors
 per request must implement its own access restoration and account-access policy.
 Transient refresh retries still require explicit `transient_refresh` evidence;
 unknown rotation state remains non-retryable.
