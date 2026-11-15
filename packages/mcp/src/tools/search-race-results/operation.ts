@@ -13,7 +13,7 @@ import type { z } from "zod";
  * @returns {Promise<Result<z.input<typeof SearchOutput>, FailureFor<"DATA_RESOLUTION_FAILED">>>} Projected search or safe data failure.
  */
 export async function handleSearchRaceResults(
-  input: z.output<typeof SearchInput>,
+  input: RaceSearchInput,
   queries: RaceSearchQueries,
   context: OperationContext,
 ): Promise<
