@@ -31,8 +31,8 @@ import {
   OAuthTokenResponseSchema,
   OAuthPasswordLimitedGrantParametersSchema,
 } from "@iracing-data/oauth-schema";
-import { decodeJwt } from "jose";
 import * as oauth from "oauth4webapi";
+import { z } from "zod";
 import { OAuthApiClient, type OAuthApiClientFactory } from "./api-client";
 import { ClientMetadataError, SessionNotFoundError } from "./errors";
 import { OAuthCallbackError, OAuthRefreshError } from "./errors/oauth";
@@ -86,6 +86,33 @@ export interface OAuthClientOptions {
   earlyRefreshWindowMs?: number;
 }
 
+const storeSchema = z.custom<StateStore | SessionStore>(
+  (value) =>
+    value !== null &&
+    typeof value === "object" &&
+    "get" in value &&
+    typeof value.get === "function" &&
+    "set" in value &&
+    typeof value.set === "function" &&
+    "del" in value &&
+    typeof value.del === "function",
+  "Expected a store with get, set, and del methods",
+);
+
+/** Validates lifecycle composition before construction without wrapping injected dependencies. */
+export const OAuthClientOptionsSchema = z.object({
+  clientMetadata: IRacingOAuthClientMetadataSchema,
+  stateStore: storeSchema as z.ZodType<StateStore>,
+  sessionStore: storeSchema as z.ZodType<SessionStore>,
+  createOAuthApi: z
+    .custom<OAuthApiClientFactory>(
+      (value) => typeof value === "function",
+      "Expected an OAuth API factory",
+    )
+    .optional(),
+  earlyRefreshWindowMs: z.number().nonnegative().default(0),
+});
+
 /**
  * The `OAuthClient` is responsible for coordinating access and refresh tokens
  * against the iRacing authorization servers.
@@ -114,25 +141,21 @@ export class OAuthClient {
    * @throws {Error} If the client metadata does not match the expected schema.
    */
   constructor(options: OAuthClientOptions) {
-    const { clientMetadata, stateStore, sessionStore } = options;
-
-    const { earlyRefreshWindowMs = 0 } = options;
-
-    if (!Number.isFinite(earlyRefreshWindowMs) || earlyRefreshWindowMs < 0) {
-      throw new TypeError(
-        "earlyRefreshWindowMs must be finite and nonnegative",
-      );
-    }
+    const {
+      clientMetadata,
+      stateStore,
+      sessionStore,
+      createOAuthApi,
+      earlyRefreshWindowMs,
+    } = OAuthClientOptionsSchema.parse(options);
 
     this.earlyRefreshWindowMs = earlyRefreshWindowMs;
 
-    this.clientMetadata =
-      IRacingOAuthClientMetadataSchema.parse(clientMetadata);
+    this.clientMetadata = clientMetadata;
     this.stateStore = stateStore;
     this.sessionStore = sessionStore;
     this.createOAuthApi =
-      options.createOAuthApi ??
-      ((apiOptions) => new OAuthApiClient(apiOptions));
+      createOAuthApi ?? ((apiOptions) => new OAuthApiClient(apiOptions));
 
     this.authorizationServer = {
       issuer: this.clientMetadata.issuer,
@@ -544,15 +567,7 @@ export class OAuthClient {
   }
 
   private shouldRefreshAccessToken(accessToken: string) {
-    if (this.earlyRefreshWindowMs === 0) {
-      return isAccessTokenExpired(accessToken);
-    }
-
-    const { exp } = decodeJwt<{ exp?: number }>(accessToken);
-
-    const expiry = new Date((exp ?? 0) * 1000).getTime();
-
-    return expiry - Date.now() <= this.earlyRefreshWindowMs;
+    return isAccessTokenExpired(accessToken, this.earlyRefreshWindowMs);
   }
 
   /**

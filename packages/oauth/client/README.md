@@ -70,6 +70,10 @@ Set `earlyRefreshWindowMs` on `OAuthClient` to opt into refreshing stored access
 tokens before expiry, for example `earlyRefreshWindowMs: 30_000`. The value must
 be a finite, nonnegative number of milliseconds; invalid values throw during
 construction. A positive window refreshes at or inside the window boundary.
+`OAuthClientOptionsSchema` validates the complete options object (including
+metadata, store methods, and an optional API factory) before constructor fields
+are assigned. Invalid options throw a Zod validation error with field paths;
+injected stores and factories retain their identity and are not invoked by parsing.
 Omitting the option (or setting it to zero) preserves the existing behavior:
 refresh only when the current clock is strictly past expiry.
 This policy applies to `restoreSessionForId()` and therefore

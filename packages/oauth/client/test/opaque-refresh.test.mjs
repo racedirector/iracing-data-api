@@ -3,7 +3,12 @@ import { afterEach, beforeEach, test } from "node:test";
 import * as runtime from "../dist/index.js";
 import * as utils from "../dist/utils.js";
 
-const { OAuthClient, InMemoryStore, OAuthRefreshError } = runtime;
+const {
+  OAuthClient,
+  OAuthClientOptionsSchema,
+  InMemoryStore,
+  OAuthRefreshError,
+} = runtime;
 const { isRefreshTokenExpired } = utils;
 const originalFetch = globalThis.fetch;
 const jwt = (exp) =>
@@ -243,7 +248,94 @@ test("early refresh rejects invalid configuration", () => {
   for (const value of [-1, NaN, Infinity, -Infinity, "1000", null]) {
     assert.throws(
       () => setup(new InMemoryStore(), { earlyRefreshWindowMs: value }),
-      /earlyRefreshWindowMs must be finite and nonnegative/,
+      (error) =>
+        error.issues.some((issue) => issue.path[0] === "earlyRefreshWindowMs"),
+    );
+  }
+});
+
+test("options schema validates all composition inputs before any dependency is used", () => {
+  let calls = 0;
+  const store = {
+    get() {
+      calls++;
+    },
+    set() {
+      calls++;
+    },
+    del() {
+      calls++;
+    },
+  };
+  const factory = () => {
+    calls++;
+  };
+  const options = {
+    clientMetadata: {
+      clientId: "fixture-client",
+      redirectUri: "https://client.example/callback",
+      scopes: ["iracing.auth"],
+    },
+    stateStore: store,
+    sessionStore: store,
+    createOAuthApi: factory,
+  };
+  const parsed = OAuthClientOptionsSchema.parse(options);
+  assert.equal(parsed.earlyRefreshWindowMs, 0);
+  assert.equal(
+    parsed.clientMetadata.tokenUrl,
+    "https://oauth.iracing.com/oauth2/token",
+  );
+  assert.equal(parsed.stateStore, store);
+  assert.equal(parsed.sessionStore, store);
+  assert.equal(parsed.createOAuthApi, factory);
+  for (const [field, value] of [
+    ["clientMetadata", {}],
+    ["stateStore", null],
+    ["sessionStore", { get() {}, set() {} }],
+    ["createOAuthApi", {}],
+    ["earlyRefreshWindowMs", -1],
+  ]) {
+    assert.throws(
+      () => new OAuthClient({ ...options, [field]: value }),
+      (error) => error.issues.some((issue) => issue.path[0] === field),
+    );
+  }
+  const invalid = OAuthClientOptionsSchema.safeParse({
+    ...options,
+    clientMetadata: {},
+    earlyRefreshWindowMs: -1,
+  });
+  assert.equal(invalid.success, false);
+  assert.ok(
+    invalid.error.issues.some((issue) => issue.path[0] === "clientMetadata"),
+  );
+  assert.ok(
+    invalid.error.issues.some(
+      (issue) => issue.path[0] === "earlyRefreshWindowMs",
+    ),
+  );
+  assert.equal(calls, 0);
+});
+
+test("shared access-token expiry helper supports millisecond windows without changing JWT refresh helpers", (t) => {
+  const now = 2_000_000_000_000;
+  t.mock.method(Date, "now", () => now);
+  assert.equal(utils.isAccessTokenExpired(jwt(now / 1000)), false);
+  assert.equal(
+    utils.isAccessTokenExpired(jwt((now + 1500) / 1000), 1500),
+    true,
+  );
+  assert.equal(
+    utils.isAccessTokenExpired(jwt((now + 1501) / 1000), 1500),
+    false,
+  );
+  assert.equal(utils.isAccessTokenValid(jwt(now / 1000)), true);
+  assert.equal(utils.isRefreshTokenExpired(jwt(now / 1000)), false);
+  for (const value of [-1, NaN, Infinity, "1000", null]) {
+    assert.throws(
+      () => utils.isAccessTokenExpired(jwt(now / 1000), value),
+      RangeError,
     );
   }
 });
