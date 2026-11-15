@@ -97,7 +97,7 @@ can access this unauthenticated boundary; it does not defend against malicious
 same-user processes. Treat upstream names/text as untrusted data.
 
 See [production configuration](src/production.ts), [HTTP security](src/http.ts)
-and [linked responses](../../packages/mcp/src/linked-response.ts) for the enforced boundaries.
+and [linked responses](src/adapters/linked-response.ts) for the enforced boundaries.
 
 Local packaging and 22 Docker recovery acceptance groups passed on macOS arm64
 with Docker 29.5.2, a linux/arm64 runtime and Node 24.21.0. The same 22 groups
