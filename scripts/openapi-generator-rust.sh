@@ -15,6 +15,8 @@ SCRIPT_DIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
 ROOT_DIR="$(CDPATH= cd -- "$SCRIPT_DIR/.." && pwd)"
 
 export OPENAPI_GENERATOR="$ROOT_DIR/node_modules/.bin/openapi-generator-cli"
+# Suppress generator INFO chatter while retaining warnings, errors and JVM options.
+export JAVA_OPTS="${JAVA_OPTS:+$JAVA_OPTS }-Dorg.slf4j.simpleLogger.defaultLogLevel=warn"
 export RUST_POST_PROCESS_FILE="$SCRIPT_DIR/openapi-generator-rust-post-process.sh"
 export OPENAPI_DOC="${OPENAPI_DOC:-$ROOT_DIR/openapi/iracing.json}"
 export OUTPUT_PACKAGE="${OUTPUT_PACKAGE:-$ROOT_DIR/crates/iracing-data-api-client}"
