@@ -4,7 +4,6 @@ const path = require("node:path");
 const test = require("node:test");
 const YAML = require("yaml");
 
-const diagnostics = { info() {}, warn() {}, error() {} };
 const openApiPath = path.resolve(__dirname, "../../../openapi/iracing.yaml");
 
 function discoverRuntimeAssetServices(document) {
@@ -48,13 +47,13 @@ test("canonical OpenAPI runtime asset services match authored assets leaves", as
   assert.deepEqual(discovered, ["car", "series", "track"]);
 
   const { createAssetsCommand } =
-    await import("../dist/commands/assets/index.js");
+    await import("../dist/commands/assets/command.js");
   const authored = createAssetsCommand({
-    diagnostics,
-    carService: {
-      async execute() {
-        throw new Error("unexpected car execution");
-      },
+    async fetchAssets() {
+      assert.fail("Registration must not fetch");
+    },
+    present() {
+      assert.fail("Registration must not present");
     },
   })
     .commands.map((command) => command.name())

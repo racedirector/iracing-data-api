@@ -17,6 +17,7 @@ import type {
   ErrorResponse,
   IracingAPIResponse,
   IracingEventType,
+  ResultsSearchHostedResponse,
   ResultsSearchSeriesResponse,
 } from "../models/index";
 import {
@@ -26,6 +27,8 @@ import {
   IracingAPIResponseToJSON,
   IracingEventTypeFromJSON,
   IracingEventTypeToJSON,
+  ResultsSearchHostedResponseFromJSON,
+  ResultsSearchHostedResponseToJSON,
   ResultsSearchSeriesResponseFromJSON,
   ResultsSearchSeriesResponseToJSON,
 } from "../models/index";
@@ -385,7 +388,7 @@ export class ResultsApi extends runtime.BaseAPI {
   async getResultsSearchHostedRaw(
     requestParameters: GetResultsSearchHostedRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<ResultsSearchHostedResponse>> {
     const queryParameters: any = {};
 
     if (requestParameters["start_range_begin"] != null) {
@@ -468,7 +471,7 @@ export class ResultsApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
+      ResultsSearchHostedResponseFromJSON(jsonValue),
     );
   }
 
@@ -477,7 +480,7 @@ export class ResultsApi extends runtime.BaseAPI {
   async getResultsSearchHosted(
     requestParameters: GetResultsSearchHostedRequest = {},
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<ResultsSearchHostedResponse> {
     const response = await this.getResultsSearchHostedRaw(
       requestParameters,
       initOverrides,

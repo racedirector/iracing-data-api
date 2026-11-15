@@ -174,7 +174,7 @@ pub async fn get_member(
 pub async fn get_member_award_instances(
     configuration: &configuration::Configuration,
     params: GetMemberAwardInstancesParams,
-) -> Result<models::IracingApiResponse, Error<GetMemberAwardInstancesError>> {
+) -> Result<models::MemberAwardInstancesResponse, Error<GetMemberAwardInstancesError>> {
     let uri_str = format!("{}/data/member/award_instances", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
@@ -204,8 +204,8 @@ pub async fn get_member_award_instances(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::IracingApiResponse`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::IracingApiResponse`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::MemberAwardInstancesResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::MemberAwardInstancesResponse`")))),
         }
     } else {
         let content = resp.text().await?;
@@ -221,7 +221,7 @@ pub async fn get_member_award_instances(
 pub async fn get_member_awards(
     configuration: &configuration::Configuration,
     params: GetMemberAwardsParams,
-) -> Result<models::IracingApiResponse, Error<GetMemberAwardsError>> {
+) -> Result<models::MemberAwardsResponse, Error<GetMemberAwardsError>> {
     let uri_str = format!("{}/data/member/awards", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
@@ -250,8 +250,8 @@ pub async fn get_member_awards(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::IracingApiResponse`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::IracingApiResponse`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::MemberAwardsResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::MemberAwardsResponse`")))),
         }
     } else {
         let content = resp.text().await?;

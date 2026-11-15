@@ -156,7 +156,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_league_roster
 
-> models::IracingApiResponse get_league_roster(league_id, include_licenses)
+> models::LeagueRosterResponse get_league_roster(league_id, include_licenses)
 
 ### Parameters
 
@@ -167,7 +167,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**models::LeagueRosterResponse**](leagueRosterResponse.md)
 
 ### Authorization
 

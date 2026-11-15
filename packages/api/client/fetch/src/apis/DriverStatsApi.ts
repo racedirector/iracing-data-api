@@ -36,6 +36,7 @@ export interface GetDriverStatsByCategoryRequest {
  */
 export class DriverStatsApi extends runtime.BaseAPI {
   /**
+   * Returns a cache link to a CSV driver-statistics document, not a JSON payload.
    */
   async getDriverStatsByCategoryRaw(
     requestParameters: GetDriverStatsByCategoryRequest,
@@ -83,6 +84,7 @@ export class DriverStatsApi extends runtime.BaseAPI {
   }
 
   /**
+   * Returns a cache link to a CSV driver-statistics document, not a JSON payload.
    */
   async getDriverStatsByCategory(
     requestParameters: GetDriverStatsByCategoryRequest,

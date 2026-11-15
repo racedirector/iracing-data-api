@@ -944,7 +944,7 @@ example().catch(console.error);
 
 ## getStatsWorldRecords
 
-> IracingAPIResponse getStatsWorldRecords(car_id, track_id, season_year, season_quarter)
+> StatsWorldRecordsResponse getStatsWorldRecords(car_id, track_id, season_year, season_quarter)
 
 ### Example
 
@@ -994,7 +994,7 @@ example().catch(console.error);
 
 ### Return type
 
-[**IracingAPIResponse**](IracingAPIResponse.md)
+[**StatsWorldRecordsResponse**](StatsWorldRecordsResponse.md)
 
 ### Authorization
 
@@ -1009,7 +1009,7 @@ example().catch(console.error);
 
 | Status code | Description                         | Response headers                                                                     |
 | ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **200**     | World-record chunk manifest.        | -                                                                                    |
 | **401**     | Access token is missing or invalid. | -                                                                                    |
 | **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
 | **503**     | Maintenance                         | -                                                                                    |

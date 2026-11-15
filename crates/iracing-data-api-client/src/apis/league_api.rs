@@ -478,7 +478,7 @@ pub async fn get_league_points_systems(
 pub async fn get_league_roster(
     configuration: &configuration::Configuration,
     params: GetLeagueRosterParams,
-) -> Result<models::IracingApiResponse, Error<GetLeagueRosterError>> {
+) -> Result<models::LeagueRosterResponse, Error<GetLeagueRosterError>> {
     let uri_str = format!("{}/data/league/roster", configuration.base_path);
     let mut req_builder = configuration.client.request(reqwest::Method::GET, &uri_str);
 
@@ -508,8 +508,8 @@ pub async fn get_league_roster(
         let content = resp.text().await?;
         match content_type {
             ContentType::Json => serde_json::from_str(&content).map_err(Error::from),
-            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::IracingApiResponse`"))),
-            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::IracingApiResponse`")))),
+            ContentType::Text => return Err(Error::from(serde_json::Error::custom("Received `text/plain` content type response that cannot be converted to `models::LeagueRosterResponse`"))),
+            ContentType::Unsupported(unknown_type) => return Err(Error::from(serde_json::Error::custom(format!("Received `{unknown_type}` content type response that cannot be converted to `models::LeagueRosterResponse`")))),
         }
     } else {
         let content = resp.text().await?;

@@ -37,8 +37,11 @@ import {
   LeagueSeasonsParametersSchema,
   LeagueSeasonStandingsParametersSchema,
   LookupDriversParametersSchema,
+  LookupParametersSchema,
   MemberAwardInstancesParametersSchema,
+  MemberAwardInstancesResponseSchema,
   MemberAwardsParametersSchema,
+  MemberAwardsResponseSchema,
   MemberChartDataParametersSchema,
   MemberGetParametersSchema,
   MemberProfileParametersSchema,
@@ -53,8 +56,11 @@ import {
   ResultsSearchHostedParametersSchema,
   ResultsSearchSeriesParametersSchema,
   ResultsSearchSeriesResponseSchema,
+  ResultsSearchHostedResponseSchema,
+  LeagueRosterResponseSchema,
   ResultsSeasonResultsParametersSchema,
   SeasonListParametersSchema,
+  SessionRegisteredDriversParametersSchema,
   SeasonRaceGuideParametersSchema,
   SeasonSpectatorSubsessionidsDetailParametersSchema,
   SeasonSpectatorSubsessionidsParametersSchema,
@@ -79,6 +85,7 @@ import {
   StatsSeasonTTResultsParametersSchema,
   StatsSeasonTTStandingsParametersSchema,
   StatsWorldRecordsParametersSchema,
+  StatsWorldRecordsResponseSchema,
   TeamGetParametersSchema,
   TimeAttackMemberSeasonResultsParametersSchema,
 } from "@iracing-data/api-schema";
@@ -139,6 +146,20 @@ export const document = createDocument({
         headers: RateLimitHeadersSchema,
         content: {
           "application/json": { schema: ResultsSearchSeriesResponseSchema },
+        },
+      },
+      ResultsSearchHosted: {
+        description: "Direct hosted-search chunk manifest",
+        headers: RateLimitHeadersSchema,
+        content: {
+          "application/json": { schema: ResultsSearchHostedResponseSchema },
+        },
+      },
+      LeagueRoster: {
+        description: "Direct league roster metadata and download URL",
+        headers: RateLimitHeadersSchema,
+        content: {
+          "application/json": { schema: LeagueRosterResponseSchema },
         },
       },
       Constants: {
@@ -563,6 +584,16 @@ export const document = createDocument({
     "/data/doc/lookup/countries": {
       get: {
         operationId: "getLookupCountriesDocs",
+        tags: ["doc"],
+        responses: {
+          200: { $ref: "#/components/responses/ServiceMethodDocs" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+    "/data/doc/lookup/current_season": {
+      get: {
+        operationId: "getLookupCurrentSeasonDocs",
         tags: ["doc"],
         responses: {
           200: { $ref: "#/components/responses/ServiceMethodDocs" },
@@ -1228,6 +1259,8 @@ export const document = createDocument({
     },
     "/data/driver_stats_by_category/{category}": {
       get: {
+        description:
+          "Returns a cache link to a CSV driver-statistics document, not a JSON payload.",
         operationId: "getDriverStatsByCategory",
         requestParams: {
           path: DriverStatsByCategoryPathSchema,
@@ -1382,7 +1415,7 @@ export const document = createDocument({
           url: "/data/doc/league/roster",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: { $ref: "#/components/responses/LeagueRoster" },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -1435,6 +1468,53 @@ export const document = createDocument({
         externalDocs: {
           url: "/data/doc/league/season_sessions",
         },
+        responses: {
+          200: { $ref: "#/components/responses/Success" },
+          429: { $ref: "#/components/responses/RateLimited" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          503: { $ref: "#/components/responses/Maintenance" },
+        },
+      },
+    },
+    "/data/session/reg_drivers_list": {
+      get: {
+        operationId: "getSessionRegisteredDrivers",
+        tags: ["session"],
+        requestParams: { query: SessionRegisteredDriversParametersSchema },
+        externalDocs: { url: "/data/doc/session/reg_drivers_list" },
+        responses: {
+          200: { $ref: "#/components/responses/Success" },
+          429: { $ref: "#/components/responses/RateLimited" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+          503: { $ref: "#/components/responses/Maintenance" },
+        },
+      },
+    },
+    "/data/doc/session": {
+      get: {
+        operationId: "getSessionDocs",
+        tags: ["doc"],
+        responses: {
+          200: { $ref: "#/components/responses/ServiceDocs" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+    "/data/doc/session/reg_drivers_list": {
+      get: {
+        operationId: "getSessionRegisteredDriversDocs",
+        tags: ["doc"],
+        responses: {
+          200: { $ref: "#/components/responses/ServiceMethodDocs" },
+          401: { $ref: "#/components/responses/Unauthorized" },
+        },
+      },
+    },
+    "/data/lookup/current_season": {
+      get: {
+        operationId: "getLookupCurrentSeason",
+        tags: ["lookup"],
+        externalDocs: { url: "/data/doc/lookup/current_season" },
         responses: {
           200: { $ref: "#/components/responses/Success" },
           429: { $ref: "#/components/responses/RateLimited" },
@@ -1510,9 +1590,7 @@ export const document = createDocument({
       get: {
         operationId: "getLookup",
 
-        // requestParams: {
-        // query: z.record(z.string(), z.string()),
-        // },
+        requestParams: { query: LookupParametersSchema },
         tags: ["lookup"],
         externalDocs: {
           url: "/data/doc/lookup/get",
@@ -1536,7 +1614,12 @@ export const document = createDocument({
           url: "/data/doc/member/awards",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: {
+            description: "Member award metadata and download reference.",
+            content: {
+              "application/json": { schema: MemberAwardsResponseSchema },
+            },
+          },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -1554,7 +1637,15 @@ export const document = createDocument({
           url: "/data/doc/member/award_instances",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: {
+            description:
+              "Member award-instance metadata and download reference.",
+            content: {
+              "application/json": {
+                schema: MemberAwardInstancesResponseSchema,
+              },
+            },
+          },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -1729,7 +1820,7 @@ export const document = createDocument({
           url: "/data/doc/results/search_hosted",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: { $ref: "#/components/responses/ResultsSearchHosted" },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },
@@ -2206,7 +2297,12 @@ export const document = createDocument({
           url: "/data/doc/stats/world_records",
         },
         responses: {
-          200: { $ref: "#/components/responses/Success" },
+          200: {
+            description: "World-record chunk manifest.",
+            content: {
+              "application/json": { schema: StatsWorldRecordsResponseSchema },
+            },
+          },
           429: { $ref: "#/components/responses/RateLimited" },
           401: { $ref: "#/components/responses/Unauthorized" },
           503: { $ref: "#/components/responses/Maintenance" },

@@ -22,6 +22,41 @@ The comparator is intentionally narrow. It checks the current documentation map 
 
 See the [Data API compatibility-audit skill](../.agents/skills/iracing-data-api-compatibility-audit/SKILL.md) for the semantic review and reporting procedure.
 
+The living [Data API reconciliation log](DATA-API-RECONCILIATION.md) records dated
+findings, git context, contract decisions and their later reviews. Update it
+whenever contracts change. It is historical decision memory, not current upstream
+authority or a raw-response archive; subsequent reconciliations must revalidate
+applicable decisions and explicitly retain, revise or revert them.
+
+## Live authored input/output contracts
+
+Reconciliation proceeds from current docs and structural diff to reviewed live
+cases. Validate canonical request inputs and raw modeled response outputs through
+the existing CLI/generated client; do not test generated class/decoder internals.
+Canonical schemas and endpoint mappings own acceptance. An envelope parse does
+not validate a linked JSON/CSV/chunk payload, and a permissive Zod parse does not
+prove complete upstream equality or every optional parameter's behavior.
+
+The CLI's opt-in all-route gate (`pnpm --filter @iracing-data/cli test:live:all
+--run`) derives runtime GET routes and canonical response schemas from the
+maintained OpenAPI contract, drives the CLI through an injected transport, and
+validates raw wire responses before decoder normalization. It does not follow
+linked JSON/CSV/chunk payloads. Reviewed inputs are supplied privately through
+`IRACING_LIVE_INPUTS`; missing inputs, authentication, access, and rate limits
+are blocking outcomes, never passes. A route-level `NOT_RUN` keeps the whole
+result at **Unable to verify part of the contract**, and the gate never runs in
+normal `pnpm verify`. The package-local
+[API command skill](../apps/iracing-data-cli/.agents/skills/api-command/SKILL.md)
+owns command work; its
+[live validation boundary](../apps/iracing-data-cli/.agents/skills/api-command/references/live-contract-validation.md)
+defines the minimal opt-in gate and explicit blocking outcomes.
+
+Every changed contract case must trace to an add/modify/retain/retire command
+decision. A schema-only repair can retain the command with a reason; test-only
+changes must not conceal lost endpoint coverage. Auth/access/service failures are
+not schema drift. A requested full reconciliation with a missing live gate must
+report that part of the contract as unverified.
+
 ## OAuth compatibility
 
 OAuth compatibility audits start from the current official iRacing OAuth documentation and follow its current navigation during the audit. The [OAuth compatibility-audit skill](../.agents/skills/iracing-oauth-compatibility-audit/SKILL.md) owns that workflow. Persisted normalized OAuth-book captures are not current authority.

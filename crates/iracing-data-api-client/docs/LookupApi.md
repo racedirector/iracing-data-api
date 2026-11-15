@@ -2,17 +2,44 @@
 
 All URIs are relative to *https://members-ng.iracing.com*
 
-| Method                                                        | HTTP request                   | Description |
-| ------------------------------------------------------------- | ------------------------------ | ----------- |
-| [**get_lookup**](LookupApi.md#get_lookup)                     | **GET** /data/lookup/get       |
-| [**get_lookup_countries**](LookupApi.md#get_lookup_countries) | **GET** /data/lookup/countries |
-| [**get_lookup_drivers**](LookupApi.md#get_lookup_drivers)     | **GET** /data/lookup/drivers   |
-| [**get_lookup_flairs**](LookupApi.md#get_lookup_flairs)       | **GET** /data/lookup/flairs    |
-| [**get_lookup_licenses**](LookupApi.md#get_lookup_licenses)   | **GET** /data/lookup/licenses  |
+| Method                                                                  | HTTP request                        | Description |
+| ----------------------------------------------------------------------- | ----------------------------------- | ----------- |
+| [**get_lookup**](LookupApi.md#get_lookup)                               | **GET** /data/lookup/get            |
+| [**get_lookup_countries**](LookupApi.md#get_lookup_countries)           | **GET** /data/lookup/countries      |
+| [**get_lookup_current_season**](LookupApi.md#get_lookup_current_season) | **GET** /data/lookup/current_season |
+| [**get_lookup_drivers**](LookupApi.md#get_lookup_drivers)               | **GET** /data/lookup/drivers        |
+| [**get_lookup_flairs**](LookupApi.md#get_lookup_flairs)                 | **GET** /data/lookup/flairs         |
+| [**get_lookup_licenses**](LookupApi.md#get_lookup_licenses)             | **GET** /data/lookup/licenses       |
 
 ## get_lookup
 
-> models::IracingApiResponse get_lookup()
+> models::IracingApiResponse get_lookup(weather, licenselevels)
+
+### Parameters
+
+| Name              | Type                                 | Description | Required | Notes |
+| ----------------- | ------------------------------------ | ----------- | -------- | ----- |
+| **weather**       | Option<[**Vec<String>**](String.md)> |             |          |
+| **licenselevels** | Option<[**Vec<String>**](String.md)> |             |          |
+
+### Return type
+
+[**models::IracingApiResponse**](iracingAPIResponse.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+## get_lookup_countries
+
+> models::IracingApiResponse get_lookup_countries()
 
 ### Parameters
 
@@ -33,9 +60,9 @@ This endpoint does not need any parameter.
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
-## get_lookup_countries
+## get_lookup_current_season
 
-> models::IracingApiResponse get_lookup_countries()
+> models::IracingApiResponse get_lookup_current_season()
 
 ### Parameters
 

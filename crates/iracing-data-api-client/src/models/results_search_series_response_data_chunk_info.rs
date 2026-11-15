@@ -19,8 +19,8 @@ pub struct ResultsSearchSeriesResponseDataChunkInfo {
     pub num_chunks: i32,
     #[serde(rename = "rows")]
     pub rows: i32,
-    #[serde(rename = "base_download_url")]
-    pub base_download_url: String,
+    #[serde(rename = "base_download_url", deserialize_with = "Option::deserialize")]
+    pub base_download_url: Option<String>,
     #[serde(rename = "chunk_file_names")]
     pub chunk_file_names: Vec<String>,
 }
@@ -30,7 +30,7 @@ impl ResultsSearchSeriesResponseDataChunkInfo {
         chunk_size: i32,
         num_chunks: i32,
         rows: i32,
-        base_download_url: String,
+        base_download_url: Option<String>,
         chunk_file_names: Vec<String>,
     ) -> ResultsSearchSeriesResponseDataChunkInfo {
         ResultsSearchSeriesResponseDataChunkInfo {

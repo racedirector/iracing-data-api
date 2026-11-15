@@ -30,6 +30,7 @@ pub enum GetDriverStatsByCategoryError {
     UnknownValue(serde_json::Value),
 }
 
+/// Returns a cache link to a CSV driver-statistics document, not a JSON payload.
 pub async fn get_driver_stats_by_category(
     configuration: &configuration::Configuration,
     params: GetDriverStatsByCategoryParams,

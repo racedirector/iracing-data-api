@@ -28,6 +28,7 @@ import {
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
 import { stringify as stringifyYaml } from "yaml";
+import { writeStdout } from "./display.js";
 import type { FileHandle } from "node:fs/promises";
 
 /** Supported serialized document formats for command output. */
@@ -225,9 +226,7 @@ export async function writeDocumentOutput(
   const serialized = serializeDocument(token, format);
 
   if (!options.output) {
-    (options.writeStdout ?? ((value) => process.stdout.write(value)))(
-      serialized,
-    );
+    (options.writeStdout ?? writeStdout)(serialized);
 
     return;
   }
@@ -305,9 +304,7 @@ export async function writeTokenOutput(
   const format = resolveTokenFormat(options.output, options.format);
 
   if (!options.output) {
-    (options.writeStdout ?? ((value) => process.stdout.write(value)))(
-      serializeToken(token, format),
-    );
+    (options.writeStdout ?? writeStdout)(serializeToken(token, format));
 
     return;
   }

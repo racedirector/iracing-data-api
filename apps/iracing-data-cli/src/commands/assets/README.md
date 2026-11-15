@@ -1,6 +1,10 @@
 # Assets commands
 
-`iracing-data assets` is the CLI surface for runtime Data API `*/assets` operations. The command group is structural; each leaf chooses its generated API operation and delegates credentials, generated request handling, and JSON publication to the shared document request executor. Car uses that executor in this layer; series and track migrate in the following stacked changes. The returned-link materializer remains an injected, shared HTTPS-only transport boundary.
+`iracing-data assets` is the CLI surface for runtime Data API `*/assets` operations.
+`command.ts` validates inputs and invokes injected `fetchAssets`/`present`
+capabilities. `service.ts` owns credential resolution, generated-client calls,
+and the maintained returned-link materializer. `program.ts` injects transport
+and the shared JSON display writer. There are no invocation scope factories.
 
 Current authored leaves:
 

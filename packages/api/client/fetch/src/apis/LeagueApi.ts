@@ -13,12 +13,18 @@
  */
 
 import * as runtime from "../runtime";
-import type { ErrorResponse, IracingAPIResponse } from "../models/index";
+import type {
+  ErrorResponse,
+  IracingAPIResponse,
+  LeagueRosterResponse,
+} from "../models/index";
 import {
   ErrorResponseFromJSON,
   ErrorResponseToJSON,
   IracingAPIResponseFromJSON,
   IracingAPIResponseToJSON,
+  LeagueRosterResponseFromJSON,
+  LeagueRosterResponseToJSON,
 } from "../models/index";
 
 export interface GetLeagueRequest {
@@ -431,7 +437,7 @@ export class LeagueApi extends runtime.BaseAPI {
   async getLeagueRosterRaw(
     requestParameters: GetLeagueRosterRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<runtime.ApiResponse<IracingAPIResponse>> {
+  ): Promise<runtime.ApiResponse<LeagueRosterResponse>> {
     if (requestParameters["league_id"] == null) {
       throw new runtime.RequiredError(
         "league_id",
@@ -474,7 +480,7 @@ export class LeagueApi extends runtime.BaseAPI {
     );
 
     return new runtime.JSONApiResponse(response, (jsonValue) =>
-      IracingAPIResponseFromJSON(jsonValue),
+      LeagueRosterResponseFromJSON(jsonValue),
     );
   }
 
@@ -483,7 +489,7 @@ export class LeagueApi extends runtime.BaseAPI {
   async getLeagueRoster(
     requestParameters: GetLeagueRosterRequest,
     initOverrides?: RequestInit | runtime.InitOverrideFunction,
-  ): Promise<IracingAPIResponse> {
+  ): Promise<LeagueRosterResponse> {
     const response = await this.getLeagueRosterRaw(
       requestParameters,
       initOverrides,

@@ -386,7 +386,7 @@ example().catch(console.error);
 
 ## getLeagueRoster
 
-> IracingAPIResponse getLeagueRoster(league_id, include_licenses)
+> LeagueRosterResponse getLeagueRoster(league_id, include_licenses)
 
 ### Example
 
@@ -430,7 +430,7 @@ example().catch(console.error);
 
 ### Return type
 
-[**IracingAPIResponse**](IracingAPIResponse.md)
+[**LeagueRosterResponse**](LeagueRosterResponse.md)
 
 ### Authorization
 
@@ -443,12 +443,12 @@ example().catch(console.error);
 
 ### HTTP response details
 
-| Status code | Description                         | Response headers                                                                     |
-| ----------- | ----------------------------------- | ------------------------------------------------------------------------------------ |
-| **200**     | Success                             | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **401**     | Access token is missing or invalid. | -                                                                                    |
-| **429**     | Rate limited                        | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
-| **503**     | Maintenance                         | -                                                                                    |
+| Status code | Description                                    | Response headers                                                                     |
+| ----------- | ---------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **200**     | Direct league roster metadata and download URL | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **401**     | Access token is missing or invalid.            | -                                                                                    |
+| **429**     | Rate limited                                   | * x-ratelimit-limit - <br> * x-ratelimit-remaining - <br> * x-ratelimit-reset - <br> |
+| **503**     | Maintenance                                    | -                                                                                    |
 
 [[Back to top]](#) [[Back to API list]](../README.md#api-endpoints) [[Back to Model list]](../README.md#models) [[Back to README]](../README.md)
 

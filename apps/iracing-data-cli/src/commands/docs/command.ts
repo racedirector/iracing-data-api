@@ -1,14 +1,40 @@
-/** Commander adapter: validate docs input and dispatch its execution. */
 import { Command } from "@commander-js/extra-typings";
-import { OptionsSchema } from "./schema.js";
-import type { DocsService } from "./service.js";
+import { readCredentialOptions } from "../../schema.js";
+import { type Options, resolveOptions } from "./schema.js";
+
+/** Host-owned documentation retrieval, output and completion reporting. */
+export interface CreateExecuteOptions {
+  /**
+   * Fetch and write the documentation using the selected output policy.
+   * @param {Options} options - Parsed output and API credential options.
+   * @returns {Promise<void>} Completion after the documentation is written.
+   */
+  fetchDocs(options: Options): Promise<void>;
+
+  /** Report completion only after output succeeds. */
+  present(): void;
+}
 
 /**
- * Register the docs command without credential, network or output I/O.
- * @param {DocsService} service - Command's independently callable executor.
- * @returns {Command} Configured docs command.
+ * Bind documentation retrieval to completion reporting.
+ * @param {CreateExecuteOptions} service - Host operations.
+ * @returns {Function} Bound execution handler.
  */
-export function createDocsCommand(service: DocsService) {
+export function createExecute(service: CreateExecuteOptions) {
+  return async (options: Options) => {
+    await service.fetchDocs(options);
+    service.present();
+  };
+}
+
+/**
+ * Parse docs flags and call the injected service.
+ * @param {CreateExecuteOptions} service - Host retrieval and presentation.
+ * @returns {Command} Configured CLI command ready for registration.
+ */
+export function createDocsCommand(service: CreateExecuteOptions): Command {
+  const execute = createExecute(service);
+
   return new Command("docs")
     .description("Fetch the complete authenticated Data API documentation once")
     .option(
@@ -21,5 +47,12 @@ export function createDocsCommand(service: DocsService) {
     )
     .option("--format <json|yaml>", "Documentation serialization format")
     .option("--force", "Replace an existing output file")
-    .action((options) => service.execute(OptionsSchema.parse(options)));
+    .action(async (raw, command) => {
+      const options = resolveOptions.parse({
+        ...raw,
+        ...readCredentialOptions(command),
+      });
+
+      await execute(options);
+    });
 }

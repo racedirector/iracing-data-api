@@ -13,6 +13,7 @@ export * from "./MemberApi";
 export * from "./ResultsApi";
 export * from "./SeasonApi";
 export * from "./SeriesApi";
+export * from "./SessionApi";
 export * from "./StatsApi";
 export * from "./TeamApi";
 export * from "./TimeAttackApi";

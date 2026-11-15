@@ -30,6 +30,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**getLeagueSeasonStandingsDocs**](#getleagueseasonstandingsdocs)                           | **GET** /data/doc/league/season_standings               |             |
 | [**getLeagueSeasonsDocs**](#getleagueseasonsdocs)                                           | **GET** /data/doc/league/seasons                        |             |
 | [**getLookupCountriesDocs**](#getlookupcountriesdocs)                                       | **GET** /data/doc/lookup/countries                      |             |
+| [**getLookupCurrentSeasonDocs**](#getlookupcurrentseasondocs)                               | **GET** /data/doc/lookup/current_season                 |             |
 | [**getLookupDocs**](#getlookupdocs)                                                         | **GET** /data/doc/lookup                                |             |
 | [**getLookupDriversDocs**](#getlookupdriversdocs)                                           | **GET** /data/doc/lookup/drivers                        |             |
 | [**getLookupFlairsDocs**](#getlookupflairsdocs)                                             | **GET** /data/doc/lookup/flairs                         |             |
@@ -64,6 +65,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**getSeriesSeasonScheduleDocs**](#getseriesseasonscheduledocs)                             | **GET** /data/doc/series/season_schedule                |             |
 | [**getSeriesSeasonsDocs**](#getseriesseasonsdocs)                                           | **GET** /data/doc/series/seasons                        |             |
 | [**getSeriesStatsSeriesDocs**](#getseriesstatsseriesdocs)                                   | **GET** /data/doc/series/stats_series                   |             |
+| [**getSessionDocs**](#getsessiondocs)                                                       | **GET** /data/doc/session                               |             |
+| [**getSessionRegisteredDriversDocs**](#getsessionregistereddriversdocs)                     | **GET** /data/doc/session/reg_drivers_list              |             |
 | [**getStatsDocs**](#getstatsdocs)                                                           | **GET** /data/doc/stats                                 |             |
 | [**getStatsMemberBestsDocs**](#getstatsmemberbestsdocs)                                     | **GET** /data/doc/stats/member_bests                    |             |
 | [**getStatsMemberCareerDocs**](#getstatsmembercareerdocs)                                   | **GET** /data/doc/stats/member_career                   |             |
@@ -1132,6 +1135,47 @@ const configuration = new Configuration();
 const apiInstance = new DocApi(configuration);
 
 const { status, data } = await apiInstance.getLookupCountriesDocs();
+```
+
+### Parameters
+
+This endpoint does not have any parameters.
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **200**     | Success                             | -                |
+| **401**     | Access token is missing or invalid. | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getLookupCurrentSeasonDocs**
+
+> IracingServiceMethodDocs getLookupCurrentSeasonDocs()
+
+### Example
+
+```typescript
+import { DocApi, Configuration } from "@iracing-data/api-client-axios";
+
+const configuration = new Configuration();
+const apiInstance = new DocApi(configuration);
+
+const { status, data } = await apiInstance.getLookupCurrentSeasonDocs();
 ```
 
 ### Parameters
@@ -2528,6 +2572,88 @@ const configuration = new Configuration();
 const apiInstance = new DocApi(configuration);
 
 const { status, data } = await apiInstance.getSeriesStatsSeriesDocs();
+```
+
+### Parameters
+
+This endpoint does not have any parameters.
+
+### Return type
+
+**IracingServiceMethodDocs**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **200**     | Success                             | -                |
+| **401**     | Access token is missing or invalid. | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getSessionDocs**
+
+> { [key: string]: IracingServiceMethodDocs; } getSessionDocs()
+
+### Example
+
+```typescript
+import { DocApi, Configuration } from "@iracing-data/api-client-axios";
+
+const configuration = new Configuration();
+const apiInstance = new DocApi(configuration);
+
+const { status, data } = await apiInstance.getSessionDocs();
+```
+
+### Parameters
+
+This endpoint does not have any parameters.
+
+### Return type
+
+**{ [key: string]: IracingServiceMethodDocs; }**
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+### HTTP response details
+
+| Status code | Description                         | Response headers |
+| ----------- | ----------------------------------- | ---------------- |
+| **200**     | Success                             | -                |
+| **401**     | Access token is missing or invalid. | -                |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **getSessionRegisteredDriversDocs**
+
+> IracingServiceMethodDocs getSessionRegisteredDriversDocs()
+
+### Example
+
+```typescript
+import { DocApi, Configuration } from "@iracing-data/api-client-axios";
+
+const configuration = new Configuration();
+const apiInstance = new DocApi(configuration);
+
+const { status, data } = await apiInstance.getSessionRegisteredDriversDocs();
 ```
 
 ### Parameters

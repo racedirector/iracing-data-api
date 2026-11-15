@@ -10,6 +10,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 > IracingAPIResponse getDriverStatsByCategory()
 
+Returns a cache link to a CSV driver-statistics document, not a JSON payload.
+
 ### Example
 
 ```typescript

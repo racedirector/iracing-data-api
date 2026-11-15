@@ -214,6 +214,60 @@ test("password-limited request form encodes masked credentials and stores by use
   assert.deepEqual(sessionStore.get("fixture+driver@example.com"), issued);
 });
 
+for (const passwordKey of ["password", "maskedPassword"]) {
+  for (const secretKey of ["clientSecret", "maskedClientSecret"]) {
+    test(`password grant supports ${passwordKey} with ${secretKey}`, async () => {
+      const { client } = setup({
+        redirectUri: undefined,
+        username: "fixture",
+        [passwordKey]: "password+fixture=",
+        [secretKey]: "secret+fixture=",
+      });
+      mockFetch(async (_url, options) => {
+        const body = new URLSearchParams(options.body);
+        assert.equal(
+          body.get("password"),
+          passwordKey === "maskedPassword"
+            ? "password+fixture="
+            : maskSecret("password+fixture=", "fixture"),
+        );
+        assert.equal(
+          body.get("client_secret"),
+          secretKey === "maskedClientSecret"
+            ? "secret+fixture="
+            : maskSecret("secret+fixture=", "fixture-client"),
+        );
+        return json(token());
+      });
+      await client.passwordLimitedAuthorization();
+    });
+  }
+}
+
+test("metadata rejects conflicting or incomplete masked credentials", () => {
+  for (const metadata of [
+    { password: "raw", maskedPassword: "masked" },
+    { clientSecret: "raw", maskedClientSecret: "masked" },
+    { maskedPassword: "masked", maskedClientSecret: "masked" },
+    { username: "fixture", maskedClientSecret: "masked" },
+    { username: "fixture", maskedPassword: "masked" },
+  ]) {
+    assert.throws(() => setup(metadata), { name: "ZodError" });
+  }
+});
+
+test("refresh sends a pre-masked client secret unchanged", async () => {
+  const { client } = setup({
+    maskedClientSecret: "secret+fixture=",
+  });
+  mockFetch(async (_url, options) => {
+    const body = new URLSearchParams(options.body);
+    assert.equal(body.get("client_secret"), "secret+fixture=");
+    return json(token());
+  });
+  await client.refresh("refresh-fixture");
+});
+
 for (const response of [
   () => json({ error: "invalid_grant" }, 400),
   () => json({ token_type: "Bearer", expires_in: 3600 }),

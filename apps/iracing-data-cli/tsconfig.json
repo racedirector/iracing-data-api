@@ -1,4 +1,5 @@
 {
-  "include": [],
+  "extends": "../../tsconfig/node.json",
+  "include": ["vitest.config.ts"],
   "references": [{ "path": "./tsconfig.build.json" }]
 }

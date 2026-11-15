@@ -22,6 +22,20 @@ import generator, { document as exportedDocument } from "../dist/index.js";
 
 const cli = fileURLToPath(new URL("../dist/cli.js", import.meta.url));
 
+test("hosted-search maps to its direct manifest (modify results-search-hosted)", () => {
+  assert.equal(
+    exportedDocument.paths["/data/results/search_hosted"].get.responses[200]
+      .$ref,
+    "#/components/responses/ResultsSearchHosted",
+  );
+  assert.equal(
+    exportedDocument.components.responses.ResultsSearchHosted.content[
+      "application/json"
+    ].schema.$ref,
+    "#/components/schemas/resultsSearchHostedResponse",
+  );
+});
+
 async function generate(t) {
   const outputDir = fs.mkdtempSync(path.join(os.tmpdir(), "iracing-contract-"));
   t.after(() => fs.rmSync(outputDir, { recursive: true, force: true }));
@@ -157,11 +171,19 @@ test("numeric query adapters preserve named event and division contracts", () =>
   }
 });
 
-test("semantic primitive refactoring preserves the complete public document", () => {
-  // Frozen from 9b4daaf, the parent of the semantic primitive expansion.
-  // Its authored schemas/helper were independently regenerated and matched its
-  // checked-in OpenAPI. Ignore object key order, but preserve array order and
-  // every contract field (including constraints, descriptions and serialization).
+test("the public document matches reviewed compatibility maintenance", () => {
+  // Reviewed against HEAD and current authenticated docs during the 2026-11-14
+  // CLI maintenance pass: preserve the existing roster repair; add current-season
+  // and registered-driver routes/docs, repeated lookup selectors, member-award
+  // metadata, the world-record manifest, and driver-stat CSV documentation.
+  // Member-division coercion retains requiredness and the numeric 4/5 domain.
+  // 2026-11-15 UTC: DATA-001 adds only the hosted manifest component/response
+  // and changes its 200 binding. Removing exactly those changes reproduces the
+  // prior reviewed fingerprint. See docs/DATA-API-RECONCILIATION.md.
+  // 2026-11-15 UTC: DATA-002 makes the shared search chunk base URL nullable,
+  // makes world-record chunk metadata nullable, and adds optional echoed
+  // season_year/season_quarter. Only those schema changes were reviewed.
+  // Ignore object key order, but preserve array order and every contract field.
   // Intentional contract changes require reviewing the delta before updating this
   // fingerprint; never derive the expected value from the current generated file.
   function canonical(value) {
@@ -178,9 +200,48 @@ test("semantic primitive refactoring preserves the complete public document", ()
     createHash("sha256")
       .update(JSON.stringify(canonical(exportedDocument)))
       .digest("hex"),
-    "5d87a5445a2ca89edc02d39d93ba7b87d036c5a529e12434793bed3fbde5d874",
-    "Public OpenAPI differs from the pre-refactor contract; audit the full delta before updating the fingerprint",
+    "08068a1e952dcdc1fe0d35d63d20af0c9b6e501e19166706c6f5f04418cf45ed",
+    "Public OpenAPI differs from the reviewed contract; audit the full delta before updating the fingerprint",
   );
+});
+
+test("CLI compatibility repairs preserve modeled response variants and parameter requiredness", () => {
+  for (const route of [
+    "/data/lookup/current_season",
+    "/data/session/reg_drivers_list",
+  ]) {
+    assert.ok(exportedDocument.paths[route].get);
+  }
+  for (const [route, model] of [
+    ["/data/member/awards", "memberAwardsResponse"],
+    ["/data/member/award_instances", "memberAwardInstancesResponse"],
+    ["/data/stats/world_records", "statsWorldRecordsResponse"],
+  ]) {
+    assert.equal(
+      exportedDocument.paths[route].get.responses[200].content[
+        "application/json"
+      ].schema.$ref,
+      `#/components/schemas/${model}`,
+    );
+  }
+  const event = exportedDocument.paths[
+    "/data/stats/member_division"
+  ].get.parameters.find((parameter) => parameter.name === "event_type");
+  assert.equal(event.required, true);
+  assert.deepEqual(
+    event.schema.anyOf.map((value) => value.const),
+    [4, 5],
+  );
+  const selectors = exportedDocument.paths["/data/lookup/get"].get.parameters;
+  assert.deepEqual(
+    selectors.map((parameter) => parameter.name),
+    ["weather", "licenselevels"],
+  );
+  for (const selector of selectors) {
+    assert.equal(selector.schema.type, "array");
+    assert.equal(selector.required, undefined);
+    assert.notEqual(selector.explode, false);
+  }
 });
 
 test("Data API JSON/YAML preserve query mapping, authentication, and response envelopes", async (t) => {
@@ -283,7 +344,7 @@ test("current docs optionality and corrected wire paths are represented", () => 
   assert.equal(constants.items.type, "object");
 });
 
-test("only search_series maps to the maintained direct manifest", async (t) => {
+test("search_series retains its manifest while other non-search results use cache envelopes", async (t) => {
   const document = await generate(t);
   const operation = document.paths["/data/results/search_series"].get;
   assert.equal(operation.operationId, "getResultsSearchSeries");
@@ -322,7 +383,9 @@ test("only search_series maps to the maintained direct manifest", async (t) => {
   for (const [path, item] of Object.entries(document.paths)) {
     if (
       path.startsWith("/data/results/") &&
-      path !== "/data/results/search_series"
+      !["/data/results/search_series", "/data/results/search_hosted"].includes(
+        path,
+      )
     )
       assert.equal(
         item.get.responses[200].$ref,

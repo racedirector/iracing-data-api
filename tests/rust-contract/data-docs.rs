@@ -2,6 +2,18 @@ use iracing_data_api_client::models::IracingServiceMethodDocs;
 use serde_json::json;
 
 #[test]
+fn roster_response_retains_download_url_and_metadata() {
+    let value = json!({
+        "type": "league_roster",
+        "data": {"success": true, "subscribed": false, "roster_count": 1, "league_id": 6529.0},
+        "data_url": "https://cache.example/roster.json"
+    });
+    let parsed: iracing_data_api_client::models::LeagueRosterResponse =
+        serde_json::from_value(value.clone()).unwrap();
+    assert_eq!(serde_json::to_value(parsed).unwrap(), value);
+}
+
+#[test]
 fn documentation_can_omit_parameters_and_retain_note_variants() {
     for note in [json!("direct array response"), json!(["image path note"])] {
         let value = json!({"link":"https://members-ng.iracing.com/data/car/get", "note":note});

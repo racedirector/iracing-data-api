@@ -94,8 +94,9 @@ for (const open of [false, true]) {
     const { authenticateWithBrowser } = await import("../dist/authenticate.js");
     const { createLoginCommand } =
       await import("../dist/commands/auth/login/command.js");
-    const { createLoginCommandScopeFactory } =
-      await import("../dist/commands/auth/login/scope.js");
+    const { createLoginService } =
+      await import("../dist/commands/auth/login/service.js");
+    const { createRootCommand } = require("./root-command.cjs");
     trackSignals(t);
     const messages = [];
     let browserLaunches = 0;
@@ -110,11 +111,10 @@ for (const open of [false, true]) {
       );
       return true;
     });
-    const command = createLoginCommand({
-      createScope: createLoginCommandScopeFactory(
-        { info() {}, warn() {}, error() {} },
-        {
-          environment: { IRACING_AUTH_CLIENT: "synthetic-client" },
+    const command = (await createRootCommand()).addCommand(
+      createLoginCommand(
+        createLoginService({
+          diagnostics: { info() {}, warn() {}, error() {} },
           authenticate(options) {
             assert.equal(options.open, open);
             return authenticateWithBrowser({
@@ -128,11 +128,18 @@ for (const open of [false, true]) {
           async writeOutput(token) {
             assert.deepEqual(token, TOKEN);
           },
-        },
+        }),
       ),
-    });
+    );
     await command.parseAsync(
-      [...(open ? [] : ["--no-open"]), "--timeout-seconds", "2"],
+      [
+        "login",
+        "--client-id",
+        "synthetic-client",
+        ...(open ? [] : ["--no-open"]),
+        "--timeout-seconds",
+        "2",
+      ],
       { from: "user" },
     );
     await manualCallback;

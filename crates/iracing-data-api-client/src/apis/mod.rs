@@ -126,6 +126,7 @@ pub mod member_api;
 pub mod results_api;
 pub mod season_api;
 pub mod series_api;
+pub mod session_api;
 pub mod stats_api;
 pub mod team_api;
 pub mod time_attack_api;

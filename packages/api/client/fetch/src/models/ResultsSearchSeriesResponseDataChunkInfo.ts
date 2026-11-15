@@ -42,7 +42,7 @@ export interface ResultsSearchSeriesResponseDataChunkInfo {
    * @type {string}
    * @memberof ResultsSearchSeriesResponseDataChunkInfo
    */
-  baseDownloadUrl: string;
+  baseDownloadUrl: string | null;
   /**
    *
    * @type {Array<string>}

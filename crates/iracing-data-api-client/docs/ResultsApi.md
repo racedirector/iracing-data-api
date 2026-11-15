@@ -120,7 +120,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ## get_results_search_hosted
 
-> models::IracingApiResponse get_results_search_hosted(start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, host_cust_id, session_name, league_id, league_season_id, car_id, track_id, category_ids)
+> models::ResultsSearchHostedResponse get_results_search_hosted(start_range_begin, start_range_end, finish_range_begin, finish_range_end, cust_id, team_id, host_cust_id, session_name, league_id, league_season_id, car_id, track_id, category_ids)
 
 ### Parameters
 
@@ -142,7 +142,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Return type
 
-[**models::IracingApiResponse**](iracingAPIResponse.md)
+[**models::ResultsSearchHostedResponse**](resultsSearchHostedResponse.md)
 
 ### Authorization
 

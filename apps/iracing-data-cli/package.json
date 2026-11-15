@@ -11,19 +11,28 @@
     "build": "tsc --build tsconfig.build.json",
     "start": "node --env-file-if-exists=.env dist/index.js",
     "dev": "node --env-file-if-exists=.env --import tsx src/index.ts",
-    "test": "pnpm build && node --test test/*.test.cjs"
+    "test": "pnpm --filter '@iracing-data/api-schema-to-openapi...' build && pnpm build && node --test test/*.test.cjs",
+    "test:vi": "vitest",
+    "test:live": "node --env-file-if-exists=../../.env test/live/run.mjs",
+    "test:live:all": "node --env-file-if-exists=../../.env test/live/run-all.mjs"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
     "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "commander": "^15.0.0",
+    "csv-parse": "^7.0.3",
     "oauth-callback": "^3.1.1",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
     "yaml": "^2.9.1",
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@commander-js/extra-typings": "^15.0.0",
+    "@iracing-data/api-schema-to-openapi": "workspace:*",
     "@types/node": "^26.6.2",
-    "tsx": "^4.23.15"
+    "tsx": "^4.23.15",
+    "vitest": "^5.0.5"
   }
 }

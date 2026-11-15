@@ -30,6 +30,7 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**get_league_season_standings_docs**](DocApi.md#get_league_season_standings_docs)                               | **GET** /data/doc/league/season_standings               |
 | [**get_league_seasons_docs**](DocApi.md#get_league_seasons_docs)                                                 | **GET** /data/doc/league/seasons                        |
 | [**get_lookup_countries_docs**](DocApi.md#get_lookup_countries_docs)                                             | **GET** /data/doc/lookup/countries                      |
+| [**get_lookup_current_season_docs**](DocApi.md#get_lookup_current_season_docs)                                   | **GET** /data/doc/lookup/current_season                 |
 | [**get_lookup_docs**](DocApi.md#get_lookup_docs)                                                                 | **GET** /data/doc/lookup                                |
 | [**get_lookup_drivers_docs**](DocApi.md#get_lookup_drivers_docs)                                                 | **GET** /data/doc/lookup/drivers                        |
 | [**get_lookup_flairs_docs**](DocApi.md#get_lookup_flairs_docs)                                                   | **GET** /data/doc/lookup/flairs                         |
@@ -64,6 +65,8 @@ All URIs are relative to *https://members-ng.iracing.com*
 | [**get_series_season_schedule_docs**](DocApi.md#get_series_season_schedule_docs)                                 | **GET** /data/doc/series/season_schedule                |
 | [**get_series_seasons_docs**](DocApi.md#get_series_seasons_docs)                                                 | **GET** /data/doc/series/seasons                        |
 | [**get_series_stats_series_docs**](DocApi.md#get_series_stats_series_docs)                                       | **GET** /data/doc/series/stats_series                   |
+| [**get_session_docs**](DocApi.md#get_session_docs)                                                               | **GET** /data/doc/session                               |
+| [**get_session_registered_drivers_docs**](DocApi.md#get_session_registered_drivers_docs)                         | **GET** /data/doc/session/reg_drivers_list              |
 | [**get_stats_docs**](DocApi.md#get_stats_docs)                                                                   | **GET** /data/doc/stats                                 |
 | [**get_stats_member_bests_docs**](DocApi.md#get_stats_member_bests_docs)                                         | **GET** /data/doc/stats/member_bests                    |
 | [**get_stats_member_career_docs**](DocApi.md#get_stats_member_career_docs)                                       | **GET** /data/doc/stats/member_career                   |
@@ -668,6 +671,29 @@ This endpoint does not need any parameter.
 ## get_lookup_countries_docs
 
 > models::IracingServiceMethodDocs get_lookup_countries_docs()
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**models::IracingServiceMethodDocs**](iracingServiceMethodDocs.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+## get_lookup_current_season_docs
+
+> models::IracingServiceMethodDocs get_lookup_current_season_docs()
 
 ### Parameters
 
@@ -1450,6 +1476,52 @@ This endpoint does not need any parameter.
 ## get_series_stats_series_docs
 
 > models::IracingServiceMethodDocs get_series_stats_series_docs()
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**models::IracingServiceMethodDocs**](iracingServiceMethodDocs.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+## get_session_docs
+
+> std::collections::HashMap<String, models::IracingServiceMethodDocs> get_session_docs()
+
+### Parameters
+
+This endpoint does not need any parameter.
+
+### Return type
+
+[**std::collections::HashMap<String, models::IracingServiceMethodDocs>**](iracingServiceMethodDocs.md)
+
+### Authorization
+
+[bearerAuth](../README.md#bearerAuth)
+
+### HTTP request headers
+
+- **Content-Type**: Not defined
+- **Accept**: application/json
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+## get_session_registered_drivers_docs
+
+> models::IracingServiceMethodDocs get_session_registered_drivers_docs()
 
 ### Parameters
 
