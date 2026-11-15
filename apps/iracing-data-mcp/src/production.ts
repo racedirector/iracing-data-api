@@ -18,10 +18,8 @@ import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
 import { createMcpAuthorizationBoundary } from "./authorization.js";
-import { installTerminationHandlers } from "./http.js";
 import {
   createDefaultMcpJwtVerifier,
-  remoteAuthorizationFromEnv,
 } from "./jwt-verifier.js";
 import { createCliMcpRuntimeDependencies } from "./composition.js";
 import { parseRuntimeConfig } from "./runtime-config.js";

@@ -113,7 +113,13 @@ export const RuntimeEnvironmentSchema = z
     let remoteAuthorization: ReturnType<typeof remoteAuthorizationFromEnv>;
 
     try {
-      remoteAuthorization = remoteAuthorizationFromEnv(environment);
+      remoteAuthorization = remoteAuthorizationFromEnv({
+        IRACING_MCP_RESOURCE_URL: environment.IRACING_MCP_RESOURCE_URL,
+        IRACING_MCP_AUTH_ISSUER: environment.IRACING_MCP_AUTH_ISSUER,
+        IRACING_MCP_AUTH_AUDIENCE: environment.IRACING_MCP_AUTH_AUDIENCE,
+        IRACING_MCP_AUTH_JWKS_URL: environment.IRACING_MCP_AUTH_JWKS_URL,
+        IRACING_MCP_AUTH_SCOPES: environment.IRACING_MCP_AUTH_SCOPES,
+      });
     } catch {
       context.addIssue({
         code: "custom",
