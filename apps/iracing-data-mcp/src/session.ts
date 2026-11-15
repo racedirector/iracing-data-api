@@ -86,6 +86,7 @@ function validateSession(token: OAuthTokenResponse | undefined) {
 export interface McpCredentialOwner {
   /** Authored OAuth client holding the credential lifecycle. */
   readonly oauthClient: OAuthClient;
+
   /**
    * Get a token only when an actual tool operation needs it.
    * @returns {Promise<string>} Resolved access token for the selected local session.

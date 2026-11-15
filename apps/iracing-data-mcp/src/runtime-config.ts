@@ -66,18 +66,24 @@ type Environment = z.infer<typeof EnvironmentValues>;
 
 function parseHostPolicy(environment: Environment) {
   const port = String(environment.IRACING_MCP_PORT);
+
   const allowedHosts = exactAuthorities(
     environment.IRACING_MCP_ALLOWED_HOSTS ??
       `127.0.0.1:${port},localhost:${port}`,
     false,
   );
+
   const allowedOrigins = exactAuthorities(
     environment.IRACING_MCP_ALLOWED_ORIGINS ??
       `http://127.0.0.1:${port},http://localhost:${port}`,
     true,
   );
 
-  if (allowedOrigins.some((origin) => !allowedHosts.includes(new URL(origin).host))) {
+  if (
+    allowedOrigins.some(
+      (origin) => !allowedHosts.includes(new URL(origin).host),
+    )
+  ) {
     throw new Error("Origin and host policies differ.");
   }
 

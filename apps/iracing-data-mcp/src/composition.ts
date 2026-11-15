@@ -92,34 +92,36 @@ export function composeMcpServices(dependencies: McpRuntimeDependencies): McpSer
     injectionMode: InjectionMode.PROXY,
   });
 
+  const makeServices = ({
+    resolveActor,
+    resolveDependencies,
+  }: Pick<RuntimeCradle, "resolveActor" | "resolveDependencies">): McpServices => {
+    async function select(
+      context: IracingToolContext,
+    ): Promise<McpActorDependencies> {
+      context.signal.throwIfAborted();
+
+      const actor = requiredActor(await resolveActor(context));
+
+      context.signal.throwIfAborted();
+
+      return resolveDependencies(actor, context);
+    }
+
+    return {
+      authorizationState: dependencies.authorizationState,
+      shutdownAuthorizationOwner: dependencies.shutdownAuthorizationOwner,
+      getDriverQueries: async (context: IracingToolContext) =>
+        (await select(context)).driverQueries,
+      getRecentRaceQueries: async (context: IracingToolContext) =>
+        (await select(context)).recentRaceQueries,
+    };
+  };
+
   container.register({
     resolveActor: asValue(dependencies.resolveActor),
     resolveDependencies: asValue(dependencies.resolveDependencies),
-    services: asFunction(({
-      resolveActor,
-      resolveDependencies,
-    }: Pick<RuntimeCradle, "resolveActor" | "resolveDependencies">): McpServices => {
-      async function select(
-        context: IracingToolContext,
-      ): Promise<McpActorDependencies> {
-        context.signal.throwIfAborted();
-
-        const actor = requiredActor(await resolveActor(context));
-
-        context.signal.throwIfAborted();
-
-        return resolveDependencies(actor, context);
-      }
-
-      return {
-        authorizationState: dependencies.authorizationState,
-        shutdownAuthorizationOwner: dependencies.shutdownAuthorizationOwner,
-        getDriverQueries: async (context: IracingToolContext) =>
-          (await select(context)).driverQueries,
-        getRecentRaceQueries: async (context: IracingToolContext) =>
-          (await select(context)).recentRaceQueries,
-      };
-    }).singleton(),
+    services: asFunction(makeServices).singleton(),
   });
 
   return container.cradle.services;
@@ -138,6 +140,7 @@ export function createCliMcpDependencies(
   const configuration = new Configuration({
     accessToken: () => credentials.getAccessToken(),
   });
+
   const queries = {
     driverQueries: createDriverQueries(configuration),
     recentRaceQueries: createRecentRaceQueries(configuration),

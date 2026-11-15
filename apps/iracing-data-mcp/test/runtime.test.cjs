@@ -11,7 +11,10 @@ test("environment schema applies host defaults and transforms runtime options", 
   assert.equal(local.port, 3000);
   assert.equal(
     local.credentialFile,
-    path.resolve(__dirname, "../../../.iracing-data/iracing-data-mcp/credentials.json"),
+    path.resolve(
+      __dirname,
+      "../../../.iracing-data/iracing-data-mcp/credentials.json",
+    ),
   );
   assert.deepEqual(local.allowedHosts, ["127.0.0.1:3000", "localhost:3000"]);
 
@@ -26,7 +29,10 @@ test("environment schema applies host defaults and transforms runtime options", 
 
   const docker = runtime.parseRuntimeConfig({ NODE_ENV: "production" });
 
-  assert.equal(docker.credentialFile, "/var/lib/iracing-data-mcp/credentials.json");
+  assert.equal(
+    docker.credentialFile,
+    "/var/lib/iracing-data-mcp/credentials.json",
+  );
 
   for (const invalid of [
     { IRACING_MCP_PORT: "0" },
@@ -69,17 +75,23 @@ test("Awilix selectors resolve a new verified actor and dependencies on each cal
   const first = { signal, authInfo: { clientId: "first" } };
   const second = { signal, authInfo: { clientId: "second" } };
 
-  assert.equal((await services.getDriverQueries(first)).getCurrent !== undefined, true);
   assert.equal(
-    (await (await services.getDriverQueries(first)).getCurrent({ signal })).cust_id,
+    (await services.getDriverQueries(first)).getCurrent !== undefined,
+    true,
+  );
+  assert.equal(
+    (await (await services.getDriverQueries(first)).getCurrent({ signal }))
+      .cust_id,
     1,
   );
   assert.equal(
-    (await (await services.getDriverQueries(second)).getCurrent({ signal })).cust_id,
+    (await (await services.getDriverQueries(second)).getCurrent({ signal }))
+      .cust_id,
     2,
   );
   assert.equal(
-    (await (await services.getRecentRaceQueries(second)).getRecent({ signal })).cust_id,
+    (await (await services.getRecentRaceQueries(second)).getRecent({ signal }))
+      .cust_id,
     2,
   );
   await assert.rejects(services.getDriverQueries({ signal }));
@@ -87,10 +99,8 @@ test("Awilix selectors resolve a new verified actor and dependencies on each cal
 });
 
 test("local CLI actor never selects its credentials for a verified remote request", async () => {
-  const {
-    createCliMcpDependencies,
-    composeMcpServices,
-  } = await import("../dist/composition.js");
+  const { createCliMcpDependencies, composeMcpServices } =
+    await import("../dist/composition.js");
   let tokenReads = 0;
   const credentials = {
     getAccessToken: async () => {
@@ -106,11 +116,16 @@ test("local CLI actor never selects its credentials for a verified remote reques
   const signal = new AbortController().signal;
 
   assert.equal((await local.resolveActor({ signal })).provider, "cli");
-  assert.equal(await local.resolveActor({ signal, authInfo: { clientId: "remote" } }), null);
-  await assert.rejects(services.getDriverQueries({
-    signal,
-    authInfo: { clientId: "remote" },
-  }));
+  assert.equal(
+    await local.resolveActor({ signal, authInfo: { clientId: "remote" } }),
+    null,
+  );
+  await assert.rejects(
+    services.getDriverQueries({
+      signal,
+      authInfo: { clientId: "remote" },
+    }),
+  );
   assert.ok(await services.getDriverQueries({ signal }));
   assert.equal(tokenReads, 0);
 });
@@ -135,20 +150,27 @@ test("caller can create an unstarted host with custom dependencies", async (t) =
 
   const port = runtime.server.address().port;
   const response = await new Promise((resolve, reject) => {
-    http.get({
-      hostname: "127.0.0.1",
-      port,
-      path: "/healthz",
-      headers: { Host: "127.0.0.1:3000" },
-    }, (res) => {
-      const chunks = [];
+    http
+      .get(
+        {
+          hostname: "127.0.0.1",
+          port,
+          path: "/healthz",
+          headers: { Host: "127.0.0.1:3000" },
+        },
+        (res) => {
+          const chunks = [];
 
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () => resolve({
-        status: res.statusCode,
-        body: JSON.parse(Buffer.concat(chunks).toString("utf8")),
-      }));
-    }).on("error", reject);
+          res.on("data", (chunk) => chunks.push(chunk));
+          res.on("end", () =>
+            resolve({
+              status: res.statusCode,
+              body: JSON.parse(Buffer.concat(chunks).toString("utf8")),
+            }),
+          );
+        },
+      )
+      .on("error", reject);
   });
 
   assert.equal(response.status, 200);
