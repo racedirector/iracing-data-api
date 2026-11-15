@@ -16,7 +16,9 @@ export async function handleSearchRaceResults(
   input: RaceSearchInput,
   queries: RaceSearchQueries,
   context: OperationContext,
-): Promise<Result<z.input<typeof SearchOutput>, FailureFor<"DATA_RESOLUTION_FAILED">>> {
+): Promise<
+  Result<z.input<typeof SearchOutput>, FailureFor<"DATA_RESOLUTION_FAILED">>
+> {
   context.signal.throwIfAborted();
   const result = await queries.search(input, { signal: context.signal });
 
