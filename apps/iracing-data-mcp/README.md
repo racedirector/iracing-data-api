@@ -88,9 +88,12 @@ the combined 64 KiB MCP response budget, the call fails with
 `RESPONSE_LIMIT_EXCEEDED`; narrow the query rather than expecting truncation.
 This tool does not classify special events or fetch detailed laps/results.
 
-Custom HTTP hosts may supply `raceSearchQueries` alongside their existing
-capabilities. Omitting it preserves existing integrations, but search calls fail
-closed with `CONFIGURATION_ERROR`. The built-in Fetch adapter supplies it.
+Custom HTTP hosts must supply `raceSearchQueries` alongside driver and
+recent-race capabilities. The factory requires all three selectors before
+registering tools; an incorrectly configured actor resolver fails closed with
+`CONFIGURATION_ERROR`. The built-in Fetch adapter supplies all three.
+Historical chunk retrieval uses an independent, unsigned HTTPS fetch rather
+than inheriting the credentialed API client's transport.
 
 ## Embedding in Hono HTTP
 
