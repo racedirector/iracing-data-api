@@ -86,12 +86,24 @@ function validateSession(token: OAuthTokenResponse | undefined) {
 export interface McpCredentialOwner {
   /** Authored OAuth client holding the credential lifecycle. */
   readonly oauthClient: OAuthClient;
-  /** Get a token only when an actual tool operation needs it. */
+  /**
+   * Get a token only when an actual tool operation needs it.
+   * @returns {Promise<string>} Resolved access token for the selected local session.
+   */
   getAccessToken(): Promise<string>;
-  /** Report local readiness without network access or refresh. */
+
+  /**
+   * Report local readiness without network access or refresh.
+   * @returns {AuthorizationState} Current local authorization readiness.
+   */
   authorizationState(): AuthorizationState;
-  /** Drain credentials after the HTTP host has shut down. */
+
+  /**
+   * Drain credentials after the HTTP host has shut down.
+   * @returns {Promise<void>} Completion after credential owner shutdown.
+   */
   shutdownAuthorizationOwner(): Promise<void>;
+
   /** Reject use after terminal failure or shutdown begins. */
   assertActive(): void;
 }
@@ -171,17 +183,20 @@ export async function createMcpServices(
   options: SessionCompositionOptions,
 ): Promise<McpServices> {
   const credentials = await createMcpCredentialOwner(options);
+
   const dataApiConfiguration = new Configuration({
-    accessToken: credentials.getAccessToken,
+    accessToken: () => credentials.getAccessToken(),
   });
+
   const driverQueries = createDriverQueries(dataApiConfiguration);
+
   const recentRaceQueries = createRecentRaceQueries(dataApiConfiguration);
 
   return Object.freeze({
     oauthClient: credentials.oauthClient,
     dataApiConfiguration,
-    authorizationState: credentials.authorizationState,
-    shutdownAuthorizationOwner: credentials.shutdownAuthorizationOwner,
+    authorizationState: () => credentials.authorizationState(),
+    shutdownAuthorizationOwner: () => credentials.shutdownAuthorizationOwner(),
     getDriverQueries: () => {
       credentials.assertActive();
 

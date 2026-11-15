@@ -18,10 +18,8 @@ import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
 import { createMcpAuthorizationBoundary } from "./authorization.js";
-import {
-  createDefaultMcpJwtVerifier,
-} from "./jwt-verifier.js";
 import { createCliMcpRuntimeDependencies } from "./composition.js";
+import { createDefaultMcpJwtVerifier } from "./jwt-verifier.js";
 import { parseRuntimeConfig } from "./runtime-config.js";
 import { startMcpRuntime } from "./runtime.js";
 
@@ -36,6 +34,7 @@ const configurationError = () =>
  * environment transform. Production still requires an OAuth client ID.
  * @param {NodeJS.ProcessEnv} environment - Process configuration supplied by Docker or the host.
  * @returns {ReturnType<typeof parseRuntimeConfig>} Validated listener and credential options.
+ * @throws {Error} When production settings or the client ID are invalid.
  */
 export function parseProductionConfig(environment: NodeJS.ProcessEnv) {
   const config = parseRuntimeConfig({ ...environment, NODE_ENV: "production" });
@@ -130,6 +129,12 @@ export async function startProduction(
 ) {
   const config = parseProductionConfig(environment);
 
+  const clientId = config.clientId;
+
+  if (!clientId) {
+    throw configurationError();
+  }
+
   const authorization = config.remoteAuthorization
     ? createMcpAuthorizationBoundary({
         ...config.remoteAuthorization,
@@ -145,9 +150,9 @@ export async function startProduction(
 
   const dependencies = await createCliMcpRuntimeDependencies({
     clientMetadata: {
-      clientId: config.clientId!,
+      clientId,
       clientSecret,
-      redirectUri: `http://127.0.0.1:${config.port}/unused`,
+      redirectUri: `http://127.0.0.1:${String(config.port)}/unused`,
       scopes: ["iracing.auth"],
     },
     credentialFile: config.credentialFile,

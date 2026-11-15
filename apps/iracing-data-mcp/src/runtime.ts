@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
-import { parseMcpApplicationConfig } from "./config.js";
 import { composeMcpServices } from "./composition.js";
+import { parseMcpApplicationConfig } from "./config.js";
 import { createHttpApplication, installTerminationHandlers } from "./http.js";
 import type { McpAuthorizationBoundary } from "./authorization.js";
 import type { McpRuntimeDependencies } from "./composition.js";
@@ -10,11 +10,17 @@ import type { RuntimeConfig } from "./runtime-config.js";
 export interface McpRuntimeOptions {
   /** Zod-validated host/port and exact Host/Origin allowlists. */
   readonly config: RuntimeConfig;
+
   /** Caller-selected actor identity and per-actor service providers. */
   readonly dependencies: McpRuntimeDependencies;
+
   /** Optional verified ingress bearer authorization supplied by the caller. */
   readonly authorization?: McpAuthorizationBoundary;
-  /** Optional shutdown callback; process signals are installed only when supplied. */
+
+  /**
+   * Optional shutdown callback; signals are installed only when supplied.
+   * @param {0 | 1} exitCode - Zero after clean shutdown, otherwise one.
+   */
   readonly onStopped?: (exitCode: 0 | 1) => void;
 }
 

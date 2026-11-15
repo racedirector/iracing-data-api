@@ -7,8 +7,9 @@ import type { Driver } from "./schema.js";
 export interface DriverQueries {
   /**
    * Load the authenticated driver without leaking other profile fields.
-   * @param options
-   * @param options.signal
+   * @param {{signal: AbortSignal}} options - Context for the current driver lookup.
+   * @param {AbortSignal} options.signal - Cancellation for the upstream request.
+   * @returns {Promise<Driver>} Public current-driver identity.
    */
   getCurrent(options: { signal: AbortSignal }): Promise<Driver>;
 }
