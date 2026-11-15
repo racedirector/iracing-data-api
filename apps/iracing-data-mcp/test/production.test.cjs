@@ -1,25 +1,8 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs/promises");
-const http = require("node:http");
 const os = require("node:os");
 const path = require("node:path");
 const { test } = require("node:test");
-
-function request(url, options = {}) {
-  return new Promise((resolve, reject) => {
-    const req = http.request(url, { ...options }, (res) => {
-      const chunks = [];
-      res.on("data", (chunk) => chunks.push(chunk));
-      res.on("end", () =>
-        resolve(
-          new Response(Buffer.concat(chunks), { status: res.statusCode }),
-        ),
-      );
-    });
-    req.on("error", reject);
-    req.end(options.body);
-  });
-}
 
 test("production config requires client ID and exact Host/Origin; rejects secret env", async () => {
   const { parseProductionConfig } = await import("../dist/production.js");
