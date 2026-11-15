@@ -16,6 +16,11 @@ test("Zod applies environment defaults and maps directly to runtime options", as
     ),
   );
   assert.equal(parseConfig({ IRACING_MCP_PORT: "4555" }).port, 4555);
+  assert.equal(
+    parseConfig({ IRACING_MCP_CREDENTIAL_FILE: "/custom/credentials.json" })
+      .credentialsFile,
+    "/custom/credentials.json",
+  );
   for (const invalid of [
     { IRACING_MCP_PORT: "0" },
     { IRACING_MCP_PORT: "not-a-number" },
@@ -50,6 +55,32 @@ test("local stdio executable initializes and advertises both tools", async () =>
       (await client.listTools()).tools.map((tool) => tool.name),
       ["get_my_driver", "get_recent_races"],
     );
+  } finally {
+    await client.close();
+  }
+});
+
+test("explicit credential path overrides an invalid environment path", async () => {
+  const { Client } = await import("@modelcontextprotocol/client");
+  const { StdioClientTransport } =
+    await import("@modelcontextprotocol/client/stdio");
+  const client = new Client({
+    name: "offline-credential-override",
+    version: "1",
+  });
+  const transport = new StdioClientTransport({
+    command: process.execPath,
+    args: [
+      path.resolve(__dirname, "../dist/main.js"),
+      "--credentials",
+      path.resolve(__dirname, "missing-credentials.json"),
+    ],
+    env: { ...process.env, IRACING_MCP_CREDENTIAL_FILE: "" },
+  });
+
+  try {
+    await client.connect(transport);
+    assert.equal((await client.listTools()).tools.length, 2);
   } finally {
     await client.close();
   }

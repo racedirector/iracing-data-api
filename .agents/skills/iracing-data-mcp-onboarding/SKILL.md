@@ -23,6 +23,11 @@ the **dedicated** MCP credential document at
 `.iracing-data/iracing-data-mcp/credentials.json`. Do not paste the
 client secret, access/refresh token, or file contents into chat.
 `IRACING_MCP_CREDENTIAL_FILE` can select another existing document.
+The executable also accepts `--credentials /absolute/path/to/credentials.json`;
+this overrides the environment setting and default. Append the flag and path
+to the MCP client's command array for explicit injection. Reconnect after
+changing the selected file or its contents: the session store caches its
+first read. Do not silently fall back to another account's credential file.
 
 Run `pnpm mcp:local` for a manual stdio session, or configure the MCP
 client to execute `node apps/iracing-data-mcp/dist/main.js` from the

@@ -22,6 +22,12 @@ Open the repository as the project, approve the MCP tool when prompted,
 and ensure the client starts its process with the repository root as the
 working directory. Preserve other servers when merging project settings.
 
+To select a credential document explicitly, append
+`"--credentials", "/absolute/path/to/credentials.json"` to the configured
+command array. This overrides `IRACING_MCP_CREDENTIAL_FILE` and the dedicated
+MCP default; it does not copy credentials or start another refresh owner.
+Reconnect the server after changing the path or replacing the document.
+
 For HTTP integration, mount
 `createMcpRouter({resolveActor,resolveCapabilities})` in the existing
 authenticated Hono application. The host provides linked iRacing accounts;

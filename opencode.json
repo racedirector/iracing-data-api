@@ -3,7 +3,12 @@
   "mcp": {
     "iracing-data": {
       "type": "local",
-      "command": ["node", "apps/iracing-data-mcp/dist/main.js"],
+      "command": [
+        "node",
+        "apps/iracing-data-mcp/dist/main.js",
+        "--credentials",
+        ".iracing-data/credentials.json"
+      ],
       "enabled": true,
       "timeout": 10000
     }

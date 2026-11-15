@@ -24,6 +24,18 @@ token renewal; this runtime only reads the selected document on demand.
 If the access token expires, sign in again through the CLI. Do not start two
 credential owners against the same rotating refresh token.
 
+For an explicit path in a client command, pass `--credentials`:
+
+```sh
+node apps/iracing-data-mcp/dist/main.js --credentials /absolute/path/to/credentials.json
+```
+
+Selection order is `--credentials`, then `IRACING_MCP_CREDENTIAL_FILE`, then
+the dedicated MCP default. Relative paths resolve from the process working
+directory. There is no fallback to another credential file. Reconnect the
+MCP client after selecting or replacing a file: the current session store
+caches its first read.
+
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
 `node apps/iracing-data-mcp/dist/main.js` with the project root as its
