@@ -97,6 +97,7 @@ an MCP session registry, or a generalized execution framework.
   iRacing account is required for synthetic verification.
 
 Run from the repository root:
+
 ```sh
 pnpm install --frozen-lockfile
 pnpm check:topology

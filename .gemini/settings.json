@@ -2,9 +2,7 @@
   "mcpServers": {
     "iracing-data": {
       "command": "node",
-      "args": [
-        "apps/iracing-data-mcp/dist/main.js"
-      ],
+      "args": ["apps/iracing-data-mcp/dist/main.js"],
       "timeout": 10000,
       "trust": false
     }

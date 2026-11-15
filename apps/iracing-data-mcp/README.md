@@ -36,21 +36,25 @@ headers. An embedding host must authenticate each incoming `Request`, then
 provide actor-owned query capabilities:
 
 ```ts
-import { Hono } from "hono";
 import { createMcpRouter } from "@iracing-data/iracing-data-mcp";
+import { Hono } from "hono";
 
-const app = new Hono().route("/mcp", createMcpRouter({
-  resolveActor: async (request) => {
-    const session = await auth.api.getSession({ headers: request.headers });
+const app = new Hono().route(
+  "/mcp",
+  createMcpRouter({
+    resolveActor: async (request) => {
+      const session = await auth.api.getSession({
+        headers: request.headers,
+      });
 
-    return session?.user
-      ? { provider: "ftr-events", id: session.user.id }
-      : null;
-  },
-  resolveCapabilities: async (actor, context) =>
-    linkedIracingQueriesForActor(actor, context.signal),
-}));
-```
+      return session?.user
+        ? { provider: "ftr-events", id: session.user.id }
+        : null;
+    },
+    resolveCapabilities: async (actor, context) =>
+      linkedIracingQueriesForActor(actor, context.signal),
+  }),
+);```
 
 The `auth` and `linkedIracingQueriesForActor` values above are provided by
 the embedding application, not this package. This follows the separation in
@@ -58,11 +62,11 @@ FTR Events: `services/hono-api` composes infrastructure, and
 `packages/http-api` exposes mountable routers. Only the host may decide
 which linked iRacing account a verified actor may access.
 
-For a separate HTTP process, use `startMcpHttpServer({ config,
-resolveActor, resolveCapabilities })`, where `config` is produced by
-`parseConfig(process.env)` (default `127.0.0.1:3000`). Standalone
-HTTP still **requires** caller-provided authentication; the CLI's
-local credential provider is never automatically used for HTTP.
+For a separate HTTP process, call `startMcpHttpServer` with
+`config`, `resolveActor`, and `resolveCapabilities`.
+`parseConfig(process.env)` applies the default listener address
+`127.0.0.1:3000`. Standalone HTTP still **requires** caller-provided
+authentication; it never uses the local CLI account by default.
 
 The SDK handles MCP protocol classification and stateless requests.
 No custom long-lived MCP sessions or legacy SSE endpoint are provided.
