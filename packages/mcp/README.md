@@ -26,7 +26,8 @@ Wire output schemas must be JSON-compatible object schemas without transforms.
 Use source schemas or domain code for normalization; the adapter presents the
 parsed output, never unprojected service data. Unrepresentable schemas fail during
 registration. Expected failure descriptors preserve code-specific safe reasons;
-existing injected capabilities may still throw `ApplicationFailure`.
+retry delays require a retryable code or explicit `transient_refresh` reason.
+Existing injected capabilities may still throw `ApplicationFailure`.
 
 ```ts
 import { createIracingMcpServer } from "@iracing-data/mcp";
@@ -60,7 +61,8 @@ within a combined 64 KiB cap. Errors use fixed allowlisted messages,
 codes, metadata and internally generated request IDs. Tool calls are
 read-only, require the host-selected authorization, and propagate cancellation.
 Selectors receive optional internally generated `context.request` correlation
-alongside the signal and host-verified identity. Cancellation stops work and
+alongside the signal and host-verified identity. Domain operations receive only
+the cancellation signal, not MCP correlation or identity context. Cancellation stops work and
 propagates a fixed safe abort to the SDK, which suppresses cancelled responses;
 it is not an upstream outage. No arbitrary abort reason is serialized.
 `get_recent_races` returns up to ten upstream window entries (not complete

@@ -31,7 +31,7 @@ export function registerGetRecentRaces(
     async execute(input, context) {
       const queries = await context.services.getRecentRaceQueries(context);
 
-      return handleGetRecentRaces(input, queries, context);
+      return handleGetRecentRaces(input, queries, { signal: context.signal });
     },
   });
 }

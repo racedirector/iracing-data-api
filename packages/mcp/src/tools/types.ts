@@ -1,13 +1,8 @@
-import type { RequestContext } from "../diagnostics/errors.js";
-
 /** A discriminated result of an operation, containing either data or an error. */
 export type Result<T, E> = { ok: true; data: T } | { ok: false; error: E };
 
-/** Transport-independent cancellation and correlation for domain operations. */
+/** Transport-independent cancellation for domain operations. */
 export interface OperationContext {
   /** Request cancellation propagated to every query. */
   readonly signal: AbortSignal;
-
-  /** One internally generated correlation handle for this tool call. */
-  readonly request: RequestContext;
 }

@@ -5,6 +5,7 @@ import type {
   IracingToolRegistry,
   IracingToolServices,
 } from "../../src/services.js";
+import type { OperationContext } from "../../src/tools/types.js";
 
 declare const server: IracingToolRegistry;
 declare const services: IracingToolServices;
@@ -80,3 +81,47 @@ const invalid: FailureFor<"NOT_FOUND"> = {
   reason: "transient_refresh",
 };
 void invalid;
+
+const retryableFailures: FailureFor[] = [
+  { code: "RATE_LIMITED", retry_after_seconds: 5 },
+  { code: "UPSTREAM_UNAVAILABLE", retry_after_seconds: 5 },
+  {
+    code: "TOKEN_REFRESH_FAILED",
+    reason: "transient_refresh",
+    retry_after_seconds: 5,
+  },
+  { code: "TOKEN_REFRESH_FAILED", reason: "rotation_uncertain" },
+  { code: "TOKEN_REFRESH_FAILED" },
+];
+void retryableFailures;
+
+// @ts-expect-error Non-retryable codes cannot promise retry metadata.
+const notFoundDelay: FailureFor = { code: "NOT_FOUND", retry_after_seconds: 5 };
+void notFoundDelay;
+
+// @ts-expect-error Invalid input is not retryable.
+const invalidInputDelay: FailureFor = {
+  code: "INVALID_INPUT",
+  retry_after_seconds: 5,
+};
+void invalidInputDelay;
+
+// @ts-expect-error Uncertain refresh rotation is not retryable.
+const uncertainRefreshDelay: FailureFor = {
+  code: "TOKEN_REFRESH_FAILED",
+  reason: "rotation_uncertain",
+  retry_after_seconds: 5,
+};
+void uncertainRefreshDelay;
+
+// @ts-expect-error A refresh retry delay requires explicit transient evidence.
+const unprovenRefreshDelay: FailureFor = {
+  code: "TOKEN_REFRESH_FAILED",
+  retry_after_seconds: 5,
+};
+void unprovenRefreshDelay;
+
+declare const signal: AbortSignal;
+const operationContext: OperationContext = { signal };
+// @ts-expect-error Domain operations do not receive MCP diagnostic context.
+void operationContext.request;

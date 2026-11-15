@@ -94,6 +94,7 @@ const reasons = {
 
 /**
  * Expected operation failure with code-specific, secret-safe reason metadata.
+ * Retry delays require a retryable policy or explicit transient-refresh evidence.
  * Runtime serialization still passes through ApplicationFailure's allowlist.
  */
 export type FailureFor<
@@ -101,10 +102,25 @@ export type FailureFor<
 > = {
   [Key in Code]: {
     readonly code: Key;
-    readonly retry_after_seconds?: number;
-  } & (Key extends keyof typeof reasons
-    ? { readonly reason?: (typeof reasons)[Key][number] }
-    : { readonly reason?: never });
+  } & (Key extends "TOKEN_REFRESH_FAILED"
+    ? | {
+          readonly reason: "transient_refresh";
+          readonly retry_after_seconds?: number;
+        }
+      | {
+          readonly reason?: Exclude<
+            (typeof reasons)["TOKEN_REFRESH_FAILED"][number],
+            "transient_refresh"
+          >;
+          readonly retry_after_seconds?: never;
+        }
+    : {
+        readonly retry_after_seconds?: (typeof errorPolicy)[Key][1] extends true
+          ? number
+          : never;
+      } & (Key extends keyof typeof reasons
+        ? { readonly reason?: (typeof reasons)[Key][number] }
+        : { readonly reason?: never }));
 }[Code];
 
 /** Validates bounded, secret-safe tool errors and their correlation identifiers. */

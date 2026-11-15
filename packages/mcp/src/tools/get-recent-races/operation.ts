@@ -9,7 +9,7 @@ import type { z } from "zod";
  * Validate the source window, enforce identity and retain bounded upstream order.
  * @param {z.output<typeof RecentInput>} input - Already validated customer and limit.
  * @param {RecentRaceQueries} queries - Host-selected recent-race capability.
- * @param {OperationContext} context - Request cancellation and correlation.
+ * @param {OperationContext} context - Request cancellation.
  * @returns {Promise<Result<z.input<typeof RecentOutputSchema>, FailureFor<"DATA_RESOLUTION_FAILED">>>} Bounded window or a typed data failure.
  */
 export async function handleGetRecentRaces(

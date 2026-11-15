@@ -31,7 +31,7 @@ export function registerGetMyDriver(
     async execute(_input, context) {
       const queries = await context.services.getDriverQueries(context);
 
-      return handleGetMyDriver(queries, context);
+      return handleGetMyDriver(queries, { signal: context.signal });
     },
   });
 }

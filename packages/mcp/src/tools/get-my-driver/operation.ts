@@ -5,7 +5,7 @@ import type { DriverQueries } from "./service.js";
 /**
  * Load the selected account's identity without protocol presentation concerns.
  * @param {DriverQueries} queries - Host-selected driver capability.
- * @param {OperationContext} context - Request cancellation and correlation.
+ * @param {OperationContext} context - Request cancellation.
  * @returns {Promise<Result<Driver, never>>} Identity for final schema projection.
  */
 export async function handleGetMyDriver(
