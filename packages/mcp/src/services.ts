@@ -26,7 +26,7 @@ export interface IracingToolServices {
    * @param {IracingToolContext} context - Cancellation and verified actor context.
    * @returns {RaceSearchQueries | Promise<RaceSearchQueries>} Actor-owned historical search provider.
    */
-  getRaceSearchQueries?(
+  getRaceSearchQueries(
     context: IracingToolContext,
   ): RaceSearchQueries | Promise<RaceSearchQueries>;
 
