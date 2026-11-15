@@ -135,7 +135,7 @@ test("workspace boundaries prohibit runtime composition and private imports", as
     reusable,
   );
   await rejects(
-    'import "../../../mcp/tools/src/services.js";',
+    'import "../../../mcp/src/services.js";',
     "boundaries/dependencies",
     reusable,
   );

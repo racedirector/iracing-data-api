@@ -78,6 +78,7 @@ export function parseManifest(value: unknown) {
 
   if (
     !success ||
+    typeof info.base_download_url !== "string" ||
     info.num_chunks > 1000 ||
     info.rows > 500_000 ||
     info.num_chunks !== info.chunk_file_names.length ||
@@ -95,7 +96,7 @@ export function parseManifest(value: unknown) {
     chunkUrl(info.base_download_url, filename);
   }
 
-  return info;
+  return { ...info, base_download_url: info.base_download_url };
 }
 
 /**
