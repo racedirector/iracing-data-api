@@ -294,7 +294,11 @@ test("the 64 KiB result cap rejects oversized injected data", async (t) => {
 
 test("cancellation during capability selection prevents domain queries", async () => {
   const { registerIracingTools } = await import("../dist/index.js");
-  for (const name of ["get_my_driver", "get_recent_races", "search_race_results"]) {
+  for (const name of [
+    "get_my_driver",
+    "get_recent_races",
+    "search_race_results",
+  ]) {
     const selected = Promise.withResolvers();
     const release = Promise.withResolvers();
     const control = new AbortController();
