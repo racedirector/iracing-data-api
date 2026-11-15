@@ -32,7 +32,6 @@ Inspect the owning module and descend through its scoped guide:
   [verification](scripts/verify.mjs).
   See [workspace maintenance](docs/WORKSPACE-POLICY.md).
 
-
 The OAuth client is **authored runtime code**, not a generated client. OAuth OpenAPI does not feed the current Data API SDK generation scripts.
 
 Do not patch generated source, OpenAPI output, generated documentation, generator bookkeeping, `dist/`, or TypeScript build caches by hand. Fix the schema, mapping, generator configuration, post-processing, or presentation template that owns the change, then regenerate the affected branch. Package release versions are authored decisions even inside generated manifests: inspect regeneration for overwritten versions or configuration and retain the reviewed release intent. Scoped `AGENTS.md` files are authored guidance, not generator output.
