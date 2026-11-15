@@ -13,13 +13,14 @@ From the repository root:
 ```sh
 pnpm install --frozen-lockfile
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
-# Authenticate using the CLI's existing login command with iracing.auth.
+pnpm iracing-data auth login --scope iracing.auth
 pnpm mcp:local
 ```
 
-The local executable uses the CLI's dedicated MCP credential document at
+The local executable loads a file-backed OAuth session, defaulting to
 `.iracing-data/iracing-data-mcp/credentials.json`. Override its location
-using `IRACING_MCP_CREDENTIAL_FILE`. The CLI is responsible for initial login.
+using `IRACING_MCP_CREDENTIAL_FILE`. The setup above uses the CLI for initial
+credential acquisition; loading the selected file is independent of the CLI.
 The runtime refreshes expired access tokens on demand and saves rotated
 credentials to the same file. Set `IRACING_AUTH_CLIENT` and, for confidential
 clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
@@ -65,7 +66,7 @@ const app = new Hono().route(
       });
 
       return session?.user
-        ? { provider: "ftr-events", id: session.user.id }
+        ? { provider: "host-session", id: session.user.id }
         : null;
     },
     resolveCapabilities: async (actor, context) =>
@@ -75,9 +76,7 @@ const app = new Hono().route(
 ```
 
 The `auth` and `linkedIracingQueriesForActor` values above are provided by
-the embedding application, not this package. This follows the separation in
-FTR Events: `services/hono-api` composes infrastructure, and
-`packages/http-api` exposes mountable routers. Only the host may decide
+the embedding application, not this package. Only the host may decide
 which linked iRacing account a verified actor may access.
 
 For a separate HTTP process, call `startMcpHttpServer` with
@@ -96,7 +95,7 @@ No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 - `src/http.ts`: mountable Hono MCP router
 - `src/http-server.ts`: optional Node listener
 - `src/stdio.ts`: stdio host using the same MCP factory
-- `src/credentials.ts`: local CLI credential restoration and durable refresh
+- `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 
 Neither the MCP core nor the HTTP router depends on generated Fetch clients.

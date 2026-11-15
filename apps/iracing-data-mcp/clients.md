@@ -9,8 +9,10 @@ pnpm --filter '@iracing-data/iracing-data-mcp...' build
 The checked-in project configurations start the **local stdio server** with
 `node apps/iracing-data-mcp/dist/main.js`. The MCP client launches its
 own process; there is no default HTTP listener or OAuth resource server.
-The CLI's dedicated MCP credential file is consulted only when a tool
-actually calls the iRacing API. Use the CLI to log in and renew credentials.
+The selected credential file is consulted only when a tool actually calls the
+iRacing API. For initial setup, run
+`pnpm iracing-data auth login --scope iracing.auth`. The runtime independently
+loads that document and persists on-demand OAuth refreshes to the same file.
 
 The project includes [`.mcp.json`](../../.mcp.json) for Claude Code and
 VS Code; [`.cursor/mcp.json`](../../.cursor/mcp.json) for Cursor;
@@ -26,7 +28,8 @@ To select a credential document explicitly, append
 `"--credentials", "/absolute/path/to/credentials.json"` to the configured
 command array. This overrides `IRACING_MCP_CREDENTIAL_FILE` and the dedicated
 MCP default; it does not copy credentials or start another refresh owner.
-Reconnect the server after changing the path or replacing the document.
+Reconnect the server after changing the path. Replacing the selected document
+does not require reconnecting; each request restores it afresh.
 
 For HTTP integration, mount
 `createMcpRouter({resolveActor,resolveCapabilities})` in the existing

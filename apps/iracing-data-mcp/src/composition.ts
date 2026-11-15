@@ -11,7 +11,7 @@ export interface McpActor {
   /** Actor ID in the host's identity provider. */
   readonly id: string;
 
-  /** Provider namespace, such as FTR Events or CLI. */
+  /** Host-owned provider namespace for the verified identity. */
   readonly provider: string;
 }
 

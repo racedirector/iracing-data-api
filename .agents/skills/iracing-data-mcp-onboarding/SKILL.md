@@ -18,7 +18,7 @@ pnpm install --frozen-lockfile
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 ```
 
-Use the existing CLI's `auth login` flow with `iracing.auth` to create
+Use `pnpm iracing-data auth login --scope iracing.auth` to create
 the **dedicated** MCP credential document at
 `.iracing-data/iracing-data-mcp/credentials.json`. Do not paste the
 client secret, access/refresh token, or file contents into chat.
@@ -26,8 +26,9 @@ client secret, access/refresh token, or file contents into chat.
 The executable also accepts `--credentials /absolute/path/to/credentials.json`;
 this overrides the environment setting and default. Append the flag and path
 to the MCP client's command array for explicit injection. Reconnect after
-changing the selected file or its contents: the session store caches its
-first read. Do not silently fall back to another account's credential file.
+changing the selected path. Each request restores the selected file afresh,
+so replacing its contents does not require reconnecting.
+Do not silently fall back to another account's credential file.
 
 Run `pnpm mcp:local` for a manual stdio session, or configure the MCP
 client to execute `node apps/iracing-data-mcp/dist/main.js` from the
@@ -36,7 +37,8 @@ The runtime restores the session only when a tool needs it. Its OAuth client
 refreshes expired access tokens and persists rotated credentials through the
 token-document session store. Set `IRACING_AUTH_CLIENT` and, for confidential
 clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
-The CLI remains responsible for initial login. Run only one credential owner
+The CLI is the current setup path for initial login, not a dependency of the
+file loader. Run only one credential owner
 per document; do not refresh the same credentials concurrently from the CLI.
 
 ## HTTP embedding

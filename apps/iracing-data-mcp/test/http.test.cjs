@@ -79,9 +79,20 @@ test("mountable Hono router resolves tool capabilities against the verified acto
     assert.equal(response.status, 200);
 
     const body = await response.text();
+    const payload = response.headers
+      .get("content-type")
+      ?.includes("text/event-stream")
+      ? JSON.parse(
+          body
+            .split("\n")
+            .find((line) => line.startsWith("data:"))
+            .slice(5),
+        )
+      : JSON.parse(body);
 
     assert.match(body, new RegExp(id));
-    assert.match(body, new RegExp(String(expected)));
+    assert.equal(payload.result.structuredContent.cust_id, expected);
+    assert.equal(payload.result.structuredContent.display_name, id);
     assert.doesNotMatch(body, /MUST_NOT_LEAK/);
   }
 

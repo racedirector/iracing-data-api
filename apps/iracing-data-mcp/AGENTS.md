@@ -14,8 +14,9 @@ Use Awilix in `composition.ts` and a Zod defaults/transform boundary in
 The HTTP host must resolve a verified actor from each Request and inject
 the actor's iRacing account capabilities. Never read the local CLI
 credential document on behalf of an HTTP caller. Null actors fail closed.
-Local stdio uses the CLI's dedicated MCP credential document; acquiring
-credentials remains the CLI's concern. The OAuth client restores sessions
+Local stdio loads the selected file-backed OAuth session; the current setup
+uses the CLI for initial credential acquisition, independently of file loading.
+The OAuth client restores sessions
 and persists refreshed credentials through its token-document session store.
 Only concrete
 adapters in `src/adapters` may select a generated Fetch client.
