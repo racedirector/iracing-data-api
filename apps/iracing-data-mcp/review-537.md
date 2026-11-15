@@ -29,9 +29,8 @@ identity matching checks response integrity, not authorization. An actor-resolve
 host must enforce any narrower account policy in its selected capability before
 querying; caller-controlled `cust_id` is never a principal selector in the core.
 
-The generic `build-mcp-app` and `build-mcp-server` directories were bundled as
-upstream skill/reference assets in the reviewed stack. They are not core runtime
-dependencies. Their upstream source is deliberately unchanged here; extracting
-them should be a separate, mechanical removal/reintroduction across the stack,
-with guidance regression checks, rather than editing their vendor contents as
-part of these contract fixes. Project-specific tool guidance remains authoritative.
+The generic `build-mcp-app` and `build-mcp-server` upstream skill/reference
+assets are excluded from this core PR. Their byte-for-byte reintroduction,
+lock entries and formatting exclusions belong in a dedicated guidance PR
+immediately after the Hono/stdio runtime (#538). Project-specific tool guidance
+remains authoritative; vendored examples do not override repository boundaries.
