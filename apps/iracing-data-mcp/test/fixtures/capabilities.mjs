@@ -2,6 +2,22 @@ import { ApplicationFailure } from "@iracing-data/mcp";
 
 export function capabilities(mode, custId = 7) {
   return {
+    raceSearchQueries: {
+      async search(input, { signal }) {
+        signal.throwIfAborted();
+        return {
+          source: input.source,
+          criteria: {},
+          total_matches: 0,
+          total_chunks: 0,
+          chunk_index: input.chunk_index,
+          returned_count: 0,
+          query_complete: true,
+          results: [],
+          position_basis: "upstream",
+        };
+      },
+    },
     driverQueries: {
       async getCurrent({ signal }) {
         signal.throwIfAborted();
