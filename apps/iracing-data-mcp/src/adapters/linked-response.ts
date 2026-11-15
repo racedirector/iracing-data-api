@@ -12,7 +12,7 @@ import { ApplicationFailure } from "@iracing-data/mcp";
 export async function readLinkedData(
   envelope: IracingAPIResponse,
   signal: AbortSignal,
-  fetchApi: typeof fetch,
+  fetchApi: typeof fetch = fetch,
 ): Promise<unknown> {
   if (!(envelope.expires instanceof Date) ||
       !Number.isFinite(envelope.expires.getTime())) {
