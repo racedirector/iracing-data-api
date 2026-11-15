@@ -184,7 +184,8 @@ async function searchManifest(
 /**
  * Bind historical session search to an actor-owned client.
  * @param {Configuration} configuration - Host-owned credentials and HTTP implementation.
- * @param {typeof fetch} downloadFetch - Independent unsigned chunk transport, never an authenticated generated-client wrapper.\n * @returns {RaceSearchQueries} Tool-local search with isolated signed chunk downloads.
+ * @param {typeof fetch} downloadFetch - Independent unsigned chunk transport, never an authenticated generated-client wrapper.
+ * @returns {RaceSearchQueries} Tool-local search with isolated signed chunk downloads.
  */
 export function createRaceSearchQueries(
   configuration: Configuration,
@@ -204,12 +205,7 @@ export function createRaceSearchQueries(
         chunk_index,
       );
 
-      const results = await readChunk(
-        info,
-        chunk_index,
-        signal,
-        downloadFetch,
-      );
+      const results = await readChunk(info, chunk_index, signal, downloadFetch);
 
       signal.throwIfAborted();
 
