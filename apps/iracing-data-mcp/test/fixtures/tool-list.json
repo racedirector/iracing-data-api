@@ -26,6 +26,7 @@
       "additionalProperties": false
     },
     "annotations": {
+      "title": "Get my driver",
       "readOnlyHint": true,
       "destructiveHint": false,
       "idempotentHint": true,
@@ -39,11 +40,13 @@
       "type": "object",
       "properties": {
         "cust_id": {
+          "description": "Customer ID to query. Omit to use the authenticated driver.",
           "type": "integer",
           "exclusiveMinimum": 0,
           "maximum": 9007199254740991
         },
         "limit": {
+          "description": "Maximum entries from the upstream recent-race window, from 1 to 10. Defaults to 10; not exhaustive history.",
           "default": 10,
           "type": "integer",
           "minimum": 1,
@@ -271,6 +274,7 @@
       "additionalProperties": false
     },
     "annotations": {
+      "title": "Get recent races",
       "readOnlyHint": true,
       "destructiveHint": false,
       "idempotentHint": true,

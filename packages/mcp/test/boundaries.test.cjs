@@ -43,7 +43,14 @@ test("caller-owned server exposes exactly two tools and accepts neighboring regi
     assert.equal(tool.inputSchema.type, "object");
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.equal(tool.annotations.readOnlyHint, true);
+    assert.ok(tool.annotations.title.length > 0);
   }
+  assert.equal(tools[1].annotations.title, "Get my driver");
+  assert.equal(tools[2].annotations.title, "Get recent races");
+  const properties = tools[2].inputSchema.properties;
+  assert.match(properties.cust_id.description, /authenticated driver/);
+  assert.match(properties.limit.description, /Defaults to 10/);
+  assert.equal(properties.limit.default, 10);
   assert.equal((await f.call("before")).content[0].text, "before");
   assert.equal((await f.call("after")).content[0].text, "after");
   assert.equal(typeof f.api.createIracingMcpServer, "function");

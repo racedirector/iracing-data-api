@@ -35,6 +35,7 @@ export function registerGetRecentRaces(
       inputSchema: toolInputSchema(RecentInput),
       outputSchema: RecentOutputSchema,
       annotations: {
+        title: "Get recent races",
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,

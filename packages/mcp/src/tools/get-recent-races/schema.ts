@@ -9,8 +9,13 @@ import {
 
 /** Optional customer ID; requests never accept tokens or arbitrary properties. */
 export const RecentInput = z.strictObject({
-  cust_id: Id.optional(),
-  limit: z.int().min(1).max(10).default(10),
+  cust_id: Id.optional().meta({
+    description: "Customer ID to query. Omit to use the authenticated driver.",
+  }),
+  limit: z.int().min(1).max(10).default(10).meta({
+    description:
+      "Maximum entries from the upstream recent-race window, from 1 to 10. Defaults to 10; not exhaustive history.",
+  }),
 });
 
 /** Already-normalized race data provided by a consumer-owned query service. */

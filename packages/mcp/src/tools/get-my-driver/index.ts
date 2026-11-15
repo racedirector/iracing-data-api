@@ -29,6 +29,7 @@ export function registerGetMyDriver(
       inputSchema: toolInputSchema(SelfInput),
       outputSchema: DriverProjection,
       annotations: {
+        title: "Get my driver",
         readOnlyHint: true,
         destructiveHint: false,
         idempotentHint: true,
