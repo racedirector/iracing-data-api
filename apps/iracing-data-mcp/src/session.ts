@@ -138,7 +138,9 @@ export async function createMcpServices(
       await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
     ).access_token;
 
-  const dataApiConfiguration = new Configuration({ accessToken: getAccessToken });
+  const dataApiConfiguration = new Configuration({
+    accessToken: getAccessToken,
+  });
 
   const driverQueries = createDriverQueries(dataApiConfiguration);
 

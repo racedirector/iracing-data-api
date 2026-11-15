@@ -6,8 +6,10 @@ import type { IracingToolServices } from "./services.js";
 export interface IracingMcpServerOptions {
   /** Name and version advertised by this unconnected server. */
   readonly serverInfo: ConstructorParameters<typeof McpServer>[0];
+
   /** Optional MCP SDK capabilities and instructions. */
   readonly serverOptions?: ConstructorParameters<typeof McpServer>[1];
+
   /** Caller-owned selectors for the two supported tools. */
   readonly services: IracingToolServices;
 }

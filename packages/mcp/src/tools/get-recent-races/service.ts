@@ -2,7 +2,12 @@ import type { RecentRaceWindow } from "./schema.js";
 
 /** Required domain capability. Consumers decide which client/data source serves it. */
 export interface RecentRaceQueries {
-  /** Load the upstream recent-race window for the selected customer. */
+  /**
+   * Load the upstream recent-race window for the selected customer.
+   * @param options
+   * @param options.custId
+   * @param options.signal
+   */
   getRecent(options: {
     custId?: number;
     signal: AbortSignal;
