@@ -12,9 +12,7 @@ import { ApplicationFailure } from "@iracing-data/mcp";
  * @param {unknown} error - Failure from the generated API or signed-link fetch.
  * @returns {ApplicationFailure} Safe error code for the MCP tool.
  */
-export function mapUpstreamFailure(
-  error: unknown,
-): ApplicationFailure {
+export function mapUpstreamFailure(error: unknown): ApplicationFailure {
   if (error instanceof ApplicationFailure) {
     return error;
   }
@@ -51,9 +49,7 @@ export function mapUpstreamFailure(
   return new ApplicationFailure("INTERNAL_ERROR");
 }
 
-function mapResponseFailure(
-  upstreamResponse: Response,
-): ApplicationFailure {
+function mapResponseFailure(upstreamResponse: Response): ApplicationFailure {
   const status = upstreamResponse.status;
 
   if (status === 401 || status === 403) {
@@ -90,4 +86,3 @@ function mapResponseFailure(
 function namedError(error: unknown, name: string): error is Error {
   return error instanceof Error && error.name === name;
 }
-

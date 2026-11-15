@@ -304,7 +304,9 @@ test("real health, initialize, listing and tool errors stay safe before and afte
   async function appFor(services) {
     const app = f.api.createHttpApplication({
       config: f.api.parseMcpApplicationConfig(),
-      services: f.api.composeMcpServices(f.api.createCliMcpDependencies(services)),
+      services: f.api.composeMcpServices(
+        f.api.createCliMcpDependencies(services),
+      ),
       logger: f.options.logger,
       registerTools(server) {
         server.registerTool(

@@ -85,7 +85,9 @@ function requiredActor(actor: McpActor | null): McpActor {
  * @param {McpRuntimeDependencies} dependencies - Identity and actor-specific capability providers.
  * @returns {McpServices} Request-local service selectors for the MCP transport.
  */
-export function composeMcpServices(dependencies: McpRuntimeDependencies): McpServices {
+export function composeMcpServices(
+  dependencies: McpRuntimeDependencies,
+): McpServices {
   const container = createContainer<RuntimeCradle>({
     injectionMode: InjectionMode.PROXY,
   });
@@ -93,7 +95,10 @@ export function composeMcpServices(dependencies: McpRuntimeDependencies): McpSer
   const makeServices = ({
     resolveActor,
     resolveDependencies,
-  }: Pick<RuntimeCradle, "resolveActor" | "resolveDependencies">): McpServices => {
+  }: Pick<
+    RuntimeCradle,
+    "resolveActor" | "resolveDependencies"
+  >): McpServices => {
     async function select(
       context: IracingToolContext,
     ): Promise<McpActorDependencies> {
