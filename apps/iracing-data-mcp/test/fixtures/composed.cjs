@@ -103,9 +103,6 @@ async function main() {
     },
   };
   const credentials = await api.createMcpCredentialOwner(options);
-  const services = api.composeMcpServices(
-    api.createCliMcpDependencies(credentials),
-  );
   const app = api.createMcpRuntime({
     config: api.parseRuntimeConfig({}),
     dependencies: api.createCliMcpDependencies(credentials),
