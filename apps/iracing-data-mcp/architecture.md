@@ -1,54 +1,33 @@
-# MCP Runtime
+# Runtime boundaries
 
-The private `@iracing-data/mcp` package defines the two tool contracts
-(`get_my_driver` and `get_recent_races`) and exposes a listener-free
-server factory. It does not choose Fetch, Axios, credentials, or an HTTP host.
+```
+@iracing-data/mcp
+  createIracingMcpServer(services)   # two tool contracts, no listener
+            ^
+            |
+apps/iracing-data-mcp
+  composition.ts                     # Awilix, verified actor + capabilities
+  http.ts                            # mountable Hono router
+  http-server.ts                     # optional TCP listener
+  stdio.ts                           # local stdio transport
+  credentials.ts                     # dedicated CLI token document
+  adapters/                          # concrete generated Fetch implementation
+```
 
-`apps/iracing-data-mcp` is a small **Hono composition and listener**:
+This mirrors the FTR Events split: a small composition root creates
+infrastructure, package routers mount into an existing Hono host, and the
+listener remains optional. `createMcpRouter()` accepts a
+`resolveActor(request)` function and a
+`resolveCapabilities(actor, context)` function. Authentication happens
+before capabilities are selected. Null identity returns 401 and never
+falls back to the local account.
 
-| File | Responsibility |
-| --- | --- |
-| [runtime-config.ts](src/runtime-config.ts) | Zod environment defaults and transformation to runtime options |
-| [runtime.ts](src/runtime.ts) | Hono app, official SDK MCP handler, optional bearer ingress, host/port listener and shutdown |
-| [composition.ts](src/composition.ts) | Awilix registration for request-local actor and capability resolvers |
-| [adapters](src/adapters) | Concrete Fetch client and linked-data operations |
-| [session.ts](src/session.ts) | One local CLI credential owner, token rotation and persistence |
-| [production.ts](src/production.ts) | Docker volume/secret validation and default CLI composition |
-| [jwt-verifier.ts](src/jwt-verifier.ts) | Optional remote JWT verification |
+Local stdio has a single explicit CLI actor, and selects its token document
+only when a tool performs an upstream call. It is not a general token refresh
+service. The existing CLI owns obtaining/renewing tokens.
 
-An embedding host supplies `resolveActor(context)` and
-`resolveDependencies(actor, context)`. Its actor resolver decides which
-principal the request represents; the dependency resolver selects the
-linked iRacing account and its data provider. Neither the Hono app nor
-the MCP tool package assumes that all requests belong to a local account.
-
-The default CLI implementation uses only the dedicated
-`.iracing-data/iracing-data-mcp/credentials.json` file (Docker's
-`/var/lib/iracing-data-mcp/credentials.json`). Remote ingress never
-inherits that local account automatically. Future FTR Events Better Auth
-integration should inject a verified actor resolver and a linked-account
-capability resolver, **not** a second global credential owner.
-
-## Protocol and security
-
-`createMcpRuntime(options)` builds an unstarted Hono app;
-`startMcpRuntime(options)` binds the listener to its validated host/port.
-The official `@modelcontextprotocol/hono` middleware guards hostnames
-and bounds request bodies. `createMcpHandler` owns MCP request routing,
-including modern exchanges and the 2025 legacy **stateless** fallback.
-
-The app intentionally has **no session registry, SSE transport manager,
-cursor cache, or custom MCP request dispatcher**. The legacy stateless
-protocol does not issue `Mcp-Session-Id`; GET/DELETE session operations
-return 405. Auth is verified for each incoming request. Hono enforces
-additional exact Host/Origin allowlists from the environment.
-
-The runtime retains a public `/healthz` endpoint, OAuth protected-resource
-metadata when configured, signed HTTPS link isolation in Fetch adapters,
-and credential-owner shutdown. In remote mode the executable does not
-grant access to the process-wide CLI account; an embedding host must
-explicitly provide actor-to-account resolution.
-
-See [README](README.md), [local Docker guide](local-container.md),
-[remote authorization](remote-authorization.md), and the
-[add-MCP-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
+The official MCP SDK owns protocol handling in both transports. There is no
+custom dispatcher, per-client server registry, OAuth resource endpoint,
+JWT verifier, Docker importer, or HTTP account session. A host wanting
+Better Auth can inject its authoritative session resolver and a linked
+iRacing account resolver without changing either MCP tool.

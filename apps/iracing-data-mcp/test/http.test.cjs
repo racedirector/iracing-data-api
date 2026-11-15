@@ -1,149 +1,87 @@
 const assert = require("node:assert/strict");
-const http = require("node:http");
-const { test } = require("node:test");
+const test = require("node:test");
 
-function request(
-  port,
-  { method = "GET", route = "/healthz", headers = {}, body } = {},
-) {
-  return new Promise((resolve, reject) => {
-    const req = http.request(
-      {
-        host: "127.0.0.1",
-        port,
-        path: route,
-        method,
-        headers: { Host: "127.0.0.1:3000", ...headers },
-      },
-      (res) => {
-        const chunks = [];
+test("mountable Hono router denies anonymous callers before constructing services", async () => {
+  const { Hono } = await import("hono");
+  const { createMcpRouter } = await import("../dist/http.js");
+  let created = 0;
+  const app = new Hono().route("/mcp", createMcpRouter({
+    resolveActor: () => null,
+    resolveCapabilities: () => {
+      created++;
+      throw new Error("Must not resolve anonymous capabilities");
+    },
+  }));
 
-        res.on("data", (chunk) => chunks.push(chunk));
-        res.on("end", () =>
-          resolve(
-            new Response(
-              res.statusCode === 204 ? null : Buffer.concat(chunks),
-              { status: res.statusCode, headers: res.headers },
-            ),
-          ),
-        );
-      },
-    );
-
-    req.on("error", reject);
-    req.end(body);
+  const response = await app.request("http://localhost/mcp", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ jsonrpc: "2.0", method: "tools/list", id: 1 }),
   });
-}
 
-async function fixture(t) {
-  const api = await import("../dist/index.js");
-  const app = api.createMcpRuntime({
-    config: api.parseRuntimeConfig({}),
-    dependencies: {
-      resolveActor: () => ({ id: "fixture", provider: "test" }),
-      resolveDependencies: (actor) => ({
+  assert.equal(response.status, 401);
+  assert.equal(created, 0);
+});
+
+test("mountable Hono router resolves tool capabilities against the verified actor", async () => {
+  const { Hono } = await import("hono");
+  const { createMcpRouter } = await import("../dist/http.js");
+  const actors = [];
+  const app = new Hono().route("/mcp", createMcpRouter({
+    resolveActor: (request) => {
+      const id = request.headers.get("x-test-actor");
+      return id ? { id, provider: "test" } : null;
+    },
+    resolveCapabilities: (actor) => {
+      actors.push(actor.id);
+      return {
         driverQueries: {
           getCurrent: async () => ({
-            cust_id: 7,
+            cust_id: actor.id === "alice" ? 1 : 2,
             display_name: actor.id,
-            private: "SECRET",
+            secret: "MUST_NOT_LEAK",
           }),
         },
         recentRaceQueries: {
-          getRecent: async () => ({ cust_id: 7, races: [] }),
+          getRecent: async () => ({ cust_id: 1, races: [] }),
         },
+      };
+    },
+  }));
+
+  for (const [id, expected] of [["alice", 1], ["bob", 2]]) {
+    const response = await app.request("http://localhost/mcp", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json, text/event-stream",
+        "x-test-actor": id,
+      },
+      body: JSON.stringify({
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: { name: "get_my_driver", arguments: {} },
       }),
-      authorizationState: () => "ready",
-    },
-  });
-
-  await app.listen(0, "127.0.0.1");
-  t.after(() => app.shutdown());
-
-  return { app, port: app.server.address().port };
-}
-
-test("Hono serves a bounded host and minimal public health route", async (t) => {
-  const { app, port } = await fixture(t);
-  const health = await request(port);
-  assert.equal(health.status, 200);
-  assert.deepEqual(await health.json(), { live: true, auth_state: "ready" });
-
-  const forbidden = await request(port, { headers: { Host: "evil.example" } });
-  assert.equal(forbidden.status, 403);
-  const origin = await request(port, {
-    headers: { Origin: "https://evil.example" },
-  });
-  assert.equal(origin.status, 403);
-
-  assert.ok(app.app);
-  assert.ok(app.server.listening);
-});
-
-test("official MCP client initializes, lists and calls both stateless tools", async (t) => {
-  const { port } = await fixture(t);
-  const { Client, StreamableHTTPClientTransport } =
-    await import("@modelcontextprotocol/client");
-
-  const client = new Client({ name: "fixture", version: "1" });
-  const transport = new StreamableHTTPClientTransport(
-    new URL("http://127.0.0.1:3000/mcp"),
-    {
-      fetch: (_url, init) =>
-        request(port, {
-          method: init.method,
-          route: "/mcp",
-          body: init.body,
-          headers: Object.fromEntries(new Headers(init.headers)),
-        }),
-    },
-  );
-
-  await client.connect(transport);
-  t.after(() => client.close());
-
-  assert.equal(transport.sessionId, undefined);
-  assert.deepEqual(
-    (await client.listTools()).tools.map((tool) => tool.name),
-    ["get_my_driver", "get_recent_races"],
-  );
-
-  const driver = await client.callTool({
-    name: "get_my_driver",
-    arguments: {},
-  });
-  assert.deepEqual(driver.structuredContent, {
-    cust_id: 7,
-    display_name: "fixture",
-  });
-  assert.doesNotMatch(JSON.stringify(driver), /SECRET/);
-
-  const recent = await client.callTool({
-    name: "get_recent_races",
-    arguments: { cust_id: 7, limit: 1 },
-  });
-
-  assert.equal(recent.structuredContent.cust_id, 7);
-  assert.deepEqual(recent.structuredContent.races, []);
-});
-
-test("stateless MCP does not expose a session registry or DELETE lifecycle", async (t) => {
-  const { port } = await fixture(t);
-  for (const method of ["GET", "DELETE"]) {
-    const response = await request(port, {
-      method,
-      route: "/mcp",
-      headers: { Accept: "application/json, text/event-stream" },
     });
-
-    assert.equal(response.status, 405);
+    assert.equal(response.status, 200);
+    const body = await response.text();
+    assert.match(body, new RegExp(id));
+    assert.match(body, new RegExp(String(expected)));
+    assert.doesNotMatch(body, /MUST_NOT_LEAK/);
   }
+
+  assert.deepEqual(actors, ["alice", "bob"]);
 });
 
-test("shutdown closes listener without requiring a process signal", async (t) => {
-  const { app } = await fixture(t);
-  assert.ok(app.server.listening);
-  await app.shutdown();
-  assert.equal(app.server.listening, false);
-  await app.shutdown();
+test("the HTTP router is owned by its host, not a listener or OAuth service", async () => {
+  const { createMcpRouter } = await import("../dist/http.js");
+  const router = createMcpRouter({
+    resolveActor: () => null,
+    resolveCapabilities: () => {
+      throw new Error("unreachable");
+    },
+  });
+  assert.equal(typeof router.fetch, "function");
+  assert.equal(router.routes.length, 1);
 });

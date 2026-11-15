@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "iracing-data": "node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js",
-    "mcp:local": "node --env-file-if-exists=.env apps/iracing-data-mcp/scripts/local-container.mjs",
+    "mcp:local": "node --env-file-if-exists=.env apps/iracing-data-mcp/dist/main.js",
     "codegen": "node scripts/check-generated.mjs --write",
     "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:(api|oauth):.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",
@@ -51,8 +51,6 @@
     "test:compatibility-audits": "node --test scripts/audit-data-docs.test.cjs .agents/skills/iracing-data-api-compatibility-audit/audit-guidance.test.mjs .agents/skills/iracing-oauth-compatibility-audit/audit-guidance.test.mjs",
     "test:schema-compatibility": "node --test -r ts-node/register tests/schema-compatibility/*.test.cjs",
     "test:data-contract": "node --test tests/data-contract/*.test.cjs",
-    "test:docker": "pnpm --filter '@iracing-data/iracing-data-mcp...' build && node apps/iracing-data-mcp/test/docker/recovery.mjs",
-    "verify:docker": "pnpm test:docker",
     "test:lint-policy": "node --test scripts/eslint-jsdoc-policy.test.mjs scripts/eslint-quality-policy.test.mjs scripts/eslint-zod-policy.test.mjs"
   },
   "keywords": [],
