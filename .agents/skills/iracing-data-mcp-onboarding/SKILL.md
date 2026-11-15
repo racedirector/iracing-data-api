@@ -65,3 +65,27 @@ Finish when the requested scope is satisfied: a verified server plus registered 
 Local onboarding and its deterministic helpers remain the loopback/Docker workflow. For remote authorization architecture, read [remote authorization](../../../apps/iracing-data-mcp/remote-authorization.md). Production remote auth requires IRACING_MCP_RESOURCE_URL and IRACING_MCP_AUTH_ISSUER. IRACING_MCP_AUTH_AUDIENCE is optional and defaults to the resource, IRACING_MCP_AUTH_SCOPES is optional, and IRACING_MCP_AUTH_JWKS_URL optionally overrides issuer-driven RFC 8414/OIDC discovery. Scope values are opaque/case-sensitive; mcp:use is an operator convention and * is a literal scope.
 
 Every MCP HTTP request supplies external-AS Bearer authorization independently of Mcp-Session-Id. iRacing access/refresh tokens remain upstream credentials; never substitute them for ingress tokens. The MCP app validates tokens and serves Protected Resource Metadata; it is not an authorization server. Provider/client registration and final public Host/Origin/trusted-proxy, hosting and volume guidance remain #443. Do not relax local defaults or treat the local helpers/private tunnel as remote deployment verification.
+
+## Embedding the runtime with an injected identity provider
+
+The canonical onboarding path above is **still** the Docker named-volume
+workflow, not a direct host-file mount. For an explicitly embedded Node host,
+use [runtime-config.ts](../../../apps/iracing-data-mcp/src/runtime-config.ts)
+for Zod defaults and the environment-to-options transformation and
+[runtime.ts](../../../apps/iracing-data-mcp/src/runtime.ts) to bind the
+requested host and port. `IRACING_MCP_PORT` is optional (default 3000),
+`IRACING_MCP_LISTEN_HOST` defaults to `127.0.0.1`, and
+`IRACING_MCP_CREDENTIAL_FILE` selects a local credential document when using
+the local provider. Never expose the local credentials through remote ingress.
+
+`composeMcpServices()` uses Awilix to inject both `resolveActor(context)` and
+`resolveDependencies(actor, context)`. The default local CLI adapter chooses
+only the dedicated MCP token document, not the CLI's general credentials file,
+and rejects verified remote identities rather than sharing the local actor.
+A consumer integrating Better Auth supplies its own verified actor resolver
+and per-actor dependencies. Do not interpret MCP bearer-token identity as
+automatic authorization to use a process-wide iRacing account. Keep token
+refresh/persistence inside the selected credential provider.
+
+The deterministic Docker helper scripts and their volume checks are unchanged:
+new embedding options do not authorize alternative Docker onboarding steps.

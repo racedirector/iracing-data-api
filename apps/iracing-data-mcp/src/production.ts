@@ -14,19 +14,18 @@
  * Termination handlers drain HTTP before closing authorization; executable startup
  * and shutdown diagnostics must not expose configuration values or raw errors.
  */
-import { randomUUID } from "node:crypto";
 import { constants } from "node:fs";
 import { lstat, open } from "node:fs/promises";
 import path from "node:path";
-import { z } from "zod";
 import { createMcpAuthorizationBoundary } from "./authorization.js";
-import { parseMcpApplicationConfig } from "./config.js";
-import { createHttpApplication, installTerminationHandlers } from "./http.js";
+import { installTerminationHandlers } from "./http.js";
 import {
   createDefaultMcpJwtVerifier,
   remoteAuthorizationFromEnv,
 } from "./jwt-verifier.js";
-import { createMcpServices, MCP_CREDENTIAL_FILE } from "./session.js";
+import { createCliMcpRuntimeDependencies } from "./composition.js";
+import { parseRuntimeConfig } from "./runtime-config.js";
+import { startMcpRuntime } from "./runtime.js";
 
 /** Creates a recovery error without including configuration values or underlying errors. */
 const configurationError = () =>
@@ -35,101 +34,19 @@ const configurationError = () =>
   );
 
 /**
- * Returns a frozen list of comma-separated authorities, or HTTP origins when
- * `origin` is true. Entries must use localhost or 127.0.0.1 and exactly match
- * their URL representation, without whitespace, wildcards, paths, or credentials.
- * Throws a configuration error for an empty list or any invalid entry.
+ * Validate the Docker production settings through the runtime's single Zod
+ * environment transform. Production still requires an OAuth client ID.
+ * @param {NodeJS.ProcessEnv} environment - Process configuration supplied by Docker or the host.
+ * @returns {ReturnType<typeof parseRuntimeConfig>} Validated listener and credential options.
  */
-function exactList(value: string, origin: boolean) {
-  const values = value.split(",");
+export function parseProductionConfig(environment: NodeJS.ProcessEnv) {
+  const config = parseRuntimeConfig({ ...environment, NODE_ENV: "production" });
 
-  if (
-    !values.length ||
-    values.some((entry) => {
-      try {
-        if (entry !== entry.trim() || /[\s*]/.test(entry)) {
-          return true;
-        }
-
-        const url = new URL(origin ? entry : `http://${entry}`);
-
-        return (
-          url.username !== "" ||
-          url.password !== "" ||
-          url.protocol !== "http:" ||
-          !["127.0.0.1", "localhost"].includes(url.hostname) ||
-          (origin ? url.origin !== entry : url.host !== entry)
-        );
-      } catch {
-        return true;
-      }
-    })
-  ) {
+  if (!config.clientId) {
     throw configurationError();
   }
 
-  return Object.freeze(values);
-}
-
-/**
- * Returns frozen production settings with a trimmed, 1–512-character client ID.
- * Rejects inline secrets; an optional secret file must be an absolute path beside
- * the credential file, with a different filename. File access is checked later.
- * Host/origin lists use exact localhost or 127.0.0.1 entries, defaulting to port
- * 3000 and HTTP origins; every origin's authority must appear in the host list.
- * Throws a configuration error for invalid settings.
- * @param {NodeJS.ProcessEnv} env - Process environment containing the host configuration inputs.
- * @returns {Readonly<{ clientId: string; secretFile: string | undefined; allowedHosts: readonly string[]; allowedOrigins: readonly string[]; listenHost: string; remoteAuthorization: Readonly<Omit<{ audience: string; resourceUrl: string; issuer: string; requiredScopes: string[]; jwksUrl?: string | undefined; }, "requiredScopes"> & { readonly requiredScopes: readonly string[]; }> | undefined; }>} Frozen production settings validated against local hosting constraints.
- * @throws {ApplicationFailure} If environment settings violate the production configuration policy.
- */
-export function parseProductionConfig(env: NodeJS.ProcessEnv) {
-  const clientId = z
-    .string()
-    .trim()
-    .min(1)
-    .max(512)
-    .safeParse(env.IRACING_MCP_CLIENT_ID);
-
-  if (
-    !clientId.success ||
-    env.IRACING_MCP_CLIENT_SECRET !== undefined ||
-    env.IRACING_AUTH_SECRET !== undefined
-  ) {
-    throw configurationError();
-  }
-
-  const secretFile = productionSecretFile(env);
-
-  const allowedHosts = exactList(
-    env.IRACING_MCP_ALLOWED_HOSTS ?? "127.0.0.1:3000,localhost:3000",
-    false,
-  );
-
-  const allowedOrigins = exactList(
-    env.IRACING_MCP_ALLOWED_ORIGINS ??
-      "http://127.0.0.1:3000,http://localhost:3000",
-    true,
-  );
-
-  const listenHost = env.IRACING_MCP_LISTEN_HOST ?? "127.0.0.1";
-
-  if (
-    !["127.0.0.1", "0.0.0.0"].includes(listenHost) ||
-    allowedOrigins.some(
-      (origin) => !allowedHosts.includes(new URL(origin).host),
-    )
-  ) {
-    throw configurationError();
-  }
-
-  return Object.freeze({
-    clientId: clientId.data,
-    secretFile,
-    allowedHosts,
-    allowedOrigins,
-    listenHost,
-    remoteAuthorization: remoteAuthorizationFromEnv(env),
-  });
+  return config;
 }
 
 /**
@@ -205,20 +122,15 @@ export async function readProductionSecret(file: string) {
 }
 
 /**
- * Composes one session/gateway owner and returns the HTTP application with logical
- * MCP sessions enabled and SIGTERM/SIGINT shutdown handlers installed. Listens on
- * port 3000 at IRACING_MCP_LISTEN_HOST, defaulting to 127.0.0.1.
- * Validates configuration and local file permissions before composing services.
- * Missing or invalid stored credentials allow startup in authorization_required.
- * Configuration and file checks reject with a configuration error; service
- * construction errors propagate. Listen or signal-handler setup failures shut
- * down the application and reject with a configuration error unless shutdown
- * itself rejects, in which case its error propagates.
- * @param {NodeJS.ProcessEnv} env - Process environment containing the host configuration inputs.
- * @returns {Promise<{ server: Server<typeof IncomingMessage, typeof ServerResponse>; readonly activeSessions: number; readonly stopping: boolean; listen(port?: number, host?: string): Promise<void>; shutdown(): Promise<void>; }>} Running HTTP application and its lifecycle controls.
+ * Start the local Docker host with a production credential owner. Authenticated
+ * deployments may instead call startMcpRuntime with injected actor/providers.
+ * @param {NodeJS.ProcessEnv} environment - Docker environment and listener settings.
+ * @returns {Promise<Awaited<ReturnType<typeof startMcpRuntime>>>} Running MCP application and shutdown controls.
  */
-export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
-  const config = parseProductionConfig(env);
+export async function startProduction(
+  environment: NodeJS.ProcessEnv = process.env,
+) {
+  const config = parseProductionConfig(environment);
 
   const authorization = config.remoteAuthorization
     ? createMcpAuthorizationBoundary({
@@ -227,59 +139,29 @@ export async function startProduction(env: NodeJS.ProcessEnv = process.env) {
       })
     : undefined;
 
-  await checkProductionDirectory(path.dirname(MCP_CREDENTIAL_FILE));
+  await checkProductionDirectory(path.dirname(config.credentialFile));
 
   const clientSecret = config.secretFile
     ? await readProductionSecret(config.secretFile)
     : undefined;
 
-  const services = await createMcpServices({
+  const dependencies = await createCliMcpRuntimeDependencies({
     clientMetadata: {
-      clientId: config.clientId,
+      clientId: config.clientId!,
       clientSecret,
-      redirectUri: "http://127.0.0.1:3000/unused",
+      redirectUri: `http://127.0.0.1:${config.port}/unused`,
       scopes: ["iracing.auth"],
     },
+    credentialFile: config.credentialFile,
   });
 
-  const app = createHttpApplication({
-    config: parseMcpApplicationConfig(),
-    services,
+  return startMcpRuntime({
+    config,
+    dependencies,
     authorization,
-    allowedHosts: config.allowedHosts,
-    allowedOrigins: config.allowedOrigins,
-    sessionIdGenerator: randomUUID,
-  });
-
-  try {
-    await app.listen(3000, config.listenHost);
-    installTerminationHandlers(app, (exitCode) => {
-      // HTTP has drained and the owner has removed uncertain credentials. A grant
-      // socket may never settle; flush safe diagnostics and end the production process.
+    onStopped: (exitCode) => {
       process.stderr.write("", () => process.exit(exitCode));
-    });
-
-    return app;
-  } catch {
-    await app.shutdown();
-    throw configurationError();
-  }
+    },
+  });
 }
 
-function productionSecretFile(env: NodeJS.ProcessEnv) {
-  const secretFile =
-    env.IRACING_MCP_CLIENT_SECRET_FILE === ""
-      ? undefined
-      : env.IRACING_MCP_CLIENT_SECRET_FILE;
-
-  if (
-    secretFile !== undefined &&
-    (!path.isAbsolute(secretFile) ||
-      path.dirname(secretFile) !== path.dirname(MCP_CREDENTIAL_FILE) ||
-      path.basename(secretFile) === "credentials.json")
-  ) {
-    throw configurationError();
-  }
-
-  return secretFile;
-}

@@ -18,7 +18,7 @@
  *
  * One process owns the file by operator discipline, not a process lock. There is
  * no hot credential reload. Repair/re-login creates a new owner after stopping.
- * The generated Data API configuration shares this fixed owner.
+ * Concrete Data API clients belong to the host composition, not this credential owner.
  */
 import { Configuration } from "@iracing-data/api-client-fetch";
 import { ApplicationFailure, createRequestContext } from "@iracing-data/mcp";
@@ -82,20 +82,29 @@ function validateSession(token: OAuthTokenResponse | undefined) {
   return token;
 }
 
+/** Local credential owner; the API adapter is resolved separately by the runtime. */
+export interface McpCredentialOwner {
+  /** Authored OAuth client holding the credential lifecycle. */
+  readonly oauthClient: OAuthClient;
+  /** Get a token only when an actual tool operation needs it. */
+  getAccessToken(): Promise<string>;
+  /** Report local readiness without network access or refresh. */
+  authorizationState(): AuthorizationState;
+  /** Drain credentials after the HTTP host has shut down. */
+  shutdownAuthorizationOwner(): Promise<void>;
+  /** Reject use after terminal failure or shutdown begins. */
+  assertActive(): void;
+}
+
 /**
- * Compose the OAuth client, Data API configuration around one session file.
- * One process owns one file until stopped. Loading and health never refresh;
- * token requests restore the session and may refresh and persist rotated credentials.
- * Missing or invalid stored credentials leave services in authorization_required
- * and make later token requests fail. OAuth client construction errors instead
- * reject composition with CONFIGURATION_ERROR. Returned tool access shares one opaque
- * continuation scope and throws AUTHORIZATION_REQUIRED after quarantine or shutdown begins.
- * @param {SessionCompositionOptions} options - Configuration and injected capabilities for this operation.
- * @returns {Promise<McpServices>} Composed OAuth and Data API services with their credential owner.
+ * Create the durable credential lifecycle for one selected local document.
+ * Its data path is supplied by the caller, permitting CLI or container storage.
+ * @param {SessionCompositionOptions} options - Client metadata and selected credential file.
+ * @returns {Promise<McpCredentialOwner>} OAuth owner with lazy access-token resolution.
  */
-export async function createMcpServices(
+export async function createMcpCredentialOwner(
   options: SessionCompositionOptions,
-): Promise<McpServices> {
+): Promise<McpCredentialOwner> {
   const owner = new SessionOwner(options);
 
   let oauthClient: OAuthClient;
@@ -132,38 +141,54 @@ export async function createMcpServices(
     );
   }
 
-  // OAuth/session storage remains the only owner of access credentials.
   const getAccessToken = async () =>
     validateSession(
       await oauthClient.restoreSessionForId(MCP_LOCAL_SESSION_KEY),
     ).access_token;
 
-  const dataApiConfiguration = new Configuration({
-    accessToken: getAccessToken,
-  });
-
-  const driverQueries = createDriverQueries(dataApiConfiguration);
-
-  const recentRaceQueries = createRecentRaceQueries(dataApiConfiguration);
-
-  const selectAccount = () => {
+  const assertActive = () => {
     if (owner.terminal || owner.ownerClosing) {
       throw authorization("invalid_session");
     }
   };
 
   return Object.freeze({
-    shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
     oauthClient,
+    getAccessToken,
     authorizationState: () => owner.state,
+    shutdownAuthorizationOwner: () => owner.shutdownAuthorizationOwner(),
+    assertActive,
+  });
+}
+
+/**
+ * Compatibility composition for existing one-account consumers.
+ * New runtime composition should inject an actor resolver and query resolver.
+ * @param {SessionCompositionOptions} options - Local OAuth configuration and file.
+ * @returns {Promise<McpServices>} Local services with concrete Fetch adapters.
+ */
+export async function createMcpServices(
+  options: SessionCompositionOptions,
+): Promise<McpServices> {
+  const credentials = await createMcpCredentialOwner(options);
+  const dataApiConfiguration = new Configuration({
+    accessToken: credentials.getAccessToken,
+  });
+  const driverQueries = createDriverQueries(dataApiConfiguration);
+  const recentRaceQueries = createRecentRaceQueries(dataApiConfiguration);
+
+  return Object.freeze({
+    oauthClient: credentials.oauthClient,
     dataApiConfiguration,
+    authorizationState: credentials.authorizationState,
+    shutdownAuthorizationOwner: credentials.shutdownAuthorizationOwner,
     getDriverQueries: () => {
-      selectAccount();
+      credentials.assertActive();
 
       return driverQueries;
     },
     getRecentRaceQueries: () => {
-      selectAccount();
+      credentials.assertActive();
 
       return recentRaceQueries;
     },

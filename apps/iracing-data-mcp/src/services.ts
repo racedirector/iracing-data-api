@@ -22,10 +22,10 @@ export interface McpServices extends IracingToolServices {
   readonly shutdownAuthorizationOwner?: () => Promise<void>;
 
   /** Authored OAuth lifecycle owner used by the local host. */
-  readonly oauthClient: OAuthClient;
+  readonly oauthClient?: OAuthClient;
 
   /** Generated Data API client configuration for authenticated requests. */
-  readonly dataApiConfiguration: Configuration;
+  readonly dataApiConfiguration?: Configuration;
 }
 
 /**

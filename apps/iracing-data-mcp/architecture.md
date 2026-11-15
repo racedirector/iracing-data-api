@@ -10,15 +10,20 @@ the generated Fetch client.
 | Tool contracts and explicit registration | [get_my_driver](../../packages/mcp/src/tools/get-my-driver/index.ts), [get_recent_races](../../packages/mcp/src/tools/get-recent-races/index.ts), [registrar](../../packages/mcp/src/register.ts) |
 | Unconnected server factory | [factory.ts](../../packages/mcp/src/factory.ts) |
 | Client-specific adapters and safe signed links | [adapters](src/adapters) |
-| OAuth owner, refresh, persistence and capability composition | [session.ts](src/session.ts) |
+| OAuth owner, refresh, persistence | [session.ts](src/session.ts) |
+| Awilix actor and query resolution | [composition.ts](src/composition.ts) |
+| Runtime host and port | [runtime-config.ts](src/runtime-config.ts), [runtime.ts](src/runtime.ts) |
 | HTTP transport, ingress, cancellation, session lifetime, shutdown | [http.ts](src/http.ts) |
 | Safe tool/host errors and diagnostics | [MCP errors](../../packages/mcp/src/diagnostics/errors.ts), [host mapping](src/diagnostics/mapping.ts), [logging](src/diagnostics/logging.ts) |
 
-The host's `createMcpServices()` constructs a generated Fetch
-`Configuration` using one OAuth-owner token callback, then independently
-constructs `DriverQueries` and `RecentRaceQueries` adapters from that
-configuration. Request-local selectors guard against closed credential
-owners; the MCP tools see only their capability interfaces. The concrete
+The host's `composeMcpServices()` uses Awilix to inject `resolveActor(context)`
+and `resolveDependencies(actor, context)` into request-local tool selectors.
+No tool or transport stores the selected actor. The local default adapter
+uses a dedicated CLI MCP credential document and a single OAuth owner. It
+constructs Fetch `DriverQueries` and `RecentRaceQueries` behind those
+interfaces. A Better Auth or another consumer supplies its own resolvers,
+which can return account-linked providers for each verified actor.
+Remote bearer identities are **not** mapped to the default local CLI account. The concrete
 adapters handle linked HTTPS response envelopes without bearer forwarding,
 cookies or redirect following, and map generated-client failures into safe
 application codes. Neither tool retains cursors or account state.
@@ -48,3 +53,10 @@ It deliberately removes the earlier eight-tool registry, generic
 See [README](README.md), [container guide](local-container.md),
 [remote authorization](remote-authorization.md), and the
 [MCP package boundary](../../packages/mcp/README.md).
+
+The new `startMcpRuntime({config,dependencies,authorization?})` hosts the
+server on the validated `config.host`/`config.port`; `createMcpRuntime()`
+returns an unstarted HTTP runtime for embedding and tests. The Zod
+`RuntimeEnvironmentSchema` applies defaults and transforms environment
+keys directly into those runtime options. The Docker `startProduction()`
+entry point retains its secure volume, OAuth and shutdown policy.

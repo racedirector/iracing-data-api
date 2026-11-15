@@ -6,6 +6,31 @@ container and connect an MCP client on the same machine. It supports Data API
 queries with `iracing.auth`; it provides no telemetry, full profile lookup,
 arbitrary API proxy, writes, unbounded history or hosted multi-user service.
 
+## Runtime composition
+
+`createMcpRuntime({config, dependencies})` constructs an unstarted HTTP
+host. `startMcpRuntime()` binds the host and port from `config`.
+`parseRuntimeConfig(process.env)` is a Zod defaulting/transformation boundary;
+set `IRACING_MCP_PORT` to select a port and `IRACING_MCP_LISTEN_HOST`
+to select the interface. Default host/port are `127.0.0.1:3000`.
+
+Awilix composes two injected contracts: `resolveActor(context)` returns a
+verified actor or null, and `resolveDependencies(actor, context)` supplies
+the driver's and recent-race query capabilities for that actor. The HTTP
+runtime never reads credentials and does not select an iRacing account.
+The local adapter uses `.iracing-data/iracing-data-mcp/credentials.json`,
+the CLI's **dedicated MCP** token document. Docker instead uses
+`/var/lib/iracing-data-mcp/credentials.json`, with its existing secure
+volume/import workflow. An alternate credential document may be supplied
+through `IRACING_MCP_CREDENTIAL_FILE`. Refresh-token documents must never
+be used simultaneously by two owners.
+
+Remote bearer identities are not automatically mapped to that local account:
+without explicit actor and dependency providers, remote identity selection
+fails closed. For future FTR Events Better Auth integration, provide a
+verified session actor and linked iRacing query capabilities; no new OAuth
+owner or generated client is required in `@iracing-data/mcp`.
+
 ## Set up and connect
 
 Follow the [local container guide](local-container.md) for the exact frozen build,
