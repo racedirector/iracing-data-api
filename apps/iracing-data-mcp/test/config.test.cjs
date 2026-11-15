@@ -37,6 +37,7 @@ test("local stdio capabilities are constructed lazily without network calls", as
   );
   assert.equal(typeof queries.driverQueries.getCurrent, "function");
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
+  assert.equal(typeof queries.raceSearchQueries.search, "function");
 });
 
 test("local stdio executable initializes and advertises all tools", async () => {
