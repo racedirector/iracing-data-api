@@ -13,7 +13,7 @@ A monorepo of TypeScript packages for working with the iRacing Data API and its 
 
 ## MCP application
 
-The private [two-tool MCP package](packages/mcp/README.md) defines a
+The [MCP package](packages/mcp/README.md) defines a
 client-agnostic server. The [runtime app](apps/iracing-data-mcp/README.md)
 offers a **local stdio executable** and a **mountable Hono router** for an
 existing authenticated HTTP service such as FTR Events. It no longer

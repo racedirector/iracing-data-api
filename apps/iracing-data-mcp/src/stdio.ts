@@ -1,11 +1,11 @@
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
 import { composeMcpServices } from "./composition.js";
-import { createCliCapabilities } from "./credentials.js";
+import { createFileCapabilities } from "./credentials.js";
 import type { McpConfig } from "./config.js";
 
 /**
- * Start a local MCP connection using the CLI's dedicated credential document.
+ * Start a local MCP connection using the selected file-backed OAuth session.
  * There is no listener, HTTP authorization server, or OAuth callback flow.
  * @param {Pick<McpConfig, "credentialsFile">} config - Local credential document selection.
  * @returns {ReturnType<typeof serveStdio>} Handle for closing the stdio connection.
@@ -13,10 +13,10 @@ import type { McpConfig } from "./config.js";
 export function startMcpStdio(
   config: Pick<McpConfig, "credentialsFile">,
 ): ReturnType<typeof serveStdio> {
-  const capabilities = createCliCapabilities(config.credentialsFile);
+  const capabilities = createFileCapabilities(config.credentialsFile);
 
   const services = composeMcpServices(
-    { id: "local", provider: "cli" },
+    { id: "local", provider: "file" },
     () => capabilities,
   );
 

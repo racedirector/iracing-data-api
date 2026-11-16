@@ -1,6 +1,6 @@
 ---
 name: iracing-data-mcp-onboarding
-description: Set up the private two-tool iRacing MCP over local stdio, or embed its Hono router in an existing authenticated HTTP service.
+description: Set up the iRacing MCP over local stdio, or embed its Hono router in an existing authenticated HTTP service.
 ---
 
 # iRacing Data MCP onboarding
@@ -31,8 +31,12 @@ so replacing its contents does not require reconnecting.
 Do not silently fall back to another account's credential file.
 
 Run `pnpm mcp:local` for a manual stdio session, or configure the MCP
-client to execute `node apps/iracing-data-mcp/dist/main.js` from the
-repository root. Never put ordinary logs on stdout: it belongs to MCP.
+client to execute `pnpm exec iracing-data-mcp` from the
+repository root. After publication, consumers may install
+`@iracing-data/iracing-data-mcp@next` and execute `iracing-data-mcp` directly.
+Use `--env-file-if-exists /path/to/.env` for optional environment-file loading;
+otherwise pass OAuth registration environment through the client configuration.
+Never put ordinary logs on stdout: it belongs to MCP.
 The runtime restores the session only when a tool needs it. Its OAuth client
 refreshes expired access tokens and persists rotated credentials through the
 token-document session store. Set `IRACING_AUTH_CLIENT` and, for confidential
@@ -53,7 +57,7 @@ host `127.0.0.1` and port `3000`.
 The actor resolver must verify each request using host-owned authentication
 such as Better Auth. A null actor is denied before resolving capabilities.
 The capability resolver finds the actor's linked iRacing account and supplies
-the two domain query services. The HTTP host must **never** select the local
+the required domain query services. The HTTP host must **never** select the local
 CLI account by default. An ingress bearer token is not itself an iRacing
 credential or linked-account authorization.
 

@@ -345,6 +345,25 @@ test("workflow preserves publication gates and consumes package notes/prerelease
   assert.match(resolve.run, /publicationTarget/);
   assert.equal(resolve.env.DIST_TAG, "${{ inputs.dist_tag }}");
   assert.equal(resolve.env.RELEASE_PACKAGE, "${{ inputs.package }}");
+  const steps = workflow.jobs.publish.steps;
+  const smoke = steps.find(
+    (step) => step.name === "Smoke test packed MCP installation",
+  );
+  assert.equal(
+    smoke.if,
+    "steps.pkg.outputs.name == '@iracing-data/iracing-data-mcp'",
+  );
+  assert.equal(
+    smoke.run,
+    "pnpm --filter @iracing-data/iracing-data-mcp test:package",
+  );
+  assert.ok(
+    steps.indexOf(smoke) > steps.findIndex((step) => step.name === "Build"),
+  );
+  assert.ok(
+    steps.indexOf(smoke) <
+      steps.findIndex((step) => step.name.startsWith("Publish ")),
+  );
   assert.ok(
     verificationPlan("repo", { workspaces }).some((step) =>
       step.args.includes("test:release"),

@@ -88,4 +88,5 @@ git diff --check
 Changes to skills or `AGENTS.md` also require the manual
 [agent regression scenarios](../../../agent-regressions/README.md).
 Do not claim checks passed unless they ran. Never hand-edit generated code
-or change public release versions as part of this private MCP work.
+or choose release versions merely because a tool changed; follow the reviewed
+publication policy and [release procedure](../../../docs/RELEASING.md).

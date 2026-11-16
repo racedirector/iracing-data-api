@@ -10,22 +10,23 @@ import {
 import { createFetchQueries } from "./adapters/fetch.js";
 import { LocalAuthorizationError } from "./auth-errors.js";
 import type { McpCapabilities } from "./composition.js";
+import type { AccessTokenProvider } from "./token-provider.js";
 
 /**
- * Resolve a local CLI access token on demand without sharing a stale token.
+ * Resolve a file-backed access token on demand without sharing a stale token.
  * Refresh expired sessions and persist rotated credentials; never launch login.
- * @param {string} credentialsFile - Dedicated CLI MCP token document path.
- * @param {IRacingOAuthClientMetadataInput} clientMetadata - Registration used for the original CLI login.
- * @returns {() => Promise<string>} Serialized token resolver.
+ * @param {string} credentialsFile - Selected OAuth token document path.
+ * @param {IRacingOAuthClientMetadataInput} clientMetadata - Registration used for the original login.
+ * @returns {AccessTokenProvider} Serialized token provider.
  */
-export function createCliAccessToken(
+export function createFileAccessTokenProvider(
   credentialsFile: string,
   clientMetadata: IRacingOAuthClientMetadataInput = {
     clientId: process.env.IRACING_AUTH_CLIENT ?? "",
     clientSecret: process.env.IRACING_AUTH_SECRET,
     scopes: [],
   },
-): () => Promise<string> {
+): AccessTokenProvider {
   const sessionKey = "iracing-data-mcp-local";
 
   // Serialize restoration through durable refresh persistence, not API requests.
@@ -59,7 +60,7 @@ export function createCliAccessToken(
         });
 
         const diagnostic = new LocalAuthorizationError(
-          `No OAuth session found in ${credentialsFile}. Authenticate the CLI MCP session or select its credential document with --credentials / IRACING_MCP_CREDENTIAL_FILE.`,
+          `No OAuth session found in ${credentialsFile}. Authenticate an iRacing session (for example with the CLI) or select its credential document with --credentials / IRACING_MCP_CREDENTIAL_FILE.`,
           failure,
         );
 
@@ -114,16 +115,16 @@ function restorationFailure(
 }
 
 /**
- * Compose the current local CLI capabilities around a single token resolver.
+ * Compose file-backed capabilities around a single token provider.
  * @param {string} credentialsFile - Selected OAuth token document.
  * @param {IRacingOAuthClientMetadataInput} clientMetadata - Registration used for the original login.
  * @returns {McpCapabilities} Local API capabilities sharing one serialized token resolver.
  */
-export function createCliCapabilities(
+export function createFileCapabilities(
   credentialsFile: string,
   clientMetadata?: IRacingOAuthClientMetadataInput,
 ): McpCapabilities {
   return createFetchQueries(
-    createCliAccessToken(credentialsFile, clientMetadata),
+    createFileAccessTokenProvider(credentialsFile, clientMetadata),
   );
 }

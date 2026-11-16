@@ -1,7 +1,7 @@
 # iRacing MCP
 
 `@iracing-data/mcp` defines **what** an iRacing Data API MCP server provides
-and **which capabilities** it requires. It is private, listener-free,
+and **which capabilities** it requires. It is listener-free,
 credential-free, client-agnostic and provides three tools:
 
 - `get_my_driver`: current driver identity through tool-local `DriverQueries`.

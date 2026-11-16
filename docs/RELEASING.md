@@ -148,6 +148,26 @@ node scripts/release-notes.mjs '@iracing-data/oauth-client@<version>'
 
 ## Releasing multiple packages
 
+The MCP runtime and core are prepared as public release targets at
+`0.1.0-alpha.0`. Do not publish until the MCP stack has landed and its packed
+installation/stdio smoke test passes. Publish changed public dependencies
+(including the OAuth and Fetch dependency chains) first, then
+`@iracing-data/mcp`, then `@iracing-data/iracing-data-mcp`. Configure npm trusted
+publishing for both new packages before tagging. Their inclusion in the managed
+release set does not itself publish them or establish registry readiness.
+
+Run the reproducible packed-install smoke test before release:
+
+```sh
+pnpm --filter '@iracing-data/iracing-data-mcp...' build
+pnpm --filter @iracing-data/iracing-data-mcp test:package
+```
+
+It packs the runtime and its public workspace dependency closure, installs those
+tarballs outside the workspace, and initializes MCP via the installed binary.
+It uses synthetic/missing credentials, not live iRacing authorization.
+The release workflow also runs this gate before publishing the MCP runtime.
+
 When multiple packages change together (e.g. a new `oauth-schema` that `oauth-client` also adopts), release them in dependency order — publish dependencies before dependants:
 
 1. Tag and push `@iracing-data/oauth-schema@<version>` first.

@@ -4,7 +4,7 @@ Inherit [repository guidance](../../AGENTS.md), consult the
 [MCP package guidance](../../packages/mcp/AGENTS.md), and read the
 [add-MCP-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
 
-This private app hosts `get_my_driver`, `get_recent_races`, and
+This publishable runtime hosts `get_my_driver`, `get_recent_races`, and
 `search_race_results`. Keep it limited to an embeddable Hono router, optional standalone HTTP
 listener and local stdio transport. These hosts compose the listener-free
 `@iracing-data/mcp` factory with injected tool-local capabilities.

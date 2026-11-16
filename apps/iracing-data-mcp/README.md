@@ -1,13 +1,18 @@
 # iRacing Data MCP runtime
 
 Three read-only tools: `get_my_driver`, `get_recent_races`, and
-`search_race_results`. The private
+`search_race_results`. The
 `@iracing-data/mcp` package owns the listener-free MCP server and contracts.
 This app supplies an optional Hono adapter, an optional Node listener, and a
 local stdio executable. It does not implement an OAuth server, JWT verifier,
 Docker credential importer, or session registry.
 
 ## Local stdio (default)
+
+After publication, install the runtime with
+`npm install -g @iracing-data/iracing-data-mcp@next` and configure clients to
+execute `iracing-data-mcp`. The first release is not available until the stack
+has landed and release smoke tests pass.
 
 From the repository root:
 
@@ -31,7 +36,7 @@ credential owners against the same rotating refresh token.
 For an explicit path in a client command, pass `--credentials`:
 
 ```sh
-node apps/iracing-data-mcp/dist/main.js --credentials /absolute/path/to/credentials.json
+iracing-data-mcp --credentials /absolute/path/to/credentials.json
 ```
 
 Selection order is `--credentials`, then `IRACING_MCP_CREDENTIAL_FILE`, then
@@ -43,10 +48,10 @@ Restoration is serialized within the local connection so concurrent requests
 observe persisted refresh-token rotation. The OAuth client refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
 
-The checked-in OpenCode command loads `.env` when present and explicitly selects
-`.iracing-data/credentials.json`. This is project client wiring, not a change to
-the standalone dedicated-MCP default above. Other clients must pass the desired
-credential path and OAuth registration environment explicitly.
+Pass `--env-file-if-exists /path/to/.env` to load OAuth registration environment
+variables from an optional file. Existing environment values take precedence;
+missing files are ignored, other file errors fail startup. Without this flag,
+the executable does not load an environment file.
 
 Local restoration failures report the selected document, OAuth error code and
 message on stderr. The original error is retained as the cause; token documents
@@ -57,8 +62,9 @@ details. Resource callers can receive the local diagnostic message.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
-`node apps/iracing-data-mcp/dist/main.js` with the project root as its
-working directory after building.
+`iracing-data-mcp` after installing. In this workspace, use
+`pnpm exec iracing-data-mcp` with the project root as its working directory
+after building.
 
 ## Historical result search
 
@@ -139,6 +145,32 @@ The `auth` and `linkedIracingQueriesForActor` values above are provided by
 the embedding application, not this package. Only the host may decide
 which linked iRacing account a verified actor may access.
 
+### Account-scoped token providers
+
+`AccessTokenProvider` is a `() => Promise<string>` contract, separate from
+`ResolveActor`. `createFileAccessTokenProvider(path, metadata)` implements it
+for a disk-backed OAuth session. `createFetchQueries(provider)` accepts any
+implementation, including one closed over a verified user's linked account:
+
+```ts
+resolveCapabilities: async (actor, context) => {
+  const account = await requireLinkedIracingAccount(actor.id, context.signal);
+  return createFetchQueries(() =>
+    linkedAccountTokens.getAccessToken(account.id),
+  );
+};
+```
+
+The host owns `requireLinkedIracingAccount` and `linkedAccountTokens`, including
+authorization, refresh serialization and durable token rotation. Missing links
+must fail closed with `ApplicationFailure("AUTHORIZATION_REQUIRED")`; never fall
+back to the local file. Reuse one refresh owner per linked account, rather than
+creating independent refresh queues for concurrent requests.
+
+`createFileCapabilities(path, metadata)` is the local convenience composition
+of the file-backed provider and Fetch queries. Tools depend on domain query
+capabilities, not on token storage or actor authentication.
+
 For a separate HTTP process, call `startMcpHttpServer` with
 `config`, `resolveActor`, and `resolveCapabilities`.
 `parseConfig(process.env)` applies the default listener address
@@ -156,6 +188,7 @@ No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 - `src/http-server.ts`: optional Node listener
 - `src/stdio.ts`: stdio host using the same MCP factory
 - `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
+- `src/token-provider.ts`: account-scoped access-token provider contract
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 
 Neither the MCP core nor the HTTP router depends on generated Fetch clients.

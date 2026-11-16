@@ -8,7 +8,7 @@ const jwt = (exp) =>
   `${Buffer.from('{"alg":"RS256"}').toString("base64url")}.${Buffer.from(JSON.stringify({ exp })).toString("base64url")}.fixture`;
 
 test("local credentials refresh once and persist rotated tokens before API use", async (t) => {
-  const { createCliCapabilities } = await import("../dist/credentials.js");
+  const { createFileCapabilities } = await import("../dist/credentials.js");
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-refresh-"));
   await fs.chmod(directory, 0o700);
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
@@ -57,7 +57,7 @@ test("local credentials refresh once and persist rotated tokens before API use",
     }
     return Response.json({ cust_id: 42, display_name: "Fixture Driver" });
   };
-  const capabilities = createCliCapabilities(file, {
+  const capabilities = createFileCapabilities(file, {
     clientId: "fixture-client",
     scopes: [],
   });
@@ -103,7 +103,7 @@ test("local credentials refresh once and persist rotated tokens before API use",
 });
 
 test("local diagnostics retain OAuth detail without turning tool auth failures into INTERNAL_ERROR", async (t) => {
-  const { createCliAccessToken, createCliCapabilities } =
+  const { createFileAccessTokenProvider, createFileCapabilities } =
     await import("../dist/credentials.js");
   const { errorEnvelope, createRequestContext } =
     await import("@iracing-data/mcp");
@@ -114,7 +114,7 @@ test("local diagnostics retain OAuth detail without turning tool auth failures i
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   const file = path.join(directory, "credentials.json");
   const metadata = { clientId: "fixture-client", scopes: [] };
-  const token = createCliAccessToken(file, metadata);
+  const token = createFileAccessTokenProvider(file, metadata);
   const envelope = (error) =>
     errorEnvelope(error.failure ?? error, createRequestContext()).error;
 
@@ -126,7 +126,7 @@ test("local diagnostics retain OAuth detail without turning tool auth failures i
     assert.ok(!envelope(error).message.includes(file));
     return true;
   });
-  const capabilities = createCliCapabilities(file, metadata);
+  const capabilities = createFileCapabilities(file, metadata);
   await assert.rejects(
     capabilities.driverQueries.getCurrent({
       signal: new AbortController().signal,

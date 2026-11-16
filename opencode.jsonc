@@ -1,0 +1,23 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "iracing-data": {
+      "type": "local",
+      // Use the installed public executable, including for workspace development.
+      // Load this project's OAuth registration from .env when present. The
+      // selected credential file overrides the standalone dedicated-MCP default;
+      // other clients must supply their own path and OAuth registration.
+      "command": [
+        "pnpm",
+        "exec",
+        "iracing-data-mcp",
+        "--env-file-if-exists",
+        ".env",
+        "--credentials",
+        ".iracing-data/credentials.json",
+      ],
+      "enabled": true,
+      "timeout": 10000,
+    },
+  },
+}

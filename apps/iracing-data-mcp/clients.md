@@ -7,7 +7,7 @@ pnpm --filter '@iracing-data/iracing-data-mcp...' build
 ```
 
 The checked-in project configurations start the **local stdio server** with
-`node apps/iracing-data-mcp/dist/main.js`. The MCP client launches its
+`pnpm exec iracing-data-mcp`. The MCP client launches its
 own process; there is no default HTTP listener or OAuth resource server.
 The selected credential file is consulted only when a tool actually calls the
 iRacing API. For initial setup, run
@@ -18,7 +18,7 @@ The project includes [`.mcp.json`](../../.mcp.json) for Claude Code and
 VS Code; [`.cursor/mcp.json`](../../.cursor/mcp.json) for Cursor;
 [`.gemini/settings.json`](../../.gemini/settings.json) for Gemini CLI;
 [`.codex/config.toml`](../../.codex/config.toml) for Codex; and
-[`opencode.json`](../../opencode.json) for OpenCode.
+[`opencode.jsonc`](../../opencode.jsonc) for OpenCode.
 
 Open the repository as the project, approve the MCP tool when prompted,
 and ensure the client starts its process with the repository root as the
