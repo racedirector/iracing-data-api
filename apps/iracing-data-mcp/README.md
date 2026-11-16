@@ -58,9 +58,28 @@ hydration and index, including concurrent reads. A restarted process reads
 the existing validated snapshot instead of requesting iRacing again.
 Errors and missing car IDs are reported rather than returning empty data.
 
-This initial proof has no automatic expiration, refresh command, relationship
-resolution, or HTTP resource registration. Remove the snapshot manually to
-refetch from iRacing.
+The local stdio server also exposes `refresh_static_cache`, an MCP tool
+that forces exactly one selected dataset to be re-fetched, validated, and
+atomically published. The agent must choose one of the following:
+
+| Dataset argument | Readable MCP resource | Local JSON snapshot |
+| --- | --- | --- |
+| `cars` | `iracing://cars` | `cars.json` |
+| `car-assets` | `iracing://assets/cars` | `car-assets.json` |
+| `track-assets` | `iracing://assets/tracks` | `track-assets.json` |
+| `series-assets` | `iracing://assets/series` | `series-assets.json` |
+
+Asset catalogs hydrate lazily on their first resource read or when explicitly
+refreshed. The tool downloads the **entire chosen dataset**, not one asset.
+There is no `all` option and no support for race results, hosted sessions,
+or arbitrary API endpoints; those can be significantly more expensive and
+require their own refresh policies. Tool responses report only the dataset,
+URI, and record count, not the complete JSON. A failed refresh leaves an
+existing snapshot and its in-memory index unchanged.
+
+The prototype has no automatic expiration or relationship resolution. MCP
+resources and the refresh tool are **local stdio only**; the authenticated
+HTTP router remains unchanged.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
