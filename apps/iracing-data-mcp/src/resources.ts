@@ -4,10 +4,16 @@ import { dirname } from "node:path";
 import { ResourceTemplate } from "@modelcontextprotocol/server";
 import type { McpServer } from "@modelcontextprotocol/server";
 import type { CarCatalogResolver } from "./catalog.js";
+import type { AssetCatalogResolver } from "./assets.js";
 
 /** Resource resolvers are injected independently of their storage and fetch adapters. */
 export interface ReferenceResolvers {
   readonly cars: CarCatalogResolver;
+  readonly assets?: Readonly<{
+    car: AssetCatalogResolver;
+    track: AssetCatalogResolver;
+    series: AssetCatalogResolver;
+  }>;
 }
 
 /** Register a collection and a parameterized entity view over the same resolver. */
@@ -58,25 +64,41 @@ export function registerReferenceResources(
       };
     },
   );
+
+  if (resolvers.assets) {
+    for (const kind of ["car", "track", "series"] as const) {
+      server.registerResource(
+        `${kind}-assets`,
+        `iracing://assets/${kind}s`,
+        { title: `iRacing ${kind} assets`, mimeType: "application/json" },
+        async (uri) => ({
+          contents: [{
+            uri: uri.href,
+            mimeType: "application/json",
+            text: JSON.stringify(await resolvers.assets![kind].all()),
+          }],
+        }),
+      );
+    }
+  }
 }
 
-/** Persist validated reference documents; reload snapshots across process restarts. */
+/** A persisted snapshot can be read normally or forcibly fetched and replaced. */
+export interface FileBackedResolver<T> {
+  (): Promise<T>;
+  refresh(): Promise<T>;
+}
+
+/** Validate before atomic replacement; retain the previous snapshot on failures. */
 export function createFileBackedResolver<T>(
   file: string,
   load: () => Promise<unknown>,
   parse: (document: unknown) => T,
-): () => Promise<T> {
-  let inFlight: Promise<T> | undefined;
+): FileBackedResolver<T> {
+  let reading: Promise<T> | undefined;
+  let refreshing: Promise<T> | undefined;
 
-  async function readOrLoad(): Promise<T> {
-    try {
-      return parse(JSON.parse(await readFile(file, "utf8")) as unknown);
-    } catch (error) {
-      if (!isMissingFile(error)) {
-        throw error;
-      }
-    }
-
+  async function fetchAndPublish(): Promise<T> {
     const data = parse(await load());
     await mkdir(dirname(file), { recursive: true });
     const temporary = `${file}.${randomUUID()}.tmp`;
@@ -91,17 +113,55 @@ export function createFileBackedResolver<T>(
     return data;
   }
 
-  return async () => {
-    const current = inFlight ?? (inFlight = readOrLoad());
-
+  async function readOrLoad(): Promise<T> {
     try {
-      return await current;
-    } finally {
-      if (inFlight === current) {
-        inFlight = undefined;
+      return parse(JSON.parse(await readFile(file, "utf8")) as unknown);
+    } catch (error) {
+      if (!isMissingFile(error)) {
+        throw error;
       }
     }
+
+    return fetchAndPublish();
+  }
+
+  const resolve = async () => {
+    if (refreshing) {
+      return refreshing;
+    }
+
+    if (!reading) {
+      const current = readOrLoad();
+      reading = current;
+      void current.then(
+        () => { if (reading === current) reading = undefined; },
+        () => { if (reading === current) reading = undefined; },
+      );
+    }
+
+    return reading;
   };
+
+  resolve.refresh = async () => {
+    if (!refreshing) {
+      const currentRead = reading;
+      const current = (async () => {
+        // A force request after a normal read must always fetch new data.
+        await currentRead?.catch(() => undefined);
+        return fetchAndPublish();
+      })();
+
+      refreshing = current;
+      void current.then(
+        () => { if (refreshing === current) refreshing = undefined; },
+        () => { if (refreshing === current) refreshing = undefined; },
+      );
+    }
+
+    return refreshing;
+  };
+
+  return resolve;
 }
 
 function isMissingFile(error: unknown): boolean {
