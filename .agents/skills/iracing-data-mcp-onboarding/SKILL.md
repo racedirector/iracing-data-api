@@ -11,6 +11,13 @@ Read [repository guidance](../../../AGENTS.md),
 
 ## Local stdio
 
+Static resources load lazily. Use the local-only `refresh_static_cache` tool to
+replace one cars/tracks/car-classes or car/track/series asset dataset; see the
+app README for exact selectors and failure semantics. HTTP callers cannot refresh
+the local credential owner's snapshots.
+
+From the repository root, install dependencies and build:
+
 ```sh
 pnpm install --frozen-lockfile
 pnpm --filter '@iracing-data/iracing-data-mcp...' build

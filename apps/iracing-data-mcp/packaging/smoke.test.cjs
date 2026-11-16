@@ -129,6 +129,7 @@ test(
           "get_recent_races",
           "search_race_results",
           "find_reference",
+          "refresh_static_cache",
         ],
       );
     } finally {

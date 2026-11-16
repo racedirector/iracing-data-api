@@ -77,7 +77,13 @@ function catalog<T extends Record<string, unknown>>(
       const document = documentSchema.parse(raw);
 
       for (const [key, entry] of Object.entries(document)) {
-        if (key !== String(entry[idField])) {
+        const id = Number(entry[idField]);
+
+        if (
+          key !== String(entry[idField]) ||
+          !Number.isSafeInteger(id) ||
+          id < 0
+        ) {
           throw new Error(`Asset key does not match ${idField}.`);
         }
       }
@@ -91,6 +97,7 @@ function catalog<T extends Record<string, unknown>>(
     createCatalogResolver(
       async () => Object.values(await read()),
       (entry) => Number(entry[idField]),
+      async () => Object.values(await read.refresh()),
     ),
   );
 }

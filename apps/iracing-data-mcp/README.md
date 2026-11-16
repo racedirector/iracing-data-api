@@ -190,10 +190,20 @@ data is atomically saved as raw JSON. Concurrent reads share hydration; subseque
 requests reuse parsed data and its ID index for the local process lifetime.
 Failed hydration is retryable; invalid data and duplicate IDs are rejected.
 
-There is no cache warming, automatic expiry or refresh tool in this slice.
-To refetch, stop the server, remove the chosen snapshot, and restart.
-These static snapshots are not suitable
-for changing result searches or member statistics.
+There is no cache warming or automatic expiry. Local stdio exposes
+`refresh_static_cache` with exactly one `dataset`: `cars`, `tracks`, `car-classes`,
+`car-assets`, `track-assets`, or `series-assets`. It bypasses the selected snapshot,
+validates and atomically persists fresh data, then replaces its live entity index.
+The result contains only the dataset, resource URI and entry count. Concurrent
+refreshes of the same dataset coalesce; failed refreshes retain last-good disk and
+memory state. Reads already underway may return the previous version.
+Asset selectors map to the existing plural `cars-assets.json` and
+`tracks-assets.json` filenames. Media reads use the updated metadata on their next
+request; media bytes are not cached. No bulk refresh, arbitrary endpoints or
+dynamic-result caches are supported. HTTP registration is unchanged.
+
+Series catalogs and reference definitions are not refresh selectors. To refetch
+those, stop the server, remove the chosen snapshot, and restart.
 
 `@iracing-data/mcp` owns catalog definitions, validation schemas and resource
 registration. `src/catalog.ts` owns lazy indexing, `src/snapshots.ts` owns
