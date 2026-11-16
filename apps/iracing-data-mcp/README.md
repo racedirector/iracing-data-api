@@ -160,6 +160,43 @@ for changing result searches or member statistics.
 registration. `src/catalog.ts` owns lazy indexing, `src/snapshots.ts` owns
 atomic persistence, and `src/adapters/catalog.ts` owns concrete SDK selection.
 
+### Static assets, images and track maps
+
+The `serve` command exposes these resources over stdio and standalone HTTP.
+Definitions and registration belong to `@iracing-data/mcp`; this runtime owns
+SDK loading, file snapshots and credential-free media downloads. Embedding hosts
+can inject `assets: { catalogs, readMedia }` alongside tool services and catalogs.
+
+`iracing://assets/cars`, `iracing://assets/tracks` and `iracing://assets/series`
+return the raw ID-keyed upstream asset documents. Individual
+entries are at `iracing://assets/{kind}/{id}` for each advertised kind.
+They persist lazily as `cars-assets.json`, `tracks-assets.json` and
+`series-assets.json` alongside the catalog snapshots.
+
+Image templates are `iracing://images/{kind}/{id}/{field}`. Supported fields are
+`small_image`, `large_image`, `logo`, `sponsor_logo` and `group_image`; read the
+entity's asset metadata first because missing/null fields fail explicitly.
+Car/track filenames use the upstream asset folder, and bare series logos use
+the verified `/img/logos/series/` path on the official static image host.
+
+For maps, read `iracing://assets/tracks/{id}`, then choose an exact advertised
+`track_map_layers` key for `iracing://track-maps/{track_id}/{layer}`.
+Examples include `active`, `background`, `pitroad`, `start-finish` and `turns`.
+These are separate SVG layers, not a composed map.
+
+Media reads return MCP blob content: base64 bytes with their `mimeType`, not
+JSON metadata. Client rendering support varies. Treat SVG as
+untrusted media and sanitize it before inline rendering; do not execute scripts.
+Downloads omit credentials, reject redirects/unexpected hosts/content types,
+respect cancellation and a 15-second timeout, and enforce a 5 MiB binary limit.
+Metadata is cached; media bytes are fetched per read.
+
+All other asset fields remain available in metadata, including descriptive HTML,
+manuals, paint-template references and screenshot/gallery tokens. Undocumented
+URL bases are not guessed, and these references do not have binary resolvers.
+HTTP authentication boundaries are unchanged; embedding hosts explicitly select
+their asset resolvers and media reader.
+
 ## Historical result search
 
 `search_race_results` accepts `source: "series"` or `source: "hosted"`.

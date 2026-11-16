@@ -125,6 +125,12 @@ API client dependency belongs in this package.
 See the [reference host](../../apps/iracing-data-mcp/README.md) and the
 [add-mcp-tool skill](../../.agents/skills/add-mcp-tool/SKILL.md).
 
+Static asset definitions and resource registration live in `src/resources/assets`.
+Pass `assets: { catalogs, readMedia }` to `createIracingMcpServer`, or call
+`registerAssetResources` on a consumer-owned server. The host supplies lazy
+metadata resolvers and a credential-free media reader; this package does not
+fetch or persist assets. Both runtime transports accept the same injected assets.
+
 ```sh
 pnpm --filter '@iracing-data/mcp...' build
 pnpm --filter @iracing-data/mcp test

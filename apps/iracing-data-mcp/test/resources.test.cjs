@@ -321,10 +321,10 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
       env,
     }),
   );
-  assert.equal((await client.listResources()).resources.length, 3);
+  assert.equal((await client.listResources()).resources.length, 6);
   assert.equal(
     (await client.listResourceTemplates()).resourceTemplates.length,
-    3,
+    10,
   );
   // Files changed after discovery must be observed on the first read.
   for (const dataset of datasets) {
@@ -352,5 +352,22 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
       [dataset.id]: 17,
       [dataset.title]: "Example",
     });
+  }
+  for (const [kind, idField] of [
+    ["cars", "car_id"],
+    ["tracks", "track_id"],
+    ["series", "series_id"],
+  ]) {
+    await fs.writeFile(
+      path.join(reference, `${kind}-assets.json`),
+      JSON.stringify({ 17: { [idField]: 17, logo: "/img/logos/example.png" } }),
+    );
+    const result = await client.readResource({
+      uri: `iracing://assets/${kind}/17`,
+    });
+    const body = JSON.parse(result.contents[0].text);
+    assert.equal(body[idField], 17);
+    assert.equal(body.schema, undefined);
+    assert.equal(body.data, undefined);
   }
 });

@@ -3,8 +3,10 @@ import { Command } from "@commander-js/extra-typings";
 import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 import * as z from "zod";
 import { createTokenProvider } from "../../../access-token.js";
+import { createAssetCatalogs } from "../../../adapters/assets.js";
 import { createReferenceCatalogs } from "../../../adapters/catalog.js";
 import { createFetchQueries } from "../../../adapters/fetch.js";
+import { createAssetMediaReader } from "../../../adapters/media.js";
 import { createMcpServices } from "../../../composition.js";
 import { createStdioTransport } from "../../../transports/index.js";
 import { createHttpListener } from "../../http.js";
@@ -71,6 +73,8 @@ export function createServeCommand({
         tokenResolver,
       );
 
+      const assets = createServeAssets(raw.credentials, tokenResolver);
+
       if (options.transport === "http") {
         logger.trace("Configuring HTTP listener");
 
@@ -80,6 +84,7 @@ export function createServeCommand({
           port: options.port,
           services,
           catalogs,
+          assets,
         });
       } else {
         logger.trace("Configuring stdio transport");
@@ -87,6 +92,7 @@ export function createServeCommand({
         createStdioTransport({
           services,
           catalogs,
+          assets,
           serveOptions: {
             onerror: (error) => {
               logger.error({ error }, "stdio transport error");
@@ -95,6 +101,19 @@ export function createServeCommand({
         });
       }
     });
+}
+
+function createServeAssets(
+  credentials: string,
+  tokenResolver: AccessTokenProvider,
+) {
+  return {
+    catalogs: createAssetCatalogs(
+      join(dirname(credentials), "reference"),
+      tokenResolver,
+    ),
+    readMedia: createAssetMediaReader(),
+  };
 }
 
 function createServeTokenProvider(

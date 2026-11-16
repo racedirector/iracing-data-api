@@ -6,7 +6,7 @@ import type { ServeStdioOptions } from "@modelcontextprotocol/server/stdio";
 /** Host-selected services for a local MCP connection. */
 export interface McpStdioOptions extends Pick<
   IracingMcpServerOptions,
-  "services" | "catalogs"
+  "services" | "catalogs" | "assets"
 > {
   /** Stdio server options. */
   readonly serveOptions: ServeStdioOptions;
@@ -27,6 +27,7 @@ export function createStdioTransport(
         serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
         services: options.services,
         catalogs: options.catalogs,
+        assets: options.assets,
       }),
     options.serveOptions,
   );

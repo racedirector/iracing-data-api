@@ -1,4 +1,18 @@
 export { createIracingMcpServer } from "./factory.js";
+export { AssetDefinitions } from "./resources/assets/definitions.js";
+export { registerAssetResources } from "./resources/assets/index.js";
+export {
+  assetId,
+  imageUrl,
+  trackMapUrl,
+  ImageFieldSchema,
+} from "./resources/assets/service.js";
+export type {
+  AssetCatalog,
+  AssetKind,
+  AssetMedia,
+  ReadAssetMedia,
+} from "./resources/assets/service.js";
 export type { IracingMcpServerOptions } from "./factory.js";
 export { registerReferenceResources } from "./resources/index.js";
 export type { CatalogResolver, ReferenceCatalog } from "./resources/service.js";

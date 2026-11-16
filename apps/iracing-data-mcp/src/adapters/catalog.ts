@@ -54,10 +54,14 @@ export function createReferenceCatalogs(
   return [
     createReferenceCatalog(directory, {
       ...CarsCatalog,
+      description:
+        "Resolve car_id from race results to car_name and complete car metadata. Image metadata: iracing://assets/cars/{id}; image bytes: iracing://images/cars/{id}/{field}.",
       load: createCatalogLoader((signal) => cars.getCar({ signal }), fetchApi),
     }),
     createReferenceCatalog(directory, {
       ...TracksCatalog,
+      description:
+        "Resolve track_id from race results to track_name, configuration and complete track metadata. Asset metadata: iracing://assets/tracks/{id}; image bytes: iracing://images/tracks/{id}/{field}; map layers: iracing://track-maps/{track_id}/{layer}.",
       load: createCatalogLoader(
         (signal) => tracks.getTrack({ signal }),
         fetchApi,
