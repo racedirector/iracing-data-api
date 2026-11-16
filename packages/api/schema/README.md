@@ -24,6 +24,11 @@ Use the schemas directly for runtime validation or feed them into helpers like `
 car-class catalogs, plus car/track/series asset documents. These are separate
 from the `/data` endpoint's `APIResponseSchema` (`link` and `expires`).
 
+Exports use `*PayloadSchema` for Zod schemas and `*Payload` for inferred types
+(for example, `CarCatalogPayloadSchema` and `CarCatalogPayload`). “Payload”
+means the document downloaded by following `link`; it does not mean a JSON
+Schema document. Use `z.toJSONSchema` when you need that representation.
+
 ```typescript
 import {
   CarCatalogPayloadSchema,

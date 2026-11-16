@@ -13,11 +13,15 @@ behavior may invalidate a previous choice. Add a dated review rather than erasin
 history. Historical entries are not current upstream authority. Never record
 credentials, private identifiers, signed URLs, or raw response bodies.
 
-## DATA-003 — Downloaded catalog and asset JSON schemas
+## DATA-003 — Downloaded catalog and asset payload schemas
 
 - **Decision:** add `*PayloadSchema` exports in
   `packages/api/schema/src/schema/payload.ts`, separate from modeled HTTP response
   envelopes. Retain all HTTP response mappings and generated client types.
+- **Naming review (2026-11-16):** #553 uses `payload.ts`, `*PayloadSchema`
+  schemas, `*Payload` inferred types and camel-case `*Payload` metadata IDs.
+  These replace the initial `Json` names to avoid confusion with JSON Schema.
+  Validation behavior and actual JSON Schema conversion APIs are unchanged.
 - **Evidence collected:** authenticated official `/data/doc` retrieval at
   `2026-11-16T02:30:16Z` in the original MCP worktree, after operator
   reauthentication. Asset documentation states the static image base.
@@ -28,7 +32,9 @@ credentials, private identifiers, signed URLs, or raw response bodies.
 - **Git context:** this schema-only split starts at
   `d1362d1fae8ce2b80184430cad070f62d8f00822`; its unchanged payload schema
   definitions were preserved in backup commit `4b261eb` on
-  `backup/mcp-static-resources-2026-11-16`. Implementation commit: pending.
+  `backup/mcp-static-resources-2026-11-16`. Initial implementation: `9063fa2`;
+  payload naming update: `5019a3e`. Local verification was intentionally skipped
+  for the naming update; CI owns its verification.
 - **Owners:** API schema package and its exports/tests/docs only. No MCP runtime
   implementation is included in this slice.
 - **Acceptance:** catalogs are arrays; assets are ID-keyed JSON objects.

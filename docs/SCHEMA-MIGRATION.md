@@ -35,7 +35,10 @@ mapping or generated SDKs and require no regeneration.
 New materialized payload schemas now live separately in
 [`packages/api/schema/src/schema/payload.ts`](../packages/api/schema/src/schema/payload.ts).
 Their names explicitly use `PayloadSchema`, not `ResponseSchema`: for example,
-`CarCatalogPayloadSchema` and `TrackAssetsPayloadSchema`. This supersedes the earlier
+`CarCatalogPayloadSchema` and `TrackAssetsPayloadSchema`. Inferred types use
+`*Payload`, and metadata IDs use camel-case `*Payload`. This naming distinguishes
+downloaded documents from JSON Schema representations produced by `z.toJSONSchema`.
+This supersedes the earlier
 recommendation to maintain application-owned catalog schemas; the old response
 symbols remain removed. These additive exports do not change HTTP envelopes or
 generated SDK return types.
