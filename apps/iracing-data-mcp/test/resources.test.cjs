@@ -4,27 +4,18 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
-test("MCP lists cars and reads the same file-backed catalog across restarts", async (t) => {
-  const { createFileBackedResolver, registerReferenceResources } =
-    await import("../dist/resources.js");
+async function connect(t, cars) {
+  const { registerReferenceResources } = await import("../dist/resources.js");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
 
-  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
-  t.after(() => fs.rm(directory, { recursive: true, force: true }));
-  const file = path.join(directory, "reference", "cars.json");
-  let fetches = 0;
-  const load = async () => {
-    fetches++;
-    return [{ car_id: 1 }];
-  };
-  const resolve = createFileBackedResolver(file, load);
   const server = new McpServer({ name: "catalog-test", version: "1" });
-  registerReferenceResources(server, new Map([["cars", resolve]]));
+  registerReferenceResources(server, { cars });
 
   const client = new Client({ name: "catalog-client", version: "1" });
-  const [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
+  const [serverTransport, clientTransport] =
+    InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
   await client.connect(clientTransport);
   t.after(async () => {
@@ -32,53 +23,127 @@ test("MCP lists cars and reads the same file-backed catalog across restarts", as
     await server.close();
   });
 
-  const listed = await client.listResources();
-  assert.deepEqual(listed.resources.map((resource) => resource.uri), [
-    "iracing://reference/cars",
-  ]);
+  return client;
+}
+
+test("collection and entity resources reuse one hydrated catalog across restarts", async (t) => {
+  const { CarCatalogSchema, createCarCatalogResolver } =
+    await import("../dist/catalog.js");
+  const { createFileBackedResolver } = await import("../dist/resources.js");
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const file = path.join(directory, "reference", "cars.json");
+  const cars = [
+    { car_id: 1, car_name: "Car One" },
+    { car_id: 2, car_name: "Car Two" },
+    { car_id: 3, car_name: "Car Three" },
+  ];
+  let fetches = 0;
+  const load = async () => {
+    fetches++;
+    return cars;
+  };
+  const createCatalog = () =>
+    createCarCatalogResolver(
+      createFileBackedResolver(file, load, (data) => CarCatalogSchema.parse(data)),
+    );
+
+  const client = await connect(t, createCatalog());
+  assert.deepEqual(
+    (await client.listResources()).resources.map((resource) => resource.uri),
+    ["iracing://cars"],
+  );
+  assert.deepEqual(
+    (await client.listResourceTemplates()).resourceTemplates.map(
+      (resource) => resource.uriTemplate,
+    ),
+    ["iracing://cars/{carId}"],
+  );
   assert.equal(fetches, 0);
 
-  const read = () => client.readResource({ uri: "iracing://reference/cars" });
-  const [first, concurrent] = await Promise.all([read(), read()]);
-  assert.deepEqual(JSON.parse(first.contents[0].text), [{ car_id: 1 }]);
-  assert.deepEqual(concurrent, first);
-  assert.equal(fetches, 1);
-  assert.deepEqual(JSON.parse(await fs.readFile(file, "utf8")), [{ car_id: 1 }]);
+  const read = (uri) => client.readResource({ uri });
+  const [list, first, second, third] = await Promise.all([
+    read("iracing://cars"),
+    read("iracing://cars/1"),
+    read("iracing://cars/2"),
+    read("iracing://cars/3"),
+  ]);
 
-  const reopened = createFileBackedResolver(file, load);
-  assert.deepEqual(await reopened(), [{ car_id: 1 }]);
+  assert.deepEqual(JSON.parse(list.contents[0].text), cars);
+  assert.deepEqual(JSON.parse(first.contents[0].text), cars[0]);
+  assert.deepEqual(JSON.parse(second.contents[0].text), cars[1]);
+  assert.deepEqual(JSON.parse(third.contents[0].text), cars[2]);
+  assert.equal(fetches, 1);
+  assert.deepEqual(JSON.parse(await fs.readFile(file, "utf8")), cars);
+
+  const restartedClient = await connect(t, createCatalog());
+  const restarted = await restartedClient.readResource({
+    uri: "iracing://cars/2",
+  });
+  assert.deepEqual(JSON.parse(restarted.contents[0].text), cars[1]);
   assert.equal(fetches, 1);
 });
 
-test("failed hydration leaves no snapshot and may be retried", async (t) => {
+test("invalid and missing car IDs fail without a second API request", async (t) => {
+  const { CarCatalogSchema, createCarCatalogResolver } =
+    await import("../dist/catalog.js");
+  let loads = 0;
+  const cars = createCarCatalogResolver(async () => {
+    loads++;
+    return CarCatalogSchema.parse([{ car_id: 1, car_name: "Car One" }]);
+  });
+  const client = await connect(t, cars);
+
+  for (const uri of [
+    "iracing://cars/0",
+    "iracing://cars/abc",
+    "iracing://cars/9007199254740992",
+    "iracing://cars/999",
+  ]) {
+    await assert.rejects(client.readResource({ uri }));
+  }
+
+  assert.equal(loads, 1);
+  assert.deepEqual(await cars.get(1), { car_id: 1, car_name: "Car One" });
+});
+
+test("invalid hydration never persists a snapshot and may be retried", async (t) => {
+  const { CarCatalogSchema, createCarCatalogResolver } =
+    await import("../dist/catalog.js");
   const { createFileBackedResolver } = await import("../dist/resources.js");
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   const file = path.join(directory, "cars.json");
   let attempts = 0;
-  const resolve = createFileBackedResolver(file, async () => {
-    attempts++;
+  const cars = createCarCatalogResolver(
+    createFileBackedResolver(
+      file,
+      async () => {
+        attempts++;
+        return attempts === 1
+          ? [{ car_id: 1 }]
+          : [{ car_id: 1, car_name: "Car One" }];
+      },
+      (data) => CarCatalogSchema.parse(data),
+    ),
+  );
 
-    if (attempts === 1) {
-      throw new Error("upstream unavailable");
-    }
-
-    return [{ car_id: 2 }];
-  });
-
-  await assert.rejects(resolve(), /upstream unavailable/);
+  await assert.rejects(cars.all());
   await assert.rejects(fs.access(file), { code: "ENOENT" });
-  assert.deepEqual(await resolve(), [{ car_id: 2 }]);
+  assert.deepEqual(await cars.get(1), { car_id: 1, car_name: "Car One" });
+  assert.equal(attempts, 2);
 });
 
-test("car resolver materializes the linked payload without forwarding credentials", async () => {
-  const { createCarCatalogLoader } = await import("../dist/adapters/catalog.js");
+test("car fetch materializes linked payload without forwarding credentials", async () => {
+  const { createCarCatalogLoader } =
+    await import("../dist/adapters/catalog.js");
   const calls = [];
   const load = createCarCatalogLoader(
     async () => "TEST_TOKEN",
     async (input, init) => {
       const url = new URL(input);
-      calls.push({ host: url.host, auth: new Headers(init.headers).get("authorization") });
+      const auth = new Headers(init.headers).get("authorization");
+      calls.push({ host: url.host, auth });
 
       if (url.host === "members-ng.iracing.com") {
         assert.equal(url.pathname, "/data/car/get");
