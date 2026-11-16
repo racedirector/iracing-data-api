@@ -9,7 +9,7 @@
 import { z } from "zod";
 
 /** Observed car identity with additive upstream fields preserved. */
-export const CarJsonSchema = z
+export const CarPayloadSchema = z
   .looseObject({
     car_id: z.int().positive().meta({
       description:
@@ -57,14 +57,14 @@ export const CarJsonSchema = z
     }),
   })
   .meta({
-    id: "carJson",
+    id: "carPayload",
     title: "iRacing car",
     description:
       "Downloaded /data/car/get entry. Identity/name fields are required; modeled optional metadata and unknown upstream properties are retained. Units of unmodeled fields are unspecified.",
   });
 
 /** Observed track configuration identity with additive fields preserved. */
-export const TrackJsonSchema = z
+export const TrackPayloadSchema = z
   .looseObject({
     track_id: z.int().positive().meta({
       description:
@@ -125,14 +125,14 @@ export const TrackJsonSchema = z
       .meta({ description: "Maximum supported cars. Unit: count of cars." }),
   })
   .meta({
-    id: "trackJson",
+    id: "trackPayload",
     title: "iRacing track configuration",
     description:
       "Downloaded /data/track/get entry. Identity/name fields are required; modeled optional metadata and unknown upstream properties are retained. Unmodeled length, speed and timing units are not asserted.",
   });
 
 /** Observed class identity, including the upstream hosted all-cars class zero. */
-export const CarClassJsonSchema = z
+export const CarClassPayloadSchema = z
   .looseObject({
     car_class_id: z.int().nonnegative().meta({
       description:
@@ -179,34 +179,34 @@ export const CarClassJsonSchema = z
       }),
   })
   .meta({
-    id: "carClassJson",
+    id: "carClassPayload",
     title: "iRacing car class",
     description:
       "Downloaded /data/carclass/get entry. Identity/name fields are required. Optional car membership resolves through car_id; unknown upstream properties are retained.",
   });
 
 /** Nonempty materialized car catalog, not its signed download envelope. */
-export const CarCatalogJsonSchema = z.array(CarJsonSchema).min(1).meta({
-  id: "carCatalogJson",
+export const CarCatalogPayloadSchema = z.array(CarPayloadSchema).min(1).meta({
+  id: "carCatalogPayload",
   title: "iRacing car catalog",
   description:
     "Downloaded /data/car/get JSON array. Entries are identified by car_id; collection order has no ranking semantics.",
 });
 
 /** Nonempty materialized track configuration catalog. */
-export const TrackCatalogJsonSchema = z.array(TrackJsonSchema).min(1).meta({
-  id: "trackCatalogJson",
+export const TrackCatalogPayloadSchema = z.array(TrackPayloadSchema).min(1).meta({
+  id: "trackCatalogPayload",
   title: "iRacing track catalog",
   description:
     "Downloaded /data/track/get JSON array. Entries are identified by track_id; collection order has no ranking semantics.",
 });
 
 /** Nonempty materialized car-class catalog. */
-export const CarClassCatalogJsonSchema = z
-  .array(CarClassJsonSchema)
+export const CarClassCatalogPayloadSchema = z
+  .array(CarClassPayloadSchema)
   .min(1)
   .meta({
-    id: "carClassCatalogJson",
+    id: "carClassCatalogPayload",
     title: "iRacing car-class catalog",
     description:
       "Downloaded /data/carclass/get JSON array. Entries are identified by car_class_id; collection order has no ranking semantics.",
@@ -223,9 +223,9 @@ const htmlCopy = z.string().meta({
 });
 
 /** Downloaded car asset metadata; optional presentation fields tolerate omissions. */
-export const CarAssetJsonSchema = z
+export const CarAssetPayloadSchema = z
   .looseObject({
-    car_id: CarJsonSchema.shape.car_id,
+    car_id: CarPayloadSchema.shape.car_id,
     car_manual_link: z.string().nullish().meta({
       description:
         "Optional manual reference; currently observed as null. No URL format is asserted until non-null values are verified.",
@@ -268,16 +268,16 @@ export const CarAssetJsonSchema = z
     }),
   })
   .meta({
-    id: "carAssetJson",
+    id: "carAssetPayload",
     title: "iRacing car assets",
     description:
       "Downloaded /data/car/assets entry. Identity is required; presentation fields are optional and unknown fields are retained. This is not the link/expires response.",
   });
 
 /** Downloaded track assets, including map links and unnormalized coordinate text. */
-export const TrackAssetJsonSchema = z
+export const TrackAssetPayloadSchema = z
   .looseObject({
-    track_id: TrackJsonSchema.shape.track_id,
+    track_id: TrackPayloadSchema.shape.track_id,
     coordinates: z.string().optional().meta({
       description:
         "Comma-separated geographic coordinate text as supplied upstream; not normalized into numeric coordinate fields.",
@@ -320,14 +320,14 @@ export const TrackAssetJsonSchema = z
     }),
   })
   .meta({
-    id: "trackAssetJson",
+    id: "trackAssetPayload",
     title: "iRacing track assets",
     description:
       "Downloaded /data/track/assets entry. Identity is required; optional presentation and map fields preserve upstream representations and unknown fields.",
   });
 
 /** Downloaded series branding and descriptive copy. */
-export const SeriesAssetJsonSchema = z
+export const SeriesAssetPayloadSchema = z
   .looseObject({
     series_id: z.int().positive().meta({
       description:
@@ -339,51 +339,51 @@ export const SeriesAssetJsonSchema = z
     small_image: imagePath.nullish(),
   })
   .meta({
-    id: "seriesAssetJson",
+    id: "seriesAssetPayload",
     title: "iRacing series assets",
     description:
       "Downloaded /data/series/assets entry. Identity is required; optional branding fields and unknown upstream fields are retained.",
   });
 
 /** Asset documents use stringified numeric JSON property names, not arrays. */
-export const CarAssetsJsonSchema = z
-  .record(z.string().regex(/^\d+$/), CarAssetJsonSchema)
+export const CarAssetsPayloadSchema = z
+  .record(z.string().regex(/^\d+$/), CarAssetPayloadSchema)
   .meta({
-    id: "carAssetsJson",
+    id: "carAssetsPayload",
     title: "iRacing car asset document",
     description:
       "Downloaded /data/car/assets JSON object keyed by stringified car_id. Image paths use the official image base; entries are not ordered.",
   });
 
 /** Track asset document indexed by stringified track configuration ID. */
-export const TrackAssetsJsonSchema = z
-  .record(z.string().regex(/^\d+$/), TrackAssetJsonSchema)
+export const TrackAssetsPayloadSchema = z
+  .record(z.string().regex(/^\d+$/), TrackAssetPayloadSchema)
   .meta({
-    id: "trackAssetsJson",
+    id: "trackAssetsPayload",
     title: "iRacing track asset document",
     description:
       "Downloaded /data/track/assets JSON object keyed by stringified track_id, not a JSON array.",
   });
 
 /** Series asset document indexed by stringified series ID. */
-export const SeriesAssetsJsonSchema = z
-  .record(z.string().regex(/^\d+$/), SeriesAssetJsonSchema)
+export const SeriesAssetsPayloadSchema = z
+  .record(z.string().regex(/^\d+$/), SeriesAssetPayloadSchema)
   .meta({
-    id: "seriesAssetsJson",
+    id: "seriesAssetsPayload",
     title: "iRacing series asset document",
     description:
       "Downloaded /data/series/assets JSON object keyed by stringified series_id, not a JSON array.",
   });
 
-export type CarJson = z.infer<typeof CarJsonSchema>;
-export type TrackJson = z.infer<typeof TrackJsonSchema>;
-export type CarClassJson = z.infer<typeof CarClassJsonSchema>;
-export type CarCatalogJson = z.infer<typeof CarCatalogJsonSchema>;
-export type TrackCatalogJson = z.infer<typeof TrackCatalogJsonSchema>;
-export type CarClassCatalogJson = z.infer<typeof CarClassCatalogJsonSchema>;
-export type CarAssetJson = z.infer<typeof CarAssetJsonSchema>;
-export type TrackAssetJson = z.infer<typeof TrackAssetJsonSchema>;
-export type SeriesAssetJson = z.infer<typeof SeriesAssetJsonSchema>;
-export type CarAssetsJson = z.infer<typeof CarAssetsJsonSchema>;
-export type TrackAssetsJson = z.infer<typeof TrackAssetsJsonSchema>;
-export type SeriesAssetsJson = z.infer<typeof SeriesAssetsJsonSchema>;
+export type CarPayload = z.infer<typeof CarPayloadSchema>;
+export type TrackPayload = z.infer<typeof TrackPayloadSchema>;
+export type CarClassPayload = z.infer<typeof CarClassPayloadSchema>;
+export type CarCatalogPayload = z.infer<typeof CarCatalogPayloadSchema>;
+export type TrackCatalogPayload = z.infer<typeof TrackCatalogPayloadSchema>;
+export type CarClassCatalogPayload = z.infer<typeof CarClassCatalogPayloadSchema>;
+export type CarAssetPayload = z.infer<typeof CarAssetPayloadSchema>;
+export type TrackAssetPayload = z.infer<typeof TrackAssetPayloadSchema>;
+export type SeriesAssetPayload = z.infer<typeof SeriesAssetPayloadSchema>;
+export type CarAssetsPayload = z.infer<typeof CarAssetsPayloadSchema>;
+export type TrackAssetsPayload = z.infer<typeof TrackAssetsPayloadSchema>;
+export type SeriesAssetsPayload = z.infer<typeof SeriesAssetsPayloadSchema>;

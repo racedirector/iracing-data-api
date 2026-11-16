@@ -20,20 +20,20 @@ Use the schemas directly for runtime validation or feed them into helpers like `
 
 ## Downloaded JSON payloads
 
-[`src/schema/json.ts`](src/schema/json.ts) owns downloaded car, track and
+[`src/schema/payload.ts`](src/schema/payload.ts) owns downloaded car, track and
 car-class catalogs, plus car/track/series asset documents. These are separate
 from the `/data` endpoint's `APIResponseSchema` (`link` and `expires`).
 
 ```typescript
 import {
-  CarCatalogJsonSchema,
-  TrackAssetsJsonSchema,
+  CarCatalogPayloadSchema,
+  TrackAssetsPayloadSchema,
 } from "@iracing-data/api-schema";
 import { z } from "zod";
 
-const cars = CarCatalogJsonSchema.parse(downloadedCars);
-const assets = TrackAssetsJsonSchema.parse(downloadedTrackAssets);
-const jsonSchema = z.toJSONSchema(CarCatalogJsonSchema);
+const cars = CarCatalogPayloadSchema.parse(downloadedCars);
+const assets = TrackAssetsPayloadSchema.parse(downloadedTrackAssets);
+const jsonSchema = z.toJSONSchema(CarCatalogPayloadSchema);
 ```
 
 Catalogs are arrays; asset documents are objects keyed by stringified entity IDs.
@@ -114,7 +114,7 @@ Canonical schema exports omit the leading `IRacing` and retain `OAuth` where pre
 [Primitives](src/schema/primitives.ts) own shared acceptance/coercion;
 [parameters](src/schema/parameters.ts) own endpoint inputs;
 [responses](src/schema/responses.ts) own response composition and coverage limits;
-[JSON payloads](src/schema/json.ts) own materialized catalog and asset validation.
+[Payloads](src/schema/payload.ts) own materialized catalog and asset validation.
 [Document mapping](../../helpers/api-schema-to-openapi/src/index.ts) owns endpoints
 and descriptions feeding generated clients/docs. See [generation checks](../../../scripts/check-generated.mjs)
 for authored/generated boundaries and deterministic freshness.

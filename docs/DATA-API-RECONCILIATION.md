@@ -15,8 +15,8 @@ credentials, private identifiers, signed URLs, or raw response bodies.
 
 ## DATA-003 — Downloaded catalog and asset JSON schemas
 
-- **Decision:** add `*JsonSchema` exports in
-  `packages/api/schema/src/schema/json.ts`, separate from modeled HTTP response
+- **Decision:** add `*PayloadSchema` exports in
+  `packages/api/schema/src/schema/payload.ts`, separate from modeled HTTP response
   envelopes. Retain all HTTP response mappings and generated client types.
 - **Evidence collected:** authenticated official `/data/doc` retrieval at
   `2026-11-16T02:30:16Z` in the original MCP worktree, after operator

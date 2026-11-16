@@ -33,9 +33,9 @@ the original compatibility guarantees. These removals do not change the OpenAPI
 mapping or generated SDKs and require no regeneration.
 
 New materialized payload schemas now live separately in
-[`packages/api/schema/src/schema/json.ts`](../packages/api/schema/src/schema/json.ts).
-Their names explicitly use `JsonSchema`, not `ResponseSchema`: for example,
-`CarCatalogJsonSchema` and `TrackAssetsJsonSchema`. This supersedes the earlier
+[`packages/api/schema/src/schema/payload.ts`](../packages/api/schema/src/schema/payload.ts).
+Their names explicitly use `PayloadSchema`, not `ResponseSchema`: for example,
+`CarCatalogPayloadSchema` and `TrackAssetsPayloadSchema`. This supersedes the earlier
 recommendation to maintain application-owned catalog schemas; the old response
 symbols remain removed. These additive exports do not change HTTP envelopes or
 generated SDK return types.

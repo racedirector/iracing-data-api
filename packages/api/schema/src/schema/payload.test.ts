@@ -2,30 +2,30 @@ import { strict as assert } from "node:assert";
 import { it } from "node:test";
 import { z } from "zod";
 import {
-  CarCatalogJsonSchema,
-  TrackCatalogJsonSchema,
-  CarClassCatalogJsonSchema,
-  CarAssetsJsonSchema,
-  TrackAssetsJsonSchema,
-  SeriesAssetsJsonSchema,
-  CarJsonSchema,
-  TrackJsonSchema,
-  CarClassJsonSchema,
-} from "./json";
+  CarCatalogPayloadSchema,
+  TrackCatalogPayloadSchema,
+  CarClassCatalogPayloadSchema,
+  CarAssetsPayloadSchema,
+  TrackAssetsPayloadSchema,
+  SeriesAssetsPayloadSchema,
+  CarPayloadSchema,
+  TrackPayloadSchema,
+  CarClassPayloadSchema,
+} from "./payload";
 import { APIResponseSchema } from "./responses";
 
 it("validates downloaded catalogs without stripping additive upstream data", () => {
   const cases = [
     [
-      CarCatalogJsonSchema,
+      CarCatalogPayloadSchema,
       [{ car_id: 1, car_name: "Example", extra: { future: true } }],
     ],
     [
-      TrackCatalogJsonSchema,
+      TrackCatalogPayloadSchema,
       [{ track_id: 1, track_name: "Example", extra: 42 }],
     ],
     [
-      CarClassCatalogJsonSchema,
+      CarClassCatalogPayloadSchema,
       [{ car_class_id: 0, name: "Hosted All Cars Class", extra: null }],
     ],
   ] as const;
@@ -41,12 +41,12 @@ it("validates downloaded catalogs without stripping additive upstream data", () 
     );
   }
   assert.equal(
-    CarJsonSchema.safeParse({ car_id: "1", car_name: "Example" }).success,
+    CarPayloadSchema.safeParse({ car_id: "1", car_name: "Example" }).success,
     false,
   );
-  assert.equal(TrackJsonSchema.safeParse({ track_id: 1 }).success, false);
+  assert.equal(TrackPayloadSchema.safeParse({ track_id: 1 }).success, false);
   assert.equal(
-    CarClassJsonSchema.safeParse({ car_class_id: -1, name: "Example" }).success,
+    CarClassPayloadSchema.safeParse({ car_class_id: -1, name: "Example" }).success,
     false,
   );
 });
@@ -54,11 +54,11 @@ it("validates downloaded catalogs without stripping additive upstream data", () 
 it("models asset documents as ID-keyed objects, not endpoint envelopes or arrays", () => {
   const cases = [
     [
-      CarAssetsJsonSchema,
+      CarAssetsPayloadSchema,
       { "1": { car_id: 1, logo: null, car_rules: [], future: { kept: true } } },
     ],
     [
-      TrackAssetsJsonSchema,
+      TrackAssetsPayloadSchema,
       {
         "1": {
           track_id: 1,
@@ -70,7 +70,7 @@ it("models asset documents as ID-keyed objects, not endpoint envelopes or arrays
       },
     ],
     [
-      SeriesAssetsJsonSchema,
+      SeriesAssetsPayloadSchema,
       { "32": { series_id: 32, logo: "seriesid_32.png", large_image: null } },
     ],
   ] as const;
@@ -86,13 +86,13 @@ it("models asset documents as ID-keyed objects, not endpoint envelopes or arrays
     );
   }
   assert.equal(
-    TrackAssetsJsonSchema.safeParse({
+    TrackAssetsPayloadSchema.safeParse({
       "1": { track_id: 1, num_svg_images: -1 },
     }).success,
     false,
   );
   assert.equal(
-    CarAssetsJsonSchema.safeParse({ arbitrary: { car_id: 1 } }).success,
+    CarAssetsPayloadSchema.safeParse({ arbitrary: { car_id: 1 } }).success,
     false,
   );
   assert.equal(
@@ -106,12 +106,12 @@ it("models asset documents as ID-keyed objects, not endpoint envelopes or arrays
 
 it("publishes JSON-compatible schema metadata and extensibility policies", () => {
   for (const schema of [
-    CarCatalogJsonSchema,
-    TrackCatalogJsonSchema,
-    CarClassCatalogJsonSchema,
-    CarAssetsJsonSchema,
-    TrackAssetsJsonSchema,
-    SeriesAssetsJsonSchema,
+    CarCatalogPayloadSchema,
+    TrackCatalogPayloadSchema,
+    CarClassCatalogPayloadSchema,
+    CarAssetsPayloadSchema,
+    TrackAssetsPayloadSchema,
+    SeriesAssetsPayloadSchema,
   ]) {
     const published = z.toJSONSchema(schema);
     const root = published.$defs?.[schema.meta()!.id!] ?? published;
@@ -119,12 +119,12 @@ it("publishes JSON-compatible schema metadata and extensibility policies", () =>
     assert.equal(typeof root === "object" && typeof root.description, "string");
     assert.ok(JSON.stringify(published).length > 0);
   }
-  const car = z.toJSONSchema(CarJsonSchema);
-  const carRoot = car.$defs?.carJson;
+  const car = z.toJSONSchema(CarPayloadSchema);
+  const carRoot = car.$defs?.carPayload;
   assert.ok(carRoot && typeof carRoot === "object");
   assert.deepEqual(carRoot.additionalProperties, {});
   assert.match(JSON.stringify(carRoot.properties?.car_id), /car_id/);
-  const trackAssets = z.toJSONSchema(TrackAssetsJsonSchema);
+  const trackAssets = z.toJSONSchema(TrackAssetsPayloadSchema);
   assert.match(JSON.stringify(trackAssets), /Unit: count of images/);
   assert.match(JSON.stringify(trackAssets), /"format":"uri"/);
 });
