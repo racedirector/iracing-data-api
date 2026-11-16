@@ -31,8 +31,8 @@ async function setup(t) {
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-assets-"));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   const { createAssetCatalogs } = await import("../dist/adapters/assets.js");
-  const { createAssetMediaReader } = await import("../dist/adapters/media.js");
-  const { registerAssetResources } = await import("../dist/asset-resources.js");
+  const { createAssetMediaReader, registerAssetResources } =
+    await import("../dist/resources/assets/index.js");
   const { Client } = await import("@modelcontextprotocol/client");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
@@ -191,7 +191,8 @@ test("images and map layers resolve verified paths and return unsigned MIME-tagg
 });
 
 test("URL resolution rejects foreign origins, credentials, traversal and unsupported selectors", async () => {
-  const { imageUrl, trackMapUrl } = await import("../dist/assets.js");
+  const { imageUrl, trackMapUrl } =
+    await import("../dist/resources/assets/index.js");
   for (const reference of [
     "https://evil.test/image.png",
     "http://images-static.iracing.com/img/x.png",
@@ -236,7 +237,8 @@ test("URL resolution rejects foreign origins, credentials, traversal and unsuppo
 });
 
 test("media transport rejects failures, non-images, oversized streams and cancellation", async () => {
-  const { createAssetMediaReader } = await import("../dist/adapters/media.js");
+  const { createAssetMediaReader } =
+    await import("../dist/resources/assets/index.js");
   const url = new URL("https://images-static.iracing.com/img/test.png");
   const signal = new AbortController().signal;
   for (const response of [

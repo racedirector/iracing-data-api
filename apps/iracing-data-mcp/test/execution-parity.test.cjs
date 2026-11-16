@@ -78,7 +78,8 @@ test(
     const { Client } = await import("@modelcontextprotocol/client");
     const { StdioClientTransport } =
       await import("@modelcontextprotocol/client/stdio");
-    const { createMcpRouter } = await import("../dist/http.js");
+    const { createMcpRouter } =
+      await import("../dist/transports/http/index.js");
     const { capabilities } = await import("./fixtures/capabilities.mjs");
     for (const [mode, name, args, code] of [
       ["success", "get_my_driver", {}, undefined],
@@ -115,7 +116,7 @@ test(
 );
 
 test("concurrent HTTP actors retain request-local capabilities and correlation", async () => {
-  const { createMcpRouter } = await import("../dist/http.js");
+  const { createMcpRouter } = await import("../dist/transports/http/index.js");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const requests = [];
   let actor = 0;
@@ -143,7 +144,8 @@ test(
   async (t) => {
     const { once } = require("node:events");
     const { request } = require("node:http");
-    const { startMcpHttpServer } = await import("../dist/http-server.js");
+    const { startMcpHttpServer } =
+      await import("../dist/transports/http/index.js");
     const entered = Promise.withResolvers();
     const aborted = Promise.withResolvers();
     const release = Promise.withResolvers();

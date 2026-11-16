@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { CatalogResolver } from "./catalog.js";
+import type { CatalogResolver } from "../catalogs/index.js";
 
 /** Static asset namespace owned by one upstream metadata document. */
 export type AssetKind = "cars" | "tracks" | "series";

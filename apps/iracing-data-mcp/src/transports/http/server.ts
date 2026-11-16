@@ -1,8 +1,8 @@
 import { serve } from "@hono/node-server";
 import { Hono } from "hono";
-import { createMcpRouter } from "./http.js";
-import type { McpConfig } from "./config.js";
-import type { McpRouterOptions } from "./http.js";
+import { createMcpRouter } from "./router.js";
+import type { McpRouterOptions } from "./router.js";
+import type { McpConfig } from "../../config.js";
 
 /** Standalone HTTP listener configuration; embedding hosts use createMcpRouter. */
 export interface HttpServerOptions extends McpRouterOptions {

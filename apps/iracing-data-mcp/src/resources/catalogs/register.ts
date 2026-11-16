@@ -1,5 +1,5 @@
 import { ResourceTemplate } from "@modelcontextprotocol/server";
-import type { ReferenceCatalog } from "./catalog.js";
+import type { ReferenceCatalog } from "./resolver.js";
 import type { McpServer } from "@modelcontextprotocol/server";
 
 /**

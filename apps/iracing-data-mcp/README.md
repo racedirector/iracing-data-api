@@ -88,9 +88,11 @@ To refetch, stop stdio, remove the chosen snapshot, and restart. HTTP resource
 registration is intentionally unchanged. These static snapshots are not suitable
 for changing result searches or member statistics.
 
-`src/catalog.ts` owns shared indexing/schema publication, `src/snapshots.ts` owns
-atomic persistence, `src/resources.ts` owns resource registration, and
+`src/resources/catalogs/resolver.ts` owns shared indexing/schema publication,
+`src/resources/snapshots.ts` owns atomic persistence,
+`src/resources/catalogs/register.ts` owns catalog registration, and
 `src/adapters/catalog.ts` owns concrete SDK selection and dataset definitions.
+`src/resources/assets/` groups asset URL resolution, binary reads and registration.
 
 ### Static assets, images and track maps
 
@@ -215,15 +217,21 @@ No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 
 - `src/config.ts`: Zod defaults and transformation to runtime options
 - `src/composition.ts`: Awilix dependency composition around an already verified actor
-- `src/http.ts`: mountable Hono MCP router
-- `src/http-server.ts`: optional Node listener
-- `src/stdio.ts`: stdio host using the same MCP factory
+- `src/transports/http/index.ts`: small HTTP barrel
+- `src/transports/http/router.ts`: mountable Hono MCP router
+- `src/transports/http/server.ts`: optional Node listener
+- `src/transports/stdio/index.ts`: stdio host using the same MCP factory
+- `src/resources/`: feature-grouped catalogs and assets, with shared snapshots
 - `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 
 Neither the MCP core nor the HTTP router depends on generated Fetch clients.
 The Fetch choice is confined to `src/adapters/` and the local credential
 adapter. A host can inject Axios, fixtures, or another provider instead.
+
+Package-root hosting exports, `dist/main.js`, resource URIs and snapshot paths
+are unchanged by the directory grouping. Concrete generated-client selection
+remains in `src/adapters/`.
 
 ```sh
 pnpm --filter '@iracing-data/iracing-data-mcp...' build

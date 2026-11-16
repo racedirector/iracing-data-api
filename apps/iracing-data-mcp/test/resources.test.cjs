@@ -8,7 +8,8 @@ const schemaRoot = (schema) =>
   schema.$ref ? schema.$defs[schema.$ref.split("/").at(-1)] : schema;
 
 async function connect(t, catalogs) {
-  const { registerReferenceResources } = await import("../dist/resources.js");
+  const { registerReferenceResources } =
+    await import("../dist/resources/index.js");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
@@ -181,7 +182,8 @@ test("invalid hydration is not persisted and can be retried", async (t) => {
 });
 
 test("shared index rejects duplicate or invalid IDs and retries", async () => {
-  const { createCatalogResolver } = await import("../dist/catalog.js");
+  const { createCatalogResolver } =
+    await import("../dist/resources/catalogs/index.js");
   let attempts = 0;
   const resolver = createCatalogResolver(
     async () => {

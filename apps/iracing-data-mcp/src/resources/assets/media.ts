@@ -1,4 +1,4 @@
-import type { ReadAssetMedia } from "../assets.js";
+import type { ReadAssetMedia } from "./resolver.js";
 
 const maxBytes = 5 * 1024 * 1024;
 

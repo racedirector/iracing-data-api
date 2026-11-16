@@ -14,10 +14,10 @@ import {
   SeriesAssetJsonSchema,
 } from "@iracing-data/api-schema";
 import { z } from "zod";
-import { createCatalogResolver } from "../catalog.js";
-import { createFileBackedResolver } from "../snapshots.js";
+import { createCatalogResolver } from "../resources/catalogs/index.js";
+import { createFileBackedResolver } from "../resources/snapshots.js";
 import { createCatalogLoader } from "./catalog.js";
-import type { AssetCatalog, AssetKind } from "../assets.js";
+import type { AssetCatalog, AssetKind } from "../resources/assets/index.js";
 
 /**
  * Compose all static asset documents using the shared lazy snapshot/index path.

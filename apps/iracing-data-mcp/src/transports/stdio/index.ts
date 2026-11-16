@@ -1,15 +1,17 @@
 import { dirname, join } from "node:path";
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { createAssetCatalogs } from "./adapters/assets.js";
-import { createReferenceCatalogs } from "./adapters/catalog.js";
-import { createFetchQueries } from "./adapters/fetch.js";
-import { createAssetMediaReader } from "./adapters/media.js";
-import { registerAssetResources } from "./asset-resources.js";
-import { composeMcpServices } from "./composition.js";
-import { createCliAccessToken } from "./credentials.js";
-import { registerReferenceResources } from "./resources.js";
-import type { McpConfig } from "./config.js";
+import { createAssetCatalogs } from "../../adapters/assets.js";
+import { createReferenceCatalogs } from "../../adapters/catalog.js";
+import { createFetchQueries } from "../../adapters/fetch.js";
+import { composeMcpServices } from "../../composition.js";
+import { createCliAccessToken } from "../../credentials.js";
+import {
+  registerReferenceResources,
+  registerAssetResources,
+  createAssetMediaReader,
+} from "../../resources/index.js";
+import type { McpConfig } from "../../config.js";
 
 /**
  * Start local stdio with shared reference collection and entity resources.

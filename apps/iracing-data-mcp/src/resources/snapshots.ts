@@ -3,7 +3,7 @@ import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
 /**
- * Persist validated reference documents; reuse snapshots across restarts.
+ * Lazily persist validated reference documents; reuse snapshots across restarts.
  * @param {string} file - Snapshot document path.
  * @param {() => Promise<unknown>} load - Fetcher used only when the snapshot is absent.
  * @param {(document: unknown) => T} parse - Validation before use or persistence.

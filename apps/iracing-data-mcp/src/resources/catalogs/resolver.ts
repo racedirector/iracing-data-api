@@ -1,6 +1,6 @@
 import { join } from "node:path";
 import { z } from "zod";
-import { createFileBackedResolver } from "./snapshots.js";
+import { createFileBackedResolver } from "../snapshots.js";
 
 /** A validated reference dataset and its constant-time entity lookup. */
 export interface CatalogResolver<T> {

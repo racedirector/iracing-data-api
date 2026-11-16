@@ -1,6 +1,11 @@
 import { ResourceTemplate } from "@modelcontextprotocol/server";
-import { assetId, imageUrl, trackMapUrl, ImageFieldSchema } from "./assets.js";
-import type { AssetCatalog, ReadAssetMedia } from "./assets.js";
+import {
+  assetId,
+  imageUrl,
+  trackMapUrl,
+  ImageFieldSchema,
+} from "./resolver.js";
+import type { AssetCatalog, ReadAssetMedia } from "./resolver.js";
 import type { McpServer } from "@modelcontextprotocol/server";
 
 /**

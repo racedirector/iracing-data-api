@@ -13,9 +13,9 @@ import {
   CarClassJsonSchema,
   CarClassCatalogJsonSchema,
 } from "@iracing-data/api-schema";
-import { createReferenceCatalog } from "../catalog.js";
+import { createReferenceCatalog } from "../resources/catalogs/index.js";
 import { readLinkedData } from "./linked-response.js";
-import type { ReferenceCatalog } from "../catalog.js";
+import type { ReferenceCatalog } from "../resources/catalogs/index.js";
 
 /**
  * One signed-link materialization path for all generated reference API calls.

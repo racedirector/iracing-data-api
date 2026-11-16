@@ -3,7 +3,7 @@ const test = require("node:test");
 
 test("mountable Hono router denies anonymous callers before constructing services", async () => {
   const { Hono } = await import("hono");
-  const { createMcpRouter } = await import("../dist/http.js");
+  const { createMcpRouter } = await import("../dist/transports/http/index.js");
   let created = 0;
   const app = new Hono().route(
     "/mcp",
@@ -28,7 +28,7 @@ test("mountable Hono router denies anonymous callers before constructing service
 
 test("mountable Hono router resolves tool capabilities against the verified actor", async () => {
   const { Hono } = await import("hono");
-  const { createMcpRouter } = await import("../dist/http.js");
+  const { createMcpRouter } = await import("../dist/transports/http/index.js");
   const actors = [];
   const app = new Hono().route(
     "/mcp",
@@ -140,7 +140,7 @@ test("mountable Hono router resolves tool capabilities against the verified acto
 });
 
 test("the HTTP router is owned by its host, not a listener or OAuth service", async () => {
-  const { createMcpRouter } = await import("../dist/http.js");
+  const { createMcpRouter } = await import("../dist/transports/http/index.js");
   const router = createMcpRouter({
     resolveActor: () => null,
     resolveCapabilities: () => {
