@@ -11,27 +11,27 @@ import { createFetchQueries } from "./adapters/fetch.js";
 import type { McpCapabilities } from "./composition.js";
 
 /**
- * Read the dedicated CLI MCP credential document when the tool needs a token.
+ * Resolve a local CLI access token on demand without sharing a stale token.
  * Refresh expired sessions and persist rotated credentials; never launch login.
  * @param {string} credentialsFile - Dedicated CLI MCP token document path.
  * @param {IRacingOAuthClientMetadataInput} clientMetadata - Registration used for the original CLI login.
- * @returns {McpCapabilities} Concrete Fetch queries without a shared token cache.
+ * @returns {() => Promise<string>} Serialized token resolver.
  */
-export function createCliCapabilities(
+export function createCliAccessToken(
   credentialsFile: string,
   clientMetadata: IRacingOAuthClientMetadataInput = {
     clientId: process.env.IRACING_AUTH_CLIENT ?? "",
     clientSecret: process.env.IRACING_AUTH_SECRET,
     scopes: [],
   },
-): McpCapabilities {
+): () => Promise<string> {
   const sessionKey = "iracing-data-mcp-local";
 
   // Serialize restoration through durable refresh persistence, not API requests.
   // Each operation gets a fresh store so external CLI logins are observed.
   let restorationTail: Promise<void> = Promise.resolve();
 
-  return createFetchQueries(async () => {
+  return async () => {
     const restoration = restorationTail.then(async () => {
       const store = new OAuthTokenDocumentSessionStore({
         filePath: credentialsFile,
@@ -71,5 +71,20 @@ export function createCliCapabilities(
     );
 
     return restoration;
-  });
+  };
+}
+
+/**
+ * Compose the current local CLI capabilities around a single token resolver.
+ * @param {string} credentialsFile - Selected OAuth token document.
+ * @param {IRacingOAuthClientMetadataInput} clientMetadata - Registration used for the original login.
+ * @returns {McpCapabilities} Local API capabilities sharing one serialized token resolver.
+ */
+export function createCliCapabilities(
+  credentialsFile: string,
+  clientMetadata?: IRacingOAuthClientMetadataInput,
+): McpCapabilities {
+  return createFetchQueries(
+    createCliAccessToken(credentialsFile, clientMetadata),
+  );
 }
