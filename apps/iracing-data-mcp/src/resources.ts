@@ -1,52 +1,83 @@
 import { randomUUID } from "node:crypto";
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
+import { ResourceTemplate } from "@modelcontextprotocol/server";
 import type { McpServer } from "@modelcontextprotocol/server";
+import type { CarCatalogResolver } from "./catalog.js";
 
-/** Map logical resource names to injected resolvers; MCP owns only presentation. */
+/** Resource resolvers are injected independently of their storage and fetch adapters. */
+export interface ReferenceResolvers {
+  readonly cars: CarCatalogResolver;
+}
+
+/** Register a collection and a parameterized entity view over the same resolver. */
 export function registerReferenceResources(
   server: Pick<McpServer, "registerResource">,
-  resolvers: ReadonlyMap<string, () => Promise<unknown>>,
+  resolvers: ReferenceResolvers,
 ): void {
-  for (const [name, resolve] of resolvers) {
-    server.registerResource(
-      name,
-      `iracing://reference/${name}`,
-      { title: `iRacing ${name}`, mimeType: "application/json" },
-      async (uri) => ({
+  server.registerResource(
+    "cars",
+    "iracing://cars",
+    { title: "iRacing Cars", mimeType: "application/json" },
+    async (uri) => ({
+      contents: [{
+        uri: uri.href,
+        mimeType: "application/json",
+        text: JSON.stringify(await resolvers.cars.all()),
+      }],
+    }),
+  );
+
+  server.registerResource(
+    "car",
+    new ResourceTemplate("iracing://cars/{carId}", { list: undefined }),
+    { title: "iRacing Car", mimeType: "application/json" },
+    async (uri, { carId }) => {
+      if (typeof carId !== "string" || !/^[1-9]\d*$/.test(carId)) {
+        throw new Error("Invalid car ID.");
+      }
+
+      const id = Number(carId);
+
+      if (!Number.isSafeInteger(id)) {
+        throw new Error("Invalid car ID.");
+      }
+
+      const car = await resolvers.cars.get(id);
+
+      if (!car) {
+        throw new Error("Car not found.");
+      }
+
+      return {
         contents: [{
           uri: uri.href,
           mimeType: "application/json",
-          text: JSON.stringify(await resolve()),
+          text: JSON.stringify(car),
         }],
-      }),
-    );
-  }
+      };
+    },
+  );
 }
 
-/** Persist a complete reference list on first read; reuse it on later starts. */
-export function createFileBackedResolver(
+/** Persist validated reference documents; reload snapshots across process restarts. */
+export function createFileBackedResolver<T>(
   file: string,
-  load: () => Promise<unknown[]>,
-): () => Promise<unknown[]> {
-  let inFlight: Promise<unknown[]> | undefined;
+  load: () => Promise<unknown>,
+  parse: (document: unknown) => T,
+): () => Promise<T> {
+  let inFlight: Promise<T> | undefined;
 
-  async function readOrLoad(): Promise<unknown[]> {
+  async function readOrLoad(): Promise<T> {
     try {
-      const snapshot: unknown = JSON.parse(await readFile(file, "utf8"));
-
-      if (!Array.isArray(snapshot)) {
-        throw new TypeError("Invalid reference snapshot.");
-      }
-
-      return snapshot;
+      return parse(JSON.parse(await readFile(file, "utf8")) as unknown);
     } catch (error) {
       if (!isMissingFile(error)) {
         throw error;
       }
     }
 
-    const data = await load();
+    const data = parse(await load());
     await mkdir(dirname(file), { recursive: true });
     const temporary = `${file}.${randomUUID()}.tmp`;
 
