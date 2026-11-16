@@ -24,14 +24,12 @@ export function createAssetCatalogResolver(
   function all(): Promise<AssetCatalog> {
     if (!current) {
       const load = source();
-      current = load.catch((error: unknown) => {
-        if (current === recovered) {
+      current = load;
+      void load.catch(() => {
+        if (current === load) {
           current = undefined;
         }
-
-        throw error;
       });
-      const recovered = current;
     }
 
     return current;
