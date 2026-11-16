@@ -43,6 +43,18 @@ Restoration is serialized within the local connection so concurrent requests
 observe persisted refresh-token rotation. The OAuth client refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
 
+The checked-in OpenCode command loads `.env` when present and explicitly selects
+`.iracing-data/credentials.json`. This is project client wiring, not a change to
+the standalone dedicated-MCP default above. Other clients must pass the desired
+credential path and OAuth registration environment explicitly.
+
+Local restoration failures report the selected document, OAuth error code and
+message on stderr. The original error is retained as the cause; token documents
+and raw error objects are never logged. Missing sessions have a distinct
+actionable diagnostic. MCP tool results still use `AUTHORIZATION_REQUIRED` or
+`TOKEN_REFRESH_FAILED` and safe policy messages, not `INTERNAL_ERROR` or raw local
+details. Resource callers can receive the local diagnostic message.
+
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
 `node apps/iracing-data-mcp/dist/main.js` with the project root as its

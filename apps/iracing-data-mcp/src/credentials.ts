@@ -8,6 +8,7 @@ import {
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
 import { createFetchQueries } from "./adapters/fetch.js";
+import { LocalAuthorizationError } from "./auth-errors.js";
 import type { McpCapabilities } from "./composition.js";
 
 /**
@@ -49,17 +50,21 @@ export function createCliAccessToken(
       try {
         token = await client.restoreSessionForId(sessionKey);
       } catch (error) {
-        throw new ApplicationFailure(
-          error instanceof OAuthRefreshError
-            ? "TOKEN_REFRESH_FAILED"
-            : "AUTHORIZATION_REQUIRED",
-        );
+        throw restorationFailure(credentialsFile, error);
       }
 
       if (!token?.access_token.trim()) {
-        throw new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+        const failure = new ApplicationFailure("AUTHORIZATION_REQUIRED", {
           reason: "missing_session",
         });
+
+        const diagnostic = new LocalAuthorizationError(
+          `No OAuth session found in ${credentialsFile}. Authenticate the CLI MCP session or select its credential document with --credentials / IRACING_MCP_CREDENTIAL_FILE.`,
+          failure,
+        );
+
+        process.stderr.write(`[iracing-data-mcp] ${diagnostic.message}\n`);
+        throw diagnostic;
       }
 
       return token.access_token;
@@ -72,6 +77,40 @@ export function createCliAccessToken(
 
     return restoration;
   };
+}
+
+function restorationFailure(
+  credentialsFile: string,
+  error: unknown,
+): LocalAuthorizationError {
+  const failure = new ApplicationFailure(
+    error instanceof OAuthRefreshError
+      ? "TOKEN_REFRESH_FAILED"
+      : "AUTHORIZATION_REQUIRED",
+  );
+
+  const detail =
+    error instanceof Error ? error.message : "Unknown restoration failure";
+
+  const code =
+    error && typeof error === "object" && "code" in error
+      ? ` [${String(error.code)}]`
+      : "";
+
+  const description =
+    error instanceof OAuthRefreshError && error.description
+      ? `: ${error.description}`
+      : "";
+
+  const diagnostic = new LocalAuthorizationError(
+    `OAuth session restoration failed (${credentialsFile})${code}: ${detail}${description}`,
+    failure,
+    error,
+  );
+
+  process.stderr.write(`[iracing-data-mcp] ${diagnostic.message}\n`);
+
+  return diagnostic;
 }
 
 /**
