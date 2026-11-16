@@ -45,10 +45,10 @@ export function registerRefreshStaticCacheTool(
         "asset catalogs may be large. Do not refresh unrelated datasets. " +
         "Race results and other costly/dynamic queries are NOT supported. " +
         "Returns a summary, not the dataset contents.",
-      inputSchema: z.strictObject({
+      inputSchema: {
         dataset: DatasetSchema.describe("Which single static cache to refresh"),
-      }),
-      outputSchema: OutputSchema,
+      },
+      outputSchema: OutputSchema.shape,
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
