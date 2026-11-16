@@ -19,7 +19,7 @@
   },
   "scripts": {
     "build": "tsc --build tsconfig.build.json",
-    "test": "node --test -r ts-node/register src/schema/primitives.test.ts src/schema/parameters.test.ts src/schema/responses.test.ts"
+    "test": "node --test -r ts-node/register src/schema/primitives.test.ts src/schema/parameters.test.ts src/schema/responses.test.ts src/schema/json.test.ts"
   },
   "dependencies": {
     "zod": "^4.6.7"
