@@ -194,12 +194,15 @@ export const CarCatalogPayloadSchema = z.array(CarPayloadSchema).min(1).meta({
 });
 
 /** Nonempty materialized track configuration catalog. */
-export const TrackCatalogPayloadSchema = z.array(TrackPayloadSchema).min(1).meta({
-  id: "trackCatalogPayload",
-  title: "iRacing track catalog",
-  description:
-    "Downloaded /data/track/get JSON array. Entries are identified by track_id; collection order has no ranking semantics.",
-});
+export const TrackCatalogPayloadSchema = z
+  .array(TrackPayloadSchema)
+  .min(1)
+  .meta({
+    id: "trackCatalogPayload",
+    title: "iRacing track catalog",
+    description:
+      "Downloaded /data/track/get JSON array. Entries are identified by track_id; collection order has no ranking semantics.",
+  });
 
 /** Nonempty materialized car-class catalog. */
 export const CarClassCatalogPayloadSchema = z
@@ -380,7 +383,9 @@ export type TrackPayload = z.infer<typeof TrackPayloadSchema>;
 export type CarClassPayload = z.infer<typeof CarClassPayloadSchema>;
 export type CarCatalogPayload = z.infer<typeof CarCatalogPayloadSchema>;
 export type TrackCatalogPayload = z.infer<typeof TrackCatalogPayloadSchema>;
-export type CarClassCatalogPayload = z.infer<typeof CarClassCatalogPayloadSchema>;
+export type CarClassCatalogPayload = z.infer<
+  typeof CarClassCatalogPayloadSchema
+>;
 export type CarAssetPayload = z.infer<typeof CarAssetPayloadSchema>;
 export type TrackAssetPayload = z.infer<typeof TrackAssetPayloadSchema>;
 export type SeriesAssetPayload = z.infer<typeof SeriesAssetPayloadSchema>;

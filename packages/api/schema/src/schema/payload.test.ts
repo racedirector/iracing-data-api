@@ -46,7 +46,8 @@ it("validates downloaded catalogs without stripping additive upstream data", () 
   );
   assert.equal(TrackPayloadSchema.safeParse({ track_id: 1 }).success, false);
   assert.equal(
-    CarClassPayloadSchema.safeParse({ car_class_id: -1, name: "Example" }).success,
+    CarClassPayloadSchema.safeParse({ car_class_id: -1, name: "Example" })
+      .success,
     false,
   );
 });
