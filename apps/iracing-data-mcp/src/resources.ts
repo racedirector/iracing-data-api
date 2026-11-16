@@ -65,17 +65,25 @@ export function registerReferenceResources(
     },
   );
 
-  if (resolvers.assets) {
+  const assetCatalogs = resolvers.assets;
+
+  if (assetCatalogs) {
+    const assetUris = {
+      car: "iracing://assets/cars",
+      track: "iracing://assets/tracks",
+      series: "iracing://assets/series",
+    } as const;
+
     for (const kind of ["car", "track", "series"] as const) {
       server.registerResource(
         `${kind}-assets`,
-        `iracing://assets/${kind}s`,
+        assetUris[kind],
         { title: `iRacing ${kind} assets`, mimeType: "application/json" },
         async (uri) => ({
           contents: [{
             uri: uri.href,
             mimeType: "application/json",
-            text: JSON.stringify(await resolvers.assets![kind].all()),
+            text: JSON.stringify(await assetCatalogs[kind].all()),
           }],
         }),
       );
