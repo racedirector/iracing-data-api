@@ -19,11 +19,19 @@ export function createAssetCatalogLoader(
 
   return async () => {
     const signal = AbortSignal.timeout(15_000);
-    const envelope = await (kind === "car"
-      ? new CarApi(configuration).getCarAssets({ signal })
-      : kind === "track"
-        ? new TrackApi(configuration).getTrackAssets({ signal })
-        : new SeriesApi(configuration).getSeriesAssets({ signal }));
+    let envelope;
+
+    switch (kind) {
+      case "car":
+        envelope = await new CarApi(configuration).getCarAssets({ signal });
+        break;
+      case "track":
+        envelope = await new TrackApi(configuration).getTrackAssets({ signal });
+        break;
+      case "series":
+        envelope = await new SeriesApi(configuration).getSeriesAssets({ signal });
+        break;
+    }
 
     return readLinkedData(envelope, signal, fetchApi);
   };
