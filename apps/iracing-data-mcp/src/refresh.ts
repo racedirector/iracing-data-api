@@ -78,7 +78,7 @@ export function registerRefreshStaticCacheTool(
           isError: true,
           content: [{
             type: "text" as const,
-            text: "Static cache refresh failed. The last valid snapshot remains available.",
+            text: "Static cache refresh failed. Any existing snapshot was left unchanged.",
           }],
         };
       }
