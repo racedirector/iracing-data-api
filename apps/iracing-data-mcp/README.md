@@ -43,24 +43,101 @@ Restoration is serialized within the local connection so concurrent requests
 observe persisted refresh-token rotation. The OAuth client refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
 
-Local stdio registers two experimental MCP resource views over one car
-catalog: `iracing://cars` (complete collection) and the resource template
-`iracing://cars/{carId}` (one car by its positive numeric ID). The template
-is discoverable through `resources/templates/list`, while the collection
-appears in `resources/list`.
+Local stdio exposes shared reference catalogs:
 
-At startup, the runtime checks for a stored snapshot and asynchronously
-hydrates missing data using the same OAuth token resolver as the tools.
-It validates and atomically saves the materialized car JSON under
-`<credentials-directory>/reference/cars.json`, then builds an in-memory
-index by `car_id`. Collection and individual-car requests share the same
-hydration and index, including concurrent reads. A restarted process reads
+| Collection              | Entity template                        | Snapshot           |
+| ----------------------- | -------------------------------------- | ------------------ |
+| `iracing://cars`        | `iracing://cars/{car_id}`              | `cars.json`        |
+| `iracing://tracks`      | `iracing://tracks/{track_id}`          | `tracks.json`      |
+| `iracing://car-classes` | `iracing://car-classes/{car_class_id}` | `car-classes.json` |
+
+Collections appear in `resources/list`; entity templates appear in
+`resources/templates/list`. Discovery descriptions explain how to resolve race
+result IDs. To answer which car a driver used, obtain the participant's `car_id`
+from recent races or result search, then read `iracing://cars/<car_id>`. Resolve
+track and class IDs the same way. Class ID zero is valid upstream.
+
+Each read returns `application/json` text containing `{ "schema": ..., "data": ... }`.
+`schema` is the JSON Schema for `data`: an array for a collection or an object for
+an entity. It is generated from the canonical Zod schemas in
+`@iracing-data/api-schema` (`src/schema/json.ts`) and includes titles,
+descriptions, identifiers, relationships and modeled units/formats. Unknown
+upstream properties remain in `data`; the schema explicitly permits them and
+does not claim their semantics are modeled. Read `data.car_id` for an entity,
+or iterate `data` for a collection. Snapshot files remain unwrapped upstream JSON.
+
+This replaces the experimental bare-array/bare-object read format. Consumers
+must now access `data`; resource URIs and on-disk snapshots are unchanged.
+
+### Static assets, images and track maps
+
+The local runtime also advertises `iracing://assets/cars`,
+`iracing://assets/tracks` and `iracing://assets/series`. These reads return
+`{ schema, data }` with the original ID-keyed asset documents; entity templates
+are `iracing://assets/{kind}/{id}` for each advertised kind.
+
+For actual image bytes, read `iracing://images/{kind}/{id}/{field}`, where `kind`
+is `cars`, `tracks` or `series` and `field` is `small_image`, `large_image`,
+`logo`, `sponsor_logo` or `group_image`. Availability is determined by the asset
+entry, not by the template alone: missing/null fields and unknown IDs fail
+explicitly. Bare car/track filenames resolve relative to the metadata `folder`;
+bare series logos use the verified `/img/logos/series/` location. Absolute/root
+image paths must stay on the official static image host under `/img/`.
+
+Track asset entries advertise `track_map` and `track_map_layers`. Read a layer
+using `iracing://track-maps/{track_id}/{layer}` with an exact advertised layer
+name, such as `active`, `background`, `pitroad`, `start-finish` or `turns`.
+These are separate SVG layers, not a composed map. Example:
+
+```text
+iracing://assets/tracks/1
+iracing://track-maps/1/active
+iracing://images/tracks/1/logo
+```
+
+Media reads return MCP **blob resource content** (base64 bytes and `mimeType`),
+not JSON `{ schema, data }`. Client support determines whether those bytes are
+rendered as an image. Treat SVG as untrusted media; sanitize it before inline
+HTML rendering and do not execute embedded scripts.
+
+All asset metadata uses the same lazy validation, snapshot and indexed lookup
+mechanisms as catalogs. Raw documents persist at
+`<credentials-directory>/reference/cars-assets.json`, `tracks-assets.json` and
+`series-assets.json`; parsed metadata is reused for the process lifetime, with
+no warmup or automatic expiry. Image/map bytes are fetched per read, not stored
+in these metadata snapshots. Requests omit credentials, reject redirects and
+unexpected hosts/content types, respect cancellation and a 15-second timeout,
+and enforce a 5 MiB binary limit (base64 encoding adds overhead).
+
+All other fields in the static schemas remain available through asset metadata,
+including descriptive HTML, gallery/screenshot tokens, manuals and paint-template
+references. Their undocumented URL bases or filename conventions are **not**
+guessed; they do not have binary download resolvers.
+
+Catalogs are lazy: startup and discovery do not read snapshots, authenticate,
+or fetch data. The first resource read loads and validates the JSON snapshot;
+only a missing snapshot triggers an upstream fetch using the same OAuth token
+resolver as the tools. There is no cache warming.
+It validates and atomically saves each dataset under
+`<credentials-directory>/reference/<snapshot>`, then builds an in-memory
+index by its entity ID. Collection and individual-entity requests share the same
+hydration and index, including concurrent reads. The parsed JSON and index are
+cached for the local process lifetime, not per MCP request or session. A restarted process reads
 the existing validated snapshot instead of requesting iRacing again.
-Errors and missing car IDs are reported rather than returning empty data.
+Errors, duplicate IDs and missing entities are reported rather than returning empty data.
 
-This initial proof has no automatic expiration, refresh command, relationship
-resolution, or HTTP resource registration. Remove the snapshot manually to
-refetch from iRacing.
+These reference snapshots have no automatic expiration, refresh command,
+automatic relationship traversal, or HTTP resource registration. Remove the
+specific snapshot and reconnect to refetch it. Changing data such as results and
+member statistics must not use permanent reference snapshots.
+
+`src/resources/catalogs/resolver.ts` owns shared indexing and snapshot composition;
+`src/resources/snapshots.ts` owns atomic persistence;
+`src/resources/catalogs/register.ts` owns catalog discovery/read handlers.
+`src/resources/assets/` groups asset resolution, media reads and registration.
+Concrete dataset schemas, IDs, descriptions and SDK
+loaders live in `src/adapters/catalog.ts` (which imports canonical payload schemas); there are no per-dataset resolver or
+registration implementations.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
@@ -159,15 +236,21 @@ No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 
 - `src/config.ts`: Zod defaults and transformation to runtime options
 - `src/composition.ts`: Awilix dependency composition around an already verified actor
-- `src/http.ts`: mountable Hono MCP router
-- `src/http-server.ts`: optional Node listener
-- `src/stdio.ts`: stdio host using the same MCP factory
+- `src/transports/http/index.ts`: small HTTP barrel for the router and listener
+- `src/transports/http/router.ts`: mountable Hono MCP router
+- `src/transports/http/server.ts`: optional Node listener
+- `src/transports/stdio/index.ts`: stdio host using the same MCP factory
+- `src/resources/`: feature-grouped catalogs and assets, with shared snapshots
 - `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 
 Neither the MCP core nor the HTTP router depends on generated Fetch clients.
 The Fetch choice is confined to `src/adapters/` and the local credential
 adapter. A host can inject Axios, fixtures, or another provider instead.
+
+`src/index.ts` preserves the package-root hosting exports. Transport and resource
+features each have directory barrels; concrete generated SDK selection remains
+confined to `src/adapters/`.
 
 ```sh
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
@@ -177,3 +260,13 @@ pnpm verify
 
 See [architecture](architecture.md), [agent guidance](AGENTS.md), and
 [the tool-authoring skill](../../.agents/skills/add-mcp-tool/SKILL.md).
+
+## Local authentication diagnostics
+
+The repository's OpenCode wiring loads `.env` (when present) for OAuth client
+metadata and selects `.iracing-data/credentials.json` with `--credentials`.
+Standalone callers can select a document with that flag or
+`IRACING_MCP_CREDENTIAL_FILE`. OAuth restoration failures retain their original
+errors and report the selected path, error code, and message on stderr (never
+stdout). Missing sessions report the selected document and how to override it.
+Token documents and raw error objects are not logged.

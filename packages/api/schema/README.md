@@ -18,6 +18,36 @@ const result = APIResponseSchema.parse(apiResponse);
 
 Use the schemas directly for runtime validation or feed them into helpers like `@iracing-data/api-schema-to-openapi` for OpenAPI generation.
 
+## Downloaded JSON payloads
+
+[`src/schema/json.ts`](src/schema/json.ts) owns downloaded car, track and
+car-class catalogs, plus car/track/series asset documents. These are separate
+from the `/data` endpoint's `APIResponseSchema` (`link` and `expires`).
+
+```typescript
+import {
+  CarCatalogJsonSchema,
+  TrackAssetsJsonSchema,
+} from "@iracing-data/api-schema";
+import { z } from "zod";
+
+const cars = CarCatalogJsonSchema.parse(downloadedCars);
+const assets = TrackAssetsJsonSchema.parse(downloadedTrackAssets);
+const jsonSchema = z.toJSONSchema(CarCatalogJsonSchema);
+```
+
+Catalogs are arrays; asset documents are objects keyed by stringified entity IDs.
+The schemas require identity/name fields for catalog entries and identity fields
+for asset entries, document selected optional fields, and preserve unknown
+properties (including nested class membership fields). Metadata supplies stable
+schema IDs, titles, descriptions, relationships and known units/formats.
+Undocumented units are explicitly not inferred or normalized.
+
+These are intentionally partial acceptance schemas, not proof of full upstream
+coverage or automatic drift detection. Added properties are retained; incompatible
+modeled fields produce Zod issue paths. New exports are additive; existing envelope
+schemas, HTTP response mappings and generated client return types are unchanged.
+
 ## Current documentation and query inputs
 
 `ServicesDocsResponseSchema` accepts methods that omit `parameters` and preserves method `note` as a string or string array. Consumers must treat `parameters` as optional:
@@ -83,7 +113,8 @@ Canonical schema exports omit the leading `IRacing` and retain `OAuth` where pre
 
 [Primitives](src/schema/primitives.ts) own shared acceptance/coercion;
 [parameters](src/schema/parameters.ts) own endpoint inputs;
-[responses](src/schema/responses.ts) own response composition and coverage limits.
+[responses](src/schema/responses.ts) own response composition and coverage limits;
+[JSON payloads](src/schema/json.ts) own materialized catalog and asset validation.
 [Document mapping](../../helpers/api-schema-to-openapi/src/index.ts) owns endpoints
 and descriptions feeding generated clients/docs. See [generation checks](../../../scripts/check-generated.mjs)
 for authored/generated boundaries and deterministic freshness.

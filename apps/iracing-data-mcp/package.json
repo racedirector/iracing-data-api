@@ -15,6 +15,7 @@
   "dependencies": {
     "@hono/node-server": "1.19.17",
     "@iracing-data/api-client-fetch": "workspace:*",
+    "@iracing-data/api-schema": "workspace:*",
     "@iracing-data/mcp": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "@modelcontextprotocol/server": "2.3.1",

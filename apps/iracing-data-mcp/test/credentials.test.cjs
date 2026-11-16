@@ -101,3 +101,24 @@ test("local credentials refresh once and persist rotated tokens before API use",
   };
   await assert.rejects(query(), { name: "ApplicationFailure" });
 });
+
+test("local OAuth restoration retains diagnostic errors and supports retry", async (t) => {
+  const { createCliAccessToken } = await import("../dist/credentials.js");
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-auth-"));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const file = path.join(directory, "credentials.json");
+  const resolve = createCliAccessToken(file, {
+    clientId: "test-client",
+    scopes: [],
+  });
+  for (let attempt = 0; attempt < 2; attempt++) {
+    await assert.rejects(resolve(), (error) => {
+      assert.notEqual(
+        error.message,
+        "Authorization is required. Ask the host to restore access.",
+      );
+      assert.ok(error.message.length > 0);
+      return true;
+    });
+  }
+});

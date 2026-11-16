@@ -1,6 +1,6 @@
 import { parseArgs } from "node:util";
 import { parseConfig } from "./config.js";
-import { startMcpStdio } from "./stdio.js";
+import { startMcpStdio } from "./transports/stdio/index.js";
 
 /** Local executable: stdio is the default; an HTTP host mounts the router. */
 try {

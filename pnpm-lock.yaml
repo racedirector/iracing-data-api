@@ -356,6 +356,9 @@ importers:
       '@iracing-data/api-client-fetch':
         specifier: workspace:*
         version: link:../../packages/api/client/fetch
+      '@iracing-data/api-schema':
+        specifier: workspace:*
+        version: link:../../packages/api/schema
       '@iracing-data/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp

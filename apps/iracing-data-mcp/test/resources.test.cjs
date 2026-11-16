@@ -4,15 +4,17 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
-async function connect(t, cars) {
-  const { registerReferenceResources } = await import("../dist/resources.js");
+const schemaRoot = (schema) =>
+  schema.$ref ? schema.$defs[schema.$ref.split("/").at(-1)] : schema;
+
+async function connect(t, catalogs) {
+  const { registerReferenceResources } =
+    await import("../dist/resources/index.js");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
-
   const server = new McpServer({ name: "catalog-test", version: "1" });
-  registerReferenceResources(server, { cars });
-
+  registerReferenceResources(server, catalogs);
   const client = new Client({ name: "catalog-client", version: "1" });
   const [serverTransport, clientTransport] =
     InMemoryTransport.createLinkedPair();
@@ -22,145 +24,289 @@ async function connect(t, cars) {
     await client.close();
     await server.close();
   });
-
   return client;
 }
 
-test("collection and entity resources reuse one hydrated catalog across restarts", async (t) => {
-  const { CarCatalogSchema, createCarCatalogResolver } =
-    await import("../dist/catalog.js");
-  const { createFileBackedResolver } = await import("../dist/resources.js");
+const datasets = [
+  { name: "cars", endpoint: "/data/car/get", id: "car_id", title: "car_name" },
+  {
+    name: "tracks",
+    endpoint: "/data/track/get",
+    id: "track_id",
+    title: "track_name",
+  },
+  {
+    name: "car-classes",
+    endpoint: "/data/carclass/get",
+    id: "car_class_id",
+    title: "name",
+  },
+];
+
+test("all reference catalogs share discovery, hydration, indexing and restart reuse", async (t) => {
+  const { createReferenceCatalogs } =
+    await import("../dist/adapters/catalog.js");
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
-  const file = path.join(directory, "reference", "cars.json");
-  const cars = [
-    { car_id: 1, car_name: "Car One" },
-    { car_id: 2, car_name: "Car Two" },
-    { car_id: 3, car_name: "Car Three" },
-  ];
-  let fetches = 0;
-  const load = async () => {
-    fetches++;
-    return cars;
+  const requests = [];
+  const payloads = Object.fromEntries(
+    datasets.map((dataset) => [
+      dataset.name,
+      [1, 2, 3].map((id) => ({
+        [dataset.id]: id,
+        [dataset.title]: `${dataset.name} ${id}`,
+        upstream_extra: { preserved: true },
+      })),
+    ]),
+  );
+  const fetchApi = async (input, init) => {
+    const url = new URL(input);
+    const authorization = new Headers(init.headers).get("authorization");
+    requests.push(url.href);
+    if (url.host === "members-ng.iracing.com") {
+      assert.equal(authorization, "Bearer TEST_TOKEN");
+      const dataset = datasets.find((entry) => entry.endpoint === url.pathname);
+      assert.ok(dataset);
+      return Response.json({
+        link: `https://cache.example.test/${dataset.name}`,
+        expires: new Date(Date.now() + 900000).toISOString(),
+      });
+    }
+    assert.equal(authorization, null);
+    assert.equal(init.redirect, "error");
+    return Response.json(payloads[url.pathname.slice(1)]);
   };
-  const createCatalog = () =>
-    createCarCatalogResolver(
-      createFileBackedResolver(file, load, (data) => CarCatalogSchema.parse(data)),
-    );
-
-  const client = await connect(t, createCatalog());
+  const createCatalogs = () =>
+    createReferenceCatalogs(directory, async () => "TEST_TOKEN", fetchApi);
+  const client = await connect(t, createCatalogs());
+  const resources = (await client.listResources()).resources;
   assert.deepEqual(
-    (await client.listResources()).resources.map((resource) => resource.uri),
-    ["iracing://cars"],
+    resources.map((resource) => resource.uri),
+    datasets.map((entry) => `iracing://${entry.name}`),
+  );
+  assert.ok(
+    resources.every((resource) => resource.description.includes("Resolve")),
   );
   assert.deepEqual(
     (await client.listResourceTemplates()).resourceTemplates.map(
-      (resource) => resource.uriTemplate,
+      (entry) => entry.uriTemplate,
     ),
-    ["iracing://cars/{carId}"],
+    datasets.map((entry) => `iracing://${entry.name}/{${entry.id}}`),
   );
-  assert.equal(fetches, 0);
-
-  const read = (uri) => client.readResource({ uri });
-  const [list, first, second, third] = await Promise.all([
-    read("iracing://cars"),
-    read("iracing://cars/1"),
-    read("iracing://cars/2"),
-    read("iracing://cars/3"),
-  ]);
-
-  assert.deepEqual(JSON.parse(list.contents[0].text), cars);
-  assert.deepEqual(JSON.parse(first.contents[0].text), cars[0]);
-  assert.deepEqual(JSON.parse(second.contents[0].text), cars[1]);
-  assert.deepEqual(JSON.parse(third.contents[0].text), cars[2]);
-  assert.equal(fetches, 1);
-  assert.deepEqual(JSON.parse(await fs.readFile(file, "utf8")), cars);
-
-  const restartedClient = await connect(t, createCatalog());
-  const restarted = await restartedClient.readResource({
-    uri: "iracing://cars/2",
-  });
-  assert.deepEqual(JSON.parse(restarted.contents[0].text), cars[1]);
-  assert.equal(fetches, 1);
-});
-
-test("invalid and missing car IDs fail without a second API request", async (t) => {
-  const { CarCatalogSchema, createCarCatalogResolver } =
-    await import("../dist/catalog.js");
-  let loads = 0;
-  const cars = createCarCatalogResolver(async () => {
-    loads++;
-    return CarCatalogSchema.parse([{ car_id: 1, car_name: "Car One" }]);
-  });
-  const client = await connect(t, cars);
-
-  for (const uri of [
-    "iracing://cars/0",
-    "iracing://cars/abc",
-    "iracing://cars/9007199254740992",
-    "iracing://cars/999",
-  ]) {
-    await assert.rejects(client.readResource({ uri }));
+  assert.equal(
+    requests.length,
+    0,
+    "discovery never requires authentication or hydration",
+  );
+  for (const dataset of datasets) {
+    const results = await Promise.all([
+      client.readResource({ uri: `iracing://${dataset.name}` }),
+      ...[1, 2, 3].map((id) =>
+        client.readResource({ uri: `iracing://${dataset.name}/${id}` }),
+      ),
+    ]);
+    assert.deepEqual(
+      JSON.parse(results[0].contents[0].text).data,
+      payloads[dataset.name],
+    );
+    for (let i = 1; i <= 3; i++) {
+      assert.deepEqual(
+        JSON.parse(results[i].contents[0].text).data,
+        payloads[dataset.name][i - 1],
+      );
+    }
+    assert.deepEqual(
+      JSON.parse(
+        await fs.readFile(path.join(directory, `${dataset.name}.json`), "utf8"),
+      ),
+      payloads[dataset.name],
+    );
+    for (const id of ["0", "abc", "9007199254740992", "999"]) {
+      await assert.rejects(
+        client.readResource({ uri: `iracing://${dataset.name}/${id}` }),
+      );
+    }
   }
-
-  assert.equal(loads, 1);
-  assert.deepEqual(await cars.get(1), { car_id: 1, car_name: "Car One" });
+  assert.equal(
+    requests.length,
+    6,
+    "one API call and one signed download per catalog",
+  );
+  const restarted = await connect(t, createCatalogs());
+  for (const dataset of datasets) {
+    const result = await restarted.readResource({
+      uri: `iracing://${dataset.name}/2`,
+    });
+    assert.deepEqual(
+      JSON.parse(result.contents[0].text).data,
+      payloads[dataset.name][1],
+    );
+  }
+  assert.equal(requests.length, 6, "restart uses snapshots, not the API");
 });
 
-test("invalid hydration never persists a snapshot and may be retried", async (t) => {
-  const { CarCatalogSchema, createCarCatalogResolver } =
-    await import("../dist/catalog.js");
-  const { createFileBackedResolver } = await import("../dist/resources.js");
+test("invalid hydration is not persisted and can be retried", async (t) => {
+  const { createReferenceCatalogs } =
+    await import("../dist/adapters/catalog.js");
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
-  const file = path.join(directory, "cars.json");
-  let attempts = 0;
-  const cars = createCarCatalogResolver(
-    createFileBackedResolver(
-      file,
-      async () => {
-        attempts++;
-        return attempts === 1
-          ? [{ car_id: 1 }]
-          : [{ car_id: 1, car_name: "Car One" }];
+  for (const dataset of datasets) {
+    let downloads = 0;
+    const catalogs = createReferenceCatalogs(
+      directory,
+      async () => "TEST_TOKEN",
+      async (input) => {
+        if (new URL(input).host === "members-ng.iracing.com") {
+          return Response.json({
+            link: "https://cache.example.test/data",
+            expires: new Date(Date.now() + 900000).toISOString(),
+          });
+        }
+        downloads++;
+        return Response.json(
+          downloads === 1
+            ? [{ [dataset.id]: 1 }]
+            : [{ [dataset.id]: 1, [dataset.title]: "Example" }],
+        );
       },
-      (data) => CarCatalogSchema.parse(data),
-    ),
-  );
-
-  await assert.rejects(cars.all());
-  await assert.rejects(fs.access(file), { code: "ENOENT" });
-  assert.deepEqual(await cars.get(1), { car_id: 1, car_name: "Car One" });
-  assert.equal(attempts, 2);
+    );
+    const catalog = catalogs.find((entry) => entry.name === dataset.name);
+    await assert.rejects(catalog.resolver.all());
+    await assert.rejects(
+      fs.access(path.join(directory, `${dataset.name}.json`)),
+      { code: "ENOENT" },
+    );
+    assert.ok(await catalog.resolver.get(1));
+    assert.equal(downloads, 2);
+  }
 });
 
-test("car fetch materializes linked payload without forwarding credentials", async () => {
-  const { createCarCatalogLoader } =
-    await import("../dist/adapters/catalog.js");
-  const calls = [];
-  const load = createCarCatalogLoader(
-    async () => "TEST_TOKEN",
-    async (input, init) => {
-      const url = new URL(input);
-      const auth = new Headers(init.headers).get("authorization");
-      calls.push({ host: url.host, auth });
-
-      if (url.host === "members-ng.iracing.com") {
-        assert.equal(url.pathname, "/data/car/get");
-        return Response.json({
-          link: "https://cache.example.test/cars",
-          expires: new Date(Date.now() + 900000).toISOString(),
-        });
-      }
-
-      assert.equal(init.redirect, "error");
-      return Response.json([{ car_id: 17, car_name: "Example car" }]);
+test("shared index rejects duplicate or invalid IDs and retries", async () => {
+  const { createCatalogResolver } =
+    await import("../dist/resources/catalogs/index.js");
+  let attempts = 0;
+  const resolver = createCatalogResolver(
+    async () => {
+      attempts++;
+      return attempts === 1 ? [{ id: 1 }, { id: 1 }] : [{ id: 2 }];
     },
+    (entry) => entry.id,
   );
+  await assert.rejects(resolver.all(), /duplicate catalog ID/);
+  assert.deepEqual(await resolver.get(2), { id: 2 });
+  assert.equal(await resolver.get(999), null);
+});
 
-  assert.deepEqual(await load(), [{ car_id: 17, car_name: "Example car" }]);
-  assert.deepEqual(calls, [
-    { host: "members-ng.iracing.com", auth: "Bearer TEST_TOKEN" },
-    { host: "cache.example.test", auth: null },
-  ]);
+test("car class zero is a valid upstream entity ID", async (t) => {
+  const { createReferenceCatalogs } =
+    await import("../dist/adapters/catalog.js");
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  await fs.writeFile(
+    path.join(directory, "car-classes.json"),
+    JSON.stringify([{ car_class_id: 0, name: "All Cars" }]),
+  );
+  const catalogs = createReferenceCatalogs(directory, async () => {
+    throw new Error("No auth expected");
+  });
+  const client = await connect(t, catalogs);
+  assert.deepEqual(
+    JSON.parse(
+      (await client.readResource({ uri: "iracing://car-classes/0" }))
+        .contents[0].text,
+    ).data,
+    { car_class_id: 0, name: "All Cars" },
+  );
+});
+
+test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON across requests", async (t) => {
+  const { Client } = await import("@modelcontextprotocol/client");
+  const { StdioClientTransport } =
+    await import("@modelcontextprotocol/client/stdio");
+  const directory = await fs.mkdtemp(
+    path.join(os.tmpdir(), "mcp-stdio-catalog-"),
+  );
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const reference = path.join(directory, "reference");
+  await fs.mkdir(reference);
+  for (const dataset of datasets) {
+    await fs.writeFile(
+      path.join(reference, `${dataset.name}.json`),
+      JSON.stringify([
+        { [dataset.id]: 1, [dataset.title]: "Not read during discovery" },
+      ]),
+    );
+  }
+  const client = new Client({ name: "stdio-catalog-test", version: "1" });
+  t.after(() => client.close());
+  await client.connect(
+    new StdioClientTransport({
+      command: process.execPath,
+      args: [
+        path.resolve(__dirname, "../dist/main.js"),
+        "--credentials",
+        path.join(directory, "credentials.json"),
+      ],
+      stderr: "inherit",
+    }),
+  );
+  assert.equal((await client.listResources()).resources.length, 6);
+  assert.equal(
+    (await client.listResourceTemplates()).resourceTemplates.length,
+    10,
+  );
+  // Files changed after discovery must be observed on the first read.
+  for (const dataset of datasets) {
+    await fs.writeFile(
+      path.join(reference, `${dataset.name}.json`),
+      JSON.stringify([{ [dataset.id]: 17, [dataset.title]: "Example" }]),
+    );
+  }
+  for (const dataset of datasets) {
+    const collectionResponse = JSON.parse(
+      (await client.readResource({ uri: `iracing://${dataset.name}` }))
+        .contents[0].text,
+    );
+    // Independent requests reuse parsed memory rather than rereading disk.
+    await fs.writeFile(
+      path.join(reference, `${dataset.name}.json`),
+      "invalid JSON",
+    );
+    const entityResponse = JSON.parse(
+      (await client.readResource({ uri: `iracing://${dataset.name}/17` }))
+        .contents[0].text,
+    );
+    assert.deepEqual(collectionResponse.data, [entityResponse.data]);
+    assert.equal(entityResponse.data[dataset.id], 17);
+    assert.equal(
+      collectionResponse.schema.$schema,
+      "https://json-schema.org/draft/2020-12/schema",
+    );
+    assert.equal(schemaRoot(collectionResponse.schema).type, "array");
+    assert.equal(schemaRoot(entityResponse.schema).type, "object");
+    assert.ok(schemaRoot(collectionResponse.schema).title);
+    assert.ok(
+      schemaRoot(entityResponse.schema).properties[dataset.id].description,
+    );
+    assert.deepEqual(
+      schemaRoot(entityResponse.schema).additionalProperties,
+      {},
+    );
+  }
+  for (const [kind, idField] of [
+    ["cars", "car_id"],
+    ["tracks", "track_id"],
+    ["series", "series_id"],
+  ]) {
+    await fs.writeFile(
+      path.join(reference, `${kind}-assets.json`),
+      JSON.stringify({ 17: { [idField]: 17, logo: "/img/logos/example.png" } }),
+    );
+    const result = await client.readResource({
+      uri: `iracing://assets/${kind}/17`,
+    });
+    const body = JSON.parse(result.contents[0].text);
+    assert.equal(body.data[idField], 17);
+    assert.ok(body.schema.$defs);
+  }
 });

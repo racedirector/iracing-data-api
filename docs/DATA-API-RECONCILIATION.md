@@ -13,6 +13,66 @@ behavior may invalidate a previous choice. Add a dated review rather than erasin
 history. Historical entries are not current upstream authority. Never record
 credentials, private identifiers, signed URLs, or raw response bodies.
 
+## DATA-003 — Separate downloaded JSON schemas and self-describing MCP reads
+
+- **Status:** additive payload contracts implemented; selected payload checks pass.
+  **Unable to verify part of the contract:** no full raw-wire or all-route verdict.
+- **Observed/reviewed:** 2026-11-16 UTC; authenticated docs retrieved at
+  `2026-11-16T02:30:16Z`. Initial retrieval returned 401; the operator
+  reauthenticated before the successful retrieval.
+- **Git context:** base `2bc79cdc046f76b07fcdcfc9ffc976996c283502`,
+  branch `feature/mcp-runtime-resource-resolver-proof`, already dirty with local
+  MCP catalog/authentication work. Implementation commit: **pending**.
+- **Sources:** current official `/data/doc` car/get, track/get, carclass/get,
+  car/assets, track/assets and series/assets entries; official asset notes give
+  `https://images-static.iracing.com/` as the image base. Docs establish routes
+  and notes, not a complete schema of downloaded content. Fresh asset downloads
+  used the existing CLI/generated Fetch client; catalog contents came through
+  connected MCP reads and their existing local snapshots.
+- **Finding/decision:** **retain** `APIResponseSchema` and all HTTP mappings.
+  Downloaded JSON is distinct from link/expiry envelopes. Add explicit `*JsonSchema`
+  exports in `packages/api/schema/src/schema/json.ts`, not `responses.ts`.
+  Do not restore historical removed `Get*ResponseSchema` aliases. This revises
+  the old application-owned-payload recommendation, not an upstream wire contract.
+- **Acceptance:** required entity identity (plus catalog names); selected
+  optional metadata with unknown properties retained. Class ID zero is valid.
+  Asset documents are objects keyed by stringified IDs; catalogs are arrays.
+  Undocumented units and empty-only rule-array item structures remain unmodeled.
+- **MCP behavior:** resource JSON now contains `{ schema, data }`. Schemas derive
+  from canonical Zod metadata, include self-contained local definitions, and
+  distinguish entity and collection shapes. Snapshot files remain raw JSON.
+- **Command decisions:** **retain** existing asset CLI commands; they already
+  materialize downloaded data. No CLI query or endpoint mapping change needed.
+- **Public impact:** additive API-schema exports; existing API envelopes and SDK
+  return types unchanged. Experimental private MCP read format changes from
+  bare data to `{ schema, data }`. No versions bumped or publication authorized.
+- **Validation:** schema tests (47) and MCP tests (32), including actual stdio
+  resource discovery, JSON Schema metadata and lazy process-lifetime caching.
+  Canonical validation passed for 193 cars, 477 tracks and 274 car classes from
+  MCP snapshots; fresh downloaded asset validation passed for 193 car, 477 track
+  and 162 series asset entries. This proves selected acceptance, not full schema
+  coverage, automatic drift detection or all-route compatibility.
+- **Connected-agent limitation:** direct stdio reads returned `{ schema, data }`
+  for all three collections and sampled entities. The project-scoped OpenCode
+  management API advertises the new format after reconnect, but this session's
+  built-in resource tools still returned the previous descriptions and bare
+  payloads. Connected-agent uptake remains unverified; do not count direct stdio
+  success as proof that this session has refreshed its connection.
+- **Commands:** `pnpm --filter '@iracing-data/iracing-data-mcp...' build`;
+  `pnpm --filter @iracing-data/api-schema test`;
+  `pnpm --filter @iracing-data/iracing-data-mcp test`; `pnpm verify:js` (pass,
+  two platform-specific CLI tests skipped); focused ESLint;
+  docs via `node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js
+--credentials .iracing-data/credentials.json docs`; asset downloads via the same
+  CLI's `assets car`, `assets track`, `assets series`, parsed with canonical
+  package exports. No raw bodies or signed links retained in this log.
+- **Generation:** none required: no OpenAPI mapping, HTTP schema or generator
+  input changed. No SDKs regenerated.
+- **Limitations/next review:** catalog snapshots are not fresh-upstream evidence;
+  asset payloads are current observations, not proof that all optional/non-null
+  variants are covered. Review on modeled-field failures or new semantics.
+  Full repository verification previously timed out during isolated generation.
+
 ## DATA-001 — Hosted search returns an inline manifest
 
 - **Status:** repaired; scoped live case PASS. Not an all-endpoint verdict.

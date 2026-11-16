@@ -1,8 +1,6 @@
-import { ApplicationFailure } from "@iracing-data/mcp";
 import {
   InMemoryStore,
   OAuthClient,
-  OAuthRefreshError,
   OAuthTokenDocumentSessionStore,
   type IRacingOAuthClientMetadataInput,
   type OAuthTokenResponse,
@@ -49,17 +47,31 @@ export function createCliAccessToken(
       try {
         token = await client.restoreSessionForId(sessionKey);
       } catch (error) {
-        throw new ApplicationFailure(
-          error instanceof OAuthRefreshError
-            ? "TOKEN_REFRESH_FAILED"
-            : "AUTHORIZATION_REQUIRED",
+        // Local stdio diagnostics must retain the OAuth service's explanation.
+        // Do not serialize the error object: it may carry sensitive context.
+        const detail =
+          error instanceof Error
+            ? error.message
+            : "Unknown restoration failure";
+
+        const code =
+          error && typeof error === "object" && "code" in error
+            ? String(error.code)
+            : undefined;
+
+        process.stderr.write(
+          `[iracing-data-mcp] OAuth session restoration failed (${credentialsFile})${code ? ` [${code}]` : ""}: ${detail}\n`,
         );
+        throw error;
       }
 
       if (!token?.access_token.trim()) {
-        throw new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-          reason: "missing_session",
-        });
+        const error = new Error(
+          `No OAuth session found in ${credentialsFile}. Authenticate the CLI MCP session or select its credential document with --credentials / IRACING_MCP_CREDENTIAL_FILE.`,
+        );
+
+        process.stderr.write(`[iracing-data-mcp] ${error.message}\n`);
+        throw error;
       }
 
       return token.access_token;
@@ -74,10 +86,17 @@ export function createCliAccessToken(
   };
 }
 
-/** Compose the current local CLI capabilities around a single token resolver. */
+/**
+ * Compose the current local CLI capabilities around a single token resolver.
+ * @param {string} credentialsFile - Selected OAuth token document.
+ * @param {IRacingOAuthClientMetadataInput} clientMetadata - Registration used for the original login.
+ * @returns {McpCapabilities} Local API capabilities sharing one serialized token resolver.
+ */
 export function createCliCapabilities(
   credentialsFile: string,
   clientMetadata?: IRacingOAuthClientMetadataInput,
 ): McpCapabilities {
-  return createFetchQueries(createCliAccessToken(credentialsFile, clientMetadata));
+  return createFetchQueries(
+    createCliAccessToken(credentialsFile, clientMetadata),
+  );
 }
