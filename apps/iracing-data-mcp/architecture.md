@@ -21,8 +21,15 @@ existing Hono host, and the listener remains optional. `createMcpRouter()` accep
 before capabilities are selected. Null identity returns 401 and never
 falls back to the local account.
 
-Local stdio has a single explicit local actor and restores an OAuth session
-from the selected file only when a tool performs an upstream call. The OAuth
+Both transports accept the same explicit `resolveCapabilities(actor, context)`
+contract. Stdio receives its authorized actor from the host; HTTP verifies
+actors per request. Neither transport selects a token strategy or reads
+environment configuration.
+
+The standalone executable explicitly composes the file-backed provider. It
+parses supplied environment and validates the selected credential document
+before starting stdio, without network access. In-repo clients use dotenv CLI
+outside the executable to load `.env`. The OAuth
 client owns session restoration, refresh and persistence of rotated credentials.
 Credential acquisition is separate from file loading: the current setup uses
 the CLI to obtain the initial document, but the loader does not depend on the

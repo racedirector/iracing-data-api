@@ -1,4 +1,5 @@
 const assert = require("node:assert/strict");
+const path = require("node:path");
 const test = require("node:test");
 
 test("injected account-scoped token providers remain isolated and resolve on demand", async (t) => {
@@ -63,4 +64,71 @@ test("injected account-scoped token providers remain isolated and resolve on dem
     "Bearer bob-first",
     "Bearer alice-second",
   ]);
+});
+
+test("switching an injected token strategy applies equally to stdio and HTTP", async (t) => {
+  const { Client } = await import("@modelcontextprotocol/client");
+  const { StdioClientTransport } =
+    await import("@modelcontextprotocol/client/stdio");
+  const { createMcpRouter } = await import("../dist/index.js");
+  const { fixtureFetch, resolveLinkedCapabilities } =
+    await import("./fixtures/linked-account.mjs");
+  const originalFetch = globalThis.fetch;
+  t.after(() => {
+    globalThis.fetch = originalFetch;
+  });
+  globalThis.fetch = fixtureFetch;
+  for (const [strategy, expected] of [
+    ["primary", 1],
+    ["alternate", 2],
+  ]) {
+    const client = new Client({ name: "strategy-test", version: "1" });
+    const env = { ...process.env, MCP_TEST_STRATEGY: strategy };
+    delete env.IRACING_AUTH_CLIENT;
+    delete env.IRACING_AUTH_SECRET;
+    env.IRACING_MCP_CREDENTIAL_FILE = "/must-not-read-local-credentials.json";
+    const transport = new StdioClientTransport({
+      command: process.execPath,
+      args: [path.resolve(__dirname, "fixtures/linked-stdio.mjs")],
+      env,
+    });
+    const router = createMcpRouter({
+      resolveActor: () => ({ id: "linked-user", provider: "fixture" }),
+      resolveCapabilities: resolveLinkedCapabilities(strategy),
+    });
+    try {
+      await client.connect(transport);
+      const stdio = await client.callTool({
+        name: "get_my_driver",
+        arguments: {},
+      });
+      const response = await router.request("http://localhost/", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json, text/event-stream",
+        },
+        body: JSON.stringify({
+          jsonrpc: "2.0",
+          id: 1,
+          method: "tools/call",
+          params: { name: "get_my_driver", arguments: {} },
+        }),
+      });
+      assert.equal(response.status, 200);
+      const text = await response.text();
+      const http = JSON.parse(
+        response.headers.get("content-type").includes("text/event-stream")
+          ? text
+              .split("\n")
+              .find((line) => line.startsWith("data:"))
+              .slice(5)
+          : text,
+      ).result;
+      assert.equal(stdio.structuredContent.cust_id, expected);
+      assert.deepEqual(http.structuredContent, stdio.structuredContent);
+    } finally {
+      await client.close();
+    }
+  }
 });

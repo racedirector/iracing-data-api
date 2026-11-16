@@ -4,6 +4,7 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
+const { localSession } = require("../test/fixtures/local-session.cjs");
 
 // Build the dependency closure first. This test packs the real publication
 // artifacts and installs them outside the workspace, without publishing.
@@ -92,26 +93,15 @@ test(
     );
     assert.equal(typeof api.createFileAccessTokenProvider, "function");
     assert.equal(typeof api.createFetchQueries, "function");
-    await fs.writeFile(
-      path.join(directory, ".env"),
-      "IRACING_MCP_CREDENTIAL_FILE=from-env.json\nIRACING_AUTH_CLIENT=synthetic-client\n",
-    );
+    const fixture = await localSession(t);
     const { Client } = await import("@modelcontextprotocol/client");
     const { StdioClientTransport } =
       await import("@modelcontextprotocol/client/stdio");
     const client = new Client({ name: "packed-smoke", version: "1" });
-    const env = { ...process.env };
-    delete env.IRACING_MCP_CREDENTIAL_FILE;
-    delete env.IRACING_AUTH_CLIENT;
-    delete env.IRACING_AUTH_SECRET;
+    const env = fixture.env;
     const transport = new StdioClientTransport({
       command: path.join(directory, "node_modules/.bin/iracing-data-mcp"),
-      args: [
-        "--env-file-if-exists",
-        ".env",
-        "--credentials",
-        "explicit-missing.json",
-      ],
+      args: ["--credentials", fixture.file],
       cwd: directory,
       env,
       stderr: "pipe",
@@ -126,17 +116,18 @@ test(
         (await client.listTools()).tools.map((tool) => tool.name),
         ["get_my_driver", "get_recent_races", "search_race_results"],
       );
-      const result = await client.callTool({
-        name: "get_my_driver",
-        arguments: {},
-      });
-      assert.equal(result.isError, true);
-      assert.ok(JSON.stringify(result).includes("AUTHORIZATION_REQUIRED"));
-      assert.ok(!JSON.stringify(result).includes("explicit-missing.json"));
-      assert.ok(stderr.includes("explicit-missing.json"));
-      assert.ok(!stderr.includes("from-env.json"));
     } finally {
       await client.close();
     }
+    assert.equal(stderr, "");
+    const missing = spawnSync(
+      path.join(directory, "node_modules/.bin/iracing-data-mcp"),
+      ["--credentials", path.join(directory, "missing.json")],
+      { cwd: directory, env, encoding: "utf8", timeout: 10000 },
+    );
+    assert.equal(missing.status, 1);
+    assert.equal(missing.stdout, "");
+    assert.match(missing.stderr, /No OAuth session found/);
+    assert.match(missing.stderr, /IRACING_MCP_CREDENTIAL_FILE/);
   },
 );

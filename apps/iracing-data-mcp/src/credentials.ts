@@ -4,6 +4,7 @@ import {
   OAuthClient,
   OAuthRefreshError,
   OAuthTokenDocumentSessionStore,
+  readOAuthTokenDocument,
   type IRacingOAuthClientMetadataInput,
   type OAuthTokenResponse,
 } from "@iracing-data/oauth-client";
@@ -11,6 +12,28 @@ import { createFetchQueries } from "./adapters/fetch.js";
 import { LocalAuthorizationError } from "./auth-errors.js";
 import type { McpCapabilities } from "./composition.js";
 import type { AccessTokenProvider } from "./token-provider.js";
+
+/**
+ * Validate the selected local document before serving stdio, without refresh.
+ * @param {string} credentialsFile - Explicitly selected OAuth token document.
+ * @returns {Promise<void>} Completion once usable credential state is present.
+ * @throws {LocalAuthorizationError} When credentials are absent or invalid.
+ */
+export async function validateFileSession(
+  credentialsFile: string,
+): Promise<void> {
+  let token: OAuthTokenResponse | undefined;
+
+  try {
+    token = await readOAuthTokenDocument(credentialsFile);
+  } catch (error) {
+    throw restorationFailure(credentialsFile, error);
+  }
+
+  if (!token) {
+    throw missingSession(credentialsFile);
+  }
+}
 
 /**
  * Resolve a file-backed access token on demand without sharing a stale token.
@@ -21,11 +44,7 @@ import type { AccessTokenProvider } from "./token-provider.js";
  */
 export function createFileAccessTokenProvider(
   credentialsFile: string,
-  clientMetadata: IRacingOAuthClientMetadataInput = {
-    clientId: process.env.IRACING_AUTH_CLIENT ?? "",
-    clientSecret: process.env.IRACING_AUTH_SECRET,
-    scopes: [],
-  },
+  clientMetadata: IRacingOAuthClientMetadataInput,
 ): AccessTokenProvider {
   const sessionKey = "iracing-data-mcp-local";
 
@@ -55,17 +74,7 @@ export function createFileAccessTokenProvider(
       }
 
       if (!token?.access_token.trim()) {
-        const failure = new ApplicationFailure("AUTHORIZATION_REQUIRED", {
-          reason: "missing_session",
-        });
-
-        const diagnostic = new LocalAuthorizationError(
-          `No OAuth session found in ${credentialsFile}. Authenticate an iRacing session (for example with the CLI) or select its credential document with --credentials / IRACING_MCP_CREDENTIAL_FILE.`,
-          failure,
-        );
-
-        process.stderr.write(`[iracing-data-mcp] ${diagnostic.message}\n`);
-        throw diagnostic;
+        throw missingSession(credentialsFile);
       }
 
       return token.access_token;
@@ -78,6 +87,19 @@ export function createFileAccessTokenProvider(
 
     return restoration;
   };
+}
+
+function missingSession(credentialsFile: string): LocalAuthorizationError {
+  const diagnostic = new LocalAuthorizationError(
+    `No OAuth session found in ${credentialsFile}. Run pnpm iracing-data auth login --scope iracing.auth, or select an existing token document with --credentials / IRACING_MCP_CREDENTIAL_FILE. See https://github.com/racedirector/iracing-data-api/tree/main/apps/iracing-data-mcp#environment-configuration`,
+    new ApplicationFailure("AUTHORIZATION_REQUIRED", {
+      reason: "missing_session",
+    }),
+  );
+
+  process.stderr.write(`[iracing-data-mcp] ${diagnostic.message}\n`);
+
+  return diagnostic;
 }
 
 function restorationFailure(
@@ -122,7 +144,7 @@ function restorationFailure(
  */
 export function createFileCapabilities(
   credentialsFile: string,
-  clientMetadata?: IRacingOAuthClientMetadataInput,
+  clientMetadata: IRacingOAuthClientMetadataInput,
 ): McpCapabilities {
   return createFetchQueries(
     createFileAccessTokenProvider(credentialsFile, clientMetadata),

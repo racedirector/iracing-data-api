@@ -7,10 +7,13 @@ pnpm --filter '@iracing-data/iracing-data-mcp...' build
 ```
 
 The checked-in project configurations start the **local stdio server** with
-`pnpm exec iracing-data-mcp`. The MCP client launches its
+`pnpm exec dotenv -e .env -- iracing-data-mcp`. Dotenv CLI, not the MCP executable,
+loads the repository's environment file. Copy [`.env.example`](../../.env.example)
+and follow [environment configuration](README.md#environment-configuration).
+The MCP client launches its
 own process; there is no default HTTP listener or OAuth resource server.
-The selected credential file is consulted only when a tool actually calls the
-iRacing API. For initial setup, run
+Startup validates registration and the selected credential document without a
+network request. For initial setup, run
 `pnpm iracing-data auth login --scope iracing.auth`. The runtime independently
 loads that document and persists on-demand OAuth refreshes to the same file.
 

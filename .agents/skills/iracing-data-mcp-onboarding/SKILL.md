@@ -31,13 +31,19 @@ so replacing its contents does not require reconnecting.
 Do not silently fall back to another account's credential file.
 
 Run `pnpm mcp:local` for a manual stdio session, or configure the MCP
-client to execute `pnpm exec iracing-data-mcp` from the
+client to execute `pnpm exec dotenv -e .env -- iracing-data-mcp` from the
 repository root. After publication, consumers may install
 `@iracing-data/iracing-data-mcp@next` and execute `iracing-data-mcp` directly.
-Use `--env-file-if-exists /path/to/.env` for optional environment-file loading;
-otherwise pass OAuth registration environment through the client configuration.
+The executable does not load environment files. In-repo configurations use
+dotenv CLI as an external development tool. Copy
+[`.env.example`](../../../.env.example) without overwriting existing configuration
+and follow [environment configuration](../../../apps/iracing-data-mcp/README.md#environment-configuration);
+other clients/deployments supply environment through their own facilities.
 Never put ordinary logs on stdout: it belongs to MCP.
-The runtime restores the session only when a tool needs it. Its OAuth client
+Startup requires a nonblank `IRACING_AUTH_CLIENT` and a safe, valid selected
+credential document; diagnostics name missing/invalid variables without values.
+The startup document check makes no API or refresh request. The runtime restores
+the session only when a tool needs it. Its OAuth client
 refreshes expired access tokens and persists rotated credentials through the
 token-document session store. Set `IRACING_AUTH_CLIENT` and, for confidential
 clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
