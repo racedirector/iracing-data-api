@@ -1,0 +1,30 @@
+import {
+  CarApi,
+  Configuration,
+  SeriesApi,
+  TrackApi,
+} from "@iracing-data/api-client-fetch";
+import { readLinkedData } from "./linked-response.js";
+
+/** Supported iRacing static asset catalogs (not race results). */
+export type AssetKind = "car" | "track" | "series";
+
+/** A single linked Data API response is fully materialized before persistence. */
+export function createAssetCatalogLoader(
+  kind: AssetKind,
+  accessToken: () => Promise<string>,
+  fetchApi: typeof fetch = fetch,
+): () => Promise<unknown> {
+  const configuration = new Configuration({ accessToken, fetchApi });
+
+  return async () => {
+    const signal = AbortSignal.timeout(15_000);
+    const envelope = await (kind === "car"
+      ? new CarApi(configuration).getCarAssets({ signal })
+      : kind === "track"
+        ? new TrackApi(configuration).getTrackAssets({ signal })
+        : new SeriesApi(configuration).getSeriesAssets({ signal }));
+
+    return readLinkedData(envelope, signal, fetchApi);
+  };
+}
