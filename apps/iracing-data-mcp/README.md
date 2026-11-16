@@ -44,12 +44,13 @@ observe persisted refresh-token rotation. The OAuth client refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
 
 Local stdio also registers one experimental resource, `iracing://reference/cars`.
-On its first read, it uses the same OAuth token resolver as the tools to
-materialize car metadata and atomically save the JSON under
+At startup, it checks for a stored snapshot and asynchronously hydrates missing
+metadata using the same OAuth token resolver as the tools. It atomically saves
+materialized JSON under
 `<credentials-directory>/reference/cars.json`. Later reads and subsequent
-processes use that snapshot without requesting iRacing again. An absent
-snapshot is fetched on demand; failures leave no partial snapshot and may be
-retried. This initial proof has no automatic expiration, refresh command,
+processes use that snapshot without requesting iRacing again. Resource reads
+await any in-progress hydration and retry after failures. No partial snapshot
+is published. This initial proof has no automatic expiration, refresh command,
 or HTTP resource registration. Remove the snapshot manually to refetch.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
