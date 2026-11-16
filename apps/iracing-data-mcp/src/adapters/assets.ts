@@ -4,6 +4,7 @@ import {
   SeriesApi,
   TrackApi,
 } from "@iracing-data/api-client-fetch";
+import type { IracingAPIResponse } from "@iracing-data/api-client-fetch";
 import { readLinkedData } from "./linked-response.js";
 
 /** Supported iRacing static asset catalogs (not race results). */
@@ -19,7 +20,7 @@ export function createAssetCatalogLoader(
 
   return async () => {
     const signal = AbortSignal.timeout(15_000);
-    let envelope;
+    let envelope: IracingAPIResponse;
 
     switch (kind) {
       case "car":
