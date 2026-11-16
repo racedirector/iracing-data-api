@@ -22,15 +22,16 @@ export function startMcpStdio(
     { id: "local", provider: "cli" },
     () => capabilities,
   );
-  const resources = new Map([
-    [
-      "cars",
-      createFileBackedResolver(
-        join(dirname(config.credentialsFile), "reference", "cars.json"),
-        createCarCatalogLoader(accessToken),
-      ),
-    ],
-  ]);
+  const resolveCars = createFileBackedResolver(
+    join(dirname(config.credentialsFile), "reference", "cars.json"),
+    createCarCatalogLoader(accessToken),
+  );
+  const resources = new Map([["cars", resolveCars]]);
+
+  // Warm the persisted snapshot without delaying MCP registration.
+  void resolveCars().catch(() => {
+    process.stderr.write("Car catalog warmup failed; a read can retry.\n");
+  });
 
   return serveStdio(
     () => {
