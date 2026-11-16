@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { FileBackedResolver } from "./resources.js";
 
 /** Asset metadata is a map keyed by numeric iRacing IDs, not an array. */
 export const AssetCatalogSchema = z.record(
@@ -16,7 +15,9 @@ export interface AssetCatalogResolver {
 
 /** Cache the latest successful snapshot in memory; refresh it explicitly. */
 export function createAssetCatalogResolver(
-  source: FileBackedResolver<AssetCatalog>,
+  source: (() => Promise<AssetCatalog>) & {
+    refresh(): Promise<AssetCatalog>;
+  },
 ): AssetCatalogResolver {
   let current: Promise<AssetCatalog> | undefined;
   let refreshing: Promise<AssetCatalog> | undefined;
