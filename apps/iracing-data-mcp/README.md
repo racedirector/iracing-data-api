@@ -127,6 +127,39 @@ See [CLI login setup](../iracing-data-cli/README.md#build-and-run-locally) for a
 After fixing configuration or replacing a credential document, restart the
 MCP process to create a fresh credential owner.
 
+## Static catalog resources
+
+Local stdio advertises these collections and entity templates:
+
+| Collection              | Entity template                        | Snapshot           |
+| ----------------------- | -------------------------------------- | ------------------ |
+| `iracing://cars`        | `iracing://cars/{car_id}`              | `cars.json`        |
+| `iracing://tracks`      | `iracing://tracks/{track_id}`          | `tracks.json`      |
+| `iracing://car-classes` | `iracing://car-classes/{car_class_id}` | `car-classes.json` |
+
+Each read returns JSON `{ schema, data }`. The self-contained JSON Schema derives
+from `@iracing-data/api-schema` and documents the array or entity in `data`,
+including modeled fields, relationships, formats and units. Unknown fields are
+retained, not claimed as completely modeled. Class ID zero is valid upstream.
+Use a race result's car_id or track_id to resolve the corresponding entity.
+
+Catalog construction and discovery never read snapshots, restore OAuth sessions
+or fetch. First catalog use loads
+and validates `<credentials-directory>/reference/<snapshot>`. Only a missing file
+fetches upstream, through the same serialized OAuth resolver as tools. Validated
+data is atomically saved as raw JSON. Concurrent reads share hydration; subsequent
+requests reuse parsed data and its ID index for the local process lifetime.
+Failed hydration is retryable; invalid data and duplicate IDs are rejected.
+
+There is no cache warming, automatic expiry or refresh tool in this slice.
+To refetch, stop stdio, remove the chosen snapshot, and restart. HTTP resource
+registration is intentionally unchanged. These static snapshots are not suitable
+for changing result searches or member statistics.
+
+`src/catalog.ts` owns shared indexing/schema publication, `src/snapshots.ts` owns
+atomic persistence, `src/resources.ts` owns resource registration, and
+`src/adapters/catalog.ts` owns concrete SDK selection and dataset definitions.
+
 ## Historical result search
 
 `search_race_results` accepts `source: "series"` or `source: "hosted"`.
@@ -283,6 +316,9 @@ createHttpTransport({
 this same token-provider implementation with its selected document store. Existing
 actor-based composition remains available to custom hosts; HTTP transport
 and stdio transports require only the resolved tool services.
+The serve command injects reference catalogs only for stdio, sharing the same
+token provider as tools. Embedded stdio hosts may supply `McpStdioOptions.catalogs`;
+omitting it advertises tools only. HTTP resource registration is unchanged.
 
 ### Lazy service ownership
 

@@ -1,7 +1,9 @@
+import { dirname, join } from "node:path";
 import { Command } from "@commander-js/extra-typings";
 import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 import * as z from "zod";
 import { createTokenProvider } from "../../../access-token.js";
+import { createReferenceCatalogs } from "../../../adapters/catalog.js";
 import { createFetchQueries } from "../../../adapters/fetch.js";
 import { createMcpServices } from "../../../composition.js";
 import { createStdioTransport } from "../../../transports/index.js";
@@ -78,6 +80,10 @@ export function createServeCommand({
 
         createStdioTransport({
           services,
+          catalogs: createReferenceCatalogs(
+            join(dirname(raw.credentials), "reference"),
+            tokenResolver,
+          ),
           serveOptions: {
             onerror: (error) => {
               logger.error({ error }, "stdio transport error");
