@@ -13,6 +13,50 @@ behavior may invalidate a previous choice. Add a dated review rather than erasin
 history. Historical entries are not current upstream authority. Never record
 credentials, private identifiers, signed URLs, or raw response bodies.
 
+## DATA-003 — Downloaded catalog and asset payload schemas
+
+- **Decision:** add `*PayloadSchema` exports in
+  `packages/api/schema/src/schema/payload.ts`, separate from modeled HTTP response
+  envelopes. Retain all HTTP response mappings and generated client types.
+- **Naming review (2026-11-16):** #553 uses `payload.ts`, `*PayloadSchema`
+  schemas, `*Payload` inferred types and camel-case `*Payload` metadata IDs.
+  These replace the initial `Json` names to avoid confusion with JSON Schema.
+  Validation behavior and actual JSON Schema conversion APIs are unchanged.
+- **Evidence collected:** authenticated official `/data/doc` retrieval at
+  `2026-11-16T02:30:16Z` in the original MCP worktree, after operator
+  reauthentication. Asset documentation states the static image base.
+  Catalog payloads came from MCP-backed local snapshots (193 cars, 477 tracks,
+  274 classes); fresh CLI/generated-client downloads contained 193 car,
+  477 track and 162 series asset entries. These are dated observations, not
+  proof of current upstream compatibility or complete field coverage.
+- **Git context:** this schema-only split starts at
+  `d1362d1fae8ce2b80184430cad070f62d8f00822`; its unchanged payload schema
+  definitions were preserved in backup commit `4b261eb` on
+  `backup/mcp-static-resources-2026-11-16`. Initial implementation: `9063fa2`;
+  payload naming update: `5019a3e`. Local verification was intentionally skipped
+  for the naming update; CI owns its verification.
+- **Owners:** API schema package and its exports/tests/docs only. No MCP runtime
+  implementation is included in this slice.
+- **Acceptance:** catalogs are arrays; assets are ID-keyed JSON objects.
+  Required identity/name fields, selected optional metadata, class ID zero,
+  extensible nested membership and unknown properties are supported.
+  Units are documented only where established; other fields remain unmodeled.
+- **Public impact:** additive Zod exports and inferred types. Historical removed
+  `Get*ResponseSchema` symbols stay removed; shared JSON payload ownership
+  supersedes the old application-owned-payload recommendation. No version bump,
+  tag or publication is authorized.
+- **Command decision:** retain existing asset CLI commands. No input, operation
+  or response-envelope change; no OpenAPI or client regeneration is required.
+- **Validation:** schema tests (47), helper contract tests (7),
+  `pnpm --filter '@iracing-data/api-schema-to-openapi...' build`, focused
+  ESLint/Prettier and `git diff --check` passed for this split. Full branch
+  verification remains a pre-merge gate. Original combined-tree verification
+  passed; that is not automatically a pass for a reconstructed branch.
+- **Next review:** recheck any modeled-field failures against fresh payloads.
+  Passing acceptance does not detect additive drift or establish completeness.
+  This work is **Unable to verify part of the contract**, not an all-route
+  compatibility verdict.
+
 ## DATA-001 — Hosted search returns an inline manifest
 
 - **Status:** repaired; scoped live case PASS. Not an all-endpoint verdict.
