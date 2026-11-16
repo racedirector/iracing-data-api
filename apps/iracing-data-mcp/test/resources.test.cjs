@@ -4,9 +4,13 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
-test("a resource reads a persisted snapshot and hydrates only when missing", async (t) => {
+test("MCP lists cars and reads the same file-backed catalog across restarts", async (t) => {
   const { createFileBackedResolver, registerReferenceResources } =
     await import("../dist/resources.js");
+  const { InMemoryTransport, McpServer } =
+    await import("@modelcontextprotocol/server");
+  const { Client } = await import("@modelcontextprotocol/client");
+
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
   const file = path.join(directory, "reference", "cars.json");
@@ -16,18 +20,26 @@ test("a resource reads a persisted snapshot and hydrates only when missing", asy
     return [{ car_id: 1 }];
   };
   const resolve = createFileBackedResolver(file, load);
-  const callbacks = new Map();
-  registerReferenceResources(
-    { registerResource: (name, uri, _metadata, callback) => {
-      assert.equal(uri, "iracing://reference/cars");
-      callbacks.set(name, callback);
-    } },
-    new Map([["cars", resolve]]),
-  );
+  const server = new McpServer({ name: "catalog-test", version: "1" });
+  registerReferenceResources(server, new Map([["cars", resolve]]));
 
-  const read = () => callbacks.get("cars")(new URL("iracing://reference/cars"));
+  const client = new Client({ name: "catalog-client", version: "1" });
+  const [serverTransport, clientTransport] = InMemoryTransport.createLinkedPair();
+  await server.connect(serverTransport);
+  await client.connect(clientTransport);
+  t.after(async () => {
+    await client.close();
+    await server.close();
+  });
+
+  const listed = await client.listResources();
+  assert.deepEqual(listed.resources.map((resource) => resource.uri), [
+    "iracing://reference/cars",
+  ]);
+  assert.equal(fetches, 0);
+
+  const read = () => client.readResource({ uri: "iracing://reference/cars" });
   const [first, concurrent] = await Promise.all([read(), read()]);
-
   assert.deepEqual(JSON.parse(first.contents[0].text), [{ car_id: 1 }]);
   assert.deepEqual(concurrent, first);
   assert.equal(fetches, 1);
@@ -38,7 +50,7 @@ test("a resource reads a persisted snapshot and hydrates only when missing", asy
   assert.equal(fetches, 1);
 });
 
-test("a failed hydration leaves no snapshot and can be retried", async (t) => {
+test("failed hydration leaves no snapshot and may be retried", async (t) => {
   const { createFileBackedResolver } = await import("../dist/resources.js");
   const directory = await fs.mkdtemp(path.join(os.tmpdir(), "mcp-catalog-"));
   t.after(() => fs.rm(directory, { recursive: true, force: true }));
