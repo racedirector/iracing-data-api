@@ -59,7 +59,7 @@ export function createReferenceCatalogs(
       name: "cars",
       title: "iRacing Cars",
       description:
-        "Resolve car_id from race results to car_name and complete car metadata.",
+        "Resolve car_id from race results to car_name and complete car metadata. Image metadata: iracing://assets/cars/{id}; image bytes: iracing://images/cars/{id}/{field}.",
       idField: "car_id",
       schema: CarCatalogJsonSchema,
       entitySchema: CarJsonSchema,
@@ -70,7 +70,7 @@ export function createReferenceCatalogs(
       name: "tracks",
       title: "iRacing Tracks",
       description:
-        "Resolve track_id from race results to track_name, configuration and complete track metadata.",
+        "Resolve track_id from race results to track_name, configuration and complete track metadata. Asset metadata: iracing://assets/tracks/{id}; image bytes: iracing://images/tracks/{id}/{field}; map layers: iracing://track-maps/{track_id}/{layer}.",
       idField: "track_id",
       schema: TrackCatalogJsonSchema,
       entitySchema: TrackJsonSchema,

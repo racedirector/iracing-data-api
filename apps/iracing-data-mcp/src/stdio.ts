@@ -1,8 +1,11 @@
 import { dirname, join } from "node:path";
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
+import { createAssetCatalogs } from "./adapters/assets.js";
 import { createReferenceCatalogs } from "./adapters/catalog.js";
 import { createFetchQueries } from "./adapters/fetch.js";
+import { createAssetMediaReader } from "./adapters/media.js";
+import { registerAssetResources } from "./asset-resources.js";
 import { composeMcpServices } from "./composition.js";
 import { createCliAccessToken } from "./credentials.js";
 import { registerReferenceResources } from "./resources.js";
@@ -30,6 +33,11 @@ export function startMcpStdio(
     accessToken,
   );
 
+  const assets = createAssetCatalogs(
+    join(dirname(config.credentialsFile), "reference"),
+    accessToken,
+  );
+
   return serveStdio(
     () => {
       const server = createIracingMcpServer({
@@ -38,6 +46,7 @@ export function startMcpStdio(
       });
 
       registerReferenceResources(server, resources);
+      registerAssetResources(server, assets, createAssetMediaReader());
 
       return server;
     },
