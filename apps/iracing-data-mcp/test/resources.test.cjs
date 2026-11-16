@@ -70,3 +70,32 @@ test("failed hydration leaves no snapshot and may be retried", async (t) => {
   await assert.rejects(fs.access(file), { code: "ENOENT" });
   assert.deepEqual(await resolve(), [{ car_id: 2 }]);
 });
+
+test("car resolver materializes the linked payload without forwarding credentials", async () => {
+  const { createCarCatalogLoader } = await import("../dist/adapters/catalog.js");
+  const calls = [];
+  const load = createCarCatalogLoader(
+    async () => "TEST_TOKEN",
+    async (input, init) => {
+      const url = new URL(input);
+      calls.push({ host: url.host, auth: new Headers(init.headers).get("authorization") });
+
+      if (url.host === "members-ng.iracing.com") {
+        assert.equal(url.pathname, "/data/car/get");
+        return Response.json({
+          link: "https://cache.example.test/cars",
+          expires: new Date(Date.now() + 900000).toISOString(),
+        });
+      }
+
+      assert.equal(init.redirect, "error");
+      return Response.json([{ car_id: 17, car_name: "Example car" }]);
+    },
+  );
+
+  assert.deepEqual(await load(), [{ car_id: 17, car_name: "Example car" }]);
+  assert.deepEqual(calls, [
+    { host: "members-ng.iracing.com", auth: "Bearer TEST_TOKEN" },
+    { host: "cache.example.test", auth: null },
+  ]);
+});
