@@ -1,12 +1,11 @@
 import { CarApi, Configuration } from "@iracing-data/api-client-fetch";
-import { z } from "zod";
 import { readLinkedData } from "./linked-response.js";
 
-/** Fetch and materialize the car catalog using the host's token and transport. */
+/** Fetch and materialize the car catalog; validation belongs to the resolver. */
 export function createCarCatalogLoader(
   accessToken: () => Promise<string>,
   fetchApi: typeof fetch = fetch,
-): () => Promise<unknown[]> {
+): () => Promise<unknown> {
   const configuration = new Configuration({ accessToken, fetchApi });
   const cars = new CarApi(configuration);
 
@@ -15,8 +14,6 @@ export function createCarCatalogLoader(
     const envelope = await cars.getCar({ signal });
 
     // Never persist expiring signed download links or bearer credentials.
-    return z.array(z.looseObject({ car_id: z.int().positive() })).parse(
-      await readLinkedData(envelope, signal, fetchApi),
-    );
+    return readLinkedData(envelope, signal, fetchApi);
   };
 }
