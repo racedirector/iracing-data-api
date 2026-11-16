@@ -1,5 +1,15 @@
 export { createIracingMcpServer } from "./factory.js";
 export { registerIracingTools } from "./register.js";
+export {
+  SearchInput,
+  SearchOutput,
+  SearchRow,
+} from "./tools/search-race-results/schema.js";
+export type {
+  RaceSearchInput,
+  RaceSearchOutput,
+} from "./tools/search-race-results/schema.js";
+export type { RaceSearchQueries } from "./tools/search-race-results/service.js";
 export { DriverProjection, SelfInput } from "./tools/get-my-driver/schema.js";
 export type { Driver } from "./tools/get-my-driver/schema.js";
 export type { DriverQueries } from "./tools/get-my-driver/service.js";

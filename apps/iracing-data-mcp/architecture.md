@@ -2,7 +2,7 @@
 
 ```
 @iracing-data/mcp
-  createIracingMcpServer(services)   # two tool contracts, no listener
+  createIracingMcpServer(services)   # three tool contracts, no listener
             ^
             |
 apps/iracing-data-mcp
@@ -32,4 +32,4 @@ The official MCP SDK owns protocol handling in both transports. There is no
 custom dispatcher, per-client server registry, OAuth resource endpoint,
 JWT verifier, Docker importer, or HTTP account session. A host wanting
 Better Auth can inject its authoritative session resolver and a linked
-iRacing account resolver without changing either MCP tool.
+iRacing account resolver without changing the MCP tools.

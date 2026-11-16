@@ -2,12 +2,14 @@
 
 `@iracing-data/mcp` defines **what** an iRacing Data API MCP server provides
 and **which capabilities** it requires. It is private, listener-free,
-credential-free, client-agnostic and contains exactly two tools:
+credential-free, client-agnostic and provides three tools:
 
 - `get_my_driver`: current driver identity through tool-local `DriverQueries`.
 - `get_recent_races`: a bounded recent-race window through `RecentRaceQueries`.
+- `search_race_results`: explicit series or hosted/league participation search
+  through `RaceSearchQueries`, for any supplied driver/team or search criteria.
 
-Both tools register explicitly through the package-internal
+Tools register explicitly through the package-internal
 [`registerApplicationTool`](src/execution.ts) adapter onto the MCP SDK.
 Their input/output schemas, narrow service interfaces and domain operations
 live beside each tool. Each execution callback visibly selects its request-local
@@ -37,6 +39,7 @@ const server = createIracingMcpServer({
   services: {
     getDriverQueries: (context) => myDriverQueriesFor(context.authInfo),
     getRecentRaceQueries: (context) => myRecentRaceQueriesFor(context.authInfo),
+    getRaceSearchQueries: (context) => myRaceSearchQueriesFor(context.authInfo),
   },
 });
 // Consumer owns connection, transport, session lifetime, and close().
@@ -46,17 +49,18 @@ Consumers with their own MCP server may instead call
 `registerIracingTools(server, services)`. Neither API connects transport,
 starts listeners, resolves credentials, or installs process handlers.
 
-The package never selects an HTTP implementation. Its two tool-local
+The package never selects an HTTP implementation. Its tool-local
 interfaces are implemented in the consuming application. The reference
 host uses generated Fetch clients in its
 [driver adapter](../../apps/iracing-data-mcp/src/adapters/driver.ts),
 [recent-races adapter](../../apps/iracing-data-mcp/src/adapters/recent-races.ts),
+[search adapter](../../apps/iracing-data-mcp/src/adapters/race-search.ts),
 and [linked-response handler](../../apps/iracing-data-mcp/src/adapters/linked-response.ts).
 A separate consumer can use generated Axios, mocks or another data source.
 OAuth refresh and persistence belong only to the host. Signed HTTPS data links
 are fetched by adapters without forwarded bearer credentials or redirects.
 
-Both tool outputs include equivalent structured content and JSON text
+Tool outputs include equivalent structured content and JSON text
 within a combined 64 KiB cap. Errors use fixed allowlisted messages,
 codes, metadata and internally generated request IDs. Tool calls are
 read-only, require the host-selected authorization, and propagate cancellation.
@@ -67,6 +71,14 @@ propagates a fixed safe abort to the SDK, which suppresses cancelled responses;
 it is not an upstream outage. No arbitrary abort reason is serialized.
 `get_recent_races` returns up to ten upstream window entries (not complete
 race history) and has **no cursor or retained collection state**.
+
+Search retrieves one upstream chunk, without row slicing. Query-scoped counts
+and `query_complete` distinguish one retrieved chunk from all matching results.
+Calls do not retain cursor state or promise a stable snapshot across searches.
+Supply an explicit season or UTC date scope; no participant or race-only filter
+is assumed. Source-specific filters are validated before selecting services.
+For supported filters, example arguments and response-budget behavior, see the
+[historical search contract](../../apps/iracing-data-mcp/README.md#historical-result-search).
 
 Issue #533 supersedes the old restrictions in #473 and #382 only for
 the unconnected server factory and narrow domain capability injection.

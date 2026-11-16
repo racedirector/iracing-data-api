@@ -18,6 +18,19 @@ async function fixture(t, services = {}) {
     getRecentRaceQueries: () => ({
       getRecent: async () => ({ cust_id: 1, races: [] }),
     }),
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 0,
+        total_chunks: 0,
+        chunk_index: 0,
+        returned_count: 0,
+        query_complete: true,
+        results: [],
+        position_basis: "upstream",
+      }),
+    }),
     ...services,
   });
   server.registerTool("after", {}, async () => ({
@@ -40,14 +53,20 @@ async function fixture(t, services = {}) {
   };
 }
 
-test("caller-owned server exposes exactly two tools and accepts neighboring registrations", async (t) => {
+test("caller-owned server exposes explicit tools and accepts neighboring registrations", async (t) => {
   const f = await fixture(t);
   const tools = (await f.client.listTools()).tools;
   assert.deepEqual(
     tools.map((tool) => tool.name),
-    ["before", "get_my_driver", "get_recent_races", "after"],
+    [
+      "before",
+      "get_my_driver",
+      "get_recent_races",
+      "search_race_results",
+      "after",
+    ],
   );
-  for (const tool of tools.slice(1, 3)) {
+  for (const tool of tools.slice(1, 4)) {
     assert.equal(tool.inputSchema.type, "object");
     assert.equal(tool.inputSchema.additionalProperties, false);
     assert.equal(tool.annotations.readOnlyHint, true);
@@ -62,6 +81,49 @@ test("caller-owned server exposes exactly two tools and accepts neighboring regi
   assert.equal((await f.call("before")).content[0].text, "before");
   assert.equal((await f.call("after")).content[0].text, "after");
   assert.equal(typeof f.api.createIracingMcpServer, "function");
+});
+
+test("historical search selects per request, forwards criteria and projects output", async (t) => {
+  let selected = 0;
+  const f = await fixture(t, {
+    getRaceSearchQueries: () => {
+      selected++;
+      return {
+        search: async (input, { signal }) => {
+          assert.ok(signal instanceof AbortSignal);
+          assert.equal(input.cust_id, 99);
+          assert.equal(input.league_id, 8579);
+          return {
+            source: "hosted",
+            criteria: { cust_id: 99, league_id: 8579 },
+            total_matches: 0,
+            total_chunks: 0,
+            chunk_index: 0,
+            returned_count: 0,
+            query_complete: true,
+            results: [],
+            position_basis: "upstream",
+            secret: "SECRET",
+          };
+        },
+      };
+    },
+  });
+  const args = {
+    source: "hosted",
+    cust_id: 99,
+    league_id: 8579,
+    start_range_begin: "2026-11-01T00:00:00Z",
+  };
+  const result = await f.call("search_race_results", args);
+  assert.equal(result.structuredContent.query_complete, true);
+  assert.doesNotMatch(JSON.stringify(result), /SECRET/);
+  const invalid = await f.call("search_race_results", {
+    ...args,
+    series_id: 3,
+  });
+  assert.equal(invalid.structuredContent.error.code, "INVALID_INPUT");
+  assert.equal(selected, 1);
 });
 
 test("input validation happens before resolving any dependencies", async (t) => {
@@ -161,12 +223,14 @@ test("custom driver and recent-race implementations are selected per request", a
   }
 });
 
-test("missing selectors fail before publishing either tool", async () => {
+test("missing selectors fail before publishing any tools", async () => {
   const { registerIracingTools } = await import("../dist/index.js");
   for (const services of [
     {},
     { getDriverQueries() {} },
     { getRecentRaceQueries() {} },
+    { getRaceSearchQueries() {} },
+    { getDriverQueries() {}, getRecentRaceQueries() {} },
   ]) {
     let registered = 0;
     assert.throws(
@@ -179,7 +243,7 @@ test("missing selectors fail before publishing either tool", async () => {
           },
           services,
         ),
-      /Both iRacing capability selectors are required/,
+      /All iRacing capability selectors are required/,
     );
     assert.equal(registered, 0);
   }
@@ -228,9 +292,13 @@ test("the 64 KiB result cap rejects oversized injected data", async (t) => {
   );
 });
 
-test("cancellation during capability selection prevents either domain query", async () => {
+test("cancellation during capability selection prevents domain queries", async () => {
   const { registerIracingTools } = await import("../dist/index.js");
-  for (const name of ["get_my_driver", "get_recent_races"]) {
+  for (const name of [
+    "get_my_driver",
+    "get_recent_races",
+    "search_race_results",
+  ]) {
     const selected = Promise.withResolvers();
     const release = Promise.withResolvers();
     const control = new AbortController();
@@ -244,6 +312,10 @@ test("cancellation during capability selection prevents either domain query", as
       getRecent: async () => {
         queried++;
         return { cust_id: 1, races: [] };
+      },
+      search: async () => {
+        queried++;
+        return { source: "hosted", total_matches: 0 };
       },
     };
     const select = async (context) => {
@@ -259,10 +331,16 @@ test("cancellation during capability selection prevents either domain query", as
           callbacks.set(toolName, callback);
         },
       },
-      { getDriverQueries: select, getRecentRaceQueries: select },
+      {
+        getDriverQueries: select,
+        getRecentRaceQueries: select,
+        getRaceSearchQueries: select,
+      },
     );
     const pending = callbacks.get(name)(
-      {},
+      name === "search_race_results"
+        ? { source: "hosted", start_range_begin: "2026-11-01T00:00:00Z" }
+        : {},
       { mcpReq: { signal: control.signal } },
     );
     const rejected = assert.rejects(pending, {
@@ -275,4 +353,57 @@ test("cancellation during capability selection prevents either domain query", as
     await rejected;
     assert.equal(queried, 0);
   }
+});
+
+test("historical search refuses inconsistent injected chunk totals", async (t) => {
+  const f = await fixture(t, {
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 1,
+        total_chunks: 1,
+        chunk_index: 0,
+        returned_count: 0,
+        query_complete: false,
+        results: [],
+        position_basis: "upstream",
+      }),
+    }),
+  });
+  const result = await f.call("search_race_results", {
+    source: "hosted",
+    start_range_begin: "2026-11-01T00:00:00Z",
+  });
+  assert.equal(result.structuredContent.error.code, "DATA_RESOLUTION_FAILED");
+});
+
+test("historical search refuses oversized projected chunks", async (t) => {
+  const f = await fixture(t, {
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 1,
+        total_chunks: 1,
+        chunk_index: 0,
+        returned_count: 1,
+        query_complete: true,
+        results: [
+          {
+            subsession_id: 1,
+            start_time: "2026-11-01T00:00:00Z",
+            series_name: "X".repeat(40000),
+          },
+        ],
+        position_basis: "upstream",
+      }),
+    }),
+  });
+  const result = await f.call("search_race_results", {
+    source: "hosted",
+    start_range_begin: "2026-11-01T00:00:00Z",
+  });
+  assert.equal(result.structuredContent.error.code, "RESPONSE_LIMIT_EXCEEDED");
+  assert.ok(Buffer.byteLength(JSON.stringify(result)) <= 64 * 1024);
 });

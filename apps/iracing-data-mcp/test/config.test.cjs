@@ -37,9 +37,10 @@ test("local stdio capabilities are constructed lazily without network calls", as
   );
   assert.equal(typeof queries.driverQueries.getCurrent, "function");
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
+  assert.equal(typeof queries.raceSearchQueries.search, "function");
 });
 
-test("local stdio executable initializes and advertises both tools", async () => {
+test("local stdio executable initializes and advertises all tools", async () => {
   const { Client } = await import("@modelcontextprotocol/client");
   const { StdioClientTransport } =
     await import("@modelcontextprotocol/client/stdio");
@@ -53,7 +54,7 @@ test("local stdio executable initializes and advertises both tools", async () =>
     await client.connect(transport);
     assert.deepEqual(
       (await client.listTools()).tools.map((tool) => tool.name),
-      ["get_my_driver", "get_recent_races"],
+      ["get_my_driver", "get_recent_races", "search_race_results"],
     );
   } finally {
     await client.close();
@@ -80,8 +81,31 @@ test("explicit credential path overrides an invalid environment path", async () 
 
   try {
     await client.connect(transport);
-    assert.equal((await client.listTools()).tools.length, 2);
+    assert.equal((await client.listTools()).tools.length, 3);
   } finally {
     await client.close();
   }
+});
+
+test("invalid actor search capabilities fail closed with a safe configuration error", async () => {
+  const { composeMcpServices } = await import("../dist/composition.js");
+  const { errorEnvelope, createRequestContext } =
+    await import("@iracing-data/mcp");
+  const services = composeMcpServices(
+    { id: "alice", provider: "test" },
+    () => ({
+      driverQueries: { getCurrent: async () => ({ cust_id: 1 }) },
+      recentRaceQueries: { getRecent: async () => ({ cust_id: 1, races: [] }) },
+    }),
+  );
+  await assert.rejects(
+    services.getRaceSearchQueries({
+      signal: new AbortController().signal,
+    }),
+    (error) => {
+      const envelope = errorEnvelope(error, createRequestContext());
+      assert.equal(envelope.error.code, "CONFIGURATION_ERROR");
+      return true;
+    },
+  );
 });

@@ -12,6 +12,19 @@ test("factory creates independent listener-free servers and permits caller regis
     secret: "SECRET",
   };
   const services = {
+    getRaceSearchQueries: () => ({
+      search: async () => ({
+        source: "hosted",
+        criteria: {},
+        total_matches: 0,
+        total_chunks: 0,
+        chunk_index: 0,
+        returned_count: 0,
+        query_complete: true,
+        results: [],
+        position_basis: "upstream",
+      }),
+    }),
     getRecentRaceQueries: () => ({
       getRecent: async () => ({ cust_id: 42, races: [] }),
     }),
@@ -58,7 +71,7 @@ test("factory creates independent listener-free servers and permits caller regis
   const tools = (await client.listTools()).tools;
   assert.deepEqual(
     tools.map((item) => item.name),
-    ["get_my_driver", "get_recent_races", "extra"],
+    ["get_my_driver", "get_recent_races", "search_race_results", "extra"],
   );
   const rejected = await client.callTool({
     name: "get_my_driver",

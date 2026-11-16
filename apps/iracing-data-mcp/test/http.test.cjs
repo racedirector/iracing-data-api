@@ -52,6 +52,22 @@ test("mountable Hono router resolves tool capabilities against the verified acto
           recentRaceQueries: {
             getRecent: async () => ({ cust_id: 1, races: [] }),
           },
+          raceSearchQueries: {
+            search: async (_input, { signal }) => {
+              assert.ok(signal instanceof AbortSignal);
+              return {
+                source: "hosted",
+                criteria: { actor: actor.id },
+                total_matches: 0,
+                total_chunks: 0,
+                chunk_index: 0,
+                returned_count: 0,
+                query_complete: true,
+                results: [],
+                position_basis: "upstream",
+              };
+            },
+          },
         };
       },
     }),
@@ -97,6 +113,30 @@ test("mountable Hono router resolves tool capabilities against the verified acto
   }
 
   assert.deepEqual(actors, ["alice", "bob"]);
+  const response = await app.request("http://localhost/mcp", {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      accept: "application/json, text/event-stream",
+      "x-test-actor": "bob",
+    },
+    body: JSON.stringify({
+      jsonrpc: "2.0",
+      id: 3,
+      method: "tools/call",
+      params: {
+        name: "search_race_results",
+        arguments: {
+          source: "hosted",
+          cust_id: 99,
+          start_range_begin: "2026-11-01T00:00:00Z",
+        },
+      },
+    }),
+  });
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /bob/);
+  assert.deepEqual(actors, ["alice", "bob", "bob"]);
 });
 
 test("the HTTP router is owned by its host, not a listener or OAuth service", async () => {

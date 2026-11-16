@@ -1,6 +1,7 @@
 # iRacing Data MCP runtime
 
-Two read-only tools: `get_my_driver` and `get_recent_races`. The private
+Three read-only tools: `get_my_driver`, `get_recent_races`, and
+`search_race_results`. The private
 `@iracing-data/mcp` package owns the listener-free MCP server and contracts.
 This app supplies an optional Hono adapter, an optional Node listener, and a
 local stdio executable. It does not implement an OAuth server, JWT verifier,
@@ -46,6 +47,53 @@ The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
 `node apps/iracing-data-mcp/dist/main.js` with the project root as its
 working directory after building.
+
+## Historical result search
+
+`search_race_results` accepts `source: "series"` or `source: "hosted"`.
+Hosted search includes league races: supply `league_id` and optionally
+`league_season_id`. Supply `cust_id` for a particular participant; no current
+driver is assumed. Upstream gives `team_id` precedence over `cust_id`.
+
+Supply a season year/quarter pair (series only), or UTC start/finish ranges.
+Bounds are inclusive at the beginning and exclusive at the end. Follow the
+upstream range restrictions; older searches need explicit end bounds. Filters
+are source-specific: hosted supports car, track, session name, host and league;
+series supports series, race week, event types and official-only. Both support
+customer, team and category IDs. Names must first be resolved to IDs elsewhere.
+
+Example arguments for participant activity in The Beer League:
+
+```json
+{
+  "source": "hosted",
+  "cust_id": 378767,
+  "league_id": 8579,
+  "start_range_begin": "2026-08-18T00:00:00Z",
+  "start_range_end": "2026-11-16T00:00:00Z"
+}
+```
+
+Each call retrieves one upstream chunk (`chunk_index` defaults to zero), without
+local row slicing. `total_matches` and `total_chunks` describe the query;
+`query_complete` is true only when this response includes every matching row.
+The adapter validates manifest consistency and the selected chunk's row count.
+It does not imply lifetime-history coverage. Repeated calls rerun the query:
+results are not a stable cross-call snapshot. Use bounded historical ranges
+and do not combine changed result sets as if they were one snapshot.
+
+Results preserve upstream position indexing and ordering. Signed download URLs,
+credentials and unrelated fields are not returned. If a projected chunk exceeds
+the combined 64 KiB MCP response budget, the call fails with
+`RESPONSE_LIMIT_EXCEEDED`; narrow the query rather than expecting truncation.
+This tool does not classify special events or fetch detailed laps/results.
+
+Custom HTTP hosts must supply `raceSearchQueries` alongside driver and
+recent-race capabilities. The factory requires all three selectors before
+registering tools; an incorrectly configured actor resolver fails closed with
+`CONFIGURATION_ERROR`. The built-in Fetch adapter supplies all three.
+Historical chunk retrieval uses an independent, unsigned HTTPS fetch rather
+than inheriting the credentialed API client's transport.
 
 ## Embedding in Hono HTTP
 
