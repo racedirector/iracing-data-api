@@ -1,5 +1,4 @@
 import { z } from "zod";
-import type { FileBackedResolver } from "./resources.js";
 
 /** Minimum fields needed to index the materialized iRacing car catalog. */
 export const CarCatalogSchema = z
@@ -21,8 +20,9 @@ export interface CarCatalogResolver {
 
 /** Build an ID index once; replace it only after a successful forced refresh. */
 export function createCarCatalogResolver(
-  load: (() => Promise<readonly Car[]>) &
-    Partial<Pick<FileBackedResolver<readonly Car[]>, "refresh">>,
+  load: (() => Promise<readonly Car[]>) & {
+    refresh?: () => Promise<readonly Car[]>;
+  },
 ): CarCatalogResolver {
   type Snapshot = {
     cars: readonly Car[];
