@@ -52,7 +52,7 @@ export function registerRefreshStaticCacheTool(
       annotations: {
         readOnlyHint: false,
         destructiveHint: false,
-        idempotentHint: true,
+        idempotentHint: false,
         openWorldHint: true,
       },
     },
