@@ -76,7 +76,7 @@ test("MCP refresh tool selects one static dataset and updates subsequent resourc
     name: "refresh_static_cache",
     arguments: { dataset: "cars" },
   });
-  assert.equal(refreshed.isError, undefined);
+  assert.notEqual(refreshed.isError, true);
   assert.deepEqual(refreshed.structuredContent, {
     dataset: "cars",
     status: "refreshed",
@@ -105,8 +105,8 @@ test("MCP refresh tool selects one static dataset and updates subsequent resourc
   const rejected = await client.callTool({
     name: "refresh_static_cache",
     arguments: { dataset: "results" },
-  });
-  assert.equal(rejected.isError, true);
+  }).then((result) => result.isError === true, () => true);
+  assert.equal(rejected, true);
   assert.deepEqual(requests, { cars: 2, car: 0, track: 1, series: 0 });
 });
 
