@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { FileBackedResolver } from "./resources.js";
 
 /** Minimum fields needed to index the materialized iRacing car catalog. */
 export const CarCatalogSchema = z
@@ -12,39 +13,66 @@ export const CarCatalogSchema = z
 
 export type Car = z.output<typeof CarCatalogSchema>[number];
 
-/** Lookups over one shared, validated source document. */
 export interface CarCatalogResolver {
   all(): Promise<readonly Car[]>;
   get(carId: number): Promise<Car | null>;
+  refresh(): Promise<readonly Car[]>;
 }
 
-/** Build an ID index once; reset it when hydration fails so reads can retry. */
+/** Build an ID index once; replace it only after a successful forced refresh. */
 export function createCarCatalogResolver(
-  load: () => Promise<readonly Car[]>,
+  load: (() => Promise<readonly Car[]>) &
+    Partial<Pick<FileBackedResolver<readonly Car[]>, "refresh">>,
 ): CarCatalogResolver {
-  let current: Promise<{
+  type Snapshot = {
     cars: readonly Car[];
     byId: ReadonlyMap<number, Car>;
-  }> | undefined;
+  };
 
-  async function resolve() {
+  let current: Promise<Snapshot> | undefined;
+  let refreshing: Promise<readonly Car[]> | undefined;
+
+  function index(cars: readonly Car[]): Snapshot {
+    return { cars, byId: new Map(cars.map((car) => [car.car_id, car])) };
+  }
+
+  function resolve(): Promise<Snapshot> {
     if (!current) {
-      current = load()
-        .then((cars) => ({
-          cars,
-          byId: new Map(cars.map((car) => [car.car_id, car])),
-        }))
-        .catch((error: unknown) => {
+      const pending = load().then(index);
+      current = pending;
+      void pending.catch(() => {
+        if (current === pending) {
           current = undefined;
-          throw error;
-        });
+        }
+      });
     }
 
     return current;
   }
 
+  function refresh(): Promise<readonly Car[]> {
+    if (!load.refresh) {
+      return Promise.reject(new Error("Car catalog does not support refresh."));
+    }
+
+    if (!refreshing) {
+      const next = load.refresh().then((cars) => {
+        current = Promise.resolve(index(cars));
+        return cars;
+      });
+      refreshing = next;
+      void next.then(
+        () => { if (refreshing === next) refreshing = undefined; },
+        () => { if (refreshing === next) refreshing = undefined; },
+      );
+    }
+
+    return refreshing;
+  }
+
   return {
     all: async () => (await resolve()).cars,
     get: async (carId) => (await resolve()).byId.get(carId) ?? null,
+    refresh,
   };
 }
