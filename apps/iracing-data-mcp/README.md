@@ -43,15 +43,24 @@ Restoration is serialized within the local connection so concurrent requests
 observe persisted refresh-token rotation. The OAuth client refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
 
-Local stdio also registers one experimental resource, `iracing://reference/cars`.
-At startup, it checks for a stored snapshot and asynchronously hydrates missing
-metadata using the same OAuth token resolver as the tools. It atomically saves
-materialized JSON under
-`<credentials-directory>/reference/cars.json`. Later reads and subsequent
-processes use that snapshot without requesting iRacing again. Resource reads
-await any in-progress hydration and retry after failures. No partial snapshot
-is published. This initial proof has no automatic expiration, refresh command,
-or HTTP resource registration. Remove the snapshot manually to refetch.
+Local stdio registers two experimental MCP resource views over one car
+catalog: `iracing://cars` (complete collection) and the resource template
+`iracing://cars/{carId}` (one car by its positive numeric ID). The template
+is discoverable through `resources/templates/list`, while the collection
+appears in `resources/list`.
+
+At startup, the runtime checks for a stored snapshot and asynchronously
+hydrates missing data using the same OAuth token resolver as the tools.
+It validates and atomically saves the materialized car JSON under
+`<credentials-directory>/reference/cars.json`, then builds an in-memory
+index by `car_id`. Collection and individual-car requests share the same
+hydration and index, including concurrent reads. A restarted process reads
+the existing validated snapshot instead of requesting iRacing again.
+Errors and missing car IDs are reported rather than returning empty data.
+
+This initial proof has no automatic expiration, refresh command, relationship
+resolution, or HTTP resource registration. Remove the snapshot manually to
+refetch from iRacing.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
