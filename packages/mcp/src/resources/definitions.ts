@@ -6,8 +6,8 @@ import {
   CarClassPayloadSchema,
   CarClassCatalogPayloadSchema,
 } from "@iracing-data/api-schema";
-import { z } from "zod";
 import type { CatalogResolver, ReferenceCatalog } from "./service.js";
+import type { z } from "zod";
 
 /** An iRacing resource's validation, presentation and entity identity. */
 export interface CatalogDefinition<T> {
@@ -52,8 +52,6 @@ export function createReferenceResource<T>(
     title: definition.title,
     description: definition.description,
     idField: definition.idField,
-    collectionJsonSchema: z.toJSONSchema(definition.schema),
-    entityJsonSchema: z.toJSONSchema(definition.entitySchema),
     resolver,
   };
 }

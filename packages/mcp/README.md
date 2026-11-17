@@ -54,15 +54,33 @@ starts listeners, resolves credentials, or installs process handlers.
 The package also owns the cars, tracks and car-class resource contracts:
 `CarsCatalog`, `TracksCatalog`, and `CarClassesCatalog`. Each defines its URI
 collection name, entity key, discovery metadata and canonical Data API schemas.
-`createReferenceResource(definition, resolver)` publishes these schemas with a
+`createReferenceResource(definition, resolver)` combines the resource metadata with a
 host-injected `CatalogResolver` (`all()` and `get(id)`).
 
 Pass the resulting resources as `catalogs` to `createIracingMcpServer`, or call
 `registerReferenceResources(server, catalogs)` on a consumer-owned server.
 Collections use `iracing://cars`, `iracing://tracks`, and
 `iracing://car-classes`; entity templates append the corresponding numeric ID.
-Reads return JSON `{ schema, data }`. Registration and discovery do not load
+Collection reads return JSON arrays directly; entity-template reads return
+entity JSON objects directly. Neither includes a schema or a data wrapper.
+Registration and discovery do not load
 data. Omitting `catalogs` preserves tools-only hosting.
+
+Collections are intended for bulk reference context; entity templates are preferred
+when a tool result already supplies an ID. Templates support numeric ID-prefix
+completion through `completion/complete`; this explicit data access may load the
+host's collection, while resource and template listing remain lazy. The SDK bounds
+completion responses to 100 suggestions and reports whether more matches exist.
+Resource descriptors identify both user and assistant audiences.
+
+Invalid IDs and missing entities return Invalid Params (`-32602`); missing entities
+include the requested URI. Host loader failures return a sanitized Internal Error
+(`-32603`), not upstream messages, credentials or local paths.
+No change subscriptions or automatic freshness guarantees are provided.
+Resources are application-driven context, not tools the model can assume it can
+invoke. Clients choose whether to expose resource pickers, load entities from
+tool-result IDs, or include bulk collections. See the
+[MCP resource concepts](https://modelcontextprotocol.io/docs/2026-07-28/learn/server-concepts#resources).
 
 Transport selection does not change resource registration. The host owns
 authorization, data loading, caching, persistence and refresh policy; the core

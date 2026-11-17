@@ -4,9 +4,6 @@ const os = require("node:os");
 const path = require("node:path");
 const test = require("node:test");
 
-const schemaRoot = (schema) =>
-  schema.$ref ? schema.$defs[schema.$ref.split("/").at(-1)] : schema;
-
 async function connect(t, catalogs) {
   const { registerReferenceResources } = await import("@iracing-data/mcp");
   const { InMemoryTransport, McpServer } =
@@ -98,12 +95,20 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
       path.join(directory, `${dataset.name}.json`),
       JSON.stringify([entity]),
     );
+    const completion = await rpc("completion/complete", {
+      ref: {
+        type: "ref/resource",
+        uri: `iracing://${dataset.name}/{${dataset.id}}`,
+      },
+      argument: { name: dataset.id, value: "1" },
+    });
+    assert.deepEqual(completion.completion.values, ["17"]);
     for (const suffix of ["", "/17"]) {
       const result = await rpc("resources/read", {
         uri: `iracing://${dataset.name}${suffix}`,
       });
       assert.deepEqual(
-        JSON.parse(result.contents[0].text).data,
+        JSON.parse(result.contents[0].text),
         suffix ? entity : [entity],
       );
     }
@@ -173,12 +178,12 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
       ),
     ]);
     assert.deepEqual(
-      JSON.parse(results[0].contents[0].text).data,
+      JSON.parse(results[0].contents[0].text),
       payloads[dataset.name],
     );
     for (let i = 1; i <= 3; i++) {
       assert.deepEqual(
-        JSON.parse(results[i].contents[0].text).data,
+        JSON.parse(results[i].contents[0].text),
         payloads[dataset.name][i - 1],
       );
     }
@@ -205,7 +210,7 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
       uri: `iracing://${dataset.name}/2`,
     });
     assert.deepEqual(
-      JSON.parse(result.contents[0].text).data,
+      JSON.parse(result.contents[0].text),
       payloads[dataset.name][1],
     );
   }
@@ -280,7 +285,7 @@ test("car class zero is a valid upstream entity ID", async (t) => {
     JSON.parse(
       (await client.readResource({ uri: "iracing://car-classes/0" }))
         .contents[0].text,
-    ).data,
+    ),
     { car_class_id: 0, name: "All Cars" },
   );
 });
@@ -342,21 +347,10 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
       (await client.readResource({ uri: `iracing://${dataset.name}/17` }))
         .contents[0].text,
     );
-    assert.deepEqual(collectionResponse.data, [entityResponse.data]);
-    assert.equal(entityResponse.data[dataset.id], 17);
-    assert.equal(
-      collectionResponse.schema.$schema,
-      "https://json-schema.org/draft/2020-12/schema",
-    );
-    assert.equal(schemaRoot(collectionResponse.schema).type, "array");
-    assert.equal(schemaRoot(entityResponse.schema).type, "object");
-    assert.ok(schemaRoot(collectionResponse.schema).title);
-    assert.ok(
-      schemaRoot(entityResponse.schema).properties[dataset.id].description,
-    );
-    assert.deepEqual(
-      schemaRoot(entityResponse.schema).additionalProperties,
-      {},
-    );
+    assert.deepEqual(collectionResponse, [entityResponse]);
+    assert.deepEqual(entityResponse, {
+      [dataset.id]: 17,
+      [dataset.title]: "Example",
+    });
   }
 });

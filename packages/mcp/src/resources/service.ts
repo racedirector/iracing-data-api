@@ -30,10 +30,4 @@ export interface ReferenceCatalog {
 
   /** Host-owned collection and entity access. */
   readonly resolver: CatalogResolver<unknown>;
-
-  /** Published JSON Schema describing the collection data. */
-  readonly collectionJsonSchema: Readonly<Record<string, unknown>>;
-
-  /** Published JSON Schema describing a single entity. */
-  readonly entityJsonSchema: Readonly<Record<string, unknown>>;
 }
