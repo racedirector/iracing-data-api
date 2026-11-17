@@ -3,9 +3,10 @@ const path = require("node:path");
 const test = require("node:test");
 
 async function httpCall(router, name, args, modern = false) {
-  const response = await router.request("http://localhost/", {
+  const response = await router.request("http://localhost/mcp", {
     method: "POST",
     headers: {
+      host: "localhost",
       "content-type": "application/json",
       accept: "application/json, text/event-stream",
       ...(modern
@@ -78,7 +79,8 @@ test(
     const { Client } = await import("@modelcontextprotocol/client");
     const { StdioClientTransport } =
       await import("@modelcontextprotocol/client/stdio");
-    const { createMcpRouter } = await import("../dist/http.js");
+    const { createMcpRouter } = await import("../dist/cli/router.js");
+    const { createMcpServices } = await import("../dist/index.js");
     const { capabilities } = await import("./fixtures/capabilities.mjs");
     for (const [mode, name, args, code] of [
       ["success", "get_my_driver", {}, undefined],
@@ -96,8 +98,7 @@ test(
         env: { ...process.env, MCP_TEST_MODE: mode },
       });
       const router = createMcpRouter({
-        resolveActor: () => ({ id: "fixture", provider: "test" }),
-        resolveCapabilities: () => capabilities(mode),
+        services: createMcpServices(() => capabilities(mode)),
       });
       try {
         await client.connect(transport);
@@ -114,18 +115,19 @@ test(
   },
 );
 
-test("concurrent HTTP actors retain request-local capabilities and correlation", async () => {
-  const { createMcpRouter } = await import("../dist/http.js");
+test("concurrent HTTP operations retain request correlation", async () => {
+  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpServices } = await import("../dist/index.js");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const requests = [];
   let actor = 0;
   const router = createMcpRouter({
-    resolveActor: () => ({ id: String(++actor), provider: "test" }),
-    resolveCapabilities: async (verified, context) => {
+    services: createMcpServices(async (context) => {
+      const id = ++actor;
       requests.push(context.request);
       await Promise.resolve();
-      return capabilities("success", Number(verified.id));
-    },
+      return capabilities("success", id);
+    }),
   });
   const results = await Promise.all(
     Array.from({ length: 8 }, () => httpCall(router, "get_my_driver", {})),
@@ -143,14 +145,16 @@ test(
   async (t) => {
     const { once } = require("node:events");
     const { request } = require("node:http");
-    const { startMcpHttpServer } = await import("../dist/http-server.js");
+    const { createHttpServer } = await import("../dist/cli/server.js");
+    const { createMcpServices } = await import("../dist/index.js");
     const entered = Promise.withResolvers();
     const aborted = Promise.withResolvers();
     const release = Promise.withResolvers();
-    const server = startMcpHttpServer({
-      config: { host: "127.0.0.1", port: 0 },
-      resolveActor: () => ({ id: "fixture", provider: "test" }),
-      resolveCapabilities: () => ({
+    const { server } = createHttpServer({
+      host: "127.0.0.1",
+      port: 0,
+      shutdownTimeoutMs: 100,
+      services: createMcpServices(() => ({
         driverQueries: {
           getCurrent: async ({ signal }) => {
             signal.addEventListener("abort", () => aborted.resolve(), {
@@ -164,7 +168,7 @@ test(
         recentRaceQueries: {
           getRecent: async () => ({ cust_id: 7, races: [] }),
         },
-      }),
+      })),
     });
     t.after(async () => {
       release.resolve();

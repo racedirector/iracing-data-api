@@ -11,7 +11,7 @@ Docker credential importer, or session registry.
 
 After publication, install the runtime with
 `npm install -g @iracing-data/iracing-data-mcp@next` and configure clients to
-execute `iracing-data-mcp`. The first release is not available until the stack
+execute `iracing-data-mcp serve`. The first release is not available until the stack
 has landed and release smoke tests pass.
 
 From the repository root:
@@ -22,13 +22,15 @@ pnpm --filter '@iracing-data/iracing-data-mcp...' build
 # Copy only if .env does not already exist, then configure its values.
 cp .env.example .env
 pnpm iracing-data auth login --scope iracing.auth
-pnpm mcp:local
+pnpm exec dotenv -e .env -- iracing-data-mcp serve
 ```
 
 The local executable loads a file-backed OAuth session, defaulting to
 `.iracing-data/iracing-data-mcp/credentials.json`. Override its location
-using `IRACING_MCP_CREDENTIAL_FILE`. The setup above uses the CLI for initial
+using `IRACING_CREDENTIALS`. The setup above uses the CLI for initial
 credential acquisition; loading the selected file is independent of the CLI.
+`IRACING_MCP_CREDENTIAL_FILE` is retired. Rename it to `IRACING_CREDENTIALS`;
+startup rejects the old setting rather than silently selecting another document.
 The runtime refreshes expired access tokens on demand and saves rotated
 credentials to the same file. Set `IRACING_AUTH_CLIENT` and, for confidential
 clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
@@ -38,47 +40,65 @@ credential owners against the same rotating refresh token.
 For an explicit path in a client command, pass `--credentials`:
 
 ```sh
-iracing-data-mcp --credentials /absolute/path/to/credentials.json
+iracing-data-mcp serve --credentials /absolute/path/to/credentials.json
 ```
 
-Selection order is `--credentials`, then `IRACING_MCP_CREDENTIAL_FILE`, then
+Selection order is `--credentials`, then `IRACING_CREDENTIALS`, then
 the dedicated MCP default. Relative paths resolve from the process working
-directory. There is no fallback to another credential file. Reconnect the
-MCP client after selecting a different path. Each tool request restores the
-selected file afresh, so replacing its credentials does not require reconnecting.
-Restoration is serialized within the local connection so concurrent requests
-observe persisted refresh-token rotation. The OAuth client refreshes expired
+directory. There is no fallback to another credential file. Restart the
+MCP process after selecting a different path or replacing the document.
+The retained session store loads once; it does not watch or reload the file.
+The OAuth client coordinates concurrent refreshes within the local connection
+and refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
 
-Before serving stdio, startup validates OAuth registration and reads the selected
-credential document through the secure OAuth document reader. Missing, corrupt,
-unsafe or unreadable credentials stop startup with actionable stderr diagnostics
-and no MCP output. This preflight never refreshes tokens or contacts iRacing;
-session restoration and refresh remain on demand.
-
-Local restoration failures report the selected document, OAuth error code and
-message on stderr. The original error is retained as the cause; token documents
-and raw error objects are never logged. Missing sessions have a distinct
-actionable diagnostic. MCP tool results still use `AUTHORIZATION_REQUIRED` or
-`TOKEN_REFRESH_FAILED` and safe policy messages, not `INTERNAL_ERROR` or raw local
-details. Resource callers can receive the local diagnostic message.
+The serve command validates its options before opening a transport. Credential
+documents are read on demand through the OAuth client's secure document store;
+starting the transport does not prove the credentials are present or usable.
+The provider propagates OAuth/storage failures to its caller without logging
+or custom error translation. The host owns diagnostics; tool adapters still
+apply the existing safe MCP error projection.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
-`iracing-data-mcp` after installing. In this workspace, use
-`pnpm exec dotenv -e .env -- iracing-data-mcp` with the project root as its working
+`iracing-data-mcp serve` after installing. In this workspace, use
+`pnpm exec dotenv -e .env -- iracing-data-mcp serve` with the project root as its working
 directory after building.
+
+## Development watch mode
+
+After building workspace dependencies with the command above, run:
+
+```sh
+pnpm --filter @iracing-data/iracing-data-mcp dev
+# Or use the loopback-only HTTP listener:
+pnpm --filter @iracing-data/iracing-data-mcp dev --transport http
+```
+
+The command builds the app, starts `serve`, and rebuilds/restarts when `src/`,
+`tsconfig.build.json`, or `package.json` changes. It keeps watching after build
+errors; fix the error and save again. Generated `dist/` changes do not trigger
+restart loops. Workspace dependencies are not watched. Stop with Ctrl+C.
+The development launcher loads the repository root `.env` when present without
+overriding inherited environment variables, and runs the app from the repository
+root so relative credential paths match the workspace command above. The published executable
+still does not load `.env`. Restart the command after changing `.env`.
+Stdio clients must reconnect after a restart; HTTP is convenient for manual
+development.
+
+Run `pnpm mcp:inspect:stdio` or `pnpm mcp:inspect:http` from the repository
+root to use Inspector. Both modes launch from that root, preserving relative
+`IRACING_CREDENTIALS` paths and the dedicated MCP credential default.
 
 ## Environment configuration
 
 The executable **only consumes its supplied environment**. It never loads `.env`
 or accepts env-file flags. Use the MCP client's environment configuration, your
-deployment platform, or an external loader. The checked-in client configurations
-and `pnpm mcp:local` use the repository's development-only
+deployment platform, or an external loader. The workspace command uses the development-only
 [dotenv CLI](https://github.com/entropitor/dotenv-cli):
 
 ```sh
-pnpm exec dotenv -e .env -- iracing-data-mcp
+pnpm exec dotenv -e .env -- iracing-data-mcp serve
 ```
 
 Copy [the repository `.env.example`](../../.env.example) without overwriting an
@@ -87,27 +107,25 @@ option and the separate CLI-only login/API options. Dotenv CLI preserves existin
 process environment values by default. Missing values are validated by the MCP,
 not filled from hidden credential or registration fallbacks.
 
-| Variable                      | Usage                              | Requirement / default                                                                                                               |
-| ----------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| `IRACING_AUTH_CLIENT`         | Local stdio OAuth registration     | Required, nonblank; must match the original login                                                                                   |
-| `IRACING_AUTH_SECRET`         | Local stdio OAuth client secret    | Required for confidential registrations; omit or leave empty for public clients                                                     |
-| `IRACING_MCP_CREDENTIAL_FILE` | Selected local OAuth JSON document | Defaults to `.iracing-data/iracing-data-mcp/credentials.json` under the process working directory; `--credentials` takes precedence |
-| `IRACING_MCP_LISTEN_HOST`     | Optional HTTP listener             | `127.0.0.1`; nonempty                                                                                                               |
-| `IRACING_MCP_PORT`            | Optional HTTP listener             | `3000`; integer from 1 to 65535                                                                                                     |
+| Variable               | Usage                              | Requirement / default                                                                                                               |
+| ---------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `IRACING_AUTH_CLIENT`  | Local stdio OAuth registration     | Required, nonblank; must match the original login                                                                                   |
+| `IRACING_AUTH_SECRET`  | Local stdio OAuth client secret    | Required for confidential registrations; omit or leave empty for public clients                                                     |
+| `IRACING_CREDENTIALS`  | Selected local OAuth JSON document | Defaults to `.iracing-data/iracing-data-mcp/credentials.json` under the process working directory; `--credentials` takes precedence |
+| `IRACING_ACCESS_TOKEN` | Explicit access token              | Optional; bypasses file-backed OAuth restoration and registration requirements                                                      |
 
-Invalid configuration reports the affected variable names and this documentation
-link, never the supplied values or secrets. The runtime cannot infer whether a
+Use `iracing-data-mcp serve --help` for supported flags. `--transport` defaults
+to `stdio`; `--transport http` uses `127.0.0.1:3000`. The CLI does not currently
+expose listener host or port options. The runtime cannot infer whether a
 registration is confidential or prove registration/session compatibility offline;
-supply the correct secret when issued. HTTP embedding validates listener options
-without requiring local OAuth registration or reading the local document.
+supply the correct secret when issued.
 
 For initial login use `pnpm iracing-data auth login --scope iracing.auth`.
 Credential files must satisfy the OAuth document reader's checks (on POSIX:
 current-user-owned directory mode `0700` and file mode `0600`, no symlinks).
 See [CLI login setup](../iracing-data-cli/README.md#build-and-run-locally) for acquisition.
-After fixing startup configuration, reconnect the MCP client. During a running
-connection, replacing the selected credential document is still observed on the
-next tool request.
+After fixing configuration or replacing a credential document, restart the
+MCP process to create a fresh credential owner.
 
 ## Historical result search
 
@@ -156,43 +174,52 @@ registering tools; an incorrectly configured actor resolver fails closed with
 Historical chunk retrieval uses an independent, unsigned HTTPS fetch rather
 than inheriting the credentialed API client's transport.
 
-## Embedding in Hono HTTP
+## HTTP handler and standalone listener
 
-The HTTP router does not choose an iRacing account or trust incoming identity
-headers. An embedding host must authenticate each incoming `Request`, then
-provide actor-owned query capabilities:
+The standalone `/mcp` route rejects non-loopback Host and Origin headers before
+tool dispatch. Requests without Origin are allowed for direct local clients.
+Embedding hosts retain responsibility for their own Host/Origin policy.
 
-```ts
-import { createMcpRouter } from "@iracing-data/iracing-data-mcp";
-import { Hono } from "hono";
+The development command uses the host-selected iRacing account and does **not**
+authenticate HTTP callers. Keep it on loopback; do not expose it publicly.
 
-const app = new Hono().route(
-  "/mcp",
-  createMcpRouter({
-    resolveActor: async (request) => {
-      const session = await auth.api.getSession({
-        headers: request.headers,
-      });
-
-      return session?.user
-        ? { provider: "host-session", id: session.user.id }
-        : null;
-    },
-    resolveCapabilities: async (actor, context) =>
-      linkedIracingQueriesForActor(actor, context.signal),
-  }),
-);
+```sh
+pnpm exec dotenv -e .env -- iracing-data-mcp serve --transport http
 ```
 
-The `auth` and `linkedIracingQueriesForActor` values above are provided by
-the embedding application, not this package. Only the host may decide
-which linked iRacing account a verified actor may access.
+The application serves MCP at `/mcp`; all other paths return an empty `404`.
+`createHttpTransport` is a path-independent handler, not an application router.
+An embedding host chooses the path and owns authentication and account selection:
+
+```ts
+import {
+  createHttpTransport,
+  createMcpServices,
+  type McpCapabilities,
+} from "@iracing-data/iracing-data-mcp";
+import { Hono } from "hono";
+
+// Supplied by the host; not selected by the transport.
+declare const capabilities: McpCapabilities;
+const handler = createHttpTransport({
+  services: createMcpServices(capabilities),
+  serveOptions: { maxRequestBodySize: 64 * 1024 },
+});
+
+const app = new Hono();
+app.all("/integrations/iracing", (c) => handler.fetch(c.req.raw));
+```
+
+This single-account example does not authenticate callers. An authenticated host
+must verify each request before forwarding it and supply that caller's account
+services. Multi-user request-scope integration is deferred to a separate change.
 
 ### Account-scoped token providers
 
 `AccessTokenProvider` is a `() => Promise<string>` contract, separate from
-`ResolveActor`. `createFileAccessTokenProvider(path, metadata)` implements it
-for a disk-backed OAuth session. `createFetchQueries(provider)` accepts any
+`ResolveActor`. `createTokenProvider({sessionStore, sessionKey, ...metadata})`
+retains one OAuth client with an injected session store. It restores/refreshes
+that selected session; it does not initiate login. `createFetchQueries(provider)` accepts any
 implementation, including one closed over a verified user's linked account:
 
 ```ts
@@ -210,61 +237,89 @@ must fail closed with `ApplicationFailure("AUTHORIZATION_REQUIRED")`; never fall
 back to the local file. Reuse one refresh owner per linked account, rather than
 creating independent refresh queues for concurrent requests.
 
-`createFileCapabilities(path, metadata)` is the local convenience composition
-of the file-backed provider and Fetch queries. Tools depend on domain query
-capabilities, not on token storage or actor authentication.
+Tools depend on domain query capabilities, not on token storage or actor
+authentication. The token provider never reads environment variables or selects
+a credential path; the host supplies its store and explicit session key.
 
 ### Reuse one credential strategy across transports
 
-Neither `startMcpStdio` nor `createMcpRouter` chooses a token provider. Both
-accept the same `ResolveCapabilities` callback. Define that callback once and
-reuse it, so changing its account/token implementation applies to either host:
+The transports do not choose a credential source. Compose capabilities once,
+then supply them to the selected transport:
 
 ```ts
 import {
   createFetchQueries,
-  createMcpRouter,
-  startMcpStdio,
-  type ResolveCapabilities,
+  createHttpTransport,
+  createMcpServices,
+  createStdioTransport,
+  createTokenProvider,
 } from "@iracing-data/iracing-data-mcp";
+import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 
-const resolveCapabilities: ResolveCapabilities = async (actor, context) => {
-  const account = await requireLinkedIracingAccount(actor.id, context.signal);
-  return createFetchQueries(() =>
-    linkedAccountTokens.getAccessToken(account.id),
-  );
-};
+const sessionKey = "local-mcp";
+const tokenProvider = createTokenProvider({
+  ...clientMetadata,
+  sessionKey,
+  sessionStore: new OAuthTokenDocumentSessionStore({
+    filePath: credentialsPath,
+    sessionKey,
+  }),
+});
+const capabilities = createFetchQueries(tokenProvider);
+const services = createMcpServices(capabilities);
 
 // Choose a host; these examples are alternatives, not concurrent refresh owners.
-startMcpStdio({ actor: authorizedLocalActor, resolveCapabilities });
-createMcpRouter({ resolveActor: verifyHttpRequest, resolveCapabilities });
+createStdioTransport({
+  services,
+  serveOptions: {},
+});
+createHttpTransport({
+  services,
+  serveOptions: {},
+});
 ```
 
-The application supplies the identity and linked-account functions above.
-HTTP verifies actors per request; stdio uses an actor explicitly authorized by
-its host. The shipped `iracing-data-mcp` executable is a concrete file-backed
-composition: it validates local configuration and credentials, then injects
-`createFileCapabilities` into the generic stdio host. To use another strategy,
-compose either public host with your own shared resolver; there is no hidden
-per-transport token fallback or dynamic provider-module loader.
+`credentialsPath` and `clientMetadata` are host configuration. The CLI uses
+this same token-provider implementation with its selected document store. Existing
+actor-based composition remains available to custom hosts; HTTP transport
+and stdio transports require only the resolved tool services.
 
-For a separate HTTP process, call `startMcpHttpServer` with
-`config`, `resolveActor`, and `resolveCapabilities`.
-`parseConfig(process.env)` applies the default listener address
-`127.0.0.1:3000`. Standalone HTTP still **requires** caller-provided
-authentication; it never uses the local CLI account by default.
+### Lazy service ownership
+
+`createFetchQueries(provider)` returns a `McpServices` instance with memoized
+getters. The generated configuration and each query adapter are constructed
+only when a query capability is first selected, then reused for that owner.
+Construct one capability instance per credential owner outside request handlers;
+creating a new instance per request defeats this lifetime.
+
+```ts
+const capabilities = createFetchQueries(accountTokenProvider);
+const services = createMcpServices(capabilities);
+// No query adapter or token lookup yet.
+```
+
+Adapters are cached, not access tokens or request context. Each API operation
+still invokes the injected token provider for current credentials and receives
+its own cancellation signal. The host retains the OAuth lifecycle/refresh owner
+across requests. Lazy getters do not provide cross-process refresh locking.
+
+For custom adapters, construct `new McpServices({ driverQueries: () => ...,
+recentRaceQueries: () => ..., raceSearchQueries: () => ... })`.
+`createMcpServices` also accepts a request-local capability resolver; its results
+are deliberately not cached across requests or identities.
 
 The SDK handles MCP protocol classification and stateless requests.
 No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 
 ## Implementation
 
-- `src/config.ts`: Zod defaults and transformation to runtime options
-- `src/composition.ts`: Awilix dependency composition around an already verified actor
-- `src/http.ts`: mountable Hono MCP router
-- `src/http-server.ts`: optional Node listener
-- `src/stdio.ts`: stdio host using the same MCP factory
-- `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
+- `src/cli/commands/serve/schema.ts`: Zod serve-option boundary
+- `src/composition.ts`: lazy owner-scoped query getters and MCP selector bridge
+- `src/cli/router.ts`: standalone `/mcp` application router
+- `src/cli/server.ts`: optional Node listener
+- `src/transports/http/index.ts`: path-independent HTTP handler
+- `src/transports/stdio/index.ts`: stdio host using the same MCP factory
+- `src/access-token.ts`: injected OAuth client/store lifecycle and token resolution
 - `src/token-provider.ts`: account-scoped access-token provider contract
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 

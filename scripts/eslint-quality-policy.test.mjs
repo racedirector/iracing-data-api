@@ -130,7 +130,7 @@ test("tests keep correctness rules without runtime structural limits", async () 
 test("workspace boundaries prohibit runtime composition and private imports", async () => {
   const reusable = "packages/oauth/client/src/session.ts";
   await rejects(
-    'import "../../../../apps/iracing-data-mcp/src/http.js";',
+    'import "../../../../apps/iracing-data-mcp/src/transports/http/index.js";',
     "boundaries/dependencies",
     reusable,
   );
@@ -152,7 +152,7 @@ test("workspace boundaries prohibit runtime composition and private imports", as
 test("generated clients remain dependency leaves without runtime style policy", async () => {
   const filePath = "packages/api/client/fetch/src/runtime.ts";
   await rejects(
-    '/* eslint-disable */\nimport "../../../../../apps/iracing-data-mcp/src/http.js";',
+    '/* eslint-disable */\nimport "../../../../../apps/iracing-data-mcp/src/transports/http/index.js";',
     "boundaries/dependencies",
     filePath,
   );

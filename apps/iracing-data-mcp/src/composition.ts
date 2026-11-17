@@ -1,5 +1,4 @@
 import { ApplicationFailure } from "@iracing-data/mcp";
-import { asValue, createContainer } from "awilix";
 import type {
   DriverQueries,
   IracingToolContext,
@@ -27,6 +26,51 @@ export interface McpCapabilities {
 
   /** Actor-scoped recent-race lookup. */
   readonly recentRaceQueries: RecentRaceQueries;
+}
+
+/** Explicit constructors for one credential owner's lazily selected query adapters. */
+export type McpQueryFactories = {
+  [Key in keyof McpCapabilities]: () => McpCapabilities[Key];
+};
+
+/**
+ * Memoized query adapters for one credential owner. Request context and token
+ * values are never cached here; the injected adapters retain their token provider.
+ */
+export class McpServices implements McpCapabilities {
+  private driver?: DriverQueries;
+  private recentRaces?: RecentRaceQueries;
+  private raceSearch?: RaceSearchQueries;
+
+  /**
+   * Retain constructors without creating adapters or acquiring credentials.
+   * @param {McpQueryFactories} factories - Query constructors bound to one credential owner.
+   */
+  constructor(private readonly factories: McpQueryFactories) {}
+
+  /**
+   * Select the owner's driver adapter, constructing it on first access.
+   * @returns {DriverQueries} Memoized driver query adapter.
+   */
+  get driverQueries(): DriverQueries {
+    return (this.driver ??= this.factories.driverQueries());
+  }
+
+  /**
+   * Select the owner's recent-race adapter, constructing it on first access.
+   * @returns {RecentRaceQueries} Memoized recent-race query adapter.
+   */
+  get recentRaceQueries(): RecentRaceQueries {
+    return (this.recentRaces ??= this.factories.recentRaceQueries());
+  }
+
+  /**
+   * Select the owner's historical-search adapter, constructing it on first access.
+   * @returns {RaceSearchQueries} Memoized historical-search query adapter.
+   */
+  get raceSearchQueries(): RaceSearchQueries {
+    return (this.raceSearch ??= this.factories.raceSearchQueries());
+  }
 }
 
 /**
@@ -59,18 +103,29 @@ export function composeMcpServices(
   actor: McpActor,
   resolveCapabilities: ResolveCapabilities,
 ): IracingToolServices {
-  const container = createContainer().register({
-    actor: asValue(actor),
-    resolveCapabilities: asValue(resolveCapabilities),
-  });
+  return createMcpServices((context) => resolveCapabilities(actor, context));
+}
 
+/** Host-selected capabilities, or an explicit request-local capability resolver. */
+export type McpCapabilitySource =
+  | McpCapabilities
+  | ((
+      context: IracingToolContext,
+    ) => Promise<McpCapabilities> | McpCapabilities);
+
+/**
+ * Compose tool services from host-selected capabilities, without choosing identity.
+ * @param {McpCapabilitySource} source - One owner's capabilities or host-owned request-local selection.
+ * @returns {IracingToolServices} Explicit MCP tool services.
+ */
+export function createMcpServices(
+  source: McpCapabilitySource,
+): IracingToolServices {
   async function select(context: IracingToolContext): Promise<McpCapabilities> {
     context.signal.throwIfAborted();
 
-    const resolved = await container.cradle.resolveCapabilities(
-      container.cradle.actor,
-      context,
-    );
+    const resolved =
+      typeof source === "function" ? await source(context) : source;
 
     context.signal.throwIfAborted();
 

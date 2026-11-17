@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "iracing-data": "node --env-file-if-exists=.env apps/iracing-data-cli/dist/index.js",
-    "mcp:local": "dotenv -e .env -- iracing-data-mcp",
+    "mcp:inspect:stdio": "dotenv -e .env -- pnpm --filter '@iracing-data/iracing-data-mcp' inspect:stdio",
+    "mcp:inspect:http": "dotenv -e .env -- pnpm --filter '@iracing-data/iracing-data-mcp' inspect:http",
     "codegen": "node scripts/check-generated.mjs --write",
     "codegen:client": "pnpm -w --parallel --stream '/^codegen:client:(api|oauth):.+$/'",
     "codegen:client:api": "pnpm -w --parallel --stream '/^codegen:client:api:.+$/'",

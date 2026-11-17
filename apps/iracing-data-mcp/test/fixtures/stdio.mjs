@@ -1,7 +1,7 @@
-import { startMcpStdio } from "../../dist/stdio.js";
+import { createMcpServices, createStdioTransport } from "../../dist/index.js";
 import { capabilities } from "./capabilities.mjs";
 
-startMcpStdio({
-  actor: { id: "fixture", provider: "test" },
-  resolveCapabilities: () => capabilities(process.env.MCP_TEST_MODE),
+createStdioTransport({
+  serveOptions: {},
+  services: createMcpServices(() => capabilities(process.env.MCP_TEST_MODE)),
 });

@@ -1,0 +1,114 @@
+import { Command } from "@commander-js/extra-typings";
+import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
+import * as z from "zod";
+import { createTokenProvider } from "../../../access-token.js";
+import { createFetchQueries } from "../../../adapters/fetch.js";
+import { createMcpServices } from "../../../composition.js";
+import { createStdioTransport } from "../../../transports/index.js";
+import { createHttpListener } from "../../http.js";
+import * as commandOptions from "./options.js";
+import { ServeOptionsSchema } from "./schema.js";
+import type { ServeOptions } from "./schema.js";
+import type { AccessTokenProvider } from "../../../token-provider.js";
+import type pino from "pino";
+
+/**
+ * Options for configuring the program.
+ */
+export interface ServeCommandOptions {
+  /** Logger interface. */
+  logger: pino.Logger;
+
+  /** Session storage key. */
+  sessionKey?: string;
+}
+
+/**
+ * Creates a commanderjs command for serving an MCP service.
+ * @param {ServeCommandOptions} options - Program customizations and options.
+ * @returns {Command} Command for the CLI entry-point.
+ */
+export function createServeCommand({
+  logger,
+  sessionKey = "iracing-data-mcp-session",
+}: ServeCommandOptions) {
+  return new Command("serve")
+    .addOption(commandOptions.credentialsOption)
+    .addOption(commandOptions.accessTokenOption)
+    .addOption(commandOptions.clientIdOption)
+    .addOption(commandOptions.clientSecretOption)
+    .addOption(commandOptions.maskedClientSecretOption)
+    .addOption(commandOptions.usernameOption)
+    .addOption(commandOptions.passwordOption)
+    .addOption(commandOptions.maskedPasswordOption)
+    .addOption(commandOptions.redirectUriOption)
+    .addOption(commandOptions.transportOption)
+    .action((raw, command) => {
+      if (process.env.IRACING_MCP_CREDENTIAL_FILE !== undefined) {
+        command.error(
+          "IRACING_MCP_CREDENTIAL_FILE is retired; use IRACING_CREDENTIALS instead.",
+        );
+      }
+
+      const result = ServeOptionsSchema.safeParse(raw);
+
+      if (!result.success) {
+        command.error(z.prettifyError(result.error));
+
+        return;
+      }
+
+      const options = result.data;
+
+      const tokenResolver = createServeTokenProvider(options, sessionKey);
+
+      const services = createMcpServices(createFetchQueries(tokenResolver));
+
+      if (options.transport === "http") {
+        logger.trace("Configuring HTTP listener");
+
+        createHttpListener({
+          logger: logger.child({ service: "HttpListener" }),
+          host: options.host,
+          port: options.port,
+          services,
+        });
+      } else {
+        logger.trace("Configuring stdio transport");
+
+        createStdioTransport({
+          services,
+          serveOptions: {
+            onerror: (error) => {
+              logger.error({ error }, "stdio transport error");
+            },
+          },
+        });
+      }
+    });
+}
+
+function createServeTokenProvider(
+  options: ServeOptions,
+  sessionKey: string,
+): AccessTokenProvider {
+  if ("accessToken" in options) {
+    return () => Promise.resolve(options.accessToken);
+  }
+
+  return createTokenProvider({
+    sessionKey,
+    clientId: options.clientId,
+    clientSecret: options.clientSecret,
+    maskedClientSecret: options.maskedClientSecret,
+    scopes: ["iracing.auth", "iracing.profile"],
+    username: options.username,
+    password: options.password,
+    maskedPassword: options.maskedPassword,
+    redirectUri: options.redirectUri,
+    sessionStore: new OAuthTokenDocumentSessionStore({
+      filePath: options.credentials,
+      sessionKey,
+    }),
+  });
+}

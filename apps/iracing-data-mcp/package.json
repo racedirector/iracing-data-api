@@ -4,8 +4,8 @@
   "description": "iRacing MCP stdio executable and embeddable HTTP runtime.",
   "license": "MIT",
   "type": "module",
-  "main": "dist/index.js",
-  "types": "dist/index.d.ts",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -31,23 +31,32 @@
     "README.md"
   ],
   "scripts": {
-    "start": "node dist/main.js",
     "build": "tsc --build tsconfig.build.json",
+    "dev": "node --watch --watch-preserve-output --watch-path=src --watch-path=tsconfig.build.json --watch-path=package.json scripts/dev.mjs",
+    "inspect:stdio": "node scripts/inspect.mjs stdio",
+    "inspect:http": "node scripts/inspect.mjs http",
+    "start": "node dist/main.js",
     "test": "pnpm build && node --test test/*.test.cjs",
     "test:package": "node --test packaging/*.test.cjs"
   },
   "dependencies": {
+    "@commander-js/extra-typings": "^15.0.0",
     "@hono/node-server": "1.19.17",
     "@iracing-data/api-client-fetch": "workspace:*",
     "@iracing-data/mcp": "workspace:*",
     "@iracing-data/oauth-client": "workspace:*",
     "@modelcontextprotocol/server": "2.3.1",
-    "awilix": "^13.0.5",
+    "commander": "^15.0.0",
+    "concurrently": "^10.0.7",
     "hono": "4.13.13",
+    "pino": "^10.4.0",
+    "pino-pretty": "^13.2.0",
     "zod": "^4.6.7"
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.3.1",
-    "@types/node": "^26.6.2"
+    "@modelcontextprotocol/inspector": "^2.15.0",
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15"
   }
 }

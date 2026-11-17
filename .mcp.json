@@ -1,8 +1,0 @@
-{
-  "mcpServers": {
-    "iracing-data": {
-      "command": "pnpm",
-      "args": ["exec", "dotenv", "-e", ".env", "--", "iracing-data-mcp"]
-    }
-  }
-}

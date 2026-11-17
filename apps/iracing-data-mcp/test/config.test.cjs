@@ -5,40 +5,35 @@ const path = require("node:path");
 const test = require("node:test");
 const { localSession } = require("./fixtures/local-session.cjs");
 
-test("Zod applies environment defaults and maps directly to runtime options", async () => {
-  const { parseConfig, EnvironmentSchema } = await import("../dist/config.js");
-  const config = parseConfig({});
-  assert.deepEqual(EnvironmentSchema.parse({}), config);
+test("Zod applies transport defaults and validates runtime options", async () => {
+  const { ServeOptionsSchema } =
+    await import("../dist/cli/commands/serve/schema.js");
+  const parse = (options) =>
+    ServeOptionsSchema.parse({
+      accessToken: "synthetic-token",
+      transport: "http",
+      ...options,
+    });
+  const config = parse({});
   assert.equal(config.host, "127.0.0.1");
   assert.equal(config.port, 3000);
-  assert.equal(
-    config.credentialsFile,
-    path.resolve(
-      process.cwd(),
-      ".iracing-data/iracing-data-mcp/credentials.json",
-    ),
-  );
-  assert.equal(parseConfig({ IRACING_MCP_PORT: "4555" }).port, 4555);
-  assert.equal(
-    parseConfig({ IRACING_MCP_CREDENTIAL_FILE: "/custom/credentials.json" })
-      .credentialsFile,
-    "/custom/credentials.json",
-  );
+  assert.equal(parse({ port: "4555" }).port, 4555);
   for (const invalid of [
-    { IRACING_MCP_PORT: "0" },
-    { IRACING_MCP_PORT: "not-a-number" },
-    { IRACING_MCP_CREDENTIAL_FILE: "" },
+    { port: "0" },
+    { port: "not-a-number" },
+    { port: 65536 },
+    { host: "" },
+    { transport: "unsupported" },
   ]) {
-    assert.throws(() => parseConfig(invalid));
+    assert.throws(() => parse(invalid));
   }
 });
 
 test("local stdio capabilities are constructed lazily without network calls", async () => {
-  const { createFileCapabilities } = await import("../dist/credentials.js");
-  const queries = createFileCapabilities(
-    "/tmp/unconfigured-iracing-mcp-test-token.json",
-    { clientId: "synthetic-client", scopes: [] },
-  );
+  const { createFetchQueries } = await import("../dist/index.js");
+  const queries = createFetchQueries(async () => {
+    assert.fail("No token lookup while constructing query adapters");
+  });
   assert.equal(typeof queries.driverQueries.getCurrent, "function");
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
   assert.equal(typeof queries.raceSearchQueries.search, "function");
@@ -52,7 +47,7 @@ test("local stdio executable initializes and advertises all tools", async (t) =>
   const client = new Client({ name: "offline-stdio-test", version: "1" });
   const transport = new StdioClientTransport({
     command: "pnpm",
-    args: ["exec", "iracing-data-mcp"],
+    args: ["exec", "iracing-data-mcp", "serve"],
     cwd: path.resolve(__dirname, "../../.."),
     env: fixture.env,
   });
@@ -81,10 +76,11 @@ test("explicit credential path overrides an invalid environment path", async (t)
     command: process.execPath,
     args: [
       path.resolve(__dirname, "../dist/main.js"),
+      "serve",
       "--credentials",
       fixture.file,
     ],
-    env: { ...fixture.env, IRACING_MCP_CREDENTIAL_FILE: "" },
+    env: { ...fixture.env, IRACING_CREDENTIALS: "" },
   });
 
   try {
@@ -103,16 +99,16 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
   const file = path.join(fixture.directory, ".env");
   await fs.writeFile(
     file,
-    `IRACING_AUTH_CLIENT=synthetic-client\nIRACING_MCP_CREDENTIAL_FILE=${fixture.file}\n`,
+    `IRACING_AUTH_CLIENT=synthetic-client\nIRACING_CREDENTIALS=${fixture.file}\n`,
   );
   for (const inherited of [
     undefined,
     path.join(fixture.directory, "missing.json"),
   ]) {
     const env = { ...fixture.env };
-    delete env.IRACING_MCP_CREDENTIAL_FILE;
+    delete env.IRACING_CREDENTIALS;
     delete env.IRACING_AUTH_CLIENT;
-    if (inherited) env.IRACING_MCP_CREDENTIAL_FILE = inherited;
+    if (inherited) env.IRACING_CREDENTIALS = inherited;
     const client = new Client({ name: "env-test", version: "1" });
     const transport = new StdioClientTransport({
       command: path.resolve(__dirname, "../../../node_modules/.bin/dotenv"),
@@ -121,6 +117,7 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
         file,
         "--",
         path.resolve(__dirname, "../../../node_modules/.bin/iracing-data-mcp"),
+        "serve",
       ],
       cwd: fixture.directory,
       env,
@@ -131,57 +128,56 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
       stderr += chunk.toString();
     });
     try {
+      await client.connect(transport);
+      assert.equal((await client.listTools()).tools.length, 3);
       if (inherited) {
-        await assert.rejects(client.connect(transport));
-      } else {
-        await client.connect(transport);
-        assert.equal((await client.listTools()).tools.length, 3);
+        const result = await client.callTool({
+          name: "get_my_driver",
+          arguments: {},
+        });
+        assert.equal(result.isError, true);
+        assert.equal(
+          result.structuredContent.error.code,
+          "AUTHORIZATION_REQUIRED",
+        );
       }
       await client.close();
-      if (inherited) assert.ok(stderr.includes(inherited), stderr);
-      else assert.equal(stderr, "");
+      assert.ok(!stderr.includes("synthetic-refresh"));
     } finally {
       await client.close();
     }
   }
 });
 
-test("stdio registration validation is explicit and HTTP configuration stays independent", async () => {
-  const { parseConfig, parseStdioConfig } = await import("../dist/config.js");
-  assert.equal(parseConfig({}).port, 3000);
+test("registration validation permits explicit access tokens without OAuth metadata", async () => {
+  const { ServeOptionsSchema } =
+    await import("../dist/cli/commands/serve/schema.js");
   for (const value of [undefined, "", " \t"]) {
-    assert.throws(
-      () => parseStdioConfig({ IRACING_AUTH_CLIENT: value }),
-      /IRACING_AUTH_CLIENT/,
+    assert.equal(
+      ServeOptionsSchema.safeParse({
+        transport: "stdio",
+        credentials: "credentials.json",
+        clientId: value,
+      }).success,
+      false,
     );
   }
-  const config = parseStdioConfig({
-    IRACING_AUTH_CLIENT: "fixture",
-    IRACING_AUTH_SECRET: "",
-  });
-  assert.deepEqual(config.clientMetadata, {
+  const config = ServeOptionsSchema.parse({
+    transport: "stdio",
     clientId: "fixture",
-    clientSecret: undefined,
-    scopes: [],
+    credentials: "credentials.json",
   });
-  const secret = "SECRET_MUST_NOT_BE_PRINTED";
-  assert.throws(
-    () =>
-      parseStdioConfig({
-        IRACING_MCP_PORT: secret,
-        IRACING_AUTH_SECRET: secret,
-      }),
-    (error) => {
-      assert.match(error.message, /IRACING_AUTH_CLIENT/);
-      assert.match(error.message, /IRACING_MCP_PORT/);
-      assert.match(error.message, /#environment-configuration/);
-      assert.ok(!error.message.includes(secret));
-      return true;
-    },
+  assert.equal(config.clientId, "fixture");
+  assert.deepEqual(
+    ServeOptionsSchema.parse({
+      transport: "stdio",
+      accessToken: "synthetic-token",
+    }),
+    { transport: "stdio", accessToken: "synthetic-token" },
   );
 });
 
-test("startup fails usefully before protocol output for missing configuration and credentials", async (t) => {
+test("startup rejects invalid configuration before protocol output", async (t) => {
   const fixture = await localSession(t);
   const binary = path.resolve(
     __dirname,
@@ -195,30 +191,19 @@ test("startup fails usefully before protocol output for missing configuration an
   const missingRegistration = { ...fixture.env };
   delete missingRegistration.IRACING_AUTH_CLIENT;
   for (const [env, args, expected] of [
-    [missingRegistration, [], /IRACING_AUTH_CLIENT/],
-    [
-      { ...fixture.env, IRACING_MCP_PORT: "invalid-secret" },
-      [],
-      /IRACING_MCP_PORT/,
-    ],
     [
       {
         ...fixture.env,
-        IRACING_MCP_CREDENTIAL_FILE: path.join(
-          fixture.directory,
-          "missing.json",
-        ),
+        IRACING_MCP_CREDENTIAL_FILE: "/private/legacy-secret-path",
       },
       [],
-      /No OAuth session found/,
+      /IRACING_MCP_CREDENTIAL_FILE is retired; use IRACING_CREDENTIALS/,
     ],
-    [
-      fixture.env,
-      ["--env-file-if-exists", ".env"],
-      /Supported option: --credentials/,
-    ],
+    [missingRegistration, [], /Invalid input/],
+    [fixture.env, ["--transport", "unsupported"], /--transport/],
+    [fixture.env, ["--env-file-if-exists", ".env"], /unknown option/],
   ]) {
-    const result = spawnSync(binary, args, {
+    const result = spawnSync(binary, ["serve", ...args], {
       cwd: fixture.directory,
       env,
       encoding: "utf8",
@@ -227,20 +212,10 @@ test("startup fails usefully before protocol output for missing configuration an
     assert.equal(result.status, 1, result.stderr);
     assert.equal(result.stdout, "");
     assert.match(result.stderr, expected);
-    assert.match(result.stderr, /#environment-configuration/);
     assert.ok(!result.stderr.includes("invalid-secret"));
     assert.ok(!result.stderr.includes("synthetic-refresh"));
+    assert.ok(!result.stderr.includes("/private/legacy-secret-path"));
   }
-  await fs.writeFile(fixture.file, "invalid JSON", { mode: 0o600 });
-  const corrupt = spawnSync(binary, [], {
-    cwd: fixture.directory,
-    env: fixture.env,
-    encoding: "utf8",
-    timeout: 10000,
-  });
-  assert.equal(corrupt.status, 1);
-  assert.equal(corrupt.stdout, "");
-  assert.match(corrupt.stderr, /invalid_document/);
 });
 
 test("invalid actor search capabilities fail closed with a safe configuration error", async () => {

@@ -30,12 +30,17 @@ test("injected account-scoped token providers remain isolated and resolve on dem
       display_name: url.pathname.slice(1),
     });
   };
-  const resolveCapabilities = (actor) =>
-    createFetchQueries(async () => {
+  const owners = new Map();
+  const resolveCapabilities = (actor) => {
+    if (owners.has(actor.id)) return owners.get(actor.id);
+    const queries = createFetchQueries(async () => {
       calls.push(actor.id);
       assert.ok(tokens.has(actor.id), "Only linked accounts may supply tokens");
       return tokens.get(actor.id);
     });
+    owners.set(actor.id, queries);
+    return queries;
+  };
   const context = { signal: new AbortController().signal };
   const alice = composeMcpServices(
     { id: "alice", provider: "fixture" },
@@ -50,6 +55,9 @@ test("injected account-scoped token providers remain isolated and resolve on dem
     bob.getDriverQueries(context),
   ]);
   assert.deepEqual(calls, []);
+  assert.equal(await alice.getDriverQueries(context), aliceQueries);
+  assert.equal(await bob.getDriverQueries(context), bobQueries);
+  assert.notEqual(aliceQueries, bobQueries);
   const [a, b] = await Promise.all([
     aliceQueries.getCurrent(context),
     bobQueries.getCurrent(context),
@@ -70,7 +78,8 @@ test("switching an injected token strategy applies equally to stdio and HTTP", a
   const { Client } = await import("@modelcontextprotocol/client");
   const { StdioClientTransport } =
     await import("@modelcontextprotocol/client/stdio");
-  const { createMcpRouter } = await import("../dist/index.js");
+  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpServices } = await import("../dist/index.js");
   const { fixtureFetch, resolveLinkedCapabilities } =
     await import("./fixtures/linked-account.mjs");
   const originalFetch = globalThis.fetch;
@@ -86,15 +95,19 @@ test("switching an injected token strategy applies equally to stdio and HTTP", a
     const env = { ...process.env, MCP_TEST_STRATEGY: strategy };
     delete env.IRACING_AUTH_CLIENT;
     delete env.IRACING_AUTH_SECRET;
-    env.IRACING_MCP_CREDENTIAL_FILE = "/must-not-read-local-credentials.json";
+    env.IRACING_CREDENTIALS = "/must-not-read-local-credentials.json";
     const transport = new StdioClientTransport({
       command: process.execPath,
       args: [path.resolve(__dirname, "fixtures/linked-stdio.mjs")],
       env,
     });
     const router = createMcpRouter({
-      resolveActor: () => ({ id: "linked-user", provider: "fixture" }),
-      resolveCapabilities: resolveLinkedCapabilities(strategy),
+      services: createMcpServices(
+        resolveLinkedCapabilities(strategy)({
+          id: "linked-user",
+          provider: "fixture",
+        }),
+      ),
     });
     try {
       await client.connect(transport);
@@ -102,9 +115,10 @@ test("switching an injected token strategy applies equally to stdio and HTTP", a
         name: "get_my_driver",
         arguments: {},
       });
-      const response = await router.request("http://localhost/", {
+      const response = await router.request("http://localhost/mcp", {
         method: "POST",
         headers: {
+          host: "localhost",
           "content-type": "application/json",
           accept: "application/json, text/event-stream",
         },
