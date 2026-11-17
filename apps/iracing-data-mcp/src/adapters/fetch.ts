@@ -4,7 +4,7 @@ import { createDriverQueries } from "./driver.js";
 import { createRaceSearchQueries } from "./race-search.js";
 import { createRecentRaceQueries } from "./recent-races.js";
 import type { McpCapabilities } from "../composition.js";
-import type { AccessTokenProvider } from "../token-provider.js";
+import type { ConfigurationParameters } from "@iracing-data/api-client-fetch";
 
 /**
  * Bind the generated Fetch client and its tool-specific adapters to a
@@ -14,7 +14,7 @@ import type { AccessTokenProvider } from "../token-provider.js";
  * @returns {McpCapabilities} Tool-local queries backed by generated Fetch.
  */
 export function createFetchQueries(
-  accessToken: AccessTokenProvider,
+  accessToken: ConfigurationParameters["accessToken"],
 ): McpCapabilities {
   let configuration: Configuration | undefined;
 

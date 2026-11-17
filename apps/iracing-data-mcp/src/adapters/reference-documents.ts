@@ -10,6 +10,7 @@ import {
 } from "@iracing-data/mcp";
 import { createFileBackedResolver } from "../snapshots.js";
 import { createCatalogLoader } from "./catalog.js";
+import type { ConfigurationParameters } from "@iracing-data/api-client-fetch";
 import type {
   ReferenceDocument,
   ReferenceDocumentDefinition,
@@ -24,7 +25,7 @@ import type {
  */
 export function createReferenceDocuments(
   directory: string,
-  accessToken: () => Promise<string>,
+  accessToken: ConfigurationParameters["accessToken"],
   fetchApi: typeof fetch = fetch,
 ): readonly ReferenceDocument[] {
   const configuration = new Configuration({ accessToken, fetchApi });

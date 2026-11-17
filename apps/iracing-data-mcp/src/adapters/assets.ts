@@ -9,6 +9,7 @@ import { AssetDefinitions, createAssetResource } from "@iracing-data/mcp";
 import { createCatalogResolver } from "../catalog.js";
 import { createFileBackedResolver } from "../snapshots.js";
 import { createCatalogLoader } from "./catalog.js";
+import type { ConfigurationParameters } from "@iracing-data/api-client-fetch";
 import type { AssetCatalog, AssetKind } from "@iracing-data/mcp";
 import type { z } from "zod";
 
@@ -21,7 +22,7 @@ import type { z } from "zod";
  */
 export function createAssetCatalogs(
   directory: string,
-  accessToken: () => Promise<string>,
+  accessToken: ConfigurationParameters["accessToken"],
   fetchApi: typeof fetch = fetch,
 ): readonly AssetCatalog[] {
   const configuration = new Configuration({ accessToken, fetchApi });

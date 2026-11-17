@@ -5,6 +5,4 @@ export { createAssetCatalogs } from "./adapters/assets.js";
 export { createAssetMediaReader } from "./adapters/media.js";
 export type { ReferenceCatalog } from "@iracing-data/mcp";
 export * from "./access-token.js";
-export * from "./token-provider.js";
-export * from "./transports/index.js";
 export { createFetchQueries } from "./adapters/fetch.js";

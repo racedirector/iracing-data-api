@@ -4,6 +4,7 @@ import {
   TrackApi,
   SeriesApi,
   Configuration,
+  type ConfigurationParameters,
   type IracingAPIResponse,
 } from "@iracing-data/api-client-fetch";
 import {
@@ -42,7 +43,7 @@ export function createCatalogLoader(
  */
 export function createReferenceCatalogs(
   directory: string,
-  accessToken: () => Promise<string>,
+  accessToken: ConfigurationParameters["accessToken"],
   fetchApi: typeof fetch = fetch,
 ): readonly ReferenceCatalog[] {
   const configuration = new Configuration({ accessToken, fetchApi });
