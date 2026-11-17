@@ -58,7 +58,7 @@ test("factory registers injected assets lazily without host or transport depende
   assert.equal((await client.listResources()).resources.length, 1);
   assert.equal(
     (await client.listResourceTemplates()).resourceTemplates.length,
-    2,
+    3,
   );
   assert.equal(reads, 0);
   const metadata = await client.readResource({

@@ -9,7 +9,7 @@ import type {
 /** Host-selected services for a path-independent MCP HTTP handler. */
 export interface HttpTransportOptions extends Pick<
   IracingMcpServerOptions,
-  "services" | "catalogs" | "assets"
+  "services" | "catalogs" | "assets" | "documents"
 > {
   /** HTTP handler options. */
   readonly serveOptions: CreateMcpHandlerOptions;
@@ -29,6 +29,7 @@ export function createHttpTransport(
         serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
         services: options.services,
         catalogs: options.catalogs,
+        documents: options.documents,
         assets: options.assets,
       }),
     options.serveOptions,

@@ -136,12 +136,15 @@ Local stdio and HTTP advertise these collections and entity templates:
 | `iracing://cars`        | `iracing://cars/{car_id}`              | `cars.json`        |
 | `iracing://tracks`      | `iracing://tracks/{track_id}`          | `tracks.json`      |
 | `iracing://car-classes` | `iracing://car-classes/{car_class_id}` | `car-classes.json` |
+| `iracing://series`      | `iracing://series/{series_id}`         | `series.json`      |
 
 Collection reads return the JSON array directly; entity-template reads return
 the entity JSON object directly. Neither includes a schema or a data wrapper.
 Payloads are validated using `@iracing-data/api-schema`. Unknown fields are
 retained, not claimed as completely modeled. Class ID zero is valid upstream.
-Use a race result's car_id or track_id to resolve the corresponding entity.
+Use a race result's car_id, track_id or series_id to resolve the corresponding
+entity. Series metadata retains upstream eligibility and allowed-license fields;
+series branding is separately available at `iracing://assets/series/{id}`.
 
 Catalog construction and discovery never read snapshots, restore OAuth sessions
 or fetch. First catalog use loads
@@ -159,6 +162,43 @@ for changing result searches or member statistics.
 `@iracing-data/mcp` owns catalog definitions, validation schemas and resource
 registration. `src/catalog.ts` owns lazy indexing, `src/snapshots.ts` owns
 atomic persistence, and `src/adapters/catalog.ts` owns concrete SDK selection.
+
+### Reference definitions
+
+These small collections return raw upstream JSON arrays and use the same lazy
+snapshot lifecycle:
+
+| Resource                | Snapshot           | Contents                                                  |
+| ----------------------- | ------------------ | --------------------------------------------------------- |
+| `iracing://categories`  | `categories.json`  | Category labels and numeric values                        |
+| `iracing://event-types` | `event-types.json` | Event-type labels and numeric values                      |
+| `iracing://divisions`   | `divisions.json`   | Division labels and values, including `-1` for ALL        |
+| `iracing://licenses`    | `licenses.json`    | License groups and their nested license-level definitions |
+
+Constants are direct API arrays; license definitions are materialized from the
+returned signed link. Definitions are not a member's license status and do not
+guarantee eligibility. No enum meanings or safety-rating unit conversions are
+invented. Embedding hosts inject optional `documents` created with
+`createReferenceDocumentResource`; the runtime's `createReferenceDocuments`
+adapter supplies file snapshots and concrete SDK access.
+
+### Standalone schemas
+
+Selected catalogs, documents and assets advertise separate JSON Schema resources:
+
+- `iracing://schemas/{catalog}` and `iracing://schemas/{catalog}/entity`, for
+  `cars`, `tracks`, `car-classes` and `series`.
+- `iracing://schemas/{document}`, for `categories`, `event-types`, `divisions`
+  and `licenses`.
+- `iracing://schemas/assets/{kind}`, `/entity` and `/media`, for `cars`, `tracks`
+  and `series`.
+
+Schema reads use `application/schema+json` and do not load metadata, credentials
+or media. Payload schemas are intentionally partial acceptance documentation,
+not exhaustive upstream contracts: unknown upstream fields remain preserved.
+Media-index schemas describe our own projection. Data resources remain raw JSON,
+without a schema/data envelope. Only host-selected resources advertise schemas;
+custom injected resources can supply their own optional `schemas`.
 
 ### Static assets, images and track maps
 
@@ -178,6 +218,13 @@ track-map layers complete from the selected `id` or `track_id` in the client's
 completion context, suggesting only available, safely resolvable references.
 Missing or invalid context and unknown IDs return no selector suggestions.
 Completion can lazily load metadata but never downloads media.
+
+`iracing://assets/{kind}/{id}/media` returns a per-asset media index:
+`{ kind, id, images: [{ field, uri }], track_maps: [{ layer, uri, mimeType }] }`.
+The URIs are ready-to-read MCP resources, not expiring download URLs. Missing,
+null, unsupported and unsafe references are omitted. Empty arrays mean no
+resolvable media is advertised. This works without autocomplete support and
+loads metadata only; actual media availability is checked when its URI is read.
 
 Image templates are `iracing://images/{kind}/{id}/{field}`. Supported fields are
 `small_image`, `large_image`, `logo`, `sponsor_logo` and `group_image`; read the

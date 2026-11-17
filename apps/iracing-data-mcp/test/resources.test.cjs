@@ -37,6 +37,12 @@ const datasets = [
     id: "car_class_id",
     title: "name",
   },
+  {
+    name: "series",
+    endpoint: "/data/series/get",
+    id: "series_id",
+    title: "series_name",
+  },
 ];
 
 test("HTTP exposes the same lazy reference collections and templates", async (t) => {
@@ -80,7 +86,9 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
     return message.result;
   }
   assert.deepEqual(
-    (await rpc("resources/list")).resources.map((entry) => entry.uri),
+    (await rpc("resources/list")).resources
+      .filter((entry) => entry.mimeType !== "application/schema+json")
+      .map((entry) => entry.uri),
     datasets.map((entry) => `iracing://${entry.name}`),
   );
   assert.deepEqual(
@@ -151,7 +159,9 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
   const createCatalogs = () =>
     createReferenceCatalogs(directory, async () => "TEST_TOKEN", fetchApi);
   const client = await connect(t, createCatalogs());
-  const resources = (await client.listResources()).resources;
+  const resources = (await client.listResources()).resources.filter(
+    (entry) => entry.mimeType !== "application/schema+json",
+  );
   assert.deepEqual(
     resources.map((resource) => resource.uri),
     datasets.map((entry) => `iracing://${entry.name}`),
@@ -201,7 +211,7 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
   }
   assert.equal(
     requests.length,
-    6,
+    datasets.length * 2,
     "one API call and one signed download per catalog",
   );
   const restarted = await connect(t, createCatalogs());
@@ -214,7 +224,11 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
       payloads[dataset.name][1],
     );
   }
-  assert.equal(requests.length, 6, "restart uses snapshots, not the API");
+  assert.equal(
+    requests.length,
+    datasets.length * 2,
+    "restart uses snapshots, not the API",
+  );
 });
 
 test("invalid hydration is not persisted and can be retried", async (t) => {
@@ -321,11 +335,16 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
       env,
     }),
   );
-  assert.equal((await client.listResources()).resources.length, 6);
+  assert.equal((await client.listResources()).resources.length, 32);
   assert.equal(
     (await client.listResourceTemplates()).resourceTemplates.length,
-    10,
+    14,
   );
+  const schema = await client.readResource({
+    uri: "iracing://schemas/series/entity",
+  });
+  assert.equal(schema.contents[0].mimeType, "application/schema+json");
+  assert.ok(JSON.parse(schema.contents[0].text).$schema);
   // Files changed after discovery must be observed on the first read.
   for (const dataset of datasets) {
     await fs.writeFile(
@@ -369,5 +388,23 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
     assert.equal(body[idField], 17);
     assert.equal(body.schema, undefined);
     assert.equal(body.data, undefined);
+  }
+  for (const name of ["categories", "event-types", "divisions", "licenses"]) {
+    const payload =
+      name === "licenses"
+        ? [
+            {
+              license_group: 1,
+              group_name: "Example",
+              levels: [{ license_id: 4 }],
+            },
+          ]
+        : [{ label: "Example", value: name === "divisions" ? -1 : 1 }];
+    await fs.writeFile(
+      path.join(reference, `${name}.json`),
+      JSON.stringify(payload),
+    );
+    const response = await client.readResource({ uri: `iracing://${name}` });
+    assert.deepEqual(JSON.parse(response.contents[0].text), payload);
   }
 });

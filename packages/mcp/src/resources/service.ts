@@ -1,3 +1,5 @@
+import type { ResourceSchema } from "./schemas.js";
+
 /** A host-owned reference dataset and entity lookup. */
 export interface CatalogResolver<T> {
   /**
@@ -16,6 +18,9 @@ export interface CatalogResolver<T> {
 
 /** Published resource contract with host-injected data access. */
 export interface ReferenceCatalog {
+  /** Optional standalone acceptance schemas; never wrapped around data. */
+  readonly schemas?: readonly ResourceSchema[];
+
   /** URI collection name. */
   readonly name: string;
 

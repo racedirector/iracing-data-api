@@ -7,6 +7,7 @@ import { createAssetCatalogs } from "../../../adapters/assets.js";
 import { createReferenceCatalogs } from "../../../adapters/catalog.js";
 import { createFetchQueries } from "../../../adapters/fetch.js";
 import { createAssetMediaReader } from "../../../adapters/media.js";
+import { createReferenceDocuments } from "../../../adapters/reference-documents.js";
 import { createMcpServices } from "../../../composition.js";
 import { createStdioTransport } from "../../../transports/index.js";
 import { createHttpListener } from "../../http.js";
@@ -68,12 +69,7 @@ export function createServeCommand({
 
       const services = createMcpServices(createFetchQueries(tokenResolver));
 
-      const catalogs = createReferenceCatalogs(
-        join(dirname(raw.credentials), "reference"),
-        tokenResolver,
-      );
-
-      const assets = createServeAssets(raw.credentials, tokenResolver);
+      const resources = createServeResources(raw.credentials, tokenResolver);
 
       if (options.transport === "http") {
         logger.trace("Configuring HTTP listener");
@@ -83,16 +79,14 @@ export function createServeCommand({
           host: options.host,
           port: options.port,
           services,
-          catalogs,
-          assets,
+          ...resources,
         });
       } else {
         logger.trace("Configuring stdio transport");
 
         createStdioTransport({
           services,
-          catalogs,
-          assets,
+          ...resources,
           serveOptions: {
             onerror: (error) => {
               logger.error({ error }, "stdio transport error");
@@ -103,16 +97,19 @@ export function createServeCommand({
     });
 }
 
-function createServeAssets(
+function createServeResources(
   credentials: string,
   tokenResolver: AccessTokenProvider,
 ) {
+  const directory = join(dirname(credentials), "reference");
+
   return {
-    catalogs: createAssetCatalogs(
-      join(dirname(credentials), "reference"),
-      tokenResolver,
-    ),
-    readMedia: createAssetMediaReader(),
+    catalogs: createReferenceCatalogs(directory, tokenResolver),
+    documents: createReferenceDocuments(directory, tokenResolver),
+    assets: {
+      catalogs: createAssetCatalogs(directory, tokenResolver),
+      readMedia: createAssetMediaReader(),
+    },
   };
 }
 

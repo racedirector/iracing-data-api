@@ -11,7 +11,7 @@ import type { IracingMcpServerOptions } from "@iracing-data/mcp";
 /** Dependencies selected by the standalone host. */
 export type McpRouterOptions = Pick<
   IracingMcpServerOptions,
-  "services" | "catalogs" | "assets"
+  "services" | "catalogs" | "assets" | "documents"
 >;
 
 /**
@@ -25,6 +25,7 @@ export function createMcpRouter(options: McpRouterOptions): Hono {
   const handler = createHttpTransport({
     services: options.services,
     catalogs: options.catalogs,
+    documents: options.documents,
     assets: options.assets,
     serveOptions: { maxRequestBodySize: 64 * 1024 },
   });

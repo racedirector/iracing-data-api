@@ -100,7 +100,9 @@ test("asset discovery is lazy; collections and entities return raw metadata and 
   const { client, requests, directory, createCatalogs, tokens } =
     await setup(t);
   assert.deepEqual(
-    (await client.listResources()).resources.map((r) => r.uri),
+    (await client.listResources()).resources
+      .filter((entry) => entry.mimeType !== "application/schema+json")
+      .map((r) => r.uri),
     [
       "iracing://assets/cars",
       "iracing://assets/tracks",
@@ -110,7 +112,7 @@ test("asset discovery is lazy; collections and entities return raw metadata and 
   const templates = (
     await client.listResourceTemplates()
   ).resourceTemplates.map((r) => r.uriTemplate);
-  assert.equal(templates.length, 7);
+  assert.equal(templates.length, 10);
   assert.ok(templates.includes("iracing://track-maps/{track_id}/{layer}"));
   assert.equal(requests.length, 0);
   assert.equal(tokens(), 0);
@@ -137,6 +139,40 @@ test("asset discovery is lazy; collections and entities return raw metadata and 
   for (const catalog of createCatalogs())
     assert.ok(await catalog.resolver.get(catalog.kind === "series" ? 32 : 1));
   assert.equal(requests.length, 6, "restarted resolvers use snapshots");
+});
+
+test("per-asset media indexes expose read-ready URIs without downloading media", async (t) => {
+  const { client, requests } = await setup(t);
+  for (const [kind, id] of [
+    ["cars", 1],
+    ["tracks", 1],
+    ["series", 32],
+  ]) {
+    const response = await client.readResource({
+      uri: `iracing://assets/${kind}/${id}/media`,
+    });
+    const body = JSON.parse(response.contents[0].text);
+    assert.equal(body.kind, kind);
+    assert.equal(body.id, id);
+    assert.ok(body.images.length > 0);
+    assert.ok(
+      body.images.every((image) =>
+        image.uri.startsWith(`iracing://images/${kind}/${id}/`),
+      ),
+    );
+    assert.equal(body.track_maps.length, kind === "tracks" ? 2 : 0);
+  }
+  assert.equal(
+    requests.length,
+    6,
+    "Only metadata API calls and linked downloads",
+  );
+  assert.ok(
+    requests.every(
+      (url) =>
+        !url.includes("images-static") && !url.includes("members-assets"),
+    ),
+  );
 });
 
 test("images and map layers resolve verified paths and return unsigned MIME-tagged blobs", async (t) => {

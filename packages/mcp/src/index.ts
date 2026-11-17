@@ -1,5 +1,27 @@
 export { createIracingMcpServer } from "./factory.js";
-export { AssetDefinitions } from "./resources/assets/definitions.js";
+export {
+  AssetDefinitions,
+  createAssetResource,
+} from "./resources/assets/definitions.js";
+export type { AssetDefinition } from "./resources/assets/definitions.js";
+export {
+  AssetMediaIndexSchema,
+  createAssetMediaIndex,
+} from "./resources/assets/media-index.js";
+export {
+  createResourceSchema,
+  registerResourceSchemas,
+} from "./resources/schemas.js";
+export type { ResourceSchema } from "./resources/schemas.js";
+export {
+  ReferenceDocuments,
+  createReferenceDocumentResource,
+  registerReferenceDocuments,
+} from "./resources/documents.js";
+export type {
+  ReferenceDocument,
+  ReferenceDocumentDefinition,
+} from "./resources/documents.js";
 export { registerAssetResources } from "./resources/assets/index.js";
 export {
   assetId,
@@ -21,6 +43,7 @@ export {
   CarsCatalog,
   TracksCatalog,
   CarClassesCatalog,
+  SeriesCatalog,
   createReferenceResource,
 } from "./resources/definitions.js";
 export { registerIracingTools } from "./register.js";

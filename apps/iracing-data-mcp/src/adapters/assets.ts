@@ -5,7 +5,7 @@ import {
   SeriesApi,
   Configuration,
 } from "@iracing-data/api-client-fetch";
-import { AssetDefinitions } from "@iracing-data/mcp";
+import { AssetDefinitions, createAssetResource } from "@iracing-data/mcp";
 import { createCatalogResolver } from "../catalog.js";
 import { createFileBackedResolver } from "../snapshots.js";
 import { createCatalogLoader } from "./catalog.js";
@@ -85,12 +85,11 @@ function catalog<T extends Record<string, unknown>>(
     },
   );
 
-  return {
-    kind,
-    idField,
-    resolver: createCatalogResolver(
+  return createAssetResource(
+    definition,
+    createCatalogResolver(
       async () => Object.values(await read()),
       (entry) => Number(entry[idField]),
     ),
-  };
+  );
 }

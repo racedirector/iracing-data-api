@@ -96,6 +96,7 @@ test("asset ID completion is lazy, prefix-filtered, unique and numerically sorte
   ]) {
     for (const uri of [
       `iracing://assets/${kind}/{id}`,
+      `iracing://assets/${kind}/{id}/media`,
       `iracing://images/${kind}/{id}/{field}`,
     ]) {
       assert.deepEqual((await complete(uri, "id", "")).completion.values, ids);

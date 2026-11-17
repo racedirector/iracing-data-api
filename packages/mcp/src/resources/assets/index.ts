@@ -1,9 +1,11 @@
 import { ResourceTemplate } from "@modelcontextprotocol/server";
+import { registerResourceSchemas } from "../schemas.js";
 import {
   completeAssetIds,
   completeImageFields,
   completeMapLayers,
 } from "./completion.js";
+import { registerAssetMediaIndex } from "./media-index.js";
 import { assetId, imageUrl, trackMapUrl, ImageFieldSchema } from "./service.js";
 import type { AssetCatalog, ReadAssetMedia } from "./service.js";
 import type { McpServer } from "@modelcontextprotocol/server";
@@ -20,6 +22,8 @@ export function registerAssetResources(
   readMedia: ReadAssetMedia,
 ): void {
   for (const catalog of catalogs) {
+    registerResourceSchemas(server, catalog.schemas ?? []);
+    registerAssetMediaIndex(server, catalog);
     registerMetadata(server, catalog);
     server.registerResource(
       `${catalog.kind}-image`,

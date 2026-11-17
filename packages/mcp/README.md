@@ -132,6 +132,19 @@ metadata resolvers and a credential-free media reader; this package does not
 fetch or persist assets. Both runtime transports accept the same injected assets.
 Asset templates support ID prefix completion and context-aware completion of
 available image fields and map layers through the same host metadata resolvers.
+Per-asset `/media` resources list safely resolvable image and map-layer MCP URIs
+without downloading media.
+
+`SeriesCatalog` extends the catalog set with series metadata. Optional
+`documents` expose `ReferenceDocuments` categories, event types, divisions and
+license definitions via `createReferenceDocumentResource`. No personal license
+status or series eligibility is inferred from reference definitions.
+
+`createReferenceResource`, `createReferenceDocumentResource` and
+`createAssetResource` attach standalone schema resources under
+`iracing://schemas/…`; registration never wraps schemas around returned data.
+Schemas describe partial payload acceptance (unknown fields remain preserved),
+not exhaustive upstream contracts. Only host-selected resources are advertised.
 
 ```sh
 pnpm --filter '@iracing-data/mcp...' build

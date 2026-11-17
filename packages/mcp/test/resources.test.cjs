@@ -93,7 +93,9 @@ test("the core factory advertises resources without loading host data", async (t
   assert.ok(client.getServerCapabilities().completions);
   assert.equal((await client.listTools()).tools.length, 3);
   assert.deepEqual(
-    (await client.listResources()).resources.map((entry) => entry.uri),
+    (await client.listResources()).resources
+      .filter((entry) => entry.mimeType !== "application/schema+json")
+      .map((entry) => entry.uri),
     definitions.map((entry) => `iracing://${entry.name}`),
   );
   assert.deepEqual(
@@ -105,7 +107,9 @@ test("the core factory advertises resources without loading host data", async (t
   assert.equal(reads, 0);
   for (const resource of (await client.listResources()).resources) {
     assert.deepEqual(resource.annotations.audience, ["user", "assistant"]);
-    assert.match(resource.description, /Prefer iracing:/);
+    if (resource.mimeType !== "application/schema+json") {
+      assert.match(resource.description, /Prefer iracing:/);
+    }
   }
   for (const definition of definitions) {
     const complete = (value) =>

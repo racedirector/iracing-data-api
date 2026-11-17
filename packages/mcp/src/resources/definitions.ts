@@ -5,7 +5,10 @@ import {
   TrackCatalogPayloadSchema,
   CarClassPayloadSchema,
   CarClassCatalogPayloadSchema,
+  SeriesPayloadSchema,
+  SeriesCatalogPayloadSchema,
 } from "@iracing-data/api-schema";
+import { createResourceSchema } from "./schemas.js";
 import type { CatalogResolver, ReferenceCatalog } from "./service.js";
 import type { z } from "zod";
 
@@ -53,6 +56,18 @@ export function createReferenceResource<T>(
     description: definition.description,
     idField: definition.idField,
     resolver,
+    schemas: [
+      createResourceSchema(
+        definition.name,
+        `${definition.title} collection schema`,
+        definition.schema,
+      ),
+      createResourceSchema(
+        `${definition.name}/entity`,
+        `${definition.title} entity schema`,
+        definition.entitySchema,
+      ),
+    ],
   };
 }
 
@@ -91,3 +106,15 @@ export const CarClassesCatalog = {
   entitySchema: CarClassPayloadSchema,
   id: (carClass) => carClass.car_class_id,
 } satisfies CatalogDefinition<z.infer<typeof CarClassPayloadSchema>>;
+
+/** Series metadata joins race-result identities to series branding. */
+export const SeriesCatalog = {
+  name: "series",
+  title: "iRacing Series",
+  description:
+    "Resolve series_id to series names and complete metadata, including upstream eligibility and license restrictions. Branding metadata: iracing://assets/series/{id}.",
+  idField: "series_id",
+  schema: SeriesCatalogPayloadSchema,
+  entitySchema: SeriesPayloadSchema,
+  id: (series) => series.series_id,
+} satisfies CatalogDefinition<z.infer<typeof SeriesPayloadSchema>>;

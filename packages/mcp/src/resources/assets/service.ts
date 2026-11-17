@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { ResourceSchema } from "../schemas.js";
 import type { CatalogResolver } from "../service.js";
 
 /** Static asset namespace owned by one upstream metadata document. */
@@ -6,6 +7,9 @@ export type AssetKind = "cars" | "tracks" | "series";
 
 /** Static asset identity and host-owned indexed metadata access. */
 export interface AssetCatalog {
+  /** Optional standalone JSON acceptance schemas. */
+  readonly schemas?: readonly ResourceSchema[];
+
   /** Collection name used in resource URIs. */
   readonly kind: AssetKind;
 

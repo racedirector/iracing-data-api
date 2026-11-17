@@ -57,6 +57,55 @@ credentials, private identifiers, signed URLs, or raw response bodies.
   This work is **Unable to verify part of the contract**, not an all-route
   compatibility verdict.
 
+### DATA-003 extension — Series and small reference resources (2026-11-17)
+
+- **Context:** base `662c5da`, branch `restack/pr-556`; initially clean. This
+  implementation extends #556 with series, reference definitions, media indexes
+  and standalone schemas. Implementation commit: **pending**.
+- **Current evidence:** authenticated official
+  `https://members-ng.iracing.com/data/doc` retrieved at
+  `2026-11-17T20:01:50Z`, then CLI/generated-Fetch materialization of
+  `/data/series/get`, `/data/constants/categories`,
+  `/data/constants/event_types`, `/data/constants/divisions` and
+  `/data/lookup/licenses`. The default credential selection returned 401;
+  explicitly selecting the operator-refreshed MCP credential document succeeded.
+  No authentication implementation was changed.
+- **Observed scope:** 162 series entries, 6 categories, 4 event types, 12
+  divisions and 7 license groups. Constants have `label`/integer `value` rows;
+  divisions include -1 (ALL) and zero-based division values. License groups have
+  `license_group`, `group_name` and nested `levels`. These are dated observations,
+  not a claim of complete upstream field coverage.
+- **Structural comparison:** `node -r ts-node/register
+scripts/audit-data-docs.cjs <private-docs-file>` accepted the documentation
+  schema and matched all 74 documented endpoints. Exit 2 reported five existing
+  lookup-selector/spectator-array review candidates outside this resource scope;
+  none concerned the five resource endpoints above. No input or mapping repair.
+- **Retain DATA-003:** keep downloaded payload acceptance separate from modeled
+  link envelopes and preserve additive fields. Existing car, track, class and
+  asset definitions are unchanged and were not re-audited in this extension.
+- **Decision:** add partial `Series*PayloadSchema`,
+  `ReferenceValue*PayloadSchema` and license-definition payload schemas in the
+  shared API schema owner. Preserve raw series arrays, constants arrays and
+  grouped license arrays in MCP reads. Publish schema documentation separately;
+  media indexes are core-owned projections, not upstream payload contracts.
+- **Command decision:** retain existing series/constants/lookup CLI commands.
+  No modeled request/response, OpenAPI mapping or generated return-type changes;
+  no regeneration needed. Additive public exports affect API schema and both MCP
+  packages. No version bumps or publication authorized.
+- **Validation:** `pnpm --filter '@iracing-data/iracing-data-mcp...' build` and
+  `pnpm --filter @iracing-data/api-schema test` (48 tests) passed. The five freshly
+  retrieved, materialized payloads passed their new acceptance schemas. Focused
+  `node --test` execution of the core/runtime resource, asset, reference-document
+  and asset-completion files passed 26 tests. Focused ESLint, Prettier and
+  `git diff --check` passed. These regressions cover additive fields, negative
+  sentinels, grouped license levels, lazy schemas, snapshot reuse, HTTP/stdio
+  exposure and metadata-only media discovery. CI owns full offline verification
+  for this extension; no generated files were regenerated.
+- **Limitations:** no all-route live gate or exhaustive optional-field audit.
+  Verdict: **Unable to verify part of the contract**, not all-route compatibility.
+  Review again when payload acceptance fails or upstream documentation changes.
+  Private temporary payloads are not retained as repository evidence.
+
 ## DATA-001 — Hosted search returns an inline manifest
 
 - **Status:** repaired; scoped live case PASS. Not an all-endpoint verdict.
