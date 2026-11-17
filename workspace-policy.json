@@ -11,7 +11,7 @@
       "path": "apps/iracing-data-mcp",
       "name": "@iracing-data/iracing-data-mcp",
       "ecosystem": "npm",
-      "kind": "internal-tool",
+      "kind": "public-release-target",
       "owner": "api"
     },
     {
@@ -74,7 +74,7 @@
       "path": "packages/mcp",
       "name": "@iracing-data/mcp",
       "ecosystem": "npm",
-      "kind": "internal-tool",
+      "kind": "public-release-target",
       "owner": "api"
     },
     {

@@ -99,6 +99,10 @@ jobs:
       - name: Build
         run: pnpm --filter "${{ steps.pkg.outputs.name }}..." --fail-if-no-match build
 
+      - name: Smoke test packed MCP installation
+        if: steps.pkg.outputs.name == '@iracing-data/iracing-data-mcp'
+        run: pnpm --filter @iracing-data/iracing-data-mcp test:package
+
       - name: Debug npm auth inputs (redacted)
         shell: bash
         run: |

@@ -5,7 +5,7 @@ Inherit [repository guidance](../../AGENTS.md) and read the
 before modifying tools. For host composition follow
 [reference host guidance](../../apps/iracing-data-mcp/AGENTS.md).
 
-This private workspace defines three explicit MCP tool contracts:
+This publishable workspace defines three explicit MCP tool contracts:
 `get_my_driver`, `get_recent_races`, and `search_race_results`.
 The core must remain independent of generated Fetch/Axios clients, API
 configuration, OAuth, and transport. Input/output schemas and service contracts

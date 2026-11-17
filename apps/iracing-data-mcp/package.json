@@ -1,16 +1,40 @@
 {
   "name": "@iracing-data/iracing-data-mcp",
-  "version": "0.0.0",
-  "private": true,
+  "version": "0.1.0-alpha.0",
+  "description": "iRacing MCP stdio executable and embeddable HTTP runtime.",
+  "license": "MIT",
   "type": "module",
   "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "bin": {
+    "iracing-data-mcp": "dist/main.js"
+  },
+  "engines": {
+    "node": ">=24.22.1 <25"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/racedirector/iracing-data-api.git",
+    "directory": "apps/iracing-data-mcp"
+  },
   "files": [
-    "dist"
+    "dist",
+    "README.md"
   ],
   "scripts": {
     "start": "node dist/main.js",
     "build": "tsc --build tsconfig.build.json",
-    "test": "pnpm build && node --test test/*.test.cjs"
+    "test": "pnpm build && node --test test/*.test.cjs",
+    "test:package": "node --test packaging/*.test.cjs"
   },
   "dependencies": {
     "@hono/node-server": "1.19.17",

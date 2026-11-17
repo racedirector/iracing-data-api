@@ -1,8 +1,8 @@
 {
   "mcpServers": {
     "iracing-data": {
-      "command": "node",
-      "args": ["apps/iracing-data-mcp/dist/main.js"],
+      "command": "pnpm",
+      "args": ["exec", "dotenv", "-e", ".env", "--", "iracing-data-mcp"],
       "timeout": 10000,
       "trust": false
     }

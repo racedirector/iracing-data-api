@@ -68,7 +68,13 @@ test("runtime, example, documentation and global tooling scopes remain distinct"
     [],
   );
   const global = report("pnpm-lock.yaml");
-  assert.equal(global.managedReleaseCandidates.length, 7);
+  assert.deepEqual(
+    global.managedReleaseCandidates.map((entry) => entry.name),
+    workspaces
+      .filter((entry) => entry.managed)
+      .map((entry) => entry.name)
+      .sort(),
+  );
   assert.ok(global.verificationCommands.includes("pnpm verify"));
 });
 test("generator inputs, presentation and checked-in generated edits surface verification", () => {

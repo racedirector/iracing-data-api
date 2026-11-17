@@ -5,6 +5,7 @@ import {
   ResponseError,
 } from "@iracing-data/api-client-fetch";
 import { ApplicationFailure } from "@iracing-data/mcp";
+import { LocalAuthorizationError } from "../auth-errors.js";
 
 /**
  * Convert generated client transport failures to bounded application errors.
@@ -13,6 +14,10 @@ import { ApplicationFailure } from "@iracing-data/mcp";
  * @returns {ApplicationFailure} Safe error code for the MCP tool.
  */
 export function mapUpstreamFailure(error: unknown): ApplicationFailure {
+  if (error instanceof LocalAuthorizationError) {
+    return error.failure;
+  }
+
   if (error instanceof ApplicationFailure) {
     return error;
   }

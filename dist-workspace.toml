@@ -7,6 +7,8 @@
 
 [workspace]
 members = [
+    "npm:./packages/mcp/",
+    "npm:./apps/iracing-data-mcp/",
     "cargo:./crates/iracing-data-api-client/",
     "npm:./packages/oauth/schema/",
     "npm:./packages/oauth/client/generated/",
