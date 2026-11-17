@@ -18,6 +18,7 @@
         //   ".env",
         //   "--",
         //   "iracing-data-mcp",
+        //   "serve",
         // ],
         "disabled": false,
         "timeout": {

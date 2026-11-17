@@ -4,6 +4,14 @@
   "description": "iRacing MCP stdio executable and embeddable HTTP runtime.",
   "license": "MIT",
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "bin": {
     "iracing-data-mcp": "dist/main.js"
   },

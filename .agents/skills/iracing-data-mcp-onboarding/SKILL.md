@@ -1,79 +1,58 @@
 ---
 name: iracing-data-mcp-onboarding
-description: Set up the iRacing MCP over local stdio, or embed its Hono router in an existing authenticated HTTP service.
+description: Set up iRacing MCP over local stdio or embed its HTTP handler.
 ---
 
 # iRacing Data MCP onboarding
 
 Read [repository guidance](../../../AGENTS.md),
-[MCP app guidance](../../../apps/iracing-data-mcp/AGENTS.md), and
-[app README](../../../apps/iracing-data-mcp/README.md).
+[app guidance](../../../apps/iracing-data-mcp/AGENTS.md), and
+[runtime documentation](../../../apps/iracing-data-mcp/README.md).
 
 ## Local stdio
-
-From the repository root, install dependencies and build:
 
 ```sh
 pnpm install --frozen-lockfile
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
+pnpm iracing-data auth login --scope iracing.auth
+pnpm mcp:local
 ```
 
-Use `pnpm iracing-data auth login --scope iracing.auth` to create
-the **dedicated** MCP credential document at
-`.iracing-data/iracing-data-mcp/credentials.json`. Do not paste the
-client secret, access/refresh token, or file contents into chat.
-`IRACING_MCP_CREDENTIAL_FILE` can select another existing document.
-The executable also accepts `--credentials /absolute/path/to/credentials.json`;
-this overrides the environment setting and default. Append the flag and path
-to the MCP client's command array for explicit injection. Reconnect after
-changing the selected path. Each request restores the selected file afresh,
-so replacing its contents does not require reconnecting.
-Do not silently fall back to another account's credential file.
+Login creates `.iracing-data/iracing-data-mcp/credentials.json`. Never paste
+credentials into chat. Select another document with `IRACING_CREDENTIALS` or
+`iracing-data-mcp serve --credentials /absolute/path/to/credentials.json`.
+Explicit flags take precedence. Never silently fall back to another account.
 
-Run `pnpm mcp:local` for a manual stdio session, or configure the MCP
-client to execute `pnpm exec dotenv -e .env -- iracing-data-mcp` from the
-repository root. After publication, consumers may install
-`@iracing-data/iracing-data-mcp@next` and execute `iracing-data-mcp` directly.
-The executable does not load environment files. In-repo configurations use
-dotenv CLI as an external development tool. Copy
-[`.env.example`](../../../.env.example) without overwriting existing configuration
-and follow [environment configuration](../../../apps/iracing-data-mcp/README.md#environment-configuration);
-other clients/deployments supply environment through their own facilities.
-Never put ordinary logs on stdout: it belongs to MCP.
-Startup requires a nonblank `IRACING_AUTH_CLIENT` and a safe, valid selected
-credential document; diagnostics name missing/invalid variables without values.
-The startup document check makes no API or refresh request. The runtime restores
-the session only when a tool needs it. Its OAuth client
-refreshes expired access tokens and persists rotated credentials through the
-token-document session store. Set `IRACING_AUTH_CLIENT` and, for confidential
-clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
-The CLI is the current setup path for initial login, not a dependency of the
-file loader. Run only one credential owner
-per document; do not refresh the same credentials concurrently from the CLI.
+Clients execute `pnpm exec dotenv -e .env -- iracing-data-mcp serve` from
+the repository root. After publication, install
+`@iracing-data/iracing-data-mcp@next` and execute `iracing-data-mcp serve`.
+The executable never loads `.env`; copy [the example](../../../.env.example)
+without overwriting user configuration and use an external loader.
 
-## HTTP embedding
+Set `IRACING_AUTH_CLIENT` and, for confidential registrations,
+`IRACING_AUTH_SECRET` to the original registration. `IRACING_ACCESS_TOKEN`
+is an explicit alternative that bypasses file-backed restoration.
+The command validates options at startup but reads credentials on demand.
+The OAuth client owns refresh and persistence. Use only one refresh owner
+per credential document. Logs belong on stderr; stdout belongs to MCP.
 
-HTTP is not the default local setup. `createMcpRouter({resolveActor,
-resolveCapabilities})` is a Hono router for mounting in an existing
-authenticated application: `app.route("/mcp", createMcpRouter(...))`.
-For a separate HTTP process, `startMcpHttpServer({config, resolveActor,
-resolveCapabilities})` uses `parseConfig(process.env)` with default
-host `127.0.0.1` and port `3000`.
+## HTTP
 
-The actor resolver must verify each request using host-owned authentication
-such as Better Auth. A null actor is denied before resolving capabilities.
-The capability resolver finds the actor's linked iRacing account and supplies
-the required domain query services. The HTTP host must **never** select the local
-CLI account by default. An ingress bearer token is not itself an iRacing
-credential or linked-account authorization.
+`iracing-data-mcp serve --transport http` serves `/mcp` on
+`127.0.0.1:3000`; other routes return empty 404 responses. It uses the
+host-selected account without authenticating callers. Do not expose this
+development listener publicly or describe it as authenticated.
+
+Embedding hosts use `createHttpTransport({services, serveOptions})` and forward
+requests to `handler.fetch(request)` at their chosen path. They own caller
+verification and account selection. `createMcpServices` composes explicit
+services from selected capabilities; actor-based composition remains available.
+Request-scoped Awilix integration is deferred.
 
 ## Verification
 
-Run the MCP workspace build/test and `pnpm verify`. Run the user/client's
-actual tool-list and `get_my_driver` smoke if credentials are available and
-the user wants upstream verification. Local synthetic tests cannot prove
-live iRacing authorization. Do not imply an HTTP deployment is secured unless
-the embedding host's actor resolver and network policy have been validated.
-
-Do not bring back Docker import/recovery, OAuth resource metadata, JWT
-verification, or a custom session registry merely to support onboarding.
+Run the package build/tests, packaging smoke test, and `pnpm verify`.
+Only perform live tool calls with available credentials when requested;
+synthetic tests do not prove upstream authorization.
+Do not restore OAuth ingress, JWT verification, Docker importers, or session
+registries for onboarding.

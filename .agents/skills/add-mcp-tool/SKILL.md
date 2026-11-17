@@ -51,14 +51,15 @@ The concrete [Fetch adapters](../../../apps/iracing-data-mcp/src/adapters)
 belong to the runtime. They isolate signed HTTPS linked responses without
 forwarding authorization headers or allowing redirects.
 
-The [stdio adapter](../../../apps/iracing-data-mcp/src/stdio.ts)
+The [stdio adapter](../../../apps/iracing-data-mcp/src/transports/stdio/index.ts)
 reads the CLI's dedicated MCP token document on demand. The
-[Hono router](../../../apps/iracing-data-mcp/src/http.ts)
-requires the embedding host to verify every actor and resolve that actor's
-linked iRacing capabilities. Use
+[HTTP handler](../../../apps/iracing-data-mcp/src/transports/http/index.ts)
+accepts host-selected services; authenticated embedding hosts own caller
+verification and linked-account selection. Use
 [Awilix composition](../../../apps/iracing-data-mcp/src/composition.ts)
 to inject those capabilities; never silently select the local CLI account
-for an HTTP request.
+for an authenticated HTTP request. The standalone HTTP command is a separate,
+unauthenticated loopback development mode using the host-selected account.
 
 Do not restore OAuth resource-server routes, Docker credential importers,
 session registries, or other deleted infrastructure without a separate

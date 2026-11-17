@@ -6,12 +6,12 @@ import type {
   McpHttpHandler,
 } from "@modelcontextprotocol/server";
 
-/** Explicit host-owned identity and capabilities for a local MCP connection. */
+/** Host-selected services for a path-independent MCP HTTP handler. */
 export interface HttpTransportOptions {
-  /** Identity selected and authorized by the embedding host. */
+  /** Tool services selected by the embedding host. This handler does not authenticate callers. */
   readonly services: IracingToolServices;
 
-  /** Stdio server options. */
+  /** HTTP handler options. */
   readonly serveOptions: CreateMcpHandlerOptions;
 }
 

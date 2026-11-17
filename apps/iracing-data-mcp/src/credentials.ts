@@ -91,7 +91,7 @@ export function createFileAccessTokenProvider(
 
 function missingSession(credentialsFile: string): LocalAuthorizationError {
   const diagnostic = new LocalAuthorizationError(
-    `No OAuth session found in ${credentialsFile}. Run pnpm iracing-data auth login --scope iracing.auth, or select an existing token document with --credentials / IRACING_MCP_CREDENTIAL_FILE. See https://github.com/racedirector/iracing-data-api/tree/main/apps/iracing-data-mcp#environment-configuration`,
+    `No OAuth session found in ${credentialsFile}. Run pnpm iracing-data auth login --scope iracing.auth, or select an existing token document with --credentials / IRACING_CREDENTIALS. See https://github.com/racedirector/iracing-data-api/tree/main/apps/iracing-data-mcp#environment-configuration`,
     new ApplicationFailure("AUTHORIZATION_REQUIRED", {
       reason: "missing_session",
     }),

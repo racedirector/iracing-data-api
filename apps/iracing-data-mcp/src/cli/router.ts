@@ -1,47 +1,28 @@
-import { createIracingMcpServer } from "@iracing-data/mcp";
-import { createMcpHandler } from "@modelcontextprotocol/server";
 import { Hono } from "hono";
-import { composeMcpServices } from "../composition.js";
-import type { ResolveActor, ResolveCapabilities } from "../composition.js";
+import { createHttpTransport } from "../transports/http/index.js";
+import type { IracingToolServices } from "@iracing-data/mcp";
 
-/** Dependencies supplied by the embedding HTTP host. */
+/** Dependencies selected by the standalone host. */
 export interface McpRouterOptions {
-  /** Authenticate the request before allowing MCP tool access. */
-  readonly resolveActor: ResolveActor;
-
-  /** Find the authenticated actor's linked iRacing query implementations. */
-  readonly resolveCapabilities: ResolveCapabilities;
+  /** Tool services for the host-selected account. */
+  readonly services: IracingToolServices;
 }
 
 /**
- * Create a mountable Hono router. The caller owns the HTTP listener and auth.
- * Example: app.route("/mcp", createMcpRouter({ resolveActor, resolveCapabilities })).
- * @param {McpRouterOptions} options - Host-provided actor and data resolvers.
- * @returns {Hono} Router with the MCP HTTP endpoint.
+ * Mount the standalone application's MCP endpoint; embedding hosts choose their own path.
+ * @param {McpRouterOptions} options - Host-selected tool services.
+ * @returns {Hono} Application router.
  */
 export function createMcpRouter(options: McpRouterOptions): Hono {
   const router = new Hono();
 
-  router.all("/mcp", async (context) => {
-    const actor = await options.resolveActor(context.req.raw);
-
-    if (!actor) {
-      return context.json({ error: "Unauthorized" }, 401);
-    }
-
-    const services = composeMcpServices(actor, options.resolveCapabilities);
-
-    const handler = createMcpHandler(
-      () =>
-        createIracingMcpServer({
-          serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
-          services,
-        }),
-      { maxRequestBodySize: 64 * 1024 },
-    );
-
-    return handler.fetch(context.req.raw);
+  const handler = createHttpTransport({
+    services: options.services,
+    serveOptions: { maxRequestBodySize: 64 * 1024 },
   });
+
+  router.all("/mcp", (context) => handler.fetch(context.req.raw));
+  router.notFound(() => new Response(null, { status: 404 }));
 
   return router;
 }

@@ -2,6 +2,7 @@ import { Command } from "@commander-js/extra-typings";
 import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 import * as z from "zod";
 import { createFetchQueries } from "../../../adapters/fetch.js";
+import { createMcpServices } from "../../../composition.js";
 import { createStdioTransport } from "../../../transports/index.js";
 import { createTokenProvider } from "../../access-token.js";
 import { createHttpListener } from "../../http.js";
@@ -72,8 +73,7 @@ export function createServeCommand({ logger }: ServeCommandOptions) {
           logger: logger.child({ service: "HttpListener" }),
           host: options.host,
           port: options.port,
-          resolveCapabilities: () => queries,
-          resolveActor: () => ({ id: "http-mcp", provider: "http" }),
+          services: createMcpServices(() => queries),
         });
       } else {
         logger.trace("Configuring stdio transport");

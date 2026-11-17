@@ -64,13 +64,25 @@ export function composeMcpServices(
     resolveCapabilities: asValue(resolveCapabilities),
   });
 
+  return createMcpServices(async (context) =>
+    container.cradle.resolveCapabilities(container.cradle.actor, context),
+  );
+}
+
+/**
+ * Compose tool services from host-selected capabilities, without choosing identity.
+ * @param {(context: IracingToolContext) => Promise<McpCapabilities> | McpCapabilities} resolveCapabilities - Host-owned capability selection.
+ * @returns {IracingToolServices} Explicit MCP tool services.
+ */
+export function createMcpServices(
+  resolveCapabilities: (
+    context: IracingToolContext,
+  ) => Promise<McpCapabilities> | McpCapabilities,
+): IracingToolServices {
   async function select(context: IracingToolContext): Promise<McpCapabilities> {
     context.signal.throwIfAborted();
 
-    const resolved = await container.cradle.resolveCapabilities(
-      container.cradle.actor,
-      context,
-    );
+    const resolved = await resolveCapabilities(context);
 
     context.signal.throwIfAborted();
 

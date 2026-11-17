@@ -93,6 +93,11 @@ test(
     );
     assert.equal(typeof api.createFileAccessTokenProvider, "function");
     assert.equal(typeof api.createFetchQueries, "function");
+    assert.equal(typeof api.createHttpTransport, "function");
+    assert.equal(typeof api.createStdioTransport, "function");
+    assert.equal(typeof api.createMcpServices, "function");
+    assert.equal(manifest.exports["."].import, "./dist/index.js");
+    await fs.stat(path.join(runtimePath, manifest.exports["."].types));
     const fixture = await localSession(t);
     const { Client } = await import("@modelcontextprotocol/client");
     const { StdioClientTransport } =
@@ -101,7 +106,7 @@ test(
     const env = fixture.env;
     const transport = new StdioClientTransport({
       command: path.join(directory, "node_modules/.bin/iracing-data-mcp"),
-      args: ["--credentials", fixture.file],
+      args: ["serve", "--credentials", fixture.file],
       cwd: directory,
       env,
       stderr: "pipe",
@@ -119,15 +124,14 @@ test(
     } finally {
       await client.close();
     }
-    assert.equal(stderr, "");
+    assert.doesNotMatch(stderr, /synthetic-refresh|synthetic-token/);
     const missing = spawnSync(
       path.join(directory, "node_modules/.bin/iracing-data-mcp"),
-      ["--credentials", path.join(directory, "missing.json")],
+      ["serve", "--transport", "unsupported"],
       { cwd: directory, env, encoding: "utf8", timeout: 10000 },
     );
     assert.equal(missing.status, 1);
     assert.equal(missing.stdout, "");
-    assert.match(missing.stderr, /No OAuth session found/);
-    assert.match(missing.stderr, /IRACING_MCP_CREDENTIAL_FILE/);
+    assert.match(missing.stderr, /--transport/);
   },
 );

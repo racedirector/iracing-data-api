@@ -6,7 +6,8 @@ const test = require("node:test");
 const { localSession } = require("./fixtures/local-session.cjs");
 
 test("Zod applies transport defaults and validates runtime options", async () => {
-  const { ServeOptionsSchema } = await import("../dist/cli/schema.js");
+  const { ServeOptionsSchema } =
+    await import("../dist/cli/commands/serve/schema.js");
   const parse = (options) =>
     ServeOptionsSchema.parse({
       accessToken: "synthetic-token",
@@ -47,7 +48,7 @@ test("local stdio executable initializes and advertises all tools", async (t) =>
   const client = new Client({ name: "offline-stdio-test", version: "1" });
   const transport = new StdioClientTransport({
     command: "pnpm",
-    args: ["exec", "iracing-data-mcp"],
+    args: ["exec", "iracing-data-mcp", "serve"],
     cwd: path.resolve(__dirname, "../../.."),
     env: fixture.env,
   });
@@ -76,6 +77,7 @@ test("explicit credential path overrides an invalid environment path", async (t)
     command: process.execPath,
     args: [
       path.resolve(__dirname, "../dist/main.js"),
+      "serve",
       "--credentials",
       fixture.file,
     ],
@@ -116,6 +118,7 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
         file,
         "--",
         path.resolve(__dirname, "../../../node_modules/.bin/iracing-data-mcp"),
+        "serve",
       ],
       cwd: fixture.directory,
       env,
@@ -148,11 +151,13 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
 });
 
 test("registration validation permits explicit access tokens without OAuth metadata", async () => {
-  const { ServeOptionsSchema } = await import("../dist/cli/schema.js");
+  const { ServeOptionsSchema } =
+    await import("../dist/cli/commands/serve/schema.js");
   for (const value of [undefined, "", " \t"]) {
     assert.equal(
       ServeOptionsSchema.safeParse({
         transport: "stdio",
+        credentials: "credentials.json",
         clientId: value,
       }).success,
       false,
@@ -161,6 +166,7 @@ test("registration validation permits explicit access tokens without OAuth metad
   const config = ServeOptionsSchema.parse({
     transport: "stdio",
     clientId: "fixture",
+    credentials: "credentials.json",
   });
   assert.equal(config.clientId, "fixture");
   assert.deepEqual(
@@ -187,18 +193,10 @@ test("startup rejects invalid configuration before protocol output", async (t) =
   delete missingRegistration.IRACING_AUTH_CLIENT;
   for (const [env, args, expected] of [
     [missingRegistration, [], /Invalid input/],
-    [
-      fixture.env,
-      ["--transport", "unsupported"],
-      /--transport/,
-    ],
-    [
-      fixture.env,
-      ["--env-file-if-exists", ".env"],
-      /unknown option/,
-    ],
+    [fixture.env, ["--transport", "unsupported"], /--transport/],
+    [fixture.env, ["--env-file-if-exists", ".env"], /unknown option/],
   ]) {
-    const result = spawnSync(binary, args, {
+    const result = spawnSync(binary, ["serve", ...args], {
       cwd: fixture.directory,
       env,
       encoding: "utf8",
