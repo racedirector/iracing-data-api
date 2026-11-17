@@ -1,3 +1,9 @@
+import {
+  hostHeaderValidationResponse,
+  localhostAllowedHostnames,
+  localhostAllowedOrigins,
+  originValidationResponse,
+} from "@modelcontextprotocol/server";
 import { Hono } from "hono";
 import { createHttpTransport } from "../transports/http/index.js";
 import type { IracingToolServices } from "@iracing-data/mcp";
@@ -21,7 +27,15 @@ export function createMcpRouter(options: McpRouterOptions): Hono {
     serveOptions: { maxRequestBodySize: 64 * 1024 },
   });
 
-  router.all("/mcp", (context) => handler.fetch(context.req.raw));
+  router.all("/mcp", (context) => {
+    const request = context.req.raw;
+
+    const rejected =
+      hostHeaderValidationResponse(request, localhostAllowedHostnames()) ??
+      originValidationResponse(request, localhostAllowedOrigins());
+
+    return rejected ?? handler.fetch(request);
+  });
   router.notFound(() => new Response(null, { status: 404 }));
 
   return router;

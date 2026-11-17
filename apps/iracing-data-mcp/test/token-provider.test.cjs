@@ -118,6 +118,7 @@ test("switching an injected token strategy applies equally to stdio and HTTP", a
       const response = await router.request("http://localhost/mcp", {
         method: "POST",
         headers: {
+          host: "localhost",
           "content-type": "application/json",
           accept: "application/json, text/event-stream",
         },

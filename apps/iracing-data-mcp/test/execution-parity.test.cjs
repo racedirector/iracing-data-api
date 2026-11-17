@@ -6,6 +6,7 @@ async function httpCall(router, name, args, modern = false) {
   const response = await router.request("http://localhost/mcp", {
     method: "POST",
     headers: {
+      host: "localhost",
       "content-type": "application/json",
       accept: "application/json, text/event-stream",
       ...(modern

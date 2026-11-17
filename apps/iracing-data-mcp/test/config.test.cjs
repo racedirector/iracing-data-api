@@ -191,6 +191,14 @@ test("startup rejects invalid configuration before protocol output", async (t) =
   const missingRegistration = { ...fixture.env };
   delete missingRegistration.IRACING_AUTH_CLIENT;
   for (const [env, args, expected] of [
+    [
+      {
+        ...fixture.env,
+        IRACING_MCP_CREDENTIAL_FILE: "/private/legacy-secret-path",
+      },
+      [],
+      /IRACING_MCP_CREDENTIAL_FILE is retired; use IRACING_CREDENTIALS/,
+    ],
     [missingRegistration, [], /Invalid input/],
     [fixture.env, ["--transport", "unsupported"], /--transport/],
     [fixture.env, ["--env-file-if-exists", ".env"], /unknown option/],
@@ -206,6 +214,7 @@ test("startup rejects invalid configuration before protocol output", async (t) =
     assert.match(result.stderr, expected);
     assert.ok(!result.stderr.includes("invalid-secret"));
     assert.ok(!result.stderr.includes("synthetic-refresh"));
+    assert.ok(!result.stderr.includes("/private/legacy-secret-path"));
   }
 });
 

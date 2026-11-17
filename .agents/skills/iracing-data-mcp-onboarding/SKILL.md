@@ -15,7 +15,7 @@ Read [repository guidance](../../../AGENTS.md),
 pnpm install --frozen-lockfile
 pnpm --filter '@iracing-data/iracing-data-mcp...' build
 pnpm iracing-data auth login --scope iracing.auth
-pnpm mcp:local
+pnpm exec dotenv -e .env -- iracing-data-mcp serve
 ```
 
 Login creates `.iracing-data/iracing-data-mcp/credentials.json`. Never paste
@@ -53,7 +53,7 @@ This builds and watches app source/configuration, restarting the listener on
 changes (including recovery after build errors). It does not watch dependencies.
 The development launcher loads the root `.env` without overriding inherited
 values and runs from the repository root, matching root-relative credential paths
-in `mcp:local`. Restart after editing `.env`. The published executable still does
+in the workspace command above. Restart after editing `.env`. The published executable still does
 not load environment files. See the runtime
 README's development watch instructions for environment loading and stdio use.
 

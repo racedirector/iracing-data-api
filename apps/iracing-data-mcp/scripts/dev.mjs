@@ -16,7 +16,7 @@ if (build.error || build.status !== 0) {
   process.exit(build.status ?? 1);
 }
 
-// Match mcp:local's root-relative environment and credential paths.
+// Match the workspace command's root-relative environment and credential paths.
 const root = new URL("../../../", import.meta.url);
 const envFile = new URL(".env", root);
 if (existsSync(envFile)) {

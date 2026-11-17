@@ -22,13 +22,15 @@ pnpm --filter '@iracing-data/iracing-data-mcp...' build
 # Copy only if .env does not already exist, then configure its values.
 cp .env.example .env
 pnpm iracing-data auth login --scope iracing.auth
-pnpm mcp:local
+pnpm exec dotenv -e .env -- iracing-data-mcp serve
 ```
 
 The local executable loads a file-backed OAuth session, defaulting to
 `.iracing-data/iracing-data-mcp/credentials.json`. Override its location
 using `IRACING_CREDENTIALS`. The setup above uses the CLI for initial
 credential acquisition; loading the selected file is independent of the CLI.
+`IRACING_MCP_CREDENTIAL_FILE` is retired. Rename it to `IRACING_CREDENTIALS`;
+startup rejects the old setting rather than silently selecting another document.
 The runtime refreshes expired access tokens on demand and saves rotated
 credentials to the same file. Set `IRACING_AUTH_CLIENT` and, for confidential
 clients, `IRACING_AUTH_SECRET` to the registration used for CLI login.
@@ -79,17 +81,20 @@ errors; fix the error and save again. Generated `dist/` changes do not trigger
 restart loops. Workspace dependencies are not watched. Stop with Ctrl+C.
 The development launcher loads the repository root `.env` when present without
 overriding inherited environment variables, and runs the app from the repository
-root so relative credential paths match `pnpm mcp:local`. The published executable
+root so relative credential paths match the workspace command above. The published executable
 still does not load `.env`. Restart the command after changing `.env`.
 Stdio clients must reconnect after a restart; HTTP is convenient for manual
 development.
+
+Run `pnpm mcp:inspect:stdio` or `pnpm mcp:inspect:http` from the repository
+root to use Inspector. Both modes launch from that root, preserving relative
+`IRACING_CREDENTIALS` paths and the dedicated MCP credential default.
 
 ## Environment configuration
 
 The executable **only consumes its supplied environment**. It never loads `.env`
 or accepts env-file flags. Use the MCP client's environment configuration, your
-deployment platform, or an external loader. The checked-in client configurations
-and `pnpm mcp:local` use the repository's development-only
+deployment platform, or an external loader. The workspace command uses the development-only
 [dotenv CLI](https://github.com/entropitor/dotenv-cli):
 
 ```sh
@@ -170,6 +175,10 @@ Historical chunk retrieval uses an independent, unsigned HTTPS fetch rather
 than inheriting the credentialed API client's transport.
 
 ## HTTP handler and standalone listener
+
+The standalone `/mcp` route rejects non-loopback Host and Origin headers before
+tool dispatch. Requests without Origin are allowed for direct local clients.
+Embedding hosts retain responsibility for their own Host/Origin policy.
 
 The development command uses the host-selected iRacing account and does **not**
 authenticate HTTP callers. Keep it on loopback; do not expose it publicly.

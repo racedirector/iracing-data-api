@@ -44,6 +44,12 @@ export function createServeCommand({
     .addOption(commandOptions.redirectUriOption)
     .addOption(commandOptions.transportOption)
     .action((raw, command) => {
+      if (process.env.IRACING_MCP_CREDENTIAL_FILE !== undefined) {
+        command.error(
+          "IRACING_MCP_CREDENTIAL_FILE is retired; use IRACING_CREDENTIALS instead.",
+        );
+      }
+
       const result = ServeOptionsSchema.safeParse(raw);
 
       if (!result.success) {
