@@ -1,50 +1,14 @@
 import { join } from "node:path";
-import { z } from "zod";
+import { createReferenceResource } from "@iracing-data/mcp";
 import { createFileBackedResolver } from "./snapshots.js";
+import type {
+  CatalogDefinition,
+  CatalogResolver,
+  ReferenceCatalog,
+} from "@iracing-data/mcp";
 
-/** A validated reference dataset and its constant-time entity lookup. */
-export interface CatalogResolver<T> {
-  /**
-   * Return the complete validated collection.
-   * @returns {Promise<readonly T[]>} Shared reference entries.
-   */
-  all(): Promise<readonly T[]>;
-
-  /**
-   * Resolve an entity by its upstream numeric ID.
-   * @param {number} id - Upstream entity key.
-   * @returns {Promise<T | null>} Matching entity, or null when absent.
-   */
-  get(id: number): Promise<T | null>;
-}
-
-/** Dataset-specific metadata; storage, indexing and registration are shared. */
-export interface CatalogDefinition<T> {
-  /** URI collection name and snapshot basename. */
-  readonly name: string;
-
-  /** Human-readable resource title. */
-  readonly title: string;
-
-  /** Agent-facing instructions for using this dataset. */
-  readonly description: string;
-
-  /** Upstream ID field advertised in the resource template. */
-  readonly idField: string;
-
-  /** Canonical validation and publication schema for the complete collection. */
-  readonly schema: z.ZodType<readonly T[]>;
-
-  /** Canonical validation and publication schema for one entity. */
-  readonly entitySchema: z.ZodType<T>;
-
-  /**
-   * Extract the dataset's entity key.
-   * @param {T} entry - Validated reference entry.
-   * @returns {number} Upstream entity key.
-   */
-  readonly id: (entry: T) => number;
-
+/** Host loader added to the transport-independent resource definition. */
+interface RuntimeCatalogDefinition<T> extends CatalogDefinition<T> {
   /**
    * Fetch a complete, materialized dataset.
    * @returns {Promise<unknown>} Upstream reference payload.
@@ -52,48 +16,19 @@ export interface CatalogDefinition<T> {
   readonly load: () => Promise<unknown>;
 }
 
-/** The resource layer consumes the same interface for every reference catalog. */
-export interface ReferenceCatalog {
-  /** URI collection name and snapshot basename. */
-  readonly name: string;
-
-  /** Human-readable resource title. */
-  readonly title: string;
-
-  /** Agent-facing instructions for using this dataset. */
-  readonly description: string;
-
-  /** Upstream ID field advertised in the resource template. */
-  readonly idField: string;
-
-  /** Shared hydrated dataset and entity index. */
-  readonly resolver: CatalogResolver<unknown>;
-
-  /** Published JSON Schema describing the collection data. */
-  readonly collectionJsonSchema: Readonly<Record<string, unknown>>;
-
-  /** Published JSON Schema describing a single entity. */
-  readonly entityJsonSchema: Readonly<Record<string, unknown>>;
-}
-
 /**
  * Compose a validated disk snapshot with a process-local entity index.
  * @param {string} directory - Directory containing reference snapshots.
- * @param {CatalogDefinition<T>} definition - Typed dataset-specific validation, fetch and identity.
+ * @param {RuntimeCatalogDefinition<T>} definition - Typed dataset-specific validation, fetch and identity.
  * @returns {ReferenceCatalog} Resource metadata and shared dataset resolver.
  */
 export function createReferenceCatalog<T>(
   directory: string,
-  definition: CatalogDefinition<T>,
+  definition: RuntimeCatalogDefinition<T>,
 ): ReferenceCatalog {
-  return {
-    name: definition.name,
-    title: definition.title,
-    description: definition.description,
-    idField: definition.idField,
-    collectionJsonSchema: z.toJSONSchema(definition.schema),
-    entityJsonSchema: z.toJSONSchema(definition.entitySchema),
-    resolver: createCatalogResolver(
+  return createReferenceResource(
+    definition,
+    createCatalogResolver(
       createFileBackedResolver(
         join(directory, `${definition.name}.json`),
         definition.load,
@@ -107,7 +42,7 @@ export function createReferenceCatalog<T>(
       ),
       definition.id,
     ),
-  };
+  );
 }
 
 /**

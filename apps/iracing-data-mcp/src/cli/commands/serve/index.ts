@@ -66,6 +66,11 @@ export function createServeCommand({
 
       const services = createMcpServices(createFetchQueries(tokenResolver));
 
+      const catalogs = createReferenceCatalogs(
+        join(dirname(raw.credentials), "reference"),
+        tokenResolver,
+      );
+
       if (options.transport === "http") {
         logger.trace("Configuring HTTP listener");
 
@@ -74,16 +79,14 @@ export function createServeCommand({
           host: options.host,
           port: options.port,
           services,
+          catalogs,
         });
       } else {
         logger.trace("Configuring stdio transport");
 
         createStdioTransport({
           services,
-          catalogs: createReferenceCatalogs(
-            join(dirname(raw.credentials), "reference"),
-            tokenResolver,
-          ),
+          catalogs,
           serveOptions: {
             onerror: (error) => {
               logger.error({ error }, "stdio transport error");

@@ -6,13 +6,13 @@ import {
 } from "@modelcontextprotocol/server";
 import { Hono } from "hono";
 import { createHttpTransport } from "../transports/http/index.js";
-import type { IracingToolServices } from "@iracing-data/mcp";
+import type { IracingMcpServerOptions } from "@iracing-data/mcp";
 
 /** Dependencies selected by the standalone host. */
-export interface McpRouterOptions {
-  /** Tool services for the host-selected account. */
-  readonly services: IracingToolServices;
-}
+export type McpRouterOptions = Pick<
+  IracingMcpServerOptions,
+  "services" | "catalogs"
+>;
 
 /**
  * Mount the standalone application's MCP endpoint; embedding hosts choose their own path.
@@ -24,6 +24,7 @@ export function createMcpRouter(options: McpRouterOptions): Hono {
 
   const handler = createHttpTransport({
     services: options.services,
+    catalogs: options.catalogs,
     serveOptions: { maxRequestBodySize: 64 * 1024 },
   });
 

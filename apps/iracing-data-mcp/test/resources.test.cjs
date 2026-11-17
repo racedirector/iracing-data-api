@@ -8,7 +8,7 @@ const schemaRoot = (schema) =>
   schema.$ref ? schema.$defs[schema.$ref.split("/").at(-1)] : schema;
 
 async function connect(t, catalogs) {
-  const { registerReferenceResources } = await import("../dist/resources.js");
+  const { registerReferenceResources } = await import("@iracing-data/mcp");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
   const { Client } = await import("@modelcontextprotocol/client");
@@ -41,6 +41,74 @@ const datasets = [
     title: "name",
   },
 ];
+
+test("HTTP exposes the same lazy reference collections and templates", async (t) => {
+  const { createHttpTransport, createMcpServices, createReferenceCatalogs } =
+    await import("../dist/index.js");
+  const { capabilities } = await import("./fixtures/capabilities.mjs");
+  const directory = await fs.mkdtemp(
+    path.join(os.tmpdir(), "mcp-http-catalog-"),
+  );
+  t.after(() => fs.rm(directory, { recursive: true, force: true }));
+  const catalogs = createReferenceCatalogs(directory, async () => {
+    throw new Error("Discovery and snapshot reads must not authenticate");
+  });
+  const handler = createHttpTransport({
+    services: createMcpServices(() => capabilities("success")),
+    catalogs,
+    serveOptions: {},
+  });
+  async function rpc(method, params) {
+    const response = await handler.fetch(
+      new Request("http://localhost/mcp", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json, text/event-stream",
+        },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method, params }),
+      }),
+    );
+    assert.equal(response.status, 200);
+    const text = await response.text();
+    const message = JSON.parse(
+      text.startsWith("event:") || text.startsWith("data:")
+        ? text
+            .split("\n")
+            .find((line) => line.startsWith("data:"))
+            .slice(5)
+        : text,
+    );
+    assert.equal(message.error, undefined);
+    return message.result;
+  }
+  assert.deepEqual(
+    (await rpc("resources/list")).resources.map((entry) => entry.uri),
+    datasets.map((entry) => `iracing://${entry.name}`),
+  );
+  assert.deepEqual(
+    (await rpc("resources/templates/list")).resourceTemplates.map(
+      (entry) => entry.uriTemplate,
+    ),
+    datasets.map((entry) => `iracing://${entry.name}/{${entry.id}}`),
+  );
+  for (const dataset of datasets) {
+    const entity = { [dataset.id]: 17, [dataset.title]: "Example" };
+    await fs.writeFile(
+      path.join(directory, `${dataset.name}.json`),
+      JSON.stringify([entity]),
+    );
+    for (const suffix of ["", "/17"]) {
+      const result = await rpc("resources/read", {
+        uri: `iracing://${dataset.name}${suffix}`,
+      });
+      assert.deepEqual(
+        JSON.parse(result.contents[0].text).data,
+        suffix ? entity : [entity],
+      );
+    }
+  }
+});
 
 test("all reference catalogs share discovery, hydration, indexing and restart reuse", async (t) => {
   const { createReferenceCatalogs } =

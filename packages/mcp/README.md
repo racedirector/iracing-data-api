@@ -49,6 +49,25 @@ Consumers with their own MCP server may instead call
 `registerIracingTools(server, services)`. Neither API connects transport,
 starts listeners, resolves credentials, or installs process handlers.
 
+## Reference resources
+
+The package also owns the cars, tracks and car-class resource contracts:
+`CarsCatalog`, `TracksCatalog`, and `CarClassesCatalog`. Each defines its URI
+collection name, entity key, discovery metadata and canonical Data API schemas.
+`createReferenceResource(definition, resolver)` publishes these schemas with a
+host-injected `CatalogResolver` (`all()` and `get(id)`).
+
+Pass the resulting resources as `catalogs` to `createIracingMcpServer`, or call
+`registerReferenceResources(server, catalogs)` on a consumer-owned server.
+Collections use `iracing://cars`, `iracing://tracks`, and
+`iracing://car-classes`; entity templates append the corresponding numeric ID.
+Reads return JSON `{ schema, data }`. Registration and discovery do not load
+data. Omitting `catalogs` preserves tools-only hosting.
+
+Transport selection does not change resource registration. The host owns
+authorization, data loading, caching, persistence and refresh policy; the core
+does not access the filesystem, instantiate generated clients, or acquire tokens.
+
 The package never selects an HTTP implementation. Its tool-local
 interfaces are implemented in the consuming application. The reference
 host uses generated Fetch clients in its

@@ -129,7 +129,7 @@ MCP process to create a fresh credential owner.
 
 ## Static catalog resources
 
-Local stdio advertises these collections and entity templates:
+Local stdio and HTTP advertise these collections and entity templates:
 
 | Collection              | Entity template                        | Snapshot           |
 | ----------------------- | -------------------------------------- | ------------------ |
@@ -152,13 +152,13 @@ requests reuse parsed data and its ID index for the local process lifetime.
 Failed hydration is retryable; invalid data and duplicate IDs are rejected.
 
 There is no cache warming, automatic expiry or refresh tool in this slice.
-To refetch, stop stdio, remove the chosen snapshot, and restart. HTTP resource
-registration is intentionally unchanged. These static snapshots are not suitable
+To refetch, stop the server, remove the chosen snapshot, and restart.
+These static snapshots are not suitable
 for changing result searches or member statistics.
 
-`src/catalog.ts` owns shared indexing/schema publication, `src/snapshots.ts` owns
-atomic persistence, `src/resources.ts` owns resource registration, and
-`src/adapters/catalog.ts` owns concrete SDK selection and dataset definitions.
+`@iracing-data/mcp` owns catalog definitions, schema publication and resource
+registration. `src/catalog.ts` owns lazy indexing, `src/snapshots.ts` owns
+atomic persistence, and `src/adapters/catalog.ts` owns concrete SDK selection.
 
 ## Historical result search
 
@@ -316,9 +316,12 @@ createHttpTransport({
 this same token-provider implementation with its selected document store. Existing
 actor-based composition remains available to custom hosts; HTTP transport
 and stdio transports require only the resolved tool services.
-The serve command injects reference catalogs only for stdio, sharing the same
-token provider as tools. Embedded stdio hosts may supply `McpStdioOptions.catalogs`;
-omitting it advertises tools only. HTTP resource registration is unchanged.
+The serve command injects the same reference catalogs for both transports, sharing
+the same token provider as tools. Both transports use `createIracingMcpServer` to register
+tools and resources before connecting. Embedded hosts may supply `catalogs` to
+either transport, using `createReferenceCatalogs(directory, provider)`; omitting
+it advertises tools only. The embedding host selects the catalog directory and
+credential owner, just as it selects tool services.
 
 ### Lazy service ownership
 

@@ -1,5 +1,5 @@
 import { ResourceTemplate } from "@modelcontextprotocol/server";
-import type { ReferenceCatalog } from "./catalog.js";
+import type { ReferenceCatalog } from "./service.js";
 import type { McpServer } from "@modelcontextprotocol/server";
 
 /**
@@ -16,7 +16,7 @@ export function registerReferenceResources(
 
     const metadata = {
       title: catalog.title,
-      description: `${catalog.description} Entity key: ${catalog.idField}. Reads return JSON { schema, data }; schema describes data, including modeled fields and additional-property policy. Persisted snapshot; no automatic refresh.`,
+      description: `${catalog.description} Entity key: ${catalog.idField}. Reads return JSON { schema, data }; schema describes data, including modeled fields and additional-property policy. Data loading and refresh policy are managed by the host.`,
       mimeType: "application/json",
     };
 

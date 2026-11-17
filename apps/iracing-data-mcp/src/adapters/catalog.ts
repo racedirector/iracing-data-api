@@ -6,16 +6,13 @@ import {
   type IracingAPIResponse,
 } from "@iracing-data/api-client-fetch";
 import {
-  CarPayloadSchema,
-  CarCatalogPayloadSchema,
-  TrackPayloadSchema,
-  TrackCatalogPayloadSchema,
-  CarClassPayloadSchema,
-  CarClassCatalogPayloadSchema,
-} from "@iracing-data/api-schema";
+  CarsCatalog,
+  TracksCatalog,
+  CarClassesCatalog,
+} from "@iracing-data/mcp";
 import { createReferenceCatalog } from "../catalog.js";
 import { readLinkedData } from "./linked-response.js";
-import type { ReferenceCatalog } from "../catalog.js";
+import type { ReferenceCatalog } from "@iracing-data/mcp";
 
 /**
  * One signed-link materialization path for all generated reference API calls.
@@ -56,39 +53,18 @@ export function createReferenceCatalogs(
 
   return [
     createReferenceCatalog(directory, {
-      name: "cars",
-      title: "iRacing Cars",
-      description:
-        "Resolve car_id from race results to car_name and complete car metadata.",
-      idField: "car_id",
-      schema: CarCatalogPayloadSchema,
-      entitySchema: CarPayloadSchema,
-      id: (car) => car.car_id,
+      ...CarsCatalog,
       load: createCatalogLoader((signal) => cars.getCar({ signal }), fetchApi),
     }),
     createReferenceCatalog(directory, {
-      name: "tracks",
-      title: "iRacing Tracks",
-      description:
-        "Resolve track_id from race results to track_name, configuration and complete track metadata.",
-      idField: "track_id",
-      schema: TrackCatalogPayloadSchema,
-      entitySchema: TrackPayloadSchema,
-      id: (track) => track.track_id,
+      ...TracksCatalog,
       load: createCatalogLoader(
         (signal) => tracks.getTrack({ signal }),
         fetchApi,
       ),
     }),
     createReferenceCatalog(directory, {
-      name: "car-classes",
-      title: "iRacing Car Classes",
-      description:
-        "Resolve car_class_id from race results to class names and member cars; resolve their car_id values using iracing://cars/{car_id}.",
-      idField: "car_class_id",
-      schema: CarClassCatalogPayloadSchema,
-      entitySchema: CarClassPayloadSchema,
-      id: (carClass) => carClass.car_class_id,
+      ...CarClassesCatalog,
       load: createCatalogLoader(
         (signal) => classes.getCarClass({ signal }),
         fetchApi,
