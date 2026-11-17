@@ -122,7 +122,7 @@ export function imageUrl(
       base = new URL("/img/logos/series/", imageBase);
     } else if (typeof entry.folder === "string" && entry.folder) {
       base = trustedUrl(
-        `${entry.folder.replace(/\/+$/, "")}/`,
+        `${trimTrailingSlashes(entry.folder)}/`,
         imageBase,
         "/img/",
       );
@@ -132,6 +132,17 @@ export function imageUrl(
   }
 
   return trustedUrl(value, base, "/img/");
+}
+
+/** Trim in one linear pass; unanchored trailing-slash regexes can backtrack quadratically. */
+function trimTrailingSlashes(value: string): string {
+  let end = value.length;
+
+  while (end > 0 && value[end - 1] === "/") {
+    end--;
+  }
+
+  return value.slice(0, end);
 }
 
 /**
