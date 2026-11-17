@@ -47,6 +47,16 @@ request context. See the app's composition tests for these lifetime guarantees.
 
 ## HTTP
 
+For local development after the workspace dependency build, use
+`pnpm --filter @iracing-data/iracing-data-mcp dev --transport http`.
+This builds and watches app source/configuration, restarting the listener on
+changes (including recovery after build errors). It does not watch dependencies.
+The development launcher loads the root `.env` without overriding inherited
+values and runs from the repository root, matching root-relative credential paths
+in `mcp:local`. Restart after editing `.env`. The published executable still does
+not load environment files. See the runtime
+README's development watch instructions for environment loading and stdio use.
+
 `iracing-data-mcp serve --transport http` serves `/mcp` on
 `127.0.0.1:3000`; other routes return empty 404 responses. It uses the
 host-selected account without authenticating callers. Do not expose this

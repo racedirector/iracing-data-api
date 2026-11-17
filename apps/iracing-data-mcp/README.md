@@ -63,6 +63,27 @@ listen on a port or start a browser login. Configure your MCP client to run
 `pnpm exec dotenv -e .env -- iracing-data-mcp serve` with the project root as its working
 directory after building.
 
+## Development watch mode
+
+After building workspace dependencies with the command above, run:
+
+```sh
+pnpm --filter @iracing-data/iracing-data-mcp dev
+# Or use the loopback-only HTTP listener:
+pnpm --filter @iracing-data/iracing-data-mcp dev --transport http
+```
+
+The command builds the app, starts `serve`, and rebuilds/restarts when `src/`,
+`tsconfig.build.json`, or `package.json` changes. It keeps watching after build
+errors; fix the error and save again. Generated `dist/` changes do not trigger
+restart loops. Workspace dependencies are not watched. Stop with Ctrl+C.
+The development launcher loads the repository root `.env` when present without
+overriding inherited environment variables, and runs the app from the repository
+root so relative credential paths match `pnpm mcp:local`. The published executable
+still does not load `.env`. Restart the command after changing `.env`.
+Stdio clients must reconnect after a restart; HTTP is convenient for manual
+development.
+
 ## Environment configuration
 
 The executable **only consumes its supplied environment**. It never loads `.env`

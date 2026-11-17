@@ -31,8 +31,11 @@
     "README.md"
   ],
   "scripts": {
-    "start": "node dist/main.js",
     "build": "tsc --build tsconfig.build.json",
+    "dev": "node --watch --watch-preserve-output --watch-path=src --watch-path=tsconfig.build.json --watch-path=package.json scripts/dev.mjs",
+    "inspect:stdio": "mcp-inspector node dist/main.js serve",
+    "inspect:http": "concurrently -k \"node dist/main.js serve --transport http\" \"mcp-inspector --transport http --server-url http://127.0.0.1:3000/mcp\"",
+    "start": "node dist/main.js",
     "test": "pnpm build && node --test test/*.test.cjs",
     "test:package": "node --test packaging/*.test.cjs"
   },
@@ -44,6 +47,7 @@
     "@iracing-data/oauth-client": "workspace:*",
     "@modelcontextprotocol/server": "2.3.1",
     "commander": "^15.0.0",
+    "concurrently": "^10.0.7",
     "hono": "4.13.13",
     "pino": "^10.4.0",
     "pino-pretty": "^13.2.0",
@@ -51,6 +55,8 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.3.1",
-    "@types/node": "^26.6.2"
+    "@modelcontextprotocol/inspector": "^2.15.0",
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15"
   }
 }
