@@ -5,6 +5,38 @@ const unexpectedSelection = () => {
   throw new Error("Resource requests must not select tool services");
 };
 
+test("entity reads preserve falsy values and reject only null", async () => {
+  const { registerReferenceResources, createReferenceResource, CarsCatalog } =
+    await import("../dist/index.js");
+  const handlers = new Map();
+  let entry = null;
+  registerReferenceResources(
+    {
+      registerResource: (name, _uri, _metadata, handler) => {
+        handlers.set(name, handler);
+      },
+    },
+    [
+      createReferenceResource(CarsCatalog, {
+        all: async () => [],
+        get: async () => entry,
+      }),
+    ],
+  );
+  const read = () =>
+    handlers.get("cars-entity")(new URL("iracing://cars/1"), { car_id: "1" });
+  for (const value of [0, false, ""]) {
+    entry = value;
+    const result = await read();
+    assert.equal(JSON.parse(result.contents[0].text), value);
+  }
+  entry = null;
+  await assert.rejects(read(), {
+    code: -32602,
+    data: { uri: "iracing://cars/1" },
+  });
+});
+
 test("the core factory advertises resources without loading host data", async (t) => {
   const {
     createIracingMcpServer,

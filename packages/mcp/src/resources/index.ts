@@ -116,7 +116,7 @@ async function readEntity(
 
   const entry = await readCatalog(() => catalog.resolver.get(Number(raw)));
 
-  if (!entry) {
+  if (entry === null) {
     throw new ResourceNotFoundError(target.href);
   }
 
