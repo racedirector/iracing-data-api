@@ -51,13 +51,15 @@ The concrete [Fetch adapters](../../../apps/iracing-data-mcp/src/adapters)
 belong to the runtime. They isolate signed HTTPS linked responses without
 forwarding authorization headers or allowing redirects.
 
-The [stdio adapter](../../../apps/iracing-data-mcp/src/transports/stdio/index.ts)
-reads the CLI's dedicated MCP token document on demand. The
+The CLI host reads its selected token document on demand; both the
+[stdio adapter](../../../apps/iracing-data-mcp/src/transports/stdio/index.ts) and
 [HTTP handler](../../../apps/iracing-data-mcp/src/transports/http/index.ts)
 accepts host-selected services; authenticated embedding hosts own caller
 verification and linked-account selection. Use
-[Awilix composition](../../../apps/iracing-data-mcp/src/composition.ts)
-to inject those capabilities; never silently select the local CLI account
+[explicit lazy composition](../../../apps/iracing-data-mcp/src/composition.ts)
+to inject those capabilities. Retain query adapters and the token-provider
+lifecycle per credential owner, not per request; never cache tokens or request
+context in query getters. Never silently select the local CLI account
 for an authenticated HTTP request. The standalone HTTP command is a separate,
 unauthenticated loopback development mode using the host-selected account.
 

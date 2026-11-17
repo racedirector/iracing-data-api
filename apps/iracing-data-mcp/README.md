@@ -43,9 +43,9 @@ iracing-data-mcp serve --credentials /absolute/path/to/credentials.json
 
 Selection order is `--credentials`, then `IRACING_CREDENTIALS`, then
 the dedicated MCP default. Relative paths resolve from the process working
-directory. There is no fallback to another credential file. Reconnect the
-MCP client after selecting a different path. Each tool request restores the
-selected file afresh, so replacing its credentials does not require reconnecting.
+directory. There is no fallback to another credential file. Restart the
+MCP process after selecting a different path or replacing the document.
+The retained session store loads once; it does not watch or reload the file.
 The OAuth client coordinates concurrent refreshes within the local connection
 and refreshes expired
 access tokens during restoration; it does not use an early-refresh window.
@@ -53,8 +53,9 @@ access tokens during restoration; it does not use an early-refresh window.
 The serve command validates its options before opening a transport. Credential
 documents are read on demand through the OAuth client's secure document store;
 starting the transport does not prove the credentials are present or usable.
-The separately exported `validateFileSession` helper is available to hosts that
-want a document preflight without contacting iRacing.
+The provider propagates OAuth/storage failures to its caller without logging
+or custom error translation. The host owns diagnostics; tool adapters still
+apply the existing safe MCP error projection.
 
 The stdio process writes MCP protocol messages only to stdout. It does not
 listen on a port or start a browser login. Configure your MCP client to run
@@ -97,9 +98,8 @@ For initial login use `pnpm iracing-data auth login --scope iracing.auth`.
 Credential files must satisfy the OAuth document reader's checks (on POSIX:
 current-user-owned directory mode `0700` and file mode `0600`, no symlinks).
 See [CLI login setup](../iracing-data-cli/README.md#build-and-run-locally) for acquisition.
-After fixing startup configuration, reconnect the MCP client. During a running
-connection, replacing the selected credential document is still observed on the
-next tool request.
+After fixing configuration or replacing a credential document, restart the
+MCP process to create a fresh credential owner.
 
 ## Historical result search
 
@@ -172,7 +172,7 @@ import { Hono } from "hono";
 // Supplied by the host; not selected by the transport.
 declare const capabilities: McpCapabilities;
 const handler = createHttpTransport({
-  services: createMcpServices(() => capabilities),
+  services: createMcpServices(capabilities),
   serveOptions: { maxRequestBodySize: 64 * 1024 },
 });
 
@@ -182,13 +182,14 @@ app.all("/integrations/iracing", (c) => handler.fetch(c.req.raw));
 
 This single-account example does not authenticate callers. An authenticated host
 must verify each request before forwarding it and supply that caller's account
-services. Request-scoped Awilix integration is deferred to a separate change.
+services. Multi-user request-scope integration is deferred to a separate change.
 
 ### Account-scoped token providers
 
 `AccessTokenProvider` is a `() => Promise<string>` contract, separate from
-`ResolveActor`. `createFileAccessTokenProvider(path, metadata)` implements it
-for a disk-backed OAuth session. `createFetchQueries(provider)` accepts any
+`ResolveActor`. `createTokenProvider({sessionStore, sessionKey, ...metadata})`
+retains one OAuth client with an injected session store. It restores/refreshes
+that selected session; it does not initiate login. `createFetchQueries(provider)` accepts any
 implementation, including one closed over a verified user's linked account:
 
 ```ts
@@ -206,9 +207,9 @@ must fail closed with `ApplicationFailure("AUTHORIZATION_REQUIRED")`; never fall
 back to the local file. Reuse one refresh owner per linked account, rather than
 creating independent refresh queues for concurrent requests.
 
-`createFileCapabilities(path, metadata)` is the local convenience composition
-of the file-backed provider and Fetch queries. Tools depend on domain query
-capabilities, not on token storage or actor authentication.
+Tools depend on domain query capabilities, not on token storage or actor
+authentication. The token provider never reads environment variables or selects
+a credential path; the host supplies its store and explicit session key.
 
 ### Reuse one credential strategy across transports
 
@@ -217,30 +218,65 @@ then supply them to the selected transport:
 
 ```ts
 import {
-  createFileCapabilities,
+  createFetchQueries,
   createHttpTransport,
   createMcpServices,
   createStdioTransport,
+  createTokenProvider,
 } from "@iracing-data/iracing-data-mcp";
+import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 
-const capabilities = createFileCapabilities(credentialsPath, clientMetadata);
+const sessionKey = "local-mcp";
+const tokenProvider = createTokenProvider({
+  ...clientMetadata,
+  sessionKey,
+  sessionStore: new OAuthTokenDocumentSessionStore({
+    filePath: credentialsPath,
+    sessionKey,
+  }),
+});
+const capabilities = createFetchQueries(tokenProvider);
+const services = createMcpServices(capabilities);
 
 // Choose a host; these examples are alternatives, not concurrent refresh owners.
 createStdioTransport({
-  actor: { id: "local", provider: "host" },
-  resolveCapabilities: () => capabilities,
+  services,
   serveOptions: {},
 });
 createHttpTransport({
-  services: createMcpServices(() => capabilities),
+  services,
   serveOptions: {},
 });
 ```
 
 `credentialsPath` and `clientMetadata` are host configuration. The CLI uses
-its own OAuth token provider and token-document session store. Existing
+this same token-provider implementation with its selected document store. Existing
 actor-based composition remains available to custom hosts; HTTP transport
-itself requires only the resolved tool services.
+and stdio transports require only the resolved tool services.
+
+### Lazy service ownership
+
+`createFetchQueries(provider)` returns a `McpServices` instance with memoized
+getters. The generated configuration and each query adapter are constructed
+only when a query capability is first selected, then reused for that owner.
+Construct one capability instance per credential owner outside request handlers;
+creating a new instance per request defeats this lifetime.
+
+```ts
+const capabilities = createFetchQueries(accountTokenProvider);
+const services = createMcpServices(capabilities);
+// No query adapter or token lookup yet.
+```
+
+Adapters are cached, not access tokens or request context. Each API operation
+still invokes the injected token provider for current credentials and receives
+its own cancellation signal. The host retains the OAuth lifecycle/refresh owner
+across requests. Lazy getters do not provide cross-process refresh locking.
+
+For custom adapters, construct `new McpServices({ driverQueries: () => ...,
+recentRaceQueries: () => ..., raceSearchQueries: () => ... })`.
+`createMcpServices` also accepts a request-local capability resolver; its results
+are deliberately not cached across requests or identities.
 
 The SDK handles MCP protocol classification and stateless requests.
 No custom long-lived MCP sessions or legacy SSE endpoint are provided.
@@ -248,12 +284,12 @@ No custom long-lived MCP sessions or legacy SSE endpoint are provided.
 ## Implementation
 
 - `src/cli/commands/serve/schema.ts`: Zod serve-option boundary
-- `src/composition.ts`: Awilix dependency composition around an already verified actor
+- `src/composition.ts`: lazy owner-scoped query getters and MCP selector bridge
 - `src/cli/router.ts`: standalone `/mcp` application router
 - `src/cli/server.ts`: optional Node listener
 - `src/transports/http/index.ts`: path-independent HTTP handler
 - `src/transports/stdio/index.ts`: stdio host using the same MCP factory
-- `src/credentials.ts`: file-backed OAuth session restoration and durable refresh
+- `src/access-token.ts`: injected OAuth client/store lifecycle and token resolution
 - `src/token-provider.ts`: account-scoped access-token provider contract
 - `src/adapters/`: generated Fetch implementation and safe linked-response handling
 

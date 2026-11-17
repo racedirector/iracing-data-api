@@ -29,8 +29,8 @@ To select a credential document explicitly, append
 `"--credentials", "/absolute/path/to/credentials.json"` to the configured
 command array after `serve`. This overrides `IRACING_CREDENTIALS` and the dedicated
 MCP default; it does not copy credentials or start another refresh owner.
-Reconnect the server after changing the path. Replacing the selected document
-does not require reconnecting; each request restores it afresh.
+Restart the server process after changing the path or replacing the selected
+document. The retained session store loads once; there is no file watch/reload.
 
 For HTTP integration, use `createHttpTransport({services, serveOptions})` and
 mount its `fetch` handler at the host's chosen path. The host owns authentication

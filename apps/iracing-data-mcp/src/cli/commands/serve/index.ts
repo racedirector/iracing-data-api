@@ -1,13 +1,15 @@
 import { Command } from "@commander-js/extra-typings";
 import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 import * as z from "zod";
+import { createTokenProvider } from "../../../access-token.js";
 import { createFetchQueries } from "../../../adapters/fetch.js";
 import { createMcpServices } from "../../../composition.js";
 import { createStdioTransport } from "../../../transports/index.js";
-import { createTokenProvider } from "../../access-token.js";
 import { createHttpListener } from "../../http.js";
 import * as commandOptions from "./options.js";
 import { ServeOptionsSchema } from "./schema.js";
+import type { ServeOptions } from "./schema.js";
+import type { AccessTokenProvider } from "../../../token-provider.js";
 import type pino from "pino";
 
 /**
@@ -16,6 +18,9 @@ import type pino from "pino";
 export interface ServeCommandOptions {
   /** Logger interface. */
   logger: pino.Logger;
+
+  /** Session storage key. */
+  sessionKey?: string;
 }
 
 /**
@@ -23,7 +28,10 @@ export interface ServeCommandOptions {
  * @param {ServeCommandOptions} options - Program customizations and options.
  * @returns {Command} Command for the CLI entry-point.
  */
-export function createServeCommand({ logger }: ServeCommandOptions) {
+export function createServeCommand({
+  logger,
+  sessionKey = "iracing-data-mcp-session",
+}: ServeCommandOptions) {
   return new Command("serve")
     .addOption(commandOptions.credentialsOption)
     .addOption(commandOptions.accessTokenOption)
@@ -46,25 +54,9 @@ export function createServeCommand({ logger }: ServeCommandOptions) {
 
       const options = result.data;
 
-      const tokenResolver =
-        "accessToken" in options
-          ? () => Promise.resolve(options.accessToken)
-          : createTokenProvider({
-              clientId: options.clientId,
-              clientSecret: options.clientSecret,
-              maskedClientSecret: options.maskedClientSecret,
-              scopes: [],
-              username: options.username,
-              password: options.password,
-              maskedPassword: options.maskedPassword,
-              redirectUri: options.redirectUri,
-              sessionStore: new OAuthTokenDocumentSessionStore({
-                filePath: options.credentials,
-                sessionKey: "iracing-data-mcp",
-              }),
-            });
+      const tokenResolver = createServeTokenProvider(options, sessionKey);
 
-      const queries = createFetchQueries(tokenResolver);
+      const services = createMcpServices(createFetchQueries(tokenResolver));
 
       if (options.transport === "http") {
         logger.trace("Configuring HTTP listener");
@@ -73,14 +65,13 @@ export function createServeCommand({ logger }: ServeCommandOptions) {
           logger: logger.child({ service: "HttpListener" }),
           host: options.host,
           port: options.port,
-          services: createMcpServices(() => queries),
+          services,
         });
       } else {
         logger.trace("Configuring stdio transport");
 
         createStdioTransport({
-          actor: { id: "stdio", provider: "stdio" },
-          resolveCapabilities: () => queries,
+          services,
           serveOptions: {
             onerror: (error) => {
               logger.error({ error }, "stdio transport error");
@@ -89,4 +80,29 @@ export function createServeCommand({ logger }: ServeCommandOptions) {
         });
       }
     });
+}
+
+function createServeTokenProvider(
+  options: ServeOptions,
+  sessionKey: string,
+): AccessTokenProvider {
+  if ("accessToken" in options) {
+    return () => Promise.resolve(options.accessToken);
+  }
+
+  return createTokenProvider({
+    sessionKey,
+    clientId: options.clientId,
+    clientSecret: options.clientSecret,
+    maskedClientSecret: options.maskedClientSecret,
+    scopes: ["iracing.auth", "iracing.profile"],
+    username: options.username,
+    password: options.password,
+    maskedPassword: options.maskedPassword,
+    redirectUri: options.redirectUri,
+    sessionStore: new OAuthTokenDocumentSessionStore({
+      filePath: options.credentials,
+      sessionKey,
+    }),
+  });
 }

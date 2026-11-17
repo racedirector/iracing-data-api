@@ -30,11 +30,10 @@ test("Zod applies transport defaults and validates runtime options", async () =>
 });
 
 test("local stdio capabilities are constructed lazily without network calls", async () => {
-  const { createFileCapabilities } = await import("../dist/credentials.js");
-  const queries = createFileCapabilities(
-    "/tmp/unconfigured-iracing-mcp-test-token.json",
-    { clientId: "synthetic-client", scopes: [] },
-  );
+  const { createFetchQueries } = await import("../dist/index.js");
+  const queries = createFetchQueries(async () => {
+    assert.fail("No token lookup while constructing query adapters");
+  });
   assert.equal(typeof queries.driverQueries.getCurrent, "function");
   assert.equal(typeof queries.recentRaceQueries.getRecent, "function");
   assert.equal(typeof queries.raceSearchQueries.search, "function");

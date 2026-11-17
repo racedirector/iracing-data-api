@@ -1,7 +1,7 @@
 import { ApplicationFailure } from "@iracing-data/mcp";
 import { InMemoryStore, OAuthClient } from "@iracing-data/oauth-client";
-import { LocalAuthorizationError } from "../auth-errors.js";
-import type { AccessTokenProvider } from "../token-provider.js";
+import { LocalAuthorizationError } from "./auth-errors.js";
+import type { AccessTokenProvider } from "./token-provider.js";
 import type {
   IRacingOAuthClientMetadataInput,
   OAuthClientOptions,
@@ -23,17 +23,28 @@ export interface CreateTokenProviderOptions
       | "maskedPassword"
       | "redirectUri"
     >,
-    Pick<OAuthClientOptions, "sessionStore"> {}
+    Pick<OAuthClientOptions, "sessionStore"> {
+  /** Credential owner's storage key, shared with the injected session store. */
+  readonly sessionKey: string;
+}
 
 /**
  * Creates a token provider, utilizing `@iracing-data/oauth-client` for transport and storage
- * mechanisms.
+ * mechanisms. One provider retains one client/store lifecycle across requests;
+ * restoration failures propagate unchanged and this provider never logs them.
  * @param {CreateTokenProviderOptions} options - Provides OAuth client metadata and storage overrides.
  * @returns {AccessTokenProvider} A provider for retrieving an access token.
+ * @throws {TypeError} If the selected session key is blank.
  */
 export function createTokenProvider(
   options: CreateTokenProviderOptions,
 ): AccessTokenProvider {
+  const { sessionKey } = options;
+
+  if (!sessionKey.trim()) {
+    throw new TypeError("Token provider session key must be nonempty.");
+  }
+
   const client = new OAuthClient({
     clientMetadata: {
       clientId: options.clientId,
@@ -51,9 +62,9 @@ export function createTokenProvider(
 
   /**
    * Attempt to restore a session for the provided session key and return
-   * it's access token or throw an error.
+   * its access token or throw an error.
    */
-  return async (sessionKey = "iracing-data-mcp") => {
+  return async () => {
     const token = await client.restoreSessionForId(sessionKey);
 
     if (!token?.access_token.trim()) {

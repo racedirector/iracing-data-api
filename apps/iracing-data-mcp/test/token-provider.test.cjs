@@ -30,12 +30,17 @@ test("injected account-scoped token providers remain isolated and resolve on dem
       display_name: url.pathname.slice(1),
     });
   };
-  const resolveCapabilities = (actor) =>
-    createFetchQueries(async () => {
+  const owners = new Map();
+  const resolveCapabilities = (actor) => {
+    if (owners.has(actor.id)) return owners.get(actor.id);
+    const queries = createFetchQueries(async () => {
       calls.push(actor.id);
       assert.ok(tokens.has(actor.id), "Only linked accounts may supply tokens");
       return tokens.get(actor.id);
     });
+    owners.set(actor.id, queries);
+    return queries;
+  };
   const context = { signal: new AbortController().signal };
   const alice = composeMcpServices(
     { id: "alice", provider: "fixture" },
@@ -50,6 +55,9 @@ test("injected account-scoped token providers remain isolated and resolve on dem
     bob.getDriverQueries(context),
   ]);
   assert.deepEqual(calls, []);
+  assert.equal(await alice.getDriverQueries(context), aliceQueries);
+  assert.equal(await bob.getDriverQueries(context), bobQueries);
+  assert.notEqual(aliceQueries, bobQueries);
   const [a, b] = await Promise.all([
     aliceQueries.getCurrent(context),
     bobQueries.getCurrent(context),
@@ -94,11 +102,11 @@ test("switching an injected token strategy applies equally to stdio and HTTP", a
       env,
     });
     const router = createMcpRouter({
-      services: createMcpServices((context) =>
-        resolveLinkedCapabilities(strategy)(
-          { id: "linked-user", provider: "fixture" },
-          context,
-        ),
+      services: createMcpServices(
+        resolveLinkedCapabilities(strategy)({
+          id: "linked-user",
+          provider: "fixture",
+        }),
       ),
     });
     try {

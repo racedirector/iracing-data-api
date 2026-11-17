@@ -91,11 +91,16 @@ test(
     const api = await import(
       pathToFileURL(path.join(runtimePath, manifest.main)).href
     );
-    assert.equal(typeof api.createFileAccessTokenProvider, "function");
+    assert.equal(typeof api.createTokenProvider, "function");
+    assert.equal("createFileAccessTokenProvider" in api, false);
+    assert.equal("createFileCapabilities" in api, false);
+    assert.equal("validateFileSession" in api, false);
     assert.equal(typeof api.createFetchQueries, "function");
     assert.equal(typeof api.createHttpTransport, "function");
     assert.equal(typeof api.createStdioTransport, "function");
     assert.equal(typeof api.createMcpServices, "function");
+    assert.equal(typeof api.McpServices, "function");
+    assert.equal(manifest.dependencies.awilix, undefined);
     assert.equal(manifest.exports["."].import, "./dist/index.js");
     await fs.stat(path.join(runtimePath, manifest.exports["."].types));
     const fixture = await localSession(t);

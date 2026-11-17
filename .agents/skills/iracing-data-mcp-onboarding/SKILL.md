@@ -35,6 +35,15 @@ is an explicit alternative that bypasses file-backed restoration.
 The command validates options at startup but reads credentials on demand.
 The OAuth client owns refresh and persistence. Use only one refresh owner
 per credential document. Logs belong on stderr; stdout belongs to MCP.
+The shared `createTokenProvider` takes an injected `sessionStore` and explicit
+`sessionKey`. It propagates restoration failures without logging. The document
+store loads once; restart the MCP process after replacing the document.
+
+Both transports accept the same `services` contract. Compose it with
+`createMcpServices(createFetchQueries(tokenProvider))`, retaining that lazy query
+owner and token-provider lifecycle across requests. Query getters instantiate
+only the selected adapters, once per owner; they do not cache token values or
+request context. See the app's composition tests for these lifetime guarantees.
 
 ## HTTP
 
@@ -47,7 +56,8 @@ Embedding hosts use `createHttpTransport({services, serveOptions})` and forward
 requests to `handler.fetch(request)` at their chosen path. They own caller
 verification and account selection. `createMcpServices` composes explicit
 services from selected capabilities; actor-based composition remains available.
-Request-scoped Awilix integration is deferred.
+Multi-user request-scope integration is deferred; the fixed query composition
+does not require a DI container.
 
 ## Verification
 

@@ -11,19 +11,13 @@ export interface HttpTransportHandle {
   server: Server;
 
   /**
-   * A callback that indicates ready status.
-   * @returns {boolean} Ready status.
-   */
-  isReady: () => boolean;
-
-  /**
    * Close handle.
    * @returns {Promise<void>} A handle that resolves when the server is shut down.
    */
   close: () => Promise<void>;
 }
 
-/** Standalone HTTP listener configuration; embedding hosts use createMcpRouter. */
+/** Standalone HTTP listener configuration; embedding hosts use createHttpTransport. */
 export interface HttpServerOptions extends McpRouterOptions {
   /** The listener host. */
   host: string;
@@ -38,7 +32,7 @@ export interface HttpServerOptions extends McpRouterOptions {
 /**
  * Starts an HTTP server on the requested host and port.
  * @param {HttpServerOptions} options - The options for the server configuration.
- * @returns {HttpTransportHandle} - A server, a callback that reports ready status, and a close callback.
+ * @returns {HttpTransportHandle} - A server and its idempotent close callback.
  * @throws {Error} - Throws if the constructed server isn't a Node HTTP server.
  */
 export function createHttpServer({
@@ -60,13 +54,10 @@ export function createHttpServer({
     throw new Error("Expected Node HTTP server");
   }
 
-  let isReady = true;
-
   let closing: Promise<void> | undefined;
 
   return {
     server,
-    isReady: () => isReady,
 
     /** Stop accepting work, drain active requests, then force-close at the deadline. */
     close: () => {
@@ -74,7 +65,6 @@ export function createHttpServer({
         return closing;
       }
 
-      isReady = false;
       closing = new Promise((resolve, reject) => {
         const timeout = setTimeout(() => {
           server.closeAllConnections();
