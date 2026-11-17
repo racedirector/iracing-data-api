@@ -347,6 +347,9 @@ importers:
 
   apps/iracing-data-mcp:
     dependencies:
+      '@commander-js/extra-typings':
+        specifier: ^15.0.0
+        version: 15.0.0(commander@15.0.0)
       '@hono/node-server':
         specifier: 1.19.17
         version: 1.19.17(hono@4.13.13)
@@ -365,9 +368,18 @@ importers:
       awilix:
         specifier: ^13.0.5
         version: 13.0.5
+      commander:
+        specifier: ^15.0.0
+        version: 15.0.0
       hono:
         specifier: 4.13.13
         version: 4.13.13
+      pino:
+        specifier: ^10.4.0
+        version: 10.4.0
+      pino-pretty:
+        specifier: ^13.2.0
+        version: 13.2.0
       zod:
         specifier: ^4.6.7
         version: 4.6.7

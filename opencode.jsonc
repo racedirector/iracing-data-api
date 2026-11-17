@@ -1,23 +1,30 @@
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
-    "iracing-data": {
-      "type": "local",
-      // Use the installed public executable, including for workspace development.
-      // dotenv CLI owns .env loading; the MCP executable only parses its environment.
-      // Copy .env.example to .env and configure the OAuth registration and credential
-      // path. See apps/iracing-data-mcp/README.md#environment-configuration.
-      "command": [
-        "pnpm",
-        "exec",
-        "dotenv",
-        "-e",
-        ".env",
-        "--",
-        "iracing-data-mcp",
-      ],
-      "enabled": true,
-      "timeout": 10000,
+    "servers": {
+      "iracing-data": {
+        // "type": "local",
+        "type": "remote",
+        "url": "http://localhost:3000/mcp",
+        // Use the installed public executable, including for workspace development.
+        // dotenv CLI owns .env loading; the MCP executable only parses its environment.
+        // Copy .env.example to .env and configure the OAuth registration and credential
+        // path. See apps/iracing-data-mcp/README.md#environment-configuration.
+        // "command": [
+        //   "pnpm",
+        //   "exec",
+        //   "dotenv",
+        //   "-e",
+        //   ".env",
+        //   "--",
+        //   "iracing-data-mcp",
+        // ],
+        "disabled": false,
+        "timeout": {
+          "catalog": 10000,
+          "execution": 10000,
+        },
+      },
     },
   },
 }

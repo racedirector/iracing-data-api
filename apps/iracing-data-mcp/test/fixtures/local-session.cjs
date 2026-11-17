@@ -21,9 +21,10 @@ async function localSession(t) {
   const env = {
     ...process.env,
     IRACING_AUTH_CLIENT: "synthetic-client",
-    IRACING_MCP_CREDENTIAL_FILE: file,
+    IRACING_CREDENTIALS: file,
   };
   delete env.IRACING_AUTH_SECRET;
+  delete env.IRACING_ACCESS_TOKEN;
   return { directory, file, env };
 }
 

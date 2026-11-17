@@ -1,8 +1,8 @@
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { createMcpHandler } from "@modelcontextprotocol/server";
 import { Hono } from "hono";
-import { composeMcpServices } from "./composition.js";
-import type { ResolveActor, ResolveCapabilities } from "./composition.js";
+import { composeMcpServices } from "../composition.js";
+import type { ResolveActor, ResolveCapabilities } from "../composition.js";
 
 /** Dependencies supplied by the embedding HTTP host. */
 export interface McpRouterOptions {
@@ -22,7 +22,7 @@ export interface McpRouterOptions {
 export function createMcpRouter(options: McpRouterOptions): Hono {
   const router = new Hono();
 
-  router.all("/", async (context) => {
+  router.all("/mcp", async (context) => {
     const actor = await options.resolveActor(context.req.raw);
 
     if (!actor) {

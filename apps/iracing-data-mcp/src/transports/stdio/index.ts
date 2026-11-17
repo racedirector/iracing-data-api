@@ -1,7 +1,8 @@
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import { composeMcpServices } from "./composition.js";
-import type { McpActor, ResolveCapabilities } from "./composition.js";
+import { composeMcpServices } from "../../composition.js";
+import type { McpActor, ResolveCapabilities } from "../../composition.js";
+import type { ServeStdioOptions } from "@modelcontextprotocol/server/stdio";
 
 /** Explicit host-owned identity and capabilities for a local MCP connection. */
 export interface McpStdioOptions {
@@ -10,6 +11,9 @@ export interface McpStdioOptions {
 
   /** Same account/capability selection contract used by HTTP hosting. */
   readonly resolveCapabilities: ResolveCapabilities;
+
+  /** Stdio server options. */
+  readonly serveOptions: ServeStdioOptions;
 }
 
 /**
@@ -18,7 +22,7 @@ export interface McpStdioOptions {
  * @param {McpStdioOptions} options - Host-owned identity and capability resolution.
  * @returns {ReturnType<typeof serveStdio>} Handle for closing the stdio connection.
  */
-export function startMcpStdio(
+export function createStdioTransport(
   options: McpStdioOptions,
 ): ReturnType<typeof serveStdio> {
   const services = composeMcpServices(
@@ -32,10 +36,6 @@ export function startMcpStdio(
         serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
         services,
       }),
-    {
-      onerror: () => {
-        process.stderr.write("MCP transport error.\n");
-      },
-    },
+    options.serveOptions,
   );
 }
