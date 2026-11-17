@@ -8,7 +8,7 @@ import type pino from "pino";
  */
 export interface CreateHttpListenerOptions extends Pick<
   HttpServerOptions,
-  "host" | "port" | "services"
+  "host" | "port" | "services" | "catalogs"
 > {
   /** Logger instance. */
   logger: pino.Logger;
@@ -25,6 +25,7 @@ export function createHttpListener(options: CreateHttpListenerOptions): Server {
     port: options.port,
     shutdownTimeoutMs: 10000,
     services: options.services,
+    catalogs: options.catalogs,
   });
 
   server

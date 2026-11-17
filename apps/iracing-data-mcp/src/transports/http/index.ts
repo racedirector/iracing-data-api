@@ -1,16 +1,16 @@
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { createMcpHandler } from "@modelcontextprotocol/server";
-import type { IracingToolServices } from "@iracing-data/mcp";
+import type { IracingMcpServerOptions } from "@iracing-data/mcp";
 import type {
   CreateMcpHandlerOptions,
   McpHttpHandler,
 } from "@modelcontextprotocol/server";
 
 /** Host-selected services for a path-independent MCP HTTP handler. */
-export interface HttpTransportOptions {
-  /** Tool services selected by the embedding host. This handler does not authenticate callers. */
-  readonly services: IracingToolServices;
-
+export interface HttpTransportOptions extends Pick<
+  IracingMcpServerOptions,
+  "services" | "catalogs"
+> {
   /** HTTP handler options. */
   readonly serveOptions: CreateMcpHandlerOptions;
 }
@@ -28,6 +28,7 @@ export function createHttpTransport(
       createIracingMcpServer({
         serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
         services: options.services,
+        catalogs: options.catalogs,
       }),
     options.serveOptions,
   );

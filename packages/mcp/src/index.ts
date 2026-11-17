@@ -1,4 +1,14 @@
 export { createIracingMcpServer } from "./factory.js";
+export type { IracingMcpServerOptions } from "./factory.js";
+export { registerReferenceResources } from "./resources/index.js";
+export type { CatalogResolver, ReferenceCatalog } from "./resources/service.js";
+export type { CatalogDefinition } from "./resources/definitions.js";
+export {
+  CarsCatalog,
+  TracksCatalog,
+  CarClassesCatalog,
+  createReferenceResource,
+} from "./resources/definitions.js";
 export { registerIracingTools } from "./register.js";
 export {
   SearchInput,

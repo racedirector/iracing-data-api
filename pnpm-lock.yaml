@@ -356,6 +356,9 @@ importers:
       '@iracing-data/api-client-fetch':
         specifier: workspace:*
         version: link:../../packages/api/client/fetch
+      '@iracing-data/api-schema':
+        specifier: workspace:*
+        version: link:../../packages/api/schema
       '@iracing-data/mcp':
         specifier: workspace:*
         version: link:../../packages/mcp
@@ -511,6 +514,9 @@ importers:
 
   packages/mcp:
     dependencies:
+      '@iracing-data/api-schema':
+        specifier: workspace:*
+        version: link:../api/schema
       '@modelcontextprotocol/server':
         specifier: 2.3.1
         version: 2.3.1

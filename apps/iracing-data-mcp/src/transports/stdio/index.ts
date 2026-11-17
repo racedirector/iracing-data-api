@@ -1,13 +1,13 @@
 import { createIracingMcpServer } from "@iracing-data/mcp";
 import { serveStdio } from "@modelcontextprotocol/server/stdio";
-import type { IracingToolServices } from "@iracing-data/mcp";
+import type { IracingMcpServerOptions } from "@iracing-data/mcp";
 import type { ServeStdioOptions } from "@modelcontextprotocol/server/stdio";
 
 /** Host-selected services for a local MCP connection. */
-export interface McpStdioOptions {
-  /** Tool services selected by the host, using the same contract as HTTP. */
-  readonly services: IracingToolServices;
-
+export interface McpStdioOptions extends Pick<
+  IracingMcpServerOptions,
+  "services" | "catalogs"
+> {
   /** Stdio server options. */
   readonly serveOptions: ServeStdioOptions;
 }
@@ -26,6 +26,7 @@ export function createStdioTransport(
       createIracingMcpServer({
         serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
         services: options.services,
+        catalogs: options.catalogs,
       }),
     options.serveOptions,
   );
