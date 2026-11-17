@@ -18,7 +18,7 @@ export function registerSearchRaceResults(
   registerApplicationTool(server, services, {
     name: "search_race_results",
     description:
-      "Search series or hosted results (including league races) for any driver/team or explicit criteria. No implicit current driver or race-only filter. Supply a season or UTC time range. team_id overrides cust_id upstream. Returns one zero-based upstream chunk, in upstream order; query_complete covers only this query. Repeat with chunk_index to retrieve other chunks; searches are rerun and are not a stable snapshot. Narrow criteria on RESPONSE_LIMIT_EXCEEDED. No special-event classification or name lookup; requires iracing.auth.",
+      "Search series or hosted results (including league races) for any driver/team or explicit criteria. No implicit current driver or race-only filter. Supply a series season or UTC time range of at most 90 days. If an end is omitted, its begin must be less than 90 days old and not in the future. Use explicit begin/end pairs for older history and split multi-year requests into separate windows; each start/finish range is validated independently. team_id overrides cust_id upstream. Returns one zero-based upstream chunk, in upstream order; query_complete covers only this query. Repeat with chunk_index to retrieve other chunks; searches are rerun and are not a stable snapshot. Narrow criteria on RESPONSE_LIMIT_EXCEEDED. No special-event classification or name lookup; requires iracing.auth.",
     inputSchema: SearchInput,
     outputSchema: SearchOutput,
     annotations: {

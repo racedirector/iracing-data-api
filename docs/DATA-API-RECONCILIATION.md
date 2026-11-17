@@ -106,6 +106,59 @@ scripts/audit-data-docs.cjs <private-docs-file>` accepted the documentation
   Review again when payload acceptance fails or upstream documentation changes.
   Private temporary payloads are not retained as repository evidence.
 
+## DATA-004 — Enforce MCP historical-search time windows
+
+- **Context:** base `fcf4a6c`, branch `restack/pr-556`; the only preceding dirty
+  work was an unrelated asset URL ReDoS fix. Implementation commit: **pending**.
+- **Current source:** authenticated official
+  `https://members-ng.iracing.com/data/doc` retrieved at
+  `2026-11-17T20:58:57Z`; `/results/search_series/note` and
+  `/results/search_hosted/note` both specify a maximum 90-day time frame.
+  Both end-parameter notes permit omission only when the corresponding begin is
+  less than 90 days old.
+- **Scoped live evidence:** CLI/generated-Fetch raw series-search manifests for
+  series 491, 511, 538, 595 and 634 over
+  `2026-11-16T00:00:00Z`–`2026-11-17T00:00:00Z` succeeded. MCP reads for the same
+  window returned 95, 4, 70 and 106 results for 491, 511, 595 and 634.
+  Series 538 hit the response-size cap, then succeeded with 10 results over
+  `2026-11-16T12:00:00Z`–`2026-11-16T14:00:00Z`. A representative multi-year
+  request reproduced the reported `DATA_RESOLUTION_FAILED / invalid_data`.
+  This does not reproduce every original agent query or establish its exact
+  failure cause. All five raw manifests passed
+  `ResultsSearchSeriesResponseSchema` before generated-client decoding.
+- **Structural comparison:** the current docs schema parsed and all 74 routes
+  matched; the comparator's five review candidates concern other lookup/
+  spectator routes, not series-search input bindings. No API mapping repair.
+- **Mismatch:** MCP `SearchInput` accepted overlong date windows and old
+  open-ended begins. Descriptions mentioned scope but omitted the 90-day limit,
+  allowing agents to send requests that violate documented upstream constraints.
+- **Decision:** enforce positive explicit windows of at most 90 UTC days and
+  require explicit ends for begins 90 days old or older. Open-ended future
+  begins fail rather than imply an end before their begin. Validate each start/
+  finish window independently before capability selection; a season does not
+  bypass invalid supplied dates. Preserve season-only searches. Do not clamp,
+  auto-split, or retry unsupported requests.
+- **Owner/impact:** `packages/mcp/src/tools/search-race-results/schema.ts` and
+  its tool descriptions, initialization instructions and authored READMEs.
+  Invalid MCP requests now produce `INVALID_INPUT` before credentials/network
+  effects instead of being sent upstream. Shared Data API HTTP schemas, CLI
+  request bindings, OpenAPI and generated clients are unchanged; no regeneration,
+  package version bump or publication.
+- **Command decision:** retain the existing CLI for raw upstream inspection.
+  Its generated-client transport is evidence plumbing, not the repaired MCP
+  input boundary. Other upstream conditional requirements are outside this fix.
+- **Validation:** `pnpm --filter '@iracing-data/iracing-data-mcp...' build`,
+  `pnpm --filter @iracing-data/mcp test` (46 tests plus type fixtures), and
+  `pnpm --filter @iracing-data/iracing-data-mcp test` (58 tests) passed.
+  Boundary, clock-frozen schema and adapter regressions cover exact 90-day
+  windows, one-millisecond overflow, both sources and both range types,
+  old/future open ends, season-only queries, mixed filters and zero dependency
+  effects. Focused ESLint, Prettier and `git diff --check` passed. Full
+  verification and CodeQL reruns remain CI-owned.
+- **Limitations:** no all-route live gate or exhaustive optional-filter audit.
+  Overall compatibility verdict remains **Unable to verify part of the
+  contract**. Revisit if official range rules change or a bounded query fails.
+
 ## DATA-001 — Hosted search returns an inline manifest
 
 - **Status:** repaired; scoped live case PASS. Not an all-endpoint verdict.

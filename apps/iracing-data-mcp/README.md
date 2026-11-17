@@ -149,7 +149,7 @@ For a known series ID, read `iracing://series/120` directly. Series identity,
 category and restrictions are not automatically its current-season cars,
 schedule or recent activity. Use separate declared capabilities for those facts;
 do not infer identity or nonexistence from race results. Historical queries still
-require an explicit season or UTC date range.
+require an explicit series season or UTC date range of at most 90 days.
 
 For a logo request, resolve candidate cars, inspect the selected car's media
 index, then read an advertised image URI. A BMW car's `logo`, `sponsor_logo` or
@@ -294,11 +294,20 @@ Hosted search includes league races: supply `league_id` and optionally
 driver is assumed. Upstream gives `team_id` precedence over `cust_id`.
 
 Supply a season year/quarter pair (series only), or UTC start/finish ranges.
-Bounds are inclusive at the beginning and exclusive at the end. Follow the
-upstream range restrictions; older searches need explicit end bounds. Filters
+Bounds are inclusive at the beginning and exclusive at the end. For both sources,
+each explicit start/finish range must have a later end at most 90 days after its
+begin. An omitted end requires a begin less than 90 days old and not in the
+future; older historical windows require explicit end bounds. Each supplied
+range is validated independently, even when a series season is also supplied.
+Season-only searches remain supported. Split multi-year requests into separate
+bounded windows; the server does not truncate or partition them automatically.
+The MCP input schema rejects invalid windows before selecting a capability,
+restoring credentials or making API requests.
+
+Filters
 are source-specific: hosted supports car, track, session name, host and league;
 series supports series, race week, event types and official-only. Both support
-customer, team and category IDs. Names must first be resolved to IDs elsewhere.
+customer, team and category IDs. Use `find_reference` to resolve names to IDs.
 
 Example arguments for participant activity in The Beer League:
 

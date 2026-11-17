@@ -152,6 +152,13 @@ and `query_complete` distinguish one retrieved chunk from all matching results.
 Calls do not retain cursor state or promise a stable snapshot across searches.
 Supply an explicit season or UTC date scope; no participant or race-only filter
 is assumed. Source-specific filters are validated before selecting services.
+For both sources, `SearchInput` enforces a positive explicit start/finish window
+of at most 90 days. When an end is omitted, its begin must be less than 90 days
+old and not in the future. Older historical windows need explicit ends; multi-year
+searches must be split into separate requests. Each range is checked independently
+and a series season does not bypass invalid date filters. Season-only requests
+remain supported. Validation uses the current clock for omitted ends and runs
+before dependency selection; it never clamps dates or partitions requests.
 For supported filters, example arguments and response-budget behavior, see the
 [historical search contract](../../apps/iracing-data-mcp/README.md#historical-result-search).
 
