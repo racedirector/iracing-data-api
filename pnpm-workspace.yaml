@@ -8,7 +8,8 @@ packages:
   - "packages/oauth/*"
   - "packages/oauth/client/*"
 allowBuilds:
-  '@modelcontextprotocol/inspector': set this to true or false
+  # Published Inspector clients are prebuilt; postinstall only serves source checkouts.
+  "@modelcontextprotocol/inspector": false
   "@nestjs/core": false
   "@openapitools/openapi-generator-cli": false
   esbuild: true
