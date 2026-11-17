@@ -124,7 +124,12 @@ test(
       await client.connect(transport);
       assert.deepEqual(
         (await client.listTools()).tools.map((tool) => tool.name),
-        ["get_my_driver", "get_recent_races", "search_race_results"],
+        [
+          "get_my_driver",
+          "get_recent_races",
+          "search_race_results",
+          "find_reference",
+        ],
       );
     } finally {
       await client.close();

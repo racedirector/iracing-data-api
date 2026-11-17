@@ -83,6 +83,48 @@ test("caller-owned server exposes explicit tools and accepts neighboring registr
   assert.equal(typeof f.api.createIracingMcpServer, "function");
 });
 
+test("optional reference lookup uses the same strict, bounded caller-owned tool boundary", async (t) => {
+  let selected = 0;
+  const f = await fixture(t, {
+    getReferenceQueries: () => {
+      selected++;
+      return {
+        list: async () => ({
+          entries: [{ id: 120, name: "Example Series", secret: "SECRET" }],
+          metadata_available: false,
+          assets_available: false,
+        }),
+      };
+    },
+  });
+  const tool = (await f.client.listTools()).tools.find(
+    (entry) => entry.name === "find_reference",
+  );
+  assert.equal(tool.inputSchema.type, "object");
+  assert.equal(tool.inputSchema.additionalProperties, false);
+  assert.equal(tool.annotations.readOnlyHint, true);
+  assert.equal(selected, 0);
+  const invalid = await f.call("find_reference", {
+    kind: "series",
+    query: "120",
+    credentials: "SECRET",
+  });
+  assert.equal(invalid.structuredContent.error.code, "INVALID_INPUT");
+  assert.equal(selected, 0);
+  const result = await f.call("find_reference", {
+    kind: "series",
+    query: "120",
+  });
+  assert.deepEqual(result.structuredContent.matches, [
+    { id: 120, name: "Example Series" },
+  ]);
+  assert.deepEqual(
+    JSON.parse(result.content[0].text),
+    result.structuredContent,
+  );
+  assert.doesNotMatch(JSON.stringify(result), /SECRET/);
+});
+
 test("historical search selects per request, forwards criteria and projects output", async (t) => {
   let selected = 0;
   const f = await fixture(t, {

@@ -1,5 +1,6 @@
 import { dirname, join } from "node:path";
 import { Command } from "@commander-js/extra-typings";
+import { createCatalogReferenceQueries } from "@iracing-data/mcp";
 import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
 import * as z from "zod";
 import { createTokenProvider } from "../../../access-token.js";
@@ -67,9 +68,15 @@ export function createServeCommand({
 
       const tokenResolver = createServeTokenProvider(options, sessionKey);
 
-      const services = createMcpServices(createFetchQueries(tokenResolver));
-
       const resources = createServeResources(raw.credentials, tokenResolver);
+
+      const services = createMcpServices(
+        createFetchQueries(tokenResolver),
+        createCatalogReferenceQueries(
+          resources.catalogs,
+          resources.assets.catalogs,
+        ),
+      );
 
       if (options.transport === "http") {
         logger.trace("Configuring HTTP listener");

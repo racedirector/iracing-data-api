@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/server";
+import { createServerInstructions } from "./instructions.js";
 import { registerIracingTools } from "./register.js";
 import { registerAssetResources } from "./resources/assets/index.js";
 import { registerReferenceDocuments } from "./resources/documents.js";
@@ -19,7 +20,7 @@ export interface IracingMcpServerOptions {
   /** Optional MCP SDK capabilities and instructions. */
   readonly serverOptions?: ConstructorParameters<typeof McpServer>[1];
 
-  /** Caller-owned selectors for the three supported tools. */
+  /** Caller-owned selectors for three required tools and optional reference lookup. */
   readonly services: IracingToolServices;
 
   /** Optional reference catalogs with host-owned data access. */
@@ -44,7 +45,7 @@ export interface IracingMcpServerOptions {
  * @param {readonly ReferenceCatalog[]} root0.catalogs - Host-owned reference catalogs.
  * @param {readonly ReferenceDocument[]} root0.documents - Host-owned small reference datasets.
  * @param {IracingMcpServerOptions["assets"]} root0.assets - Host-owned asset data access.
- * @returns {McpServer} New, unconnected MCP server with three tools registered.
+ * @returns {McpServer} New, unconnected server with required tools and optional reference lookup.
  */
 export function createIracingMcpServer({
   serverInfo,
@@ -54,7 +55,19 @@ export function createIracingMcpServer({
   documents = [],
   assets,
 }: IracingMcpServerOptions): McpServer {
-  const server = new McpServer(serverInfo, serverOptions);
+  const instructions = createServerInstructions({
+    catalogs,
+    documents,
+    assets: assets?.catalogs ?? [],
+    findReference: typeof services.getReferenceQueries === "function",
+  });
+
+  const server = new McpServer(serverInfo, {
+    ...serverOptions,
+    instructions: [instructions, serverOptions?.instructions]
+      .filter(Boolean)
+      .join("\n\n"),
+  });
 
   registerIracingTools(server, services);
   registerReferenceResources(server, catalogs);

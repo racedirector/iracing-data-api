@@ -1,4 +1,15 @@
 export { createIracingMcpServer } from "./factory.js";
+export { createCatalogReferenceQueries } from "./resources/reference-queries.js";
+export {
+  FindReferenceInput,
+  FindReferenceOutput,
+  ReferenceKind,
+} from "./tools/find-reference/schema.js";
+export type {
+  ReferenceDataset,
+  ReferenceEntry,
+} from "./tools/find-reference/schema.js";
+export type { ReferenceQueries } from "./tools/find-reference/service.js";
 export {
   AssetDefinitions,
   createAssetResource,

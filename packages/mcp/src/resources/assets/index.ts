@@ -37,7 +37,7 @@ export function registerAssetResources(
       }),
       {
         title: `iRacing ${catalog.kind} images`,
-        description: `Read image bytes as MCP blob content. First read iracing://assets/${catalog.kind}/{id} for available fields. Select small_image, large_image, logo, sponsor_logo or group_image; missing/null fields fail explicitly. Media is fetched unsigned, up to 5 MiB; MIME type is in the response.`,
+        description: `Read image bytes as MCP blob content. First read iracing://assets/${catalog.kind}/{id}/media for available fields and URIs. Select small_image, large_image, logo, sponsor_logo or group_image; missing/null fields fail explicitly. A car logo or sponsor image does not establish a canonical manufacturer mark. Media is fetched unsigned, up to 5 MiB; MIME type is in the response.`,
       },
       async (uri, variables, context) => {
         context.mcpReq.signal.throwIfAborted();

@@ -46,6 +46,7 @@ const datasets = [
 ];
 
 test("HTTP exposes the same lazy reference collections and templates", async (t) => {
+  const { createCatalogReferenceQueries } = await import("@iracing-data/mcp");
   const { createHttpTransport, createMcpServices, createReferenceCatalogs } =
     await import("../dist/index.js");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
@@ -57,7 +58,10 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
     throw new Error("Discovery and snapshot reads must not authenticate");
   });
   const handler = createHttpTransport({
-    services: createMcpServices(() => capabilities("success")),
+    services: createMcpServices(
+      () => capabilities("success"),
+      createCatalogReferenceQueries(catalogs),
+    ),
     catalogs,
     serveOptions: {},
   });
@@ -111,6 +115,17 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
       argument: { name: dataset.id, value: "1" },
     });
     assert.deepEqual(completion.completion.values, ["17"]);
+    const lookup = await rpc("tools/call", {
+      name: "find_reference",
+      arguments: { kind: dataset.name, query: "17" },
+    });
+    assert.deepEqual(lookup.structuredContent.matches, [
+      {
+        id: 17,
+        name: "Example",
+        metadata_uri: `iracing://${dataset.name}/17`,
+      },
+    ]);
     for (const suffix of ["", "/17"]) {
       const result = await rpc("resources/read", {
         uri: `iracing://${dataset.name}${suffix}`,
@@ -345,6 +360,10 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
   });
   assert.equal(schema.contents[0].mimeType, "application/schema+json");
   assert.ok(JSON.parse(schema.contents[0].text).$schema);
+  assert.match(
+    client.getInstructions(),
+    /Tool-catalog search searches tools, not resources/,
+  );
   // Files changed after discovery must be observed on the first read.
   for (const dataset of datasets) {
     await fs.writeFile(
@@ -407,4 +426,17 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
     const response = await client.readResource({ uri: `iracing://${name}` });
     assert.deepEqual(JSON.parse(response.contents[0].text), payload);
   }
+  const found = await client.callTool({
+    name: "find_reference",
+    arguments: { kind: "series", query: "17" },
+  });
+  assert.deepEqual(found.structuredContent.matches, [
+    {
+      id: 17,
+      name: "Example",
+      metadata_uri: "iracing://series/17",
+      asset_metadata_uri: "iracing://assets/series/17",
+      media_index_uri: "iracing://assets/series/17/media",
+    },
+  ]);
 });

@@ -1,7 +1,7 @@
 # iRacing Data MCP runtime
 
-Three read-only tools: `get_my_driver`, `get_recent_races`, and
-`search_race_results`. The
+Four read-only tools in the default serve command: `get_my_driver`,
+`get_recent_races`, `search_race_results`, and `find_reference`. The
 `@iracing-data/mcp` package owns the listener-free MCP server and contracts.
 This app supplies an optional Hono adapter, an optional Node listener, and a
 local stdio executable. It does not implement an OAuth server, JWT verifier,
@@ -126,6 +126,42 @@ current-user-owned directory mode `0700` and file mode `0600`, no symlinks).
 See [CLI login setup](../iracing-data-cli/README.md#build-and-run-locally) for acquisition.
 After fixing configuration or replacing a credential document, restart the
 MCP process to create a fresh credential owner.
+
+## Finding reference metadata and assets
+
+Initialization instructions distinguish tool search from resource discovery.
+List this server's resources and templates before declaring reference metadata
+or media unavailable. Use resource-read support to follow advertised URIs;
+missing tool-search hits do not justify repository/CLI/manual-HTTP fallback.
+A declined call is a permission decision, not an API/authentication failure.
+
+`find_reference({ kind: "cars", query: "BMW", limit: 5 })` searches a single
+host-selected catalog by exact numeric ID or case-insensitive name/manufacturer/
+model keywords. Other kinds are `tracks`, `series` and `car-classes`. It returns
+bounded candidate IDs/display names with available metadata, asset and media-index
+URIs. Track labels include layouts. It shares lazy snapshots with resource reads
+and never downloads media. The default limit is 5, maximum 20; use `has_more`
+and `total_matches` to decide whether to narrow the query. Matching is not fuzzy.
+An unavailable catalog is reported as `available: false`, distinct from zero
+matches in a configured snapshot.
+
+For a known series ID, read `iracing://series/120` directly. Series identity,
+category and restrictions are not automatically its current-season cars,
+schedule or recent activity. Use separate declared capabilities for those facts;
+do not infer identity or nonexistence from race results. Historical queries still
+require an explicit season or UTC date range.
+
+For a logo request, resolve candidate cars, inspect the selected car's media
+index, then read an advertised image URI. A BMW car's `logo`, `sponsor_logo` or
+`group_image` is not necessarily the BMW manufacturer's mark. If the intended
+car/branding variant is ambiguous, present candidates or ask for clarification.
+
+Embedding hosts opt into this fourth tool through `getReferenceQueries`.
+`createMcpServices(source, createCatalogReferenceQueries(catalogs, assetCatalogs))`
+provides one host/credential-owner-bound reference selector; hosts needing
+request-local selection can supply `getReferenceQueries(context)` directly.
+Hosts without this optional selector retain the three required tools.
+Additional host server instructions are preserved by the core factory.
 
 ## Static catalog resources
 

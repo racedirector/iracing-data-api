@@ -93,3 +93,40 @@ test("standalone app serves only /mcp and returns empty 404 elsewhere", async ()
     }
   }
 });
+
+test("HTTP reference lookup stays host-selected and rejects foreign origins before reading catalogs", async () => {
+  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpServices } = await import("../dist/index.js");
+  const { capabilities } = await import("./fixtures/capabilities.mjs");
+  let reads = 0;
+  const app = createMcpRouter({
+    services: createMcpServices(() => capabilities("success"), {
+      list: async () => {
+        reads++;
+        return {
+          entries: [{ id: 120, name: "Selected host's series" }],
+          metadata_available: false,
+          assets_available: false,
+        };
+      },
+    }),
+  });
+  const init = requestBody();
+  init.body = JSON.stringify({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "tools/call",
+    params: {
+      name: "find_reference",
+      arguments: { kind: "series", query: "120" },
+    },
+  });
+  init.headers.origin = "https://attacker.example";
+  assert.equal((await app.request("http://localhost/mcp", init)).status, 403);
+  assert.equal(reads, 0);
+  delete init.headers.origin;
+  const response = await app.request("http://localhost/mcp", init);
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /Selected host's series/);
+  assert.equal(reads, 1);
+});

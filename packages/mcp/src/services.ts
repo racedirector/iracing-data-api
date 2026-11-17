@@ -1,4 +1,5 @@
 import type { RequestContext } from "./diagnostics/errors.js";
+import type { ReferenceQueries } from "./tools/find-reference/service.js";
 import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
 import type { RaceSearchQueries } from "./tools/search-race-results/service.js";
@@ -21,6 +22,15 @@ export interface IracingToolContext {
 
 /** The host selects independently implemented capabilities for each request. */
 export interface IracingToolServices {
+  /**
+   * Optional explicit selector; find_reference is advertised only when supplied.
+   * @param {IracingToolContext} context - Cancellation and host-selected request context.
+   * @returns {ReferenceQueries | Promise<ReferenceQueries>} Host-owned reference lookup.
+   */
+  getReferenceQueries?(
+    context: IracingToolContext,
+  ): ReferenceQueries | Promise<ReferenceQueries>;
+
   /**
    * Select the verified actor's historical search capability.
    * @param {IracingToolContext} context - Cancellation and verified actor context.

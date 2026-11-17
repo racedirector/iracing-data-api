@@ -2,12 +2,17 @@
 
 `@iracing-data/mcp` defines **what** an iRacing Data API MCP server provides
 and **which capabilities** it requires. It is listener-free,
-credential-free, client-agnostic and provides three tools:
+credential-free, client-agnostic and provides three required tools:
 
 - `get_my_driver`: current driver identity through tool-local `DriverQueries`.
 - `get_recent_races`: a bounded recent-race window through `RecentRaceQueries`.
 - `search_race_results`: explicit series or hosted/league participation search
   through `RaceSearchQueries`, for any supplied driver/team or search criteria.
+
+An optional fourth tool, `find_reference`, resolves car, track, series and
+car-class names/IDs through injected `ReferenceQueries`. It is advertised only
+when `services.getReferenceQueries` is supplied; existing three-selector hosts
+remain valid. The default runtime supplies this reference capability.
 
 Tools register explicitly through the package-internal
 [`registerApplicationTool`](src/execution.ts) adapter onto the MCP SDK.
@@ -48,6 +53,39 @@ const server = createIracingMcpServer({
 Consumers with their own MCP server may instead call
 `registerIracingTools(server, services)`. Neither API connects transport,
 starts listeners, resolves credentials, or installs process handlers.
+
+## Resource discovery and reference lookup
+
+The server factory supplies initialization instructions covering tools versus
+resources, permission declines, metadata boundaries and safe media discovery.
+Instructions describe only host-selected resource namespaces and preserve
+additional `serverOptions.instructions`. They never hydrate reference data.
+
+Tool-catalog search cannot establish that a resource is absent. Clients should
+list resources **and templates**, then read advertised concrete URIs. Use
+`find_reference({ kind: "cars", query: "BMW", limit: 5 })` for bounded name lookup,
+or read a known ID such as `iracing://series/120` directly.
+
+`createCatalogReferenceQueries(catalogs, assetCatalogs)` adapts host-selected
+resource resolvers to `ReferenceQueries`. Pass a selector for that instance as
+`services.getReferenceQueries`; the adapter shares existing snapshot/index
+access and never downloads media. Hosts can instead provide their own
+request-scoped selector. No local credential fallback is introduced.
+
+Lookups use exact numeric IDs or case-insensitive matching of all text keywords
+against names and selected manufacturer/model/abbreviation fields. Track labels
+include configuration names. Results are deterministic, default to 5 and cap at
+20, with `total_matches`, `returned_count` and `has_more`; narrow the query when
+needed. `available: false` means an unconfigured catalog, not a nonexistent
+entity. Zero matches concern the selected snapshot only. Resource URIs are
+included only for surfaces declared available by the injected provider.
+
+**Interpretation limits:** a car's logo, sponsor logo or group image does not
+establish a canonical manufacturer mark; clarify ambiguous branding requests.
+Series metadata establishes identity and fields actually present, not a
+guaranteed current season, eligible car list, schedule or recent activity.
+Those require separate declared data sources. Never infer series nonexistence
+from a race-results search with no matches.
 
 ## Reference resources
 

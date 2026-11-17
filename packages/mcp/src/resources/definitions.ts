@@ -76,7 +76,7 @@ export const CarsCatalog = {
   name: "cars",
   title: "iRacing Cars",
   description:
-    "Resolve car_id from race results to car_name and complete car metadata.",
+    "Resolve car_id to car_name and complete car metadata. Image metadata: iracing://assets/cars/{id}; available media: iracing://assets/cars/{id}/media when exposed by the host. A car's logo or sponsor branding is not necessarily a canonical manufacturer logo; clarify ambiguous manufacturer-logo requests.",
   idField: "car_id",
   schema: CarCatalogPayloadSchema,
   entitySchema: CarPayloadSchema,
@@ -88,7 +88,7 @@ export const TracksCatalog = {
   name: "tracks",
   title: "iRacing Tracks",
   description:
-    "Resolve track_id from race results to track_name, configuration and complete track metadata.",
+    "Resolve track_id to track_name, configuration and complete track metadata. When exposed by the host, asset metadata is at iracing://assets/tracks/{id}, available media at iracing://assets/tracks/{id}/media and map layers at iracing://track-maps/{track_id}/{layer}.",
   idField: "track_id",
   schema: TrackCatalogPayloadSchema,
   entitySchema: TrackPayloadSchema,
@@ -112,7 +112,7 @@ export const SeriesCatalog = {
   name: "series",
   title: "iRacing Series",
   description:
-    "Resolve series_id to series names and complete metadata, including upstream eligibility and license restrictions. Branding metadata: iracing://assets/series/{id}.",
+    "Resolve series_id directly to series names and complete metadata, including upstream eligibility and license restrictions when present. This does not guarantee current-season cars, schedules or recent activity; those require separate scoped data. Do not infer identity or nonexistence from race results. Branding metadata: iracing://assets/series/{id} when exposed by the host.",
   idField: "series_id",
   schema: SeriesCatalogPayloadSchema,
   entitySchema: SeriesPayloadSchema,
