@@ -173,6 +173,12 @@ entries are at `iracing://assets/{kind}/{id}` for each advertised kind.
 They persist lazily as `cars-assets.json`, `tracks-assets.json` and
 `series-assets.json` alongside the catalog snapshots.
 
+Resource templates support prefix autocomplete for asset IDs. Image fields and
+track-map layers complete from the selected `id` or `track_id` in the client's
+completion context, suggesting only available, safely resolvable references.
+Missing or invalid context and unknown IDs return no selector suggestions.
+Completion can lazily load metadata but never downloads media.
+
 Image templates are `iracing://images/{kind}/{id}/{field}`. Supported fields are
 `small_image`, `large_image`, `logo`, `sponsor_logo` and `group_image`; read the
 entity's asset metadata first because missing/null fields fail explicitly.

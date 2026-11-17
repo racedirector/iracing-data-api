@@ -130,6 +130,8 @@ Pass `assets: { catalogs, readMedia }` to `createIracingMcpServer`, or call
 `registerAssetResources` on a consumer-owned server. The host supplies lazy
 metadata resolvers and a credential-free media reader; this package does not
 fetch or persist assets. Both runtime transports accept the same injected assets.
+Asset templates support ID prefix completion and context-aware completion of
+available image fields and map layers through the same host metadata resolvers.
 
 ```sh
 pnpm --filter '@iracing-data/mcp...' build

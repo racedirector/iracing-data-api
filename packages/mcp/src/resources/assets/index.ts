@@ -1,4 +1,9 @@
 import { ResourceTemplate } from "@modelcontextprotocol/server";
+import {
+  completeAssetIds,
+  completeImageFields,
+  completeMapLayers,
+} from "./completion.js";
 import { assetId, imageUrl, trackMapUrl, ImageFieldSchema } from "./service.js";
 import type { AssetCatalog, ReadAssetMedia } from "./service.js";
 import type { McpServer } from "@modelcontextprotocol/server";
@@ -20,6 +25,11 @@ export function registerAssetResources(
       `${catalog.kind}-image`,
       new ResourceTemplate(`iracing://images/${catalog.kind}/{id}/{field}`, {
         list: undefined,
+        complete: {
+          id: (value) => completeAssetIds(catalog, value),
+          field: (value, context) =>
+            completeImageFields(catalog, value, context?.arguments?.id),
+        },
       }),
       {
         title: `iRacing ${catalog.kind} images`,
@@ -83,6 +93,9 @@ function registerMetadata(
     `${catalog.kind}-asset`,
     new ResourceTemplate(`iracing://assets/${catalog.kind}/{id}`, {
       list: undefined,
+      complete: {
+        id: (value) => completeAssetIds(catalog, value),
+      },
     }),
     {
       title: `iRacing ${catalog.kind} asset metadata`,
@@ -112,6 +125,11 @@ function registerTrackMaps(
     "track-map-layer",
     new ResourceTemplate("iracing://track-maps/{track_id}/{layer}", {
       list: undefined,
+      complete: {
+        track_id: (value) => completeAssetIds(tracks, value),
+        layer: (value, context) =>
+          completeMapLayers(tracks, value, context?.arguments?.track_id),
+      },
     }),
     {
       title: "iRacing track map layer",
