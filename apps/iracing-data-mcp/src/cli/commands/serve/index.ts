@@ -145,6 +145,7 @@ function createServeTokenProvider(options: CreateServeTokenProviderOptions) {
     return () => Promise.resolve(options.accessToken);
   }
 
+  // !!!: Credentials file is only accessible when we determine it's not an access token provider.
   const sessionStore = new OAuthTokenDocumentSessionStore({
     filePath: options.credentialsFile,
     sessionKey: options.sessionKey,
@@ -159,7 +160,7 @@ function createServeTokenProvider(options: CreateServeTokenProviderOptions) {
     scopes: ["iracing.auth", "iracing.profile"],
     ...(options.kind === "authorization_code"
       ? {
-          redirectUri: "http://127.0.0.1:300/api/oauth/callback/iracing",
+          redirectUri: options.clientMetadata.redirectUri,
         }
       : {
           username: options.clientMetadata.username,
