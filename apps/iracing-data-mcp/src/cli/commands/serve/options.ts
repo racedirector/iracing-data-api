@@ -32,10 +32,13 @@ export const clientIdOption = new Option(
 export const maskedClientSecretOption = new Option(
   "--masked-client-secret <masked>",
   "The pre-masked iRacing OAuth client secret.",
-);
+).env("IRACING_AUTH_MASKED_SECRET");
 
 /**
  * OAuth client secret option, loaded from the environment.
+ *
+ * A value passed as a CLI flag is visible in process listings and shell history.
+ * Prefer the IRACING_AUTH_SECRET environment variable.
  */
 export const clientSecretOption = new Option(
   "--client-secret <secret>",
@@ -66,12 +69,13 @@ export const usernameOption = new Option(
 export const maskedPasswordOption = new Option(
   "--masked-password <masked>",
   "The pre-masked iRacing OAuth password-limited account password.",
-);
+).env("IRACING_AUTH_MASKED_PASSWORD");
 
 /**
  * IRacing OAuth password-limited password option.
  *
- * This cannot be provided via CLI options or stdin.
+ * A value passed as a CLI flag is visible in process listings and shell history.
+ * Prefer the IRACING_AUTH_PASSWORD environment variable.
  */
 export const passwordOption = new Option(
   "--password <password>",
