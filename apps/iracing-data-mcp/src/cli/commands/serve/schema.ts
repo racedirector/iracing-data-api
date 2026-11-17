@@ -25,7 +25,7 @@ const AuthenticationOptionsSchema = z.union([
   }),
   z.object({
     credentials: z.string().min(1).trim(),
-    clientId: IRacingOAuthClientMetadataSchema.shape.clientId,
+    clientId: IRacingOAuthClientMetadataSchema.shape.clientId.trim().min(1),
     clientSecret: IRacingOAuthClientMetadataSchema.shape.clientSecret,
     maskedClientSecret:
       IRacingOAuthClientMetadataSchema.shape.maskedClientSecret,
