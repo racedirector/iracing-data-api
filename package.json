@@ -66,7 +66,7 @@
     "@iracing-data/oauth-schema-to-openapi": "workspace:*",
     "@openapitools/openapi-generator-cli": "^2.31.1",
     "@stylistic/eslint-plugin": "^5.10.0",
-    "@types/lodash": "^4.17.26",
+    "@types/lodash": "^4.17.27",
     "@types/node": "^26",
     "dotenv-cli": "^11.1.0",
     "eslint": "^10.15.0",
