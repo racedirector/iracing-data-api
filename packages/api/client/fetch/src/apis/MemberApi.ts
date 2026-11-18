@@ -31,7 +31,7 @@ import {
 } from "../models/index";
 
 export interface GetMemberRequest {
-  cust_ids: string;
+  cust_ids: Array<string>;
   include_licenses?: boolean;
 }
 
@@ -74,7 +74,9 @@ export class MemberApi extends runtime.BaseAPI {
     const queryParameters: any = {};
 
     if (requestParameters["cust_ids"] != null) {
-      queryParameters["cust_ids"] = requestParameters["cust_ids"];
+      queryParameters["cust_ids"] = requestParameters["cust_ids"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     if (requestParameters["include_licenses"] != null) {
