@@ -183,6 +183,10 @@ test("the public document matches reviewed compatibility maintenance", () => {
   // 2026-11-15 UTC: DATA-002 makes the shared search chunk base URL nullable,
   // makes world-record chunk metadata nullable, and adds optional echoed
   // season_year/season_quarter. Only those schema changes were reviewed.
+  // 2026-11-17 UTC: PR #489 changes only /data/member/get cust_ids from
+  // a CSV string schema to a nonempty digit-string array with form/CSV wire
+  // serialization (style=form, explode=false). Full JSON document diff was
+  // audited: only type, pattern, minItems, items, style and explode changed.
   // Ignore object key order, but preserve array order and every contract field.
   // Intentional contract changes require reviewing the delta before updating this
   // fingerprint; never derive the expected value from the current generated file.
@@ -200,7 +204,7 @@ test("the public document matches reviewed compatibility maintenance", () => {
     createHash("sha256")
       .update(JSON.stringify(canonical(exportedDocument)))
       .digest("hex"),
-    "08068a1e952dcdc1fe0d35d63d20af0c9b6e501e19166706c6f5f04418cf45ed",
+    "44587e46b9f3272058f6cc9c4b8c47f132a2f75c5e80a6d1406d1ff56dbd3dfb",
     "Public OpenAPI differs from the reviewed contract; audit the full delta before updating the fingerprint",
   );
 });
