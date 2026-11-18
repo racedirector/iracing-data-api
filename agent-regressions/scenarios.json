@@ -4,9 +4,7 @@
     {
       "id": "data-api-schema",
       "prompt": "Plan a maintained Data API response-schema change that adds an optional response field. Identify the owning sources, downstream artifacts, verification, and release impact. Do not edit files.",
-      "inputs": [
-        "packages/api/schema/src/schema/responses.ts"
-      ],
+      "inputs": ["packages/api/schema/src/schema/responses.ts"],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -32,9 +30,7 @@
     {
       "id": "fetch-readme",
       "prompt": "Improve only the introductory wording of the Fetch client README. Explain where to edit, the smallest regeneration path, validation, and release implications. Do not edit files.",
-      "inputs": [
-        "packages/api/client/fetch/README.md"
-      ],
+      "inputs": ["packages/api/client/fetch/README.md"],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -89,9 +85,7 @@
     {
       "id": "internal-release",
       "prompt": "Prepare a release plan for the Data API OpenAPI generator package. First determine whether it is eligible for publication and explain the correct next action. Do not edit files, publish, or contact registries.",
-      "inputs": [
-        "packages/helpers/api-schema-to-openapi/package.json"
-      ],
+      "inputs": ["packages/helpers/api-schema-to-openapi/package.json"],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -147,9 +141,7 @@
     {
       "id": "work-discovery",
       "prompt": "You have not been assigned an issue. Explain how you would use this repository and its live GitHub backlog (if available) to identify worthwhile work to investigate. Distinguish investigation from implementation and explain how you would avoid conflicting with active PRs. This is a read-only assessment; do not select a mandatory next issue or change anything.",
-      "inputs": [
-        "docs/ISSUE-TRIAGE.md"
-      ],
+      "inputs": ["docs/ISSUE-TRIAGE.md"],
       "references": [
         "AGENTS.md",
         "docs/ISSUE-TRIAGE.md",
