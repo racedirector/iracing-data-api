@@ -1,7 +1,7 @@
 # Coding-agent regression scenarios
 
-These five read-only exercises test repository reasoning about source ownership,
-generation, verification, and release boundaries. They protect guidance quality;
+These six read-only exercises test repository reasoning about work discovery,
+source ownership, generation, verification, and release boundaries. They protect guidance quality;
 they are not unit tests of client behavior or a model leaderboard.
 
 ## When to run
@@ -41,13 +41,20 @@ calls a model, accesses credentials, or publishes anything for these scenarios.
    rationale. Keep credentials out of records. A Markdown report in the PR or an
    attached artifact is sufficient; do not overwrite fixtures with agent output.
 6. Fix the owning guidance/skill/tool or stale fixture, then rerun failed cases in
-   fresh conversations. Rerun all five if ownership or workflow policy changed.
+   fresh conversations. Rerun all six if ownership or workflow policy changed.
 
 A useful result record is:
 
 | Scenario | Required criteria      | Forbidden actions       | Result    | Evidence / follow-up               |
 | -------- | ---------------------- | ----------------------- | --------- | ---------------------------------- |
 | ID       | Item-by-item pass/fail | None or observed action | Pass/fail | Transcript and checkout references |
+
+The `work-discovery` case tests how an unfamiliar agent evaluates evidence-backed
+opportunities, not whether it nominates a predetermined issue. If live GitHub
+access is unavailable, the agent must say so and explain which read-only
+checks would establish blockers, active PRs and current priority. The rubric
+does not prescribe an issue number or rank; assess the quality and honesty of
+its discovery reasoning.
 
 ## Maintaining fixtures
 
