@@ -14,6 +14,7 @@ import { createFetchQueries } from "../../../adapters/fetch.js";
 import { createAssetMediaReader } from "../../../adapters/media.js";
 import { createReferenceDocuments } from "../../../adapters/reference-documents.js";
 import { createMcpServices } from "../../../composition.js";
+import { registerStaticCacheRefresh } from "../../../refresh/index.js";
 import { createHttpListener } from "../../http.js";
 import * as commandOptions from "./options.js";
 import { ServeOptionsSchema } from "./schema.js";
@@ -76,6 +77,7 @@ export function createServeCommand({
         ...options,
         sessionKey,
         outputDirectory: join(dirname(raw.credentials), "reference"),
+        staticCacheRefresh: options.transport === "stdio",
       });
 
       if (options.transport === "http") {
@@ -104,11 +106,13 @@ export function createServeCommand({
  */
 export type CreateMcpServerOptions = CreateServeTokenProviderOptions & {
   outputDirectory: string;
+  staticCacheRefresh: boolean;
 };
 
 function createMcpServer({
   sessionKey,
   outputDirectory,
+  staticCacheRefresh,
   ...options
 }: CreateMcpServerOptions) {
   const tokenResolver = createServeTokenProvider({
@@ -127,8 +131,8 @@ function createMcpServer({
 
   const documents = createReferenceDocuments(outputDirectory, tokenResolver);
 
-  return () =>
-    createIracingMcpServer({
+  return () => {
+    const server = createIracingMcpServer({
       services,
       catalogs,
       documents,
@@ -138,6 +142,13 @@ function createMcpServer({
       },
       serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
     });
+
+    if (staticCacheRefresh) {
+      registerStaticCacheRefresh(server, catalogs, assetCatalogs);
+    }
+
+    return server;
+  };
 }
 
 type CreateServeTokenProviderOptions = AuthenticationOptions &

@@ -13,8 +13,10 @@ export function createFileBackedResolver<T>(
   file: string,
   load: () => Promise<unknown>,
   parse: (document: unknown) => T,
-): () => Promise<T> {
+): (() => Promise<T>) & { refresh(): Promise<T> } {
   let inFlight: Promise<T> | undefined;
+
+  let refreshing: Promise<T> | undefined;
 
   async function readOrLoad(): Promise<T> {
     try {
@@ -29,6 +31,10 @@ export function createFileBackedResolver<T>(
       }
     }
 
+    return download();
+  }
+
+  async function download(): Promise<T> {
     const data = parse(await load());
 
     await mkdir(dirname(file), { recursive: true });
@@ -47,7 +53,11 @@ export function createFileBackedResolver<T>(
     return data;
   }
 
-  return async () => {
+  const read = async () => {
+    if (refreshing) {
+      return refreshing;
+    }
+
     const current = inFlight ?? (inFlight = readOrLoad());
 
     try {
@@ -58,4 +68,16 @@ export function createFileBackedResolver<T>(
       }
     }
   };
+
+  return Object.assign(read, {
+    refresh(): Promise<T> {
+      refreshing ??= (
+        inFlight?.catch(() => undefined).then(download) ?? download()
+      ).finally(() => {
+        refreshing = undefined;
+      });
+
+      return refreshing;
+    },
+  });
 }

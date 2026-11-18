@@ -7,6 +7,15 @@ import type {
   ReferenceCatalog,
 } from "@iracing-data/mcp";
 
+/** Optional host-local maintenance, not part of the core resource contract. */
+export interface RuntimeCatalogResolver<T> extends CatalogResolver<T> {
+  /**
+   * Replace the persisted dataset and process-local index.
+   * @returns {Promise<readonly T[]>} Fresh validated entries.
+   */
+  refresh?(): Promise<readonly T[]>;
+}
+
 /** Host loader added to the transport-independent resource definition. */
 interface RuntimeCatalogDefinition<T> extends CatalogDefinition<T> {
   /**
@@ -49,12 +58,18 @@ export function createReferenceCatalog<T>(
  * Coalesce hydration, reject ambiguous IDs and allow failed loads to retry.
  * @param {() => Promise<readonly T[]>} load - Loader of validated reference entries.
  * @param {(entry: T) => number} id - Extractor for the upstream entity key.
- * @returns {CatalogResolver<T>} Coalesced collection and indexed entity resolver.
+ * @param {(() => Promise<readonly T[]>) | undefined} refresh - Validated, persisted replacement loader.
+ * @returns {RuntimeCatalogResolver<T>} Coalesced collection and indexed entity resolver.
  */
 export function createCatalogResolver<T>(
   load: () => Promise<readonly T[]>,
   id: (entry: T) => number,
-): CatalogResolver<T> {
+  refresh: (() => Promise<readonly T[]>) | undefined = (
+    load as { refresh?: () => Promise<readonly T[]> }
+  ).refresh,
+): RuntimeCatalogResolver<T> {
+  let refreshing: Promise<readonly T[]> | undefined;
+
   let current:
     | Promise<{
         entries: readonly T[];
@@ -63,6 +78,10 @@ export function createCatalogResolver<T>(
     | undefined;
 
   async function resolve() {
+    if (refreshing) {
+      await refreshing.catch(() => undefined);
+    }
+
     current ??= load()
       .then((entries) => {
         const byId = indexEntries(entries, id);
@@ -80,6 +99,26 @@ export function createCatalogResolver<T>(
   return {
     all: async () => (await resolve()).entries,
     get: async (key) => (await resolve()).byId.get(key) ?? null,
+    ...(refresh
+      ? {
+          refresh: () => {
+            refreshing ??= (async () => {
+              await current?.catch(() => undefined);
+              const entries = await refresh();
+
+              const byId = indexEntries(entries, id);
+
+              current = Promise.resolve({ entries, byId });
+
+              return entries;
+            })().finally(() => {
+              refreshing = undefined;
+            });
+
+            return refreshing;
+          },
+        }
+      : {}),
   };
 }
 

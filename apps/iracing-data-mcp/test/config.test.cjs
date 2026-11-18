@@ -61,6 +61,7 @@ test("local stdio executable initializes and advertises all tools", async (t) =>
         "get_recent_races",
         "search_race_results",
         "find_reference",
+        "refresh_static_cache",
       ],
     );
   } finally {
@@ -90,7 +91,7 @@ test("explicit credential path overrides an invalid environment path", async (t)
 
   try {
     await client.connect(transport);
-    assert.equal((await client.listTools()).tools.length, 4);
+    assert.equal((await client.listTools()).tools.length, 5);
   } finally {
     await client.close();
   }
@@ -134,7 +135,7 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
     });
     try {
       await client.connect(transport);
-      assert.equal((await client.listTools()).tools.length, 4);
+      assert.equal((await client.listTools()).tools.length, 5);
       if (inherited) {
         const result = await client.callTool({
           name: "get_my_driver",
