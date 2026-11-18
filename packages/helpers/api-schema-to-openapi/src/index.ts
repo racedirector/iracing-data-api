@@ -93,6 +93,7 @@ import { createDocument } from "zod-openapi";
 
 // Array values remain typed; their HTTP query representation is one CSV value.
 const csvParameter = { style: "form" as const, explode: false };
+
 const memberQuery = MemberGetParametersSchema.extend({
   cust_ids: MemberGetParametersSchema.shape.cust_ids.meta({
     ...MemberGetParametersSchema.shape.cust_ids.meta(),
