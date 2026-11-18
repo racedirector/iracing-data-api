@@ -1,9 +1,9 @@
 import { Configuration, DocApi } from "@iracing-data/api-client-fetch";
 import { resolveAccessToken } from "../../credentials.js";
 import { resolveTokenFormat } from "../../token-output.js";
-import type { CreateExecuteOptions } from "./command.js";
 import type { writeDocumentOutput } from "../../token-output.js";
 import type { Diagnostics } from "../../types.js";
+import type { CreateExecuteOptions } from "./command.js";
 
 /** Host transport, output policy and completion diagnostics. */
 export interface DocsRuntime {

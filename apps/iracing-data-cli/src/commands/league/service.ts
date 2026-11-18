@@ -1,9 +1,9 @@
 import { Configuration, LeagueApi } from "@iracing-data/api-client-fetch";
 import { LeagueRosterResponseSchema } from "@iracing-data/api-schema";
 import { resolveAccessToken } from "../../credentials.js";
+import type { DisplayWriter } from "../../types.js";
 import type { CreateExecuteOptions } from "./command.js";
 import type { LeagueRequest } from "./contracts.js";
-import type { DisplayWriter } from "../../types.js";
 
 /** Host-selected transport and output. */
 export interface LeagueRuntime extends DisplayWriter {

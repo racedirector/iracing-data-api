@@ -12,8 +12,8 @@ import {
   downloadCacheText,
 } from "../../cache-document.js";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions, ActivityOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { CreateExecuteOptions, ActivityOptions } from "./command.js";
 
 /** Host-owned transport and JSON output. */
 export interface ActivityRuntime extends DisplayWriter {

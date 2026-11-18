@@ -10,11 +10,11 @@ import {
   defaultMcpCredentialsPath,
 } from "../../../credentials.js";
 import { resolveTokenFormat } from "../../../token-output.js";
-import type { CreateExecuteOptions } from "./command.js";
-import type { Options as LoginInvocation } from "./schema.js";
 import type { authenticateWithBrowser } from "../../../authenticate.js";
 import type { Diagnostics } from "../../../diagnostics.js";
 import type { writeTokenOutput } from "../../../token-output.js";
+import type { CreateExecuteOptions } from "./command.js";
+import type { Options as LoginInvocation } from "./schema.js";
 
 interface PasswordLimitedCredentials {
   username: string;

@@ -5,8 +5,8 @@ import {
 } from "@iracing-data/api-client-fetch";
 import { downloadCacheDocument } from "../../cache-document.js";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions, ReferenceOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { CreateExecuteOptions, ReferenceOptions } from "./command.js";
 
 /** Host-owned transport and output. */
 export interface ReferenceRuntime extends DisplayWriter {

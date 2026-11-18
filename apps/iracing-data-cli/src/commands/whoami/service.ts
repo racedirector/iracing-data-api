@@ -5,9 +5,9 @@ import {
   type OAuthProfileApi,
 } from "@iracing-data/oauth-client";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions, WhoamiProfile } from "./command.js";
 import type { Diagnostics } from "../../diagnostics.js";
 import type { DisplayWriter } from "../../display.js";
+import type { CreateExecuteOptions, WhoamiProfile } from "./command.js";
 
 /** Host-owned HTTP transport, stdout and completion diagnostics. */
 export interface WhoamiRuntime extends DisplayWriter {

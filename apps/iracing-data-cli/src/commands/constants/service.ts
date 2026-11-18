@@ -1,8 +1,8 @@
 import { Configuration, ConstantsApi } from "@iracing-data/api-client-fetch";
 import { ConstantsResponseSchema } from "@iracing-data/api-schema";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { CreateExecuteOptions } from "./command.js";
 
 /** Host-owned transport and script-safe output. */
 export interface ConstantsRuntime extends DisplayWriter {
