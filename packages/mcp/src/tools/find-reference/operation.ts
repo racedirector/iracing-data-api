@@ -1,4 +1,6 @@
 import { ReferenceDatasetSchema } from "./schema.js";
+import type { FailureFor } from "../../diagnostics/errors.js";
+import type { OperationContext, Result } from "../types.js";
 import type {
   FindReferenceInput,
   FindReferenceOutput,
@@ -6,8 +8,6 @@ import type {
   ReferenceEntry,
 } from "./schema.js";
 import type { ReferenceQueries } from "./service.js";
-import type { FailureFor } from "../../diagnostics/errors.js";
-import type { OperationContext, Result } from "../types.js";
 
 /**
  * Find reference identities without inferring metadata from race results.

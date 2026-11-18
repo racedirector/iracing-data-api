@@ -5,8 +5,8 @@ import {
 } from "@iracing-data/api-client-fetch";
 import { downloadCacheDocument } from "../../cache-document.js";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions, LookupOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { CreateExecuteOptions, LookupOptions } from "./command.js";
 
 /** Host-owned lookup transport and JSON output. */
 export interface LookupRuntime extends DisplayWriter {

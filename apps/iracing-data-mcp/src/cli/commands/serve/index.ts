@@ -18,8 +18,8 @@ import { registerStaticCacheRefresh } from "../../../refresh/index.js";
 import { createHttpListener } from "../../http.js";
 import * as commandOptions from "./options.js";
 import { ServeOptionsSchema } from "./schema.js";
-import type { AuthenticationOptions } from "./schema.js";
 import type { CreateTokenProviderOptions } from "../../../access-token.js";
+import type { AuthenticationOptions } from "./schema.js";
 import type pino from "pino";
 
 /**

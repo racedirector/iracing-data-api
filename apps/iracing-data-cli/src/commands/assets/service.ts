@@ -6,8 +6,8 @@ import {
 } from "@iracing-data/api-client-fetch";
 import { resolveAccessToken } from "../../credentials.js";
 import { materializeReturnedDataApiLink } from "./returned-data-api-link.js";
-import type { AssetsOptions, CreateExecuteOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { AssetsOptions, CreateExecuteOptions } from "./command.js";
 
 /** Host-owned transport and script-safe output. */
 export interface AssetsRuntime extends DisplayWriter {

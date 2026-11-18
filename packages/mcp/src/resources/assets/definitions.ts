@@ -8,8 +8,8 @@ import {
 } from "@iracing-data/api-schema";
 import { createResourceSchema } from "../schemas.js";
 import { AssetMediaIndexSchema } from "./media-index.js";
-import type { AssetCatalog, AssetKind } from "./service.js";
 import type { CatalogResolver } from "../service.js";
+import type { AssetCatalog, AssetKind } from "./service.js";
 import type { z } from "zod";
 
 /** Metadata identity and canonical document/entity schemas. */

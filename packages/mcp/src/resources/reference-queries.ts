@@ -1,12 +1,12 @@
 import { ApplicationFailure } from "../diagnostics/errors.js";
 import { ReferenceEntrySchema } from "../tools/find-reference/schema.js";
-import type { AssetCatalog } from "./assets/service.js";
-import type { ReferenceCatalog } from "./service.js";
 import type {
   ReferenceEntry,
   ReferenceKind,
 } from "../tools/find-reference/schema.js";
 import type { ReferenceQueries } from "../tools/find-reference/service.js";
+import type { AssetCatalog } from "./assets/service.js";
+import type { ReferenceCatalog } from "./service.js";
 
 /** Fixed upstream identity/name fields; this is not a dynamic tool registry. */
 const fields = {

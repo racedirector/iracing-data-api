@@ -1,7 +1,7 @@
 import { Configuration, TeamApi } from "@iracing-data/api-client-fetch";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { CreateExecuteOptions } from "./command.js";
 
 /** Host-selected transport and JSON output. */
 export interface TeamRuntime extends DisplayWriter {

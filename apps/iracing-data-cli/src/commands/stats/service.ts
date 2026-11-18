@@ -2,8 +2,8 @@ import { Configuration, StatsApi } from "@iracing-data/api-client-fetch";
 import { StatsWorldRecordsResponseSchema } from "@iracing-data/api-schema";
 import { downloadCacheDocument } from "../../cache-document.js";
 import { resolveAccessToken } from "../../credentials.js";
-import type { CreateExecuteOptions, StatsOptions } from "./command.js";
 import type { DisplayWriter } from "../../types.js";
+import type { CreateExecuteOptions, StatsOptions } from "./command.js";
 
 /** Host-owned HTTP transport and script-safe display. */
 export interface StatsRuntime extends DisplayWriter {
