@@ -1,8 +1,8 @@
 # Coding-agent regression scenarios
 
 These six read-only exercises test repository reasoning about work discovery,
-source ownership, generation, verification, and release boundaries. They protect guidance quality;
-they are not unit tests of client behavior or a model leaderboard.
+source ownership, generation, verification, and release boundaries. They protect
+guidance quality; they are not unit tests of client behavior or a model leaderboard.
 
 ## When to run
 
