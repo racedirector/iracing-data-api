@@ -281,8 +281,8 @@ importers:
         specifier: 7.0.0
         version: 7.0.0(prettier@3.10.1)
       smol-toml:
-        specifier: ^1.4.2
-        version: 1.9.0
+        specifier: ^1.9.1
+        version: 1.9.1
       ts-node:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@26.6.3)(typescript@5.9.3)
@@ -3332,8 +3332,8 @@ packages:
     resolution: {integrity: sha512-94hK0Hh8rPqQl2xXc3HsaBoOXKV20MToPkcXvwbISWLEs+64sBq5kFgn2kJDHb1Pry9yrP0dxrCI9RRci7RXKg==}
     engines: {node: '>= 6.0.0', npm: '>= 3.0.0'}
 
-  smol-toml@1.9.0:
-    resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
+  smol-toml@1.9.1:
+    resolution: {integrity: sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==}
     engines: {node: '>= 18'}
 
   socks-proxy-agent@10.1.0:
@@ -6557,7 +6557,7 @@ snapshots:
 
   smart-buffer@4.2.0: {}
 
-  smol-toml@1.9.0: {}
+  smol-toml@1.9.1: {}
 
   socks-proxy-agent@10.1.0(supports-color@10.2.2):
     dependencies:
