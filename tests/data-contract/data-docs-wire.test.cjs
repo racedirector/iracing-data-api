@@ -28,6 +28,14 @@ function checkUrl(url) {
     assert.deepEqual(parsed.searchParams.getAll("cust_ids"), ["2,3,2"]);
     assert.deepEqual(parsed.searchParams.getAll("include_licenses"), ["false"]);
   }
+  if (parsed.pathname === "/data/league/directory")
+    assert.deepEqual(parsed.searchParams.getAll("tag"), ["a,b,a"]);
+  if (parsed.pathname === "/data/results/search_hosted")
+    assert.deepEqual(parsed.searchParams.getAll("category_ids"), ["1,5,1"]);
+  if (parsed.pathname === "/data/results/search_series") {
+    assert.deepEqual(parsed.searchParams.getAll("event_types"), ["2,5,2"]);
+    assert.deepEqual(parsed.searchParams.getAll("category_ids"), ["1,5,1"]);
+  }
   if (parsed.pathname.includes("spectator")) {
     assert.deepEqual(parsed.searchParams.getAll("event_types"), ["2,3"]);
     assert.deepEqual(parsed.searchParams.getAll("season_ids"), ["513,937"]);
@@ -115,7 +123,17 @@ test("Fetch consumer preserves docs notes, parses constants arrays and uses corr
     cust_ids: ["2", "3", "2"],
     include_licenses: false,
   });
-  assert.equal(urls.length, 6);
+  await new fetchClient.LeagueApi(configuration).getLeagueDirectory({
+    tag: ["a", "b", "a"],
+  });
+  await new fetchClient.ResultsApi(configuration).getResultsSearchHostedRaw({
+    category_ids: [1, 5, 1],
+  });
+  await new fetchClient.ResultsApi(configuration).getResultsSearchSeriesRaw({
+    event_types: [2, 5, 2],
+    category_ids: [1, 5, 1],
+  });
+  assert.equal(urls.length, 9);
 });
 test("Axios consumer returns constants arrays and serializes CSV filters without repeated keys", async () => {
   const urls = [];
@@ -168,7 +186,29 @@ test("Axios consumer returns constants arrays and serializes CSV filters without
   await new axiosClient.MemberApi(configuration, undefined, instance).getMember(
     { cust_ids: ["2", "3", "2"], include_licenses: false },
   );
-  assert.equal(urls.length, 6);
+  await new axiosClient.LeagueApi(
+    configuration,
+    undefined,
+    instance,
+  ).getLeagueDirectory({
+    tag: ["a", "b", "a"],
+  });
+  await new axiosClient.ResultsApi(
+    configuration,
+    undefined,
+    instance,
+  ).getResultsSearchHosted({
+    category_ids: [1, 5, 1],
+  });
+  await new axiosClient.ResultsApi(
+    configuration,
+    undefined,
+    instance,
+  ).getResultsSearchSeries({
+    event_types: [2, 5, 2],
+    category_ids: [1, 5, 1],
+  });
+  assert.equal(urls.length, 9);
 });
 
 test("schema array inputs are assignable to both generated clients", () => {
