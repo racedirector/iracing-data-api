@@ -18,3 +18,9 @@ export const RefreshOutput = z.strictObject({
   resource_uri: z.string(),
   count: z.int().nonnegative(),
 });
+
+/** Parsed explicit dataset selector. */
+export type RefreshInput = z.output<typeof RefreshInput>;
+
+/** Bounded replacement summary. */
+export type RefreshOutput = z.output<typeof RefreshOutput>;
