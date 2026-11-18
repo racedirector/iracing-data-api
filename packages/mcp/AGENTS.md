@@ -30,15 +30,16 @@ normalize source data in operations or concrete adapters.
 
 **Architecture authority:** the current exported factory/registrar,
 `src/execution.ts`, tool-local contracts and resource definitions are authoritative
-for implemented behavior; this guidance names ownership boundaries. Earlier
-planning issues [#382](https://github.com/racedirector/iracing-data-api/issues/382),
-[#473](https://github.com/racedirector/iracing-data-api/issues/473),
-[#478](https://github.com/racedirector/iracing-data-api/issues/478)
+for implemented behavior; this guidance names ownership boundaries. Historical
+issues [#382](https://github.com/racedirector/iracing-data-api/issues/382),
+[#473](https://github.com/racedirector/iracing-data-api/issues/473)
 and [#533](https://github.com/racedirector/iracing-data-api/issues/533)
-record historical requirements, not a mandate to restore the old
-`@iracing-data/mcp-tools` package, generated-client imports into core,
-Awilix, Express or removed tool names. Retain the security and lifecycle
-invariants only where they still apply to current owners.
+are not mandates to restore `@iracing-data/mcp-tools`, generated-client imports
+into core, Awilix, Express or removed tool names. The *still-open*
+[#478](https://github.com/racedirector/iracing-data-api/issues/478)
+owns remaining export, consumer documentation and reference-host release decisions,
+not a competing architecture. Preserve security and lifecycle invariants
+where they still apply to current owners.
 
 For upstream OAuth interruption/recovery, the host retains grant and policy
 ownership. [#566](https://github.com/racedirector/iracing-data-api/issues/566)
