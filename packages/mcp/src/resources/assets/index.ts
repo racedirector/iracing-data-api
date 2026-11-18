@@ -1,4 +1,8 @@
-import { ResourceTemplate } from "@modelcontextprotocol/server";
+import {
+  INTERNAL_ERROR,
+  ProtocolError,
+  ResourceTemplate,
+} from "@modelcontextprotocol/server";
 import { registerResourceSchemas } from "../schemas.js";
 import {
   completeAssetIds,
@@ -83,7 +87,7 @@ function registerMetadata(
           mimeType: "application/json",
           text: JSON.stringify(
             Object.fromEntries(
-              (await catalog.resolver.all()).map((entry) => [
+              (await readAll(catalog)).map((entry) => [
                 String(entry[catalog.idField]),
                 entry,
               ]),
@@ -150,7 +154,7 @@ function registerTrackMaps(
       const entry = await requireEntry(tracks, assetId(variables.track_id));
 
       const media = await readMedia(
-        trackMapUrl(entry, variables.layer),
+        trackMapUrl(entry, decodeURIComponent(variables.layer)),
         context.mcpReq.signal,
       );
 
@@ -167,11 +171,27 @@ async function requireEntry(
   catalog: AssetCatalog,
   id: number,
 ): Promise<Record<string, unknown>> {
-  const entry = await catalog.resolver.get(id);
+  let entry: Record<string, unknown> | null;
+
+  try {
+    entry = await catalog.resolver.get(id);
+  } catch {
+    throw new ProtocolError(INTERNAL_ERROR, "Unable to load asset metadata.");
+  }
 
   if (!entry) {
     throw new Error(`${catalog.kind} asset ${String(id)} not found.`);
   }
 
   return entry;
+}
+
+async function readAll(
+  catalog: AssetCatalog,
+): Promise<readonly Record<string, unknown>[]> {
+  try {
+    return await catalog.resolver.all();
+  } catch {
+    throw new ProtocolError(INTERNAL_ERROR, "Unable to load asset metadata.");
+  }
 }

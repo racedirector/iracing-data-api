@@ -3,6 +3,7 @@ import {
   OAuthTokenResponseSchema,
 } from "@iracing-data/oauth-client";
 import { z } from "zod";
+import type { IRacingOAuthClientMetadataInput } from "@iracing-data/oauth-client";
 
 const HostSchema = z.string().min(1).default("127.0.0.1");
 
@@ -42,10 +43,17 @@ const AccessTokenAuthenticationSchema = z
   }));
 
 const OAuthAuthenticationSchema = CredentialsOptionsSchema.transform(
-  ({ credentialsFile, ...metadata }) => ({
+  ({
+    credentialsFile,
+    ...metadata
+  }): {
+    credentialsFile: string;
+    clientMetadata: IRacingOAuthClientMetadataInput;
+  } => ({
     credentialsFile,
     clientMetadata: {
       ...metadata,
+      redirectUri: metadata.redirectUri ?? "http://127.0.0.1",
       scopes: ["iracing.auth"],
     },
   }),

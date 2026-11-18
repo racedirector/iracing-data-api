@@ -110,6 +110,7 @@ test("provider propagates store failures unchanged without logging", async (t) =
   const writes = t.mock.method(process.stderr, "write", () => true);
   const token = createTokenProvider({
     clientId: "fixture-client",
+    redirectUri: "http://127.0.0.1:8080/callback",
     scopes: [],
     sessionKey: "selected-owner",
     sessionStore: {

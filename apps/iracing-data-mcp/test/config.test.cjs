@@ -161,7 +161,8 @@ test("registration validation permits explicit access tokens without OAuth metad
     assert.equal(
       ServeOptionsSchema.safeParse({
         transport: "stdio",
-        credentials: "credentials.json",
+        credentialsFile: "credentials.json",
+        redirectUri: "http://127.0.0.1:8080/callback",
         clientId: value,
       }).success,
       false,
@@ -170,15 +171,54 @@ test("registration validation permits explicit access tokens without OAuth metad
   const config = ServeOptionsSchema.parse({
     transport: "stdio",
     clientId: "fixture",
-    credentials: "credentials.json",
+    credentialsFile: "credentials.json",
+    redirectUri: "http://127.0.0.1:8080/callback",
   });
-  assert.equal(config.clientId, "fixture");
+  assert.equal(config.clientMetadata.clientId, "fixture");
+  assert.equal(config.kind, "authorization_code");
+  const restored = ServeOptionsSchema.parse({
+    transport: "stdio",
+    credentialsFile: "credentials.json",
+    clientId: "fixture",
+    clientSecret: "synthetic-secret",
+  });
+  assert.equal(restored.clientMetadata.redirectUri, "http://127.0.0.1");
+  assert.equal(
+    ServeOptionsSchema.parse({
+      transport: "stdio",
+      credentialsFile: "credentials.json",
+      clientId: "fixture",
+      clientSecret: "synthetic-secret",
+      username: "driver",
+      password: "synthetic-password",
+    }).kind,
+    "password_limited",
+  );
+  for (const fields of [
+    { clientSecret: "raw", maskedClientSecret: "masked" },
+    { username: "driver" },
+    { redirectUri: "invalid" },
+  ]) {
+    assert.equal(
+      ServeOptionsSchema.safeParse({
+        transport: "stdio",
+        credentialsFile: "credentials.json",
+        clientId: "fixture",
+        ...fields,
+      }).success,
+      false,
+    );
+  }
   assert.deepEqual(
     ServeOptionsSchema.parse({
       transport: "stdio",
       accessToken: "synthetic-token",
     }),
-    { transport: "stdio", accessToken: "synthetic-token" },
+    {
+      transport: "stdio",
+      kind: "access_token",
+      accessToken: "synthetic-token",
+    },
   );
 });
 

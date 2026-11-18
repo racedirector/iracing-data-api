@@ -356,23 +356,29 @@ pnpm exec dotenv -e .env -- iracing-data-mcp serve --transport http
 ```
 
 The application serves MCP at `/mcp`; all other paths return an empty `404`.
-`createHttpTransport` is a path-independent handler, not an application router.
+The SDK's `createMcpHandler` is a path-independent handler, not an application router.
 An embedding host chooses the path and owns authentication and account selection:
 
 ```ts
 import {
-  createHttpTransport,
   createMcpServices,
   type McpCapabilities,
 } from "@iracing-data/iracing-data-mcp";
 import { Hono } from "hono";
+import { createIracingMcpServer } from "@iracing-data/mcp";
+import { createMcpHandler } from "@modelcontextprotocol/server";
 
 // Supplied by the host; not selected by the transport.
 declare const capabilities: McpCapabilities;
-const handler = createHttpTransport({
-  services: createMcpServices(capabilities),
-  serveOptions: { maxRequestBodySize: 64 * 1024 },
-});
+const services = createMcpServices(capabilities);
+const handler = createMcpHandler(
+  () =>
+    createIracingMcpServer({
+      services,
+      serverInfo: { name: "iracing-host", version: "1" },
+    }),
+  { maxRequestBodySize: 64 * 1024 },
+);
 
 const app = new Hono();
 app.all("/integrations/iracing", (c) => handler.fetch(c.req.raw));
@@ -381,6 +387,9 @@ app.all("/integrations/iracing", (c) => handler.fetch(c.req.raw));
 This single-account example does not authenticate callers. An authenticated host
 must verify each request before forwarding it and supply that caller's account
 services. Multi-user request-scope integration is deferred to a separate change.
+Create a fresh MCP server for each HTTP connection; retain the shared services
+and credential owner outside the factory so concurrent requests reuse adapters
+and the same refresh lifecycle.
 
 ### Account-scoped token providers
 
@@ -417,12 +426,13 @@ then supply them to the selected transport:
 ```ts
 import {
   createFetchQueries,
-  createHttpTransport,
   createMcpServices,
-  createStdioTransport,
   createTokenProvider,
 } from "@iracing-data/iracing-data-mcp";
 import { OAuthTokenDocumentSessionStore } from "@iracing-data/oauth-client";
+import { createIracingMcpServer } from "@iracing-data/mcp";
+import { createMcpHandler } from "@modelcontextprotocol/server";
+import { serveStdio } from "@modelcontextprotocol/server/stdio";
 
 const sessionKey = "local-mcp";
 const tokenProvider = createTokenProvider({
@@ -437,24 +447,26 @@ const capabilities = createFetchQueries(tokenProvider);
 const services = createMcpServices(capabilities);
 
 // Choose a host; these examples are alternatives, not concurrent refresh owners.
-createStdioTransport({
-  services,
-  serveOptions: {},
-});
-createHttpTransport({
-  services,
-  serveOptions: {},
-});
+const createServer = () =>
+  createIracingMcpServer({
+    services,
+    serverInfo: { name: "iracing-host", version: "1" },
+  });
+serveStdio(createServer);
+createMcpHandler(createServer);
 ```
 
 `credentialsPath` and `clientMetadata` are host configuration. The CLI uses
-this same token-provider implementation with its selected document store. Existing
+this same token-provider implementation with its selected document store.
+Stored-session restoration does not require a redirect URI or password-grant
+credentials; an omitted redirect URI retains the `http://127.0.0.1` fallback.
+Initial credential acquisition remains a separate CLI step. Existing
 actor-based composition remains available to custom hosts; HTTP transport
 and stdio transports require only the resolved tool services.
 The serve command injects the same reference catalogs for both transports, sharing
 the same token provider as tools. Both transports use `createIracingMcpServer` to register
 tools and resources before connecting. Embedded hosts may supply `catalogs` to
-either transport, using `createReferenceCatalogs(directory, provider)`; omitting
+the server factory, using `createReferenceCatalogs(directory, provider)`; omitting
 it advertises tools only. The embedding host selects the catalog directory and
 credential owner, just as it selects tool services.
 

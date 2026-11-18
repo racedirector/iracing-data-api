@@ -51,7 +51,7 @@ export function createTokenProvider(options: CreateTokenProviderOptions) {
       username: options.username,
       password: options.password,
       maskedPassword: options.maskedPassword,
-      redirectUri: options.redirectUri,
+      redirectUri: options.redirectUri ?? "http://127.0.0.1",
     },
     stateStore: new InMemoryStore(),
     sessionStore: options.sessionStore,

@@ -48,7 +48,7 @@ const datasets = [
 test("HTTP exposes the same lazy reference collections and templates", async (t) => {
   const { createCatalogReferenceQueries } = await import("@iracing-data/mcp");
   const { createHttpTransport, createMcpServices, createReferenceCatalogs } =
-    await import("../dist/index.js");
+    await import("./fixtures/runtime.mjs");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const directory = await fs.mkdtemp(
     path.join(os.tmpdir(), "mcp-http-catalog-"),

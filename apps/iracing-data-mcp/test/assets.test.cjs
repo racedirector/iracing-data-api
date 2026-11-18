@@ -297,11 +297,15 @@ test("media transport rejects failures, non-images, oversized streams and cancel
   );
   const aborted = new AbortController();
   aborted.abort();
+  let fetches = 0;
   await assert.rejects(
-    createAssetMediaReader(async () =>
-      assert.fail("No network after cancellation"),
-    )(url, aborted.signal),
+    createAssetMediaReader(async () => {
+      fetches++;
+      throw new Error("Unexpected network after cancellation");
+    })(url, aborted.signal),
+    { name: "AbortError" },
   );
+  assert.equal(fetches, 0);
 });
 
 test("invalid asset documents are not persisted and failed hydration can retry", async (t) => {

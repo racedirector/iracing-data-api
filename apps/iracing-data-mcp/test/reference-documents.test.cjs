@@ -115,7 +115,7 @@ test("invalid reference payloads are not persisted and failed loads can retry", 
 
 test("HTTP exposes injected reference documents and their schemas lazily", async (t) => {
   const { createReferenceDocuments, createHttpTransport, createMcpServices } =
-    await import("../dist/index.js");
+    await import("./fixtures/runtime.mjs");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const folder = await directory(t);
   const documents = createReferenceDocuments(folder, async () => {

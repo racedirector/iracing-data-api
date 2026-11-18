@@ -10,8 +10,11 @@ import type { McpServer } from "@modelcontextprotocol/server";
 
 /** Dependencies selected by the standalone host. */
 export interface McpRouterOptions {
-  /** The server to use for requests. */
-  server: McpServer;
+  /**
+   * Create a separate server per connection while retaining host-owned services.
+   * @returns {McpServer} An unconnected server for this connection.
+   */
+  server: () => McpServer;
 }
 
 /**
@@ -22,7 +25,7 @@ export interface McpRouterOptions {
 export function createMcpRouter(options: McpRouterOptions): Hono {
   const router = new Hono();
 
-  const handler = createMcpHandler(() => options.server, {
+  const handler = createMcpHandler(options.server, {
     maxRequestBodySize: 64 * 1024,
   });
 

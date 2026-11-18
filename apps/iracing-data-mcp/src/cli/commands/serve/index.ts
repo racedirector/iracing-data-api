@@ -90,7 +90,7 @@ export function createServeCommand({
       } else {
         logger.trace("Configuring stdio transport");
 
-        serveStdio(() => server, {
+        serveStdio(server, {
           onerror: (error) => {
             logger.error({ error }, "stdio transport error");
           },
@@ -125,16 +125,19 @@ function createMcpServer({
     createCatalogReferenceQueries(catalogs, assetCatalogs),
   );
 
-  return createIracingMcpServer({
-    services,
-    catalogs,
-    documents: createReferenceDocuments(outputDirectory, tokenResolver),
-    assets: {
-      catalogs: assetCatalogs,
-      readMedia: createAssetMediaReader(),
-    },
-    serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
-  });
+  const documents = createReferenceDocuments(outputDirectory, tokenResolver);
+
+  return () =>
+    createIracingMcpServer({
+      services,
+      catalogs,
+      documents,
+      assets: {
+        catalogs: assetCatalogs,
+        readMedia: createAssetMediaReader(),
+      },
+      serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
+    });
 }
 
 type CreateServeTokenProviderOptions = AuthenticationOptions &

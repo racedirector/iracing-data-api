@@ -100,7 +100,7 @@ test("request-local resolvers are not cached across requests", async () => {
 
 test("HTTP requests reuse owner adapters without constructing them for tools/list", async () => {
   const { McpServices, createMcpServices, createHttpTransport } =
-    await import("../dist/index.js");
+    await import("./fixtures/runtime.mjs");
   const calls = [];
   const handler = createHttpTransport({
     services: createMcpServices(new McpServices(factories(calls))),

@@ -96,8 +96,8 @@ test(
     assert.equal("createFileCapabilities" in api, false);
     assert.equal("validateFileSession" in api, false);
     assert.equal(typeof api.createFetchQueries, "function");
-    assert.equal(typeof api.createHttpTransport, "function");
-    assert.equal(typeof api.createStdioTransport, "function");
+    assert.equal("createHttpTransport" in api, false);
+    assert.equal("createStdioTransport" in api, false);
     assert.equal(typeof api.createMcpServices, "function");
     assert.equal(typeof api.McpServices, "function");
     assert.equal(manifest.dependencies.awilix, undefined);
