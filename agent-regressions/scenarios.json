@@ -4,7 +4,9 @@
     {
       "id": "data-api-schema",
       "prompt": "Plan a maintained Data API response-schema change that adds an optional response field. Identify the owning sources, downstream artifacts, verification, and release impact. Do not edit files.",
-      "inputs": ["packages/api/schema/src/schema/responses.ts"],
+      "inputs": [
+        "packages/api/schema/src/schema/responses.ts"
+      ],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -30,7 +32,9 @@
     {
       "id": "fetch-readme",
       "prompt": "Improve only the introductory wording of the Fetch client README. Explain where to edit, the smallest regeneration path, validation, and release implications. Do not edit files.",
-      "inputs": ["packages/api/client/fetch/README.md"],
+      "inputs": [
+        "packages/api/client/fetch/README.md"
+      ],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -85,7 +89,9 @@
     {
       "id": "internal-release",
       "prompt": "Prepare a release plan for the Data API OpenAPI generator package. First determine whether it is eligible for publication and explain the correct next action. Do not edit files, publish, or contact registries.",
-      "inputs": ["packages/helpers/api-schema-to-openapi/package.json"],
+      "inputs": [
+        "packages/helpers/api-schema-to-openapi/package.json"
+      ],
       "references": [
         "AGENTS.md",
         "workspace-policy.json",
@@ -135,6 +141,34 @@
           "Hand-patch the generated Rust model as the lasting fix.",
           "Overwrite authored Cargo versions/settings or delete authored examples/guidance.",
           "Claim unavailable generation or Rust checks passed."
+        ]
+      }
+    },
+    {
+      "id": "work-discovery",
+      "prompt": "You have not been assigned an issue. Explain how you would use this repository and its live GitHub backlog (if available) to identify worthwhile work to investigate. Distinguish investigation from implementation and explain how you would avoid conflicting with active PRs. This is a read-only assessment; do not select a mandatory next issue or change anything.",
+      "inputs": [
+        "docs/ISSUE-TRIAGE.md"
+      ],
+      "references": [
+        "AGENTS.md",
+        "docs/ISSUE-TRIAGE.md",
+        "workspace-policy.json",
+        "docs/VERIFICATION.md",
+        "docs/CHANGE-IMPACT.md",
+        "agent-regressions/README.md"
+      ],
+      "rubric": {
+        "required": [
+          "Use the live issues and PRs as candidate evidence, not a priority-ordered instruction list; compare consequences, reproducible evidence, readiness, effort, and user context before recommending what is worth examining.",
+          "Inspect explicit prerequisites in both native GitHub dependencies and issue descriptions, active PRs, assignment and project state when available; treat unavailable or absent metadata as uncertain, not proof of readiness.",
+          "Distinguish epics and research spikes from bounded implementation work, and acknowledge that reviewing an existing PR may have more value than starting new code.",
+          "Consult current owning source and scoped guidance before acting, identify appropriate verification, and transparently state any unavailable live GitHub facts instead of inventing status or a universal ranking."
+        ],
+        "forbidden": [
+          "Automatically prescribe a specific issue as next solely because it is P1, recent, or the highest numbered open item.",
+          "Claim an issue, create a branch or worktree, change GitHub metadata, or begin implementation during read-only discovery.",
+          "Assume historical architecture decisions or old issue instructions are authoritative over merged code."
         ]
       }
     }
