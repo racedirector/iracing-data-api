@@ -318,7 +318,7 @@ importers:
         version: 7.0.3
       oauth-callback:
         specifier: ^3.1.1
-        version: 3.1.1(@modelcontextprotocol/client@2.3.1)
+        version: 3.1.1(@modelcontextprotocol/client@2.4.0)
       pino:
         specifier: ^10.4.0
         version: 10.4.0
@@ -388,8 +388,8 @@ importers:
         version: 4.6.7
     devDependencies:
       '@modelcontextprotocol/client':
-        specifier: 2.3.1
-        version: 2.3.1
+        specifier: 2.4.0
+        version: 2.4.0
       '@modelcontextprotocol/inspector':
         specifier: ^2.15.0
         version: 2.15.0(@types/node@26.6.3)(esbuild@0.28.2)(tsx@4.23.15)
@@ -525,8 +525,8 @@ importers:
         version: 4.6.7
     devDependencies:
       '@modelcontextprotocol/client':
-        specifier: 2.3.1
-        version: 2.3.1
+        specifier: 2.4.0
+        version: 2.4.0
       '@types/node':
         specifier: ^26.6.2
         version: 26.6.3
@@ -939,10 +939,6 @@ packages:
   '@lukeed/csprng@1.1.0':
     resolution: {integrity: sha512-Z7C/xXCiGWsg0KuKsHTKJxbWhpI3Vs5GwLfOean7MGyVFGqdRgBbAjOCh6u4bbjPc/8MJ2pZmK/0DLdCbivLDA==}
     engines: {node: '>=8'}
-
-  '@modelcontextprotocol/client@2.3.1':
-    resolution: {integrity: sha512-mIGZXpHsjnZ6lD+gD/WCMpR5k8yVQQ8nNFH1N0Srf7AvnwTUMYD6pvTY8ng2+He5FfV7YMZLmrjL7cLa/cc3dQ==}
-    engines: {node: '>=20'}
 
   '@modelcontextprotocol/client@2.4.0':
     resolution: {integrity: sha512-LgrD2OphHuG12vfKFKz6SOnq7bKHQmhGJIAYdD+MZBn2npHEyry6uD8zvktodtl5CQM85MO0anUyD9JwmUmxww==}
@@ -4111,16 +4107,6 @@ snapshots:
 
   '@lukeed/csprng@1.1.0': {}
 
-  '@modelcontextprotocol/client@2.3.1':
-    dependencies:
-      '@modelcontextprotocol/core': 2.3.1
-      cross-spawn: 7.0.6
-      eventsource: 3.0.7
-      eventsource-parser: 3.1.1
-      jose: 6.2.17
-      pkce-challenge: 5.0.1
-      zod: 4.6.7
-
   '@modelcontextprotocol/client@2.4.0':
     dependencies:
       '@modelcontextprotocol/core': 2.4.0
@@ -6129,9 +6115,9 @@ snapshots:
 
   node-releases@2.0.58: {}
 
-  oauth-callback@3.1.1(@modelcontextprotocol/client@2.3.1):
+  oauth-callback@3.1.1(@modelcontextprotocol/client@2.4.0):
     optionalDependencies:
-      '@modelcontextprotocol/client': 2.3.1
+      '@modelcontextprotocol/client': 2.4.0
 
   oauth4webapi@3.8.8: {}
 
