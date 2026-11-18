@@ -187,6 +187,11 @@ test("the public document matches reviewed compatibility maintenance", () => {
   // a CSV string schema to a nonempty digit-string array with form/CSV wire
   // serialization (style=form, explode=false). Full JSON document diff was
   // audited: only type, pattern, minItems, items, style and explode changed.
+  // 2026-11-18 UTC: PR #576 normalizes four additional CSV collection fields:
+  // league/directory tag, results/search_hosted category_ids, and
+  // results/search_series event_types/category_ids. Structural diff reviewed:
+  // 23 leaf-level differences confined to those four parameter schemas and
+  // style/explode metadata. The HTTP wire remains a single CSV query value.
   // Ignore object key order, but preserve array order and every contract field.
   // Intentional contract changes require reviewing the delta before updating this
   // fingerprint; never derive the expected value from the current generated file.
@@ -204,7 +209,7 @@ test("the public document matches reviewed compatibility maintenance", () => {
     createHash("sha256")
       .update(JSON.stringify(canonical(exportedDocument)))
       .digest("hex"),
-    "44587e46b9f3272058f6cc9c4b8c47f132a2f75c5e80a6d1406d1ff56dbd3dfb",
+    "4276e6c2727a9b956d103b703435dbe73826d73d240649841b7686fef7623952",
     "Public OpenAPI differs from the reviewed contract; audit the full delta before updating the fingerprint",
   );
 });
@@ -267,6 +272,28 @@ test("Data API JSON/YAML preserve query mapping, authentication, and response en
   assert.equal(customer.schema.minItems, 1);
   assert.equal(customer.style, "form");
   assert.equal(customer.explode, false);
+  for (const [path, name, item] of [
+    ["/data/league/directory", "tag", "string"],
+    ["/data/results/search_hosted", "category_ids", "integer"],
+    ["/data/results/search_series", "event_types", "reference"],
+    ["/data/results/search_series", "category_ids", "integer"],
+  ]) {
+    const parameter = document.paths[path].get.parameters.find(
+      (value) => value.name === name,
+    );
+    assert.equal(parameter.schema.type, "array", path + " " + name);
+    assert.equal(parameter.schema.minItems, 1, path + " " + name);
+    assert.equal(parameter.style, "form", path + " " + name);
+    assert.equal(parameter.explode, false, path + " " + name);
+    if (item === "reference") {
+      assert.equal(
+        parameter.schema.items.$ref,
+        "#/components/schemas/iracingEventType",
+      );
+    } else {
+      assert.equal(parameter.schema.items.type, item, path + " " + name);
+    }
+  }
   const results = document.paths["/data/results/get"].get;
   assert.equal(results.operationId, "getResults");
   const subsession = results.parameters.find(

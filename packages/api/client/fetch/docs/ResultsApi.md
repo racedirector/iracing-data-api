@@ -336,8 +336,8 @@ async function example() {
     car_id: 8.14,
     // number | The ID of the track used by the session. (optional)
     track_id: 8.14,
-    // string | Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional)
-    category_ids: category_ids_example,
+    // Array<number> | Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional)
+    category_ids: ...,
   } satisfies GetResultsSearchHostedRequest;
 
   try {
@@ -354,21 +354,21 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name                   | Type     | Description                                                                                                                                       | Notes                                |
-| ---------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| **start_range_begin**  | `Date`   | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | [Optional] [Defaults to `undefined`] |
-| **start_range_end**    | `Date`   | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | [Optional] [Defaults to `undefined`] |
-| **finish_range_begin** | `Date`   | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | [Optional] [Defaults to `undefined`] |
-| **finish_range_end**   | `Date`   | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | [Optional] [Defaults to `undefined`] |
-| **cust_id**            | `number` | The participant\&#39;s customer ID. Ignored if team_id is supplied.                                                                               | [Optional] [Defaults to `undefined`] |
-| **team_id**            | `number` | The team ID to search for. Takes priority over cust_id if both are supplied.                                                                      | [Optional] [Defaults to `undefined`] |
-| **host_cust_id**       | `number` | The host\&#39;s customer ID.                                                                                                                      | [Optional] [Defaults to `undefined`] |
-| **session_name**       | `string` | Part or all of the session\&#39;s name.                                                                                                           | [Optional] [Defaults to `undefined`] |
-| **league_id**          | `number` | Include only results for the league with this ID.                                                                                                 | [Optional] [Defaults to `undefined`] |
-| **league_season_id**   | `number` | Include only results for the league season with this ID.                                                                                          | [Optional] [Defaults to `undefined`] |
-| **car_id**             | `number` | One of the cars used by the session.                                                                                                              | [Optional] [Defaults to `undefined`] |
-| **track_id**           | `number` | The ID of the track used by the session.                                                                                                          | [Optional] [Defaults to `undefined`] |
-| **category_ids**       | `string` | Track categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                            | [Optional] [Defaults to `undefined`] |
+| Name                   | Type            | Description                                                                                                                                       | Notes                                |
+| ---------------------- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **start_range_begin**  | `Date`          | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | [Optional] [Defaults to `undefined`] |
+| **start_range_end**    | `Date`          | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | [Optional] [Defaults to `undefined`] |
+| **finish_range_begin** | `Date`          | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | [Optional] [Defaults to `undefined`] |
+| **finish_range_end**   | `Date`          | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | [Optional] [Defaults to `undefined`] |
+| **cust_id**            | `number`        | The participant\&#39;s customer ID. Ignored if team_id is supplied.                                                                               | [Optional] [Defaults to `undefined`] |
+| **team_id**            | `number`        | The team ID to search for. Takes priority over cust_id if both are supplied.                                                                      | [Optional] [Defaults to `undefined`] |
+| **host_cust_id**       | `number`        | The host\&#39;s customer ID.                                                                                                                      | [Optional] [Defaults to `undefined`] |
+| **session_name**       | `string`        | Part or all of the session\&#39;s name.                                                                                                           | [Optional] [Defaults to `undefined`] |
+| **league_id**          | `number`        | Include only results for the league with this ID.                                                                                                 | [Optional] [Defaults to `undefined`] |
+| **league_season_id**   | `number`        | Include only results for the league season with this ID.                                                                                          | [Optional] [Defaults to `undefined`] |
+| **car_id**             | `number`        | One of the cars used by the session.                                                                                                              | [Optional] [Defaults to `undefined`] |
+| **track_id**           | `number`        | The ID of the track used by the session.                                                                                                          | [Optional] [Defaults to `undefined`] |
+| **category_ids**       | `Array<number>` | Track categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                            | [Optional]                           |
 
 ### Return type
 
@@ -438,10 +438,10 @@ async function example() {
     race_week_num: 8.14,
     // boolean | If true, include only sessions earning championship points. Defaults to all. (optional)
     official_only: true,
-    // string | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional)
-    event_types: event_types_example,
-    // string | License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional)
-    category_ids: category_ids_example,
+    // Array<IracingEventType> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional)
+    event_types: ...,
+    // Array<number> | License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional)
+    category_ids: ...,
   } satisfies GetResultsSearchSeriesRequest;
 
   try {
@@ -458,21 +458,21 @@ example().catch(console.error);
 
 ### Parameters
 
-| Name                   | Type      | Description                                                                                                                                       | Notes                                |
-| ---------------------- | --------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| **season_year**        | `number`  | Required when using season_quarter.                                                                                                               | [Optional] [Defaults to `undefined`] |
-| **season_quarter**     | `number`  | Required when using season_year.                                                                                                                  | [Optional] [Defaults to `undefined`] |
-| **start_range_begin**  | `Date`    | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | [Optional] [Defaults to `undefined`] |
-| **start_range_end**    | `Date`    | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | [Optional] [Defaults to `undefined`] |
-| **finish_range_begin** | `Date`    | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | [Optional] [Defaults to `undefined`] |
-| **finish_range_end**   | `Date`    | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | [Optional] [Defaults to `undefined`] |
-| **cust_id**            | `number`  | Include only sessions in which this customer participated. Ignored if team_id is supplied.                                                        | [Optional] [Defaults to `undefined`] |
-| **team_id**            | `number`  | Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.                                          | [Optional] [Defaults to `undefined`] |
-| **series_id**          | `number`  | Include only sessions for series with this ID.                                                                                                    | [Optional] [Defaults to `undefined`] |
-| **race_week_num**      | `number`  | Include only sessions with this race week number.                                                                                                 | [Optional] [Defaults to `undefined`] |
-| **official_only**      | `boolean` | If true, include only sessions earning championship points. Defaults to all.                                                                      | [Optional] [Defaults to `undefined`] |
-| **event_types**        | `string`  | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5                                                              | [Optional] [Defaults to `undefined`] |
-| **category_ids**       | `string`  | License categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                          | [Optional] [Defaults to `undefined`] |
+| Name                   | Type                      | Description                                                                                                                                       | Notes                                |
+| ---------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| **season_year**        | `number`                  | Required when using season_quarter.                                                                                                               | [Optional] [Defaults to `undefined`] |
+| **season_quarter**     | `number`                  | Required when using season_year.                                                                                                                  | [Optional] [Defaults to `undefined`] |
+| **start_range_begin**  | `Date`                    | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | [Optional] [Defaults to `undefined`] |
+| **start_range_end**    | `Date`                    | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | [Optional] [Defaults to `undefined`] |
+| **finish_range_begin** | `Date`                    | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | [Optional] [Defaults to `undefined`] |
+| **finish_range_end**   | `Date`                    | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | [Optional] [Defaults to `undefined`] |
+| **cust_id**            | `number`                  | Include only sessions in which this customer participated. Ignored if team_id is supplied.                                                        | [Optional] [Defaults to `undefined`] |
+| **team_id**            | `number`                  | Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.                                          | [Optional] [Defaults to `undefined`] |
+| **series_id**          | `number`                  | Include only sessions for series with this ID.                                                                                                    | [Optional] [Defaults to `undefined`] |
+| **race_week_num**      | `number`                  | Include only sessions with this race week number.                                                                                                 | [Optional] [Defaults to `undefined`] |
+| **official_only**      | `boolean`                 | If true, include only sessions earning championship points. Defaults to all.                                                                      | [Optional] [Defaults to `undefined`] |
+| **event_types**        | `Array<IracingEventType>` | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5                                                              | [Optional]                           |
+| **category_ids**       | `Array<number>`           | License categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                          | [Optional]                           |
 
 ### Return type
 

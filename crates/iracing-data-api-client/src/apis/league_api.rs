@@ -36,7 +36,7 @@ pub struct GetLeagueDirectoryParams {
     /// Will search against league name, description, owner, and league ID.
     pub search: Option<String>,
     /// One or more tags, comma-separated.
-    pub tag: Option<String>,
+    pub tag: Option<Vec<String>>,
     /// If true include only leagues for which customer is a member.
     pub restrict_to_member: Option<bool>,
     /// If true include only leagues which are recruiting.
@@ -311,7 +311,23 @@ pub async fn get_league_directory(
         req_builder = req_builder.query(&[("search", &param_value.to_string())]);
     }
     if let Some(ref param_value) = params.tag {
-        req_builder = req_builder.query(&[("tag", &param_value.to_string())]);
+        req_builder = match "csv" {
+            "multi" => req_builder.query(
+                &param_value
+                    .into_iter()
+                    .map(|p| ("tag".to_owned(), p.to_string()))
+                    .collect::<Vec<(std::string::String, std::string::String)>>(),
+            ),
+            _ => req_builder.query(&[(
+                "tag",
+                &param_value
+                    .into_iter()
+                    .map(|p| p.to_string())
+                    .collect::<Vec<String>>()
+                    .join(",")
+                    .to_string(),
+            )]),
+        };
     }
     if let Some(ref param_value) = params.restrict_to_member {
         req_builder = req_builder.query(&[("restrict_to_member", &param_value.to_string())]);

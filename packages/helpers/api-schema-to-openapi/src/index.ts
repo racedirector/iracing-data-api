@@ -101,6 +101,31 @@ const memberQuery = MemberGetParametersSchema.extend({
   }),
 });
 
+const leagueDirectoryQuery = LeagueDirectoryParametersSchema.extend({
+  tag: LeagueDirectoryParametersSchema.shape.tag.meta({
+    ...LeagueDirectoryParametersSchema.shape.tag.meta(),
+    param: csvParameter,
+  }),
+});
+
+const resultsHostedQuery = ResultsSearchHostedParametersSchema.extend({
+  category_ids: ResultsSearchHostedParametersSchema.shape.category_ids.meta({
+    ...ResultsSearchHostedParametersSchema.shape.category_ids.meta(),
+    param: csvParameter,
+  }),
+});
+
+const resultsSeriesQuery = ResultsSearchSeriesParametersSchema.extend({
+  event_types: ResultsSearchSeriesParametersSchema.shape.event_types.meta({
+    ...ResultsSearchSeriesParametersSchema.shape.event_types.meta(),
+    param: csvParameter,
+  }),
+  category_ids: ResultsSearchSeriesParametersSchema.shape.category_ids.meta({
+    ...ResultsSearchSeriesParametersSchema.shape.category_ids.meta(),
+    param: csvParameter,
+  }),
+});
+
 const spectatorQuery = SeasonSpectatorSubsessionidsParametersSchema.extend({
   event_types:
     SeasonSpectatorSubsessionidsParametersSchema.shape.event_types.meta({
@@ -1344,7 +1369,7 @@ export const document = createDocument({
         operationId: "getLeagueDirectory",
         tags: ["league"],
         requestParams: {
-          query: LeagueDirectoryParametersSchema,
+          query: leagueDirectoryQuery,
         },
         externalDocs: {
           url: "/data/doc/league/directory",
@@ -1821,7 +1846,7 @@ export const document = createDocument({
         operationId: "getResultsSearchHosted",
         tags: ["results"],
         requestParams: {
-          query: ResultsSearchHostedParametersSchema,
+          query: resultsHostedQuery,
         },
         externalDocs: {
           url: "/data/doc/results/search_hosted",
@@ -1839,7 +1864,7 @@ export const document = createDocument({
         operationId: "getResultsSearchSeries",
         tags: ["results"],
         requestParams: {
-          query: ResultsSearchSeriesParametersSchema,
+          query: resultsSeriesQuery,
         },
         externalDocs: {
           url: "/data/doc/results/search_series",

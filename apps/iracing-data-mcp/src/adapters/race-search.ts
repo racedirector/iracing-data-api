@@ -4,6 +4,7 @@ import {
   ResultsSearchHostedResponseToJSON,
   type Configuration,
 } from "@iracing-data/api-client-fetch";
+import { EventTypeSchema } from "@iracing-data/api-schema";
 import {
   ApplicationFailure,
   SearchInput,
@@ -162,6 +163,12 @@ async function searchManifest(
 
   const wire = {
     ...criteria,
+
+    // MCP tools retain CSV-string filters; generated SDKs consume typed arrays.
+    event_types: criteria.event_types
+      ?.split(",")
+      .map((value) => EventTypeSchema.parse(Number(value))),
+    category_ids: criteria.category_ids?.split(",").map(Number),
     start_range_begin: date(criteria.start_range_begin),
     start_range_end: date(criteria.start_range_end),
     finish_range_begin: date(criteria.finish_range_begin),

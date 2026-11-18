@@ -68,7 +68,7 @@ export interface GetResultsSearchHostedRequest {
   league_season_id?: number;
   car_id?: number;
   track_id?: number;
-  category_ids?: string;
+  category_ids?: Array<number>;
 }
 
 export interface GetResultsSearchSeriesRequest {
@@ -83,8 +83,8 @@ export interface GetResultsSearchSeriesRequest {
   series_id?: number;
   race_week_num?: number;
   official_only?: boolean;
-  event_types?: string;
-  category_ids?: string;
+  event_types?: Array<IracingEventType>;
+  category_ids?: Array<number>;
 }
 
 export interface GetResultsSeasonResultsRequest {
@@ -444,7 +444,9 @@ export class ResultsApi extends runtime.BaseAPI {
     }
 
     if (requestParameters["category_ids"] != null) {
-      queryParameters["category_ids"] = requestParameters["category_ids"];
+      queryParameters["category_ids"] = requestParameters["category_ids"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     const headerParameters: runtime.HTTPHeaders = {};
@@ -544,11 +546,15 @@ export class ResultsApi extends runtime.BaseAPI {
     }
 
     if (requestParameters["event_types"] != null) {
-      queryParameters["event_types"] = requestParameters["event_types"];
+      queryParameters["event_types"] = requestParameters["event_types"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     if (requestParameters["category_ids"] != null) {
-      queryParameters["category_ids"] = requestParameters["category_ids"];
+      queryParameters["category_ids"] = requestParameters["category_ids"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     const headerParameters: runtime.HTTPHeaders = {};

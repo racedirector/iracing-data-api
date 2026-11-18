@@ -20,7 +20,6 @@ import {
   CarClassIdParameterSchema,
   CarIdParameterSchema,
   CategoryIdParameterSchema,
-  CategoryIdsParameterSchema,
   CategorySchema,
   ChartTypeParameterSchema,
   CustomerIdSchema,
@@ -28,7 +27,6 @@ import {
   DivisionEventTypeParameterSchema,
   EventTypeParameterSchema,
   EventTypeSchema,
-  EventTypesParameterSchema,
   LeagueIdParameterSchema,
   LeagueSeasonIdParameterSchema,
   PackageIdParameterSchema,
@@ -91,10 +89,9 @@ export const LeagueDirectoryParametersSchema = z.object({
     description:
       "Will search against league name, description, owner, and league ID.",
   }),
-  tag: z
-    .string()
-    .optional()
-    .meta({ description: "One or more tags, comma-separated." }),
+  tag: z.array(z.string().min(1)).min(1).optional().meta({
+    description: "One or more tags, comma-separated.",
+  }),
   restrict_to_member: BooleanParameterSchema.optional().meta({
     description: "If true include only leagues for which customer is a member.",
   }),
@@ -330,7 +327,7 @@ export const ResultsSearchHostedParametersSchema = z.object({
   track_id: TrackIdParameterSchema.optional().meta({
     description: "The ID of the track used by the session.",
   }),
-  category_ids: CategoryIdsParameterSchema.optional().meta({
+  category_ids: z.array(z.int().nonnegative()).min(1).optional().meta({
     description:
       "Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4",
   }),
@@ -378,11 +375,11 @@ export const ResultsSearchSeriesParametersSchema = z.object({
     description:
       "If true, include only sessions earning championship points. Defaults to all.",
   }),
-  event_types: EventTypesParameterSchema.optional().meta({
+  event_types: z.array(EventTypeSchema).min(1).optional().meta({
     description:
       "Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5",
   }),
-  category_ids: CategoryIdsParameterSchema.optional().meta({
+  category_ids: z.array(z.int().nonnegative()).min(1).optional().meta({
     description:
       "License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4",
   }),

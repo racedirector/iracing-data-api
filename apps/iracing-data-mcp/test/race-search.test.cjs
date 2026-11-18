@@ -88,8 +88,8 @@ test("series search forwards explicit season, participant and event filters", as
       cust_id: 99,
       team_id: 7,
       official_only: false,
-      event_types: "5",
-      category_ids: "5,6",
+      event_types: "2,5,2",
+      category_ids: "5,6,5",
     },
     context(),
   );
@@ -97,8 +97,16 @@ test("series search forwards explicit season, participant and event filters", as
   assert.ok(url.pathname.endsWith("/results/search_series"));
   assert.equal(url.searchParams.get("team_id"), "7");
   assert.equal(url.searchParams.get("official_only"), "false");
-  assert.equal(url.searchParams.get("event_types"), "5");
+  assert.deepEqual(url.searchParams.getAll("event_types"), ["2,5,2"]);
+  assert.deepEqual(url.searchParams.getAll("category_ids"), ["5,6,5"]);
   assert.equal(result.source, "series");
+});
+
+test("hosted CSV category IDs keep one ordered query value", async () => {
+  const { queries, calls } = await fixture();
+  await queries.search({ ...input, category_ids: "1,5,1" }, context());
+  const url = new URL(calls[0].url);
+  assert.deepEqual(url.searchParams.getAll("category_ids"), ["1,5,1"]);
 });
 
 test("selected chunk does not claim whole-query completeness", async () => {

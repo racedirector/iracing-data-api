@@ -9769,7 +9769,7 @@ export const LeagueApiAxiosParamCreator = function (
     /**
      *
      * @param {string} [search] Will search against league name, description, owner, and league ID.
-     * @param {string} [tag] One or more tags, comma-separated.
+     * @param {Array<string>} [tag] One or more tags, comma-separated.
      * @param {boolean} [restrict_to_member] If true include only leagues for which customer is a member.
      * @param {boolean} [restrict_to_recruiting] If true include only leagues which are recruiting.
      * @param {boolean} [restrict_to_friends] If true include only leagues owned by a friend.
@@ -9785,7 +9785,7 @@ export const LeagueApiAxiosParamCreator = function (
      */
     getLeagueDirectory: async (
       search?: string,
-      tag?: string,
+      tag?: Array<string>,
       restrict_to_member?: boolean,
       restrict_to_recruiting?: boolean,
       restrict_to_friends?: boolean,
@@ -9822,8 +9822,8 @@ export const LeagueApiAxiosParamCreator = function (
         localVarQueryParameter["search"] = search;
       }
 
-      if (tag !== undefined) {
-        localVarQueryParameter["tag"] = tag;
+      if (tag) {
+        localVarQueryParameter["tag"] = tag.join(COLLECTION_FORMATS.csv);
       }
 
       if (restrict_to_member !== undefined) {
@@ -10320,7 +10320,7 @@ export const LeagueApiFp = function (configuration?: Configuration) {
     /**
      *
      * @param {string} [search] Will search against league name, description, owner, and league ID.
-     * @param {string} [tag] One or more tags, comma-separated.
+     * @param {Array<string>} [tag] One or more tags, comma-separated.
      * @param {boolean} [restrict_to_member] If true include only leagues for which customer is a member.
      * @param {boolean} [restrict_to_recruiting] If true include only leagues which are recruiting.
      * @param {boolean} [restrict_to_friends] If true include only leagues owned by a friend.
@@ -10336,7 +10336,7 @@ export const LeagueApiFp = function (configuration?: Configuration) {
      */
     async getLeagueDirectory(
       search?: string,
-      tag?: string,
+      tag?: Array<string>,
       restrict_to_member?: boolean,
       restrict_to_recruiting?: boolean,
       restrict_to_friends?: boolean,
@@ -10837,7 +10837,7 @@ export interface LeagueApiGetLeagueDirectoryRequest {
   /**
    * One or more tags, comma-separated.
    */
-  readonly tag?: string;
+  readonly tag?: Array<string>;
 
   /**
    * If true include only leagues for which customer is a member.
@@ -13032,7 +13032,7 @@ export const ResultsApiAxiosParamCreator = function (
      * @param {number} [league_season_id] Include only results for the league season with this ID.
      * @param {number} [car_id] One of the cars used by the session.
      * @param {number} [track_id] The ID of the track used by the session.
-     * @param {string} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+     * @param {Array<number>} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -13049,7 +13049,7 @@ export const ResultsApiAxiosParamCreator = function (
       league_season_id?: number,
       car_id?: number,
       track_id?: number,
-      category_ids?: string,
+      category_ids?: Array<number>,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/data/results/search_hosted`;
@@ -13132,8 +13132,10 @@ export const ResultsApiAxiosParamCreator = function (
         localVarQueryParameter["track_id"] = track_id;
       }
 
-      if (category_ids !== undefined) {
-        localVarQueryParameter["category_ids"] = category_ids;
+      if (category_ids) {
+        localVarQueryParameter["category_ids"] = category_ids.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -13163,8 +13165,8 @@ export const ResultsApiAxiosParamCreator = function (
      * @param {number} [series_id] Include only sessions for series with this ID.
      * @param {number} [race_week_num] Include only sessions with this race week number.
      * @param {boolean} [official_only] If true, include only sessions earning championship points. Defaults to all.
-     * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
-     * @param {string} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+     * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     * @param {Array<number>} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -13180,8 +13182,8 @@ export const ResultsApiAxiosParamCreator = function (
       series_id?: number,
       race_week_num?: number,
       official_only?: boolean,
-      event_types?: string,
-      category_ids?: string,
+      event_types?: Array<IracingEventType>,
+      category_ids?: Array<number>,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
       const localVarPath = `/data/results/search_series`;
@@ -13260,12 +13262,16 @@ export const ResultsApiAxiosParamCreator = function (
         localVarQueryParameter["official_only"] = official_only;
       }
 
-      if (event_types !== undefined) {
-        localVarQueryParameter["event_types"] = event_types;
+      if (event_types) {
+        localVarQueryParameter["event_types"] = event_types.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
-      if (category_ids !== undefined) {
-        localVarQueryParameter["category_ids"] = category_ids;
+      if (category_ids) {
+        localVarQueryParameter["category_ids"] = category_ids.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       setSearchParams(localVarUrlObj, localVarQueryParameter);
@@ -13516,7 +13522,7 @@ export const ResultsApiFp = function (configuration?: Configuration) {
      * @param {number} [league_season_id] Include only results for the league season with this ID.
      * @param {number} [car_id] One of the cars used by the session.
      * @param {number} [track_id] The ID of the track used by the session.
-     * @param {string} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+     * @param {Array<number>} [category_ids] Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -13533,7 +13539,7 @@ export const ResultsApiFp = function (configuration?: Configuration) {
       league_season_id?: number,
       car_id?: number,
       track_id?: number,
-      category_ids?: string,
+      category_ids?: Array<number>,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (
@@ -13584,8 +13590,8 @@ export const ResultsApiFp = function (configuration?: Configuration) {
      * @param {number} [series_id] Include only sessions for series with this ID.
      * @param {number} [race_week_num] Include only sessions with this race week number.
      * @param {boolean} [official_only] If true, include only sessions earning championship points. Defaults to all.
-     * @param {string} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
-     * @param {string} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
+     * @param {Array<IracingEventType>} [event_types] Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
+     * @param {Array<number>} [category_ids] License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
@@ -13601,8 +13607,8 @@ export const ResultsApiFp = function (configuration?: Configuration) {
       series_id?: number,
       race_week_num?: number,
       official_only?: boolean,
-      event_types?: string,
-      category_ids?: string,
+      event_types?: Array<IracingEventType>,
+      category_ids?: Array<number>,
       options?: RawAxiosRequestConfig,
     ): Promise<
       (
@@ -13968,7 +13974,7 @@ export interface ResultsApiGetResultsSearchHostedRequest {
   /**
    * Track categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
    */
-  readonly category_ids?: string;
+  readonly category_ids?: Array<number>;
 }
 
 /**
@@ -14033,12 +14039,12 @@ export interface ResultsApiGetResultsSearchSeriesRequest {
   /**
    * Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5
    */
-  readonly event_types?: string;
+  readonly event_types?: Array<IracingEventType>;
 
   /**
    * License categories to include in the search.  Defaults to all. ?category_ids&#x3D;1,2,3,4
    */
-  readonly category_ids?: string;
+  readonly category_ids?: Array<number>;
 }
 
 /**
