@@ -9,8 +9,9 @@ This publishable workspace defines three required MCP tool contracts:
 `get_my_driver`, `get_recent_races`, and `search_race_results`.
 The optional `find_reference` lookup is advertised only when a host supplies
 `getReferenceQueries`. The core also defines lazily resolved reference,
-document and asset resources; resource discovery never acquires credentials
-or fetches data.
+document and asset resources. Listing resources and templates never acquires
+credentials or fetches data. Completion can load data, including through
+`resolver.all()`, and reading collection resources can also load data.
 The core must remain independent of generated Fetch/Axios clients, API
 configuration, OAuth, and transport. Input/output schemas and service contracts
 are tool-local. All three capability selectors are required because all three
@@ -35,7 +36,7 @@ issues [#382](https://github.com/racedirector/iracing-data-api/issues/382),
 [#473](https://github.com/racedirector/iracing-data-api/issues/473)
 and [#533](https://github.com/racedirector/iracing-data-api/issues/533)
 are not mandates to restore `@iracing-data/mcp-tools`, generated-client imports
-into core, Awilix, Express or removed tool names. The *still-open*
+into core, Awilix, Express or removed tool names. The _still-open_
 [#478](https://github.com/racedirector/iracing-data-api/issues/478)
 owns remaining export, consumer documentation and reference-host release decisions,
 not a competing architecture. Preserve security and lifecycle invariants
