@@ -1,6 +1,7 @@
 import { registerFindReference } from "./tools/find-reference/index.js";
 import { registerGetMyDriver } from "./tools/get-my-driver/index.js";
 import { registerGetRecentRaces } from "./tools/get-recent-races/index.js";
+import { registerStaticCacheRefresh } from "./tools/refresh-static-cache/index.js";
 import { registerSearchRaceResults } from "./tools/search-race-results/index.js";
 import type { IracingToolRegistry, IracingToolServices } from "./services.js";
 
@@ -19,7 +20,9 @@ export function registerIracingTools(
     typeof services.getRecentRaceQueries !== "function" ||
     typeof services.getRaceSearchQueries !== "function" ||
     (services.getReferenceQueries !== undefined &&
-      typeof services.getReferenceQueries !== "function")
+      typeof services.getReferenceQueries !== "function") ||
+    (services.getStaticCacheRefresh !== undefined &&
+      typeof services.getStaticCacheRefresh !== "function")
   ) {
     throw new TypeError("All iRacing capability selectors are required.");
   }
@@ -29,5 +32,9 @@ export function registerIracingTools(
   registerSearchRaceResults(server, services);
   if (services.getReferenceQueries) {
     registerFindReference(server, services);
+  }
+
+  if (services.getStaticCacheRefresh) {
+    registerStaticCacheRefresh(server, services);
   }
 }

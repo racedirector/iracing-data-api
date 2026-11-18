@@ -4,6 +4,27 @@ const os = require("node:os");
 const path = require("node:path");
 const { test } = require("node:test");
 
+async function registerStaticCacheRefresh(server, catalogs, assets) {
+  const { registerIracingTools } = await import("@iracing-data/mcp");
+  const { createStaticCacheRefresh } =
+    await import("../dist/adapters/static-cache-refresh.js");
+  registerIracingTools(
+    {
+      registerTool(name, options, handler) {
+        if (name === "refresh_static_cache") {
+          return server.registerTool(name, options, handler);
+        }
+      },
+    },
+    {
+      getDriverQueries() {},
+      getRecentRaceQueries() {},
+      getRaceSearchQueries() {},
+      getStaticCacheRefresh: () => createStaticCacheRefresh(catalogs, assets),
+    },
+  );
+}
+
 test("refresh coalesces, replaces persisted/live entries, and retains last-good state", async (t) => {
   const { createFileBackedResolver } = await import("../dist/snapshots.js");
   const { createCatalogResolver } = await import("../dist/catalog.js");
@@ -88,14 +109,12 @@ test("failed atomic replacement retains the live index, cleans temporary files a
 });
 
 test("local refresh selects one dataset and rejects invalid selectors before effects", async (t) => {
-  const { registerStaticCacheRefresh } =
-    await import("../dist/refresh/index.js");
   const { Client } = await import("@modelcontextprotocol/client");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
   const calls = [];
   const server = new McpServer({ name: "refresh-test", version: "1" });
-  registerStaticCacheRefresh(
+  await registerStaticCacheRefresh(
     server,
     [
       {
@@ -246,8 +265,6 @@ test("asset refresh uses the plural snapshot and publishes new metadata to media
 });
 
 test("every selector routes to exactly one configured resolver and failures stay sanitized", async (t) => {
-  const { registerStaticCacheRefresh } =
-    await import("../dist/refresh/index.js");
   const { Client } = await import("@modelcontextprotocol/client");
   const { InMemoryTransport, McpServer } =
     await import("@modelcontextprotocol/server");
@@ -259,7 +276,7 @@ test("every selector routes to exactly one configured resolver and failures stay
       return [{}];
     },
   });
-  registerStaticCacheRefresh(
+  await registerStaticCacheRefresh(
     server,
     ["cars", "tracks", "car-classes"].map((name) => ({
       name,
@@ -300,7 +317,7 @@ test("every selector routes to exactly one configured resolver and failures stay
   }
   // No configured resolver and upstream exception text must never leak.
   let handler;
-  registerStaticCacheRefresh(
+  await registerStaticCacheRefresh(
     {
       registerTool: (_name, _options, callback) => {
         handler = callback;
@@ -312,7 +329,7 @@ test("every selector routes to exactly one configured resolver and failures stay
   const request = { mcpReq: { signal: new AbortController().signal } };
   const missing = await handler({ dataset: "cars" }, request);
   assert.equal(missing.structuredContent.error.code, "NOT_FOUND");
-  registerStaticCacheRefresh(
+  await registerStaticCacheRefresh(
     {
       registerTool: (_name, _options, callback) => {
         handler = callback;
@@ -336,15 +353,13 @@ test("every selector routes to exactly one configured resolver and failures stay
 });
 
 test("pre-cancelled refresh has no effects and caller cancellation does not abort a shared replacement", async () => {
-  const { registerStaticCacheRefresh } =
-    await import("../dist/refresh/index.js");
   let handler;
   let calls = 0;
   let release;
   const held = new Promise((resolve) => {
     release = resolve;
   });
-  registerStaticCacheRefresh(
+  await registerStaticCacheRefresh(
     {
       registerTool: (_name, _options, callback) => {
         handler = callback;
@@ -366,6 +381,8 @@ test("pre-cancelled refresh has no effects and caller cancellation does not abor
   const controller = new AbortController();
   const request = { mcpReq: { signal: controller.signal } };
   const pending = handler({ dataset: "cars" }, request);
+  // Input parsing and capability selection are asynchronous core boundaries.
+  while (calls === 0) await new Promise((resolve) => setImmediate(resolve));
   controller.abort();
   release([{ car_id: 1 }]);
   await assert.rejects(pending, { name: "AbortError" });

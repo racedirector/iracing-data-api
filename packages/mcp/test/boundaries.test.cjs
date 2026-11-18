@@ -1,6 +1,72 @@
 const assert = require("node:assert/strict");
 const test = require("node:test");
 
+test("static refresh is optional, lazy and uses the shared validation boundary", async (t) => {
+  const plain = await fixture(t);
+  assert.equal(
+    (await plain.client.listTools()).tools.some(
+      (tool) => tool.name === "refresh_static_cache",
+    ),
+    false,
+  );
+  let selections = 0;
+  const calls = [];
+  const configured = await fixture(t, {
+    getStaticCacheRefresh(context) {
+      selections++;
+      return {
+        async refresh(dataset, options) {
+          assert.equal(options.signal, context.signal);
+          calls.push(dataset);
+          return dataset === "tracks" ? null : 2;
+        },
+      };
+    },
+  });
+  await configured.client.listTools();
+  assert.equal(selections, 0);
+  const invalid = await configured.call("refresh_static_cache", {
+    dataset: "all",
+  });
+  assert.equal(invalid.structuredContent.error.code, "INVALID_INPUT");
+  assert.equal(selections, 0);
+  const result = await configured.call("refresh_static_cache", {
+    dataset: "car-assets",
+  });
+  assert.deepEqual(result.structuredContent, {
+    dataset: "car-assets",
+    resource_uri: "iracing://assets/cars",
+    count: 2,
+  });
+  assert.deepEqual(calls, ["car-assets"]);
+  const missing = await configured.call("refresh_static_cache", {
+    dataset: "tracks",
+  });
+  assert.equal(missing.structuredContent.error.code, "NOT_FOUND");
+});
+
+test("static refresh rejects malformed capabilities and replacement counts safely", async (t) => {
+  for (const capability of [
+    {},
+    { refresh: async () => -1 },
+    { refresh: async () => "SECRET" },
+    {
+      refresh: async () => {
+        throw new Error("SECRET");
+      },
+    },
+  ]) {
+    const configured = await fixture(t, {
+      getStaticCacheRefresh: () => capability,
+    });
+    const result = await configured.call("refresh_static_cache", {
+      dataset: "cars",
+    });
+    assert.equal(result.isError, true);
+    assert.equal(JSON.stringify(result).includes("SECRET"), false);
+  }
+});
+
 async function fixture(t, services = {}) {
   const api = await import("../dist/index.js");
   const { McpServer, InMemoryTransport } =
