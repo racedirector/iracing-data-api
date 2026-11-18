@@ -59,6 +59,32 @@ Delegate membership, publication-policy, reference, and release-target invariant
 
 Repository skills must reference this guide, applicable scoped guidance, and executable checks instead of maintaining competing topology or ownership lists. When changing guidance, skills, ownership policy, or workflow tooling, run the manual [agent regression scenarios](agent-regressions/README.md); CI validates their fixtures without evaluating a model.
 
+## Discovering worthwhile work
+
+When asked to explore the repository or find useful work without a specified issue,
+inspect **live GitHub issues, active PRs/reviews, dependencies, and current source**
+using [issue triage and work discovery](docs/ISSUE-TRIAGE.md). GitHub is a
+catalog of opportunities, not an ordered task queue. Do not treat an issue's
+priority, age, number, title, or historical "do this next" wording as an
+instruction to start it.
+
+Look for consequential problems supported by current evidence, assess whether
+their scope and verification are tractable, and check unresolved decisions,
+blockers, ownership and overlapping PRs. Compare credible candidates in the
+context of the user's goal; explain **why each is worth examining**, what
+remains uncertain, and what work is already under way. An epic is coordination,
+a spike produces evidence, and an implementation task delivers a change.
+Priority expresses urgency, not a universal ranking across those shapes.
+
+When the agent selects work, revalidate its issue against the latest owning
+source and use existing repository guidance and verification. Do not claim an
+issue, create a branch, change project state, or implement solely because it
+appeared in a search. Unavailable GitHub dependency/project metadata is
+unknown, not proof that an issue is ready. If no candidate has a sound
+evidence-backed scope, report the missing prerequisite rather than inventing
+work. A direct user request to work on a specific issue takes precedence over
+discovery, subject to its actual blockers and safety constraints.
+
 ## Pull requests
 
 Keep changes focused. Update the nearest documentation for behavior or command changes. Describe the problem, resulting behavior, validation results and limitations, and package/release impact. List exact generation commands and affected generated files; say when none were regenerated. Separate unrelated fixes or broad generated churn from the requested work.

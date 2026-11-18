@@ -11,7 +11,7 @@ const suite = JSON.parse(
 );
 const copy = () => structuredClone(suite);
 
-test("checked-in suite covers the five requested boundaries with resolvable references", () => {
+test("checked-in suite covers the canonical boundaries and work discovery with resolvable references", () => {
   assert.deepEqual(
     validateSuite(suite).map(({ id }) => id),
     [
@@ -20,6 +20,7 @@ test("checked-in suite covers the five requested boundaries with resolvable refe
       "oauth-runtime",
       "internal-release",
       "rust-generated-model",
+      "work-discovery",
     ],
   );
 });
@@ -106,7 +107,7 @@ test("prompt output withholds grading rubrics; invalid CLI requests fail", () =>
   assert.match(output, /packages\/api\/client\/fetch\/README.md/);
   for (const criterion of Object.values(suite.scenarios[1].rubric).flat())
     assert.ok(!output.includes(criterion));
-  assert.equal(run(["--list"], suite).split("\n").length, 5);
+  assert.equal(run(["--list"], suite).split("\n").length, 6);
   assert.match(run([], suite), /no model evaluation/);
   for (const args of [
     ["--show", "unknown"],

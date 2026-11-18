@@ -80,6 +80,74 @@ Use dependencies to express ordering. Use priority to express relative urgency a
 
 GitHub also supports organization-level custom issue fields, including single-select fields suitable for priority. If this repository later adopts a native Priority field, use `P0`–`P3` as the option set and retire the priority labels rather than maintaining both representations.
 
+## Discovering worthwhile work
+
+An open issue records a possible contribution, not an instruction to execute it.
+Agents exploring the backlog should surface **credible opportunities** without
+needing a maintainer-maintained "do next" list, fixed project ordering, or an
+automatic priority score. Choose what to investigate in the context of the
+user's objective, code area and the live repository; explain the judgment.
+An agent may reasonably select different work when the context changes.
+
+### Opportunity signals
+
+Evaluate candidates using evidence rather than label ordering alone:
+
+- **Consequences:** user-facing correctness, security, reliability, API
+  compatibility, architectural leverage, verification debt, or a genuine
+  prerequisite for important work. Priority labels indicate relative urgency,
+  not the next issue to claim.
+- **Evidence:** a reproducible failure, a specific contract mismatch, an
+  authoritative upstream change, or a clearly framed unknown worth testing.
+  Validate claims against current source and merged PRs; historical issue
+  instructions and closed designs are not implementation authority.
+- **Readiness:** a defined outcome, bounded change or research question,
+  acceptance/decision criteria, test strategy, and access to the relevant
+  environment. A spike may be ready even when its implementation is not.
+- **Dependencies and coordination:** live native `blocked by` relationships,
+  prerequisite text, parent/child context, current PRs, assignees and project
+  status when accessible. Do not conflate issue dependencies with stacked PR
+  ancestry; absent or inaccessible metadata is **unknown**, not "unblocked".
+- **Size and leverage:** prefer a coherent, independently reviewable slice
+  that can be verified. Broad epics, registry publication and hosted OAuth
+  decisions may require a bounded proof or maintainer approval first.
+
+Agents should inspect both issues **and active PRs**: reviewing or finishing a
+high-impact PR may be more valuable than beginning another issue. An assigned
+issue is not automatically unavailable, but overlapping work should be
+coordinated rather than duplicated. Do not assume an old comment asserting
+"next" or "in progress" still describes live state.
+
+When reporting opportunities, provide a small, diverse set of promising
+candidates with links, current evidence, expected payoff, major prerequisites,
+likely verification and uncertainty; distinguish **worth investigating** from
+**ready to implement**. Choose a candidate only if the user requested
+execution and the evidence supports it. No GitHub mutation is needed for
+read-only discovery. If none is ready, identify the missing evidence or decision
+rather than making up a task or manufacturing a readiness label.
+
+### Keeping an issue discoverable
+
+During triage and reconciliation, keep the issue's durable description useful to
+an unfamiliar contributor. Prefer concise, current material:
+
+- The observed problem or bounded research question and why it matters.
+- Owning source/contract, reproducible evidence or exact unknown, and relevant
+  merged/active PRs. Retain archived code links when an old implementation
+  contains unique tests or behavior worth reusing.
+- The intended outcome and non-goals; observable acceptance or spike decision
+  criteria; appropriate validation/fixtures.
+- True prerequisites and required maintainer decisions. Add **native GitHub
+  dependencies** where supported; also state blockers in the description so
+  they remain discoverable if an integration cannot read them.
+- Current ownership/coordination evidence, without inventing progress status.
+
+Review these facts when code merges, PRs supersede an implementation, or an
+issue's scope changes. Avoid stale "next", "ready", and "in progress" prose,
+duplicate priority fields, fixed rankings and speculative work just to fill
+the backlog. The objective is **legible options for agent judgment**, not a
+scheduling mechanism.
+
 ## Status labels
 
 `status:*` labels are deliberately sparse. GitHub issue state and explicit dependencies already carry most lifecycle information.
