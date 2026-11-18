@@ -5,6 +5,7 @@ import {
   ResourceNotFoundError,
   ResourceTemplate,
 } from "@modelcontextprotocol/server";
+import { registerResourceSchemas } from "./schemas.js";
 import type { ReferenceCatalog } from "./service.js";
 import type {
   McpServer,
@@ -23,6 +24,7 @@ export function registerReferenceResources(
   catalogs: readonly ReferenceCatalog[],
 ): void {
   for (const catalog of catalogs) {
+    registerResourceSchemas(server, catalog.schemas ?? []);
     const uri = `iracing://${catalog.name}`;
 
     const metadata: ResourceMetadata = {

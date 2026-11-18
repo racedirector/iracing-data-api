@@ -157,6 +157,34 @@ test("pre-cancelled searches perform no HTTP requests", async () => {
   assert.equal(calls.length, 0);
 });
 
+test("overlong search windows and old open-ended windows fail before API or chunk requests", async () => {
+  for (const source of ["series", "hosted"]) {
+    const { queries, calls } = await fixture();
+    for (const window of [
+      {
+        start_range_begin: "2019-01-01T00:00:00Z",
+        start_range_end: "2026-11-17T00:00:00Z",
+      },
+      {
+        finish_range_begin: "2019-01-01T00:00:00Z",
+        finish_range_end: "2026-11-17T00:00:00Z",
+      },
+      { start_range_begin: "2019-01-01T00:00:00Z" },
+    ]) {
+      await assert.rejects(
+        queries.search({ source, ...window }, context()),
+        (error) => {
+          assert.ok(
+            error.issues.some((issue) => issue.message.includes("90 days")),
+          );
+          return true;
+        },
+      );
+    }
+    assert.equal(calls.length, 0);
+  }
+});
+
 test("reject mismatched rows and unsafe chunk URLs", async () => {
   for (const options of [
     { rows: 2 },

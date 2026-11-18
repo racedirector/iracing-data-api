@@ -1,3 +1,4 @@
+import { registerFindReference } from "./tools/find-reference/index.js";
 import { registerGetMyDriver } from "./tools/get-my-driver/index.js";
 import { registerGetRecentRaces } from "./tools/get-recent-races/index.js";
 import { registerSearchRaceResults } from "./tools/search-race-results/index.js";
@@ -16,7 +17,9 @@ export function registerIracingTools(
   if (
     typeof services.getDriverQueries !== "function" ||
     typeof services.getRecentRaceQueries !== "function" ||
-    typeof services.getRaceSearchQueries !== "function"
+    typeof services.getRaceSearchQueries !== "function" ||
+    (services.getReferenceQueries !== undefined &&
+      typeof services.getReferenceQueries !== "function")
   ) {
     throw new TypeError("All iRacing capability selectors are required.");
   }
@@ -24,4 +27,7 @@ export function registerIracingTools(
   registerGetMyDriver(server, services);
   registerGetRecentRaces(server, services);
   registerSearchRaceResults(server, services);
+  if (services.getReferenceQueries) {
+    registerFindReference(server, services);
+  }
 }

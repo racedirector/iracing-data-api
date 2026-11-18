@@ -37,11 +37,18 @@ const datasets = [
     id: "car_class_id",
     title: "name",
   },
+  {
+    name: "series",
+    endpoint: "/data/series/get",
+    id: "series_id",
+    title: "series_name",
+  },
 ];
 
 test("HTTP exposes the same lazy reference collections and templates", async (t) => {
+  const { createCatalogReferenceQueries } = await import("@iracing-data/mcp");
   const { createHttpTransport, createMcpServices, createReferenceCatalogs } =
-    await import("../dist/index.js");
+    await import("./fixtures/runtime.mjs");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const directory = await fs.mkdtemp(
     path.join(os.tmpdir(), "mcp-http-catalog-"),
@@ -51,7 +58,10 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
     throw new Error("Discovery and snapshot reads must not authenticate");
   });
   const handler = createHttpTransport({
-    services: createMcpServices(() => capabilities("success")),
+    services: createMcpServices(
+      () => capabilities("success"),
+      createCatalogReferenceQueries(catalogs),
+    ),
     catalogs,
     serveOptions: {},
   });
@@ -80,7 +90,9 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
     return message.result;
   }
   assert.deepEqual(
-    (await rpc("resources/list")).resources.map((entry) => entry.uri),
+    (await rpc("resources/list")).resources
+      .filter((entry) => entry.mimeType !== "application/schema+json")
+      .map((entry) => entry.uri),
     datasets.map((entry) => `iracing://${entry.name}`),
   );
   assert.deepEqual(
@@ -103,6 +115,17 @@ test("HTTP exposes the same lazy reference collections and templates", async (t)
       argument: { name: dataset.id, value: "1" },
     });
     assert.deepEqual(completion.completion.values, ["17"]);
+    const lookup = await rpc("tools/call", {
+      name: "find_reference",
+      arguments: { kind: dataset.name, query: "17" },
+    });
+    assert.deepEqual(lookup.structuredContent.matches, [
+      {
+        id: 17,
+        name: "Example",
+        metadata_uri: `iracing://${dataset.name}/17`,
+      },
+    ]);
     for (const suffix of ["", "/17"]) {
       const result = await rpc("resources/read", {
         uri: `iracing://${dataset.name}${suffix}`,
@@ -151,7 +174,9 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
   const createCatalogs = () =>
     createReferenceCatalogs(directory, async () => "TEST_TOKEN", fetchApi);
   const client = await connect(t, createCatalogs());
-  const resources = (await client.listResources()).resources;
+  const resources = (await client.listResources()).resources.filter(
+    (entry) => entry.mimeType !== "application/schema+json",
+  );
   assert.deepEqual(
     resources.map((resource) => resource.uri),
     datasets.map((entry) => `iracing://${entry.name}`),
@@ -201,7 +226,7 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
   }
   assert.equal(
     requests.length,
-    6,
+    datasets.length * 2,
     "one API call and one signed download per catalog",
   );
   const restarted = await connect(t, createCatalogs());
@@ -214,7 +239,11 @@ test("all reference catalogs share discovery, hydration, indexing and restart re
       payloads[dataset.name][1],
     );
   }
-  assert.equal(requests.length, 6, "restart uses snapshots, not the API");
+  assert.equal(
+    requests.length,
+    datasets.length * 2,
+    "restart uses snapshots, not the API",
+  );
 });
 
 test("invalid hydration is not persisted and can be retried", async (t) => {
@@ -321,10 +350,19 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
       env,
     }),
   );
-  assert.equal((await client.listResources()).resources.length, 3);
+  assert.equal((await client.listResources()).resources.length, 32);
   assert.equal(
     (await client.listResourceTemplates()).resourceTemplates.length,
-    3,
+    14,
+  );
+  const schema = await client.readResource({
+    uri: "iracing://schemas/series/entity",
+  });
+  assert.equal(schema.contents[0].mimeType, "application/schema+json");
+  assert.ok(JSON.parse(schema.contents[0].text).$schema);
+  assert.match(
+    client.getInstructions(),
+    /Tool-catalog search searches tools, not resources/,
   );
   // Files changed after discovery must be observed on the first read.
   for (const dataset of datasets) {
@@ -353,4 +391,52 @@ test("actual stdio entrypoint loads snapshots lazily and caches parsed JSON acro
       [dataset.title]: "Example",
     });
   }
+  for (const [kind, idField] of [
+    ["cars", "car_id"],
+    ["tracks", "track_id"],
+    ["series", "series_id"],
+  ]) {
+    await fs.writeFile(
+      path.join(reference, `${kind}-assets.json`),
+      JSON.stringify({ 17: { [idField]: 17, logo: "/img/logos/example.png" } }),
+    );
+    const result = await client.readResource({
+      uri: `iracing://assets/${kind}/17`,
+    });
+    const body = JSON.parse(result.contents[0].text);
+    assert.equal(body[idField], 17);
+    assert.equal(body.schema, undefined);
+    assert.equal(body.data, undefined);
+  }
+  for (const name of ["categories", "event-types", "divisions", "licenses"]) {
+    const payload =
+      name === "licenses"
+        ? [
+            {
+              license_group: 1,
+              group_name: "Example",
+              levels: [{ license_id: 4 }],
+            },
+          ]
+        : [{ label: "Example", value: name === "divisions" ? -1 : 1 }];
+    await fs.writeFile(
+      path.join(reference, `${name}.json`),
+      JSON.stringify(payload),
+    );
+    const response = await client.readResource({ uri: `iracing://${name}` });
+    assert.deepEqual(JSON.parse(response.contents[0].text), payload);
+  }
+  const found = await client.callTool({
+    name: "find_reference",
+    arguments: { kind: "series", query: "17" },
+  });
+  assert.deepEqual(found.structuredContent.matches, [
+    {
+      id: 17,
+      name: "Example",
+      metadata_uri: "iracing://series/17",
+      asset_metadata_uri: "iracing://assets/series/17",
+      media_index_uri: "iracing://assets/series/17/media",
+    },
+  ]);
 });

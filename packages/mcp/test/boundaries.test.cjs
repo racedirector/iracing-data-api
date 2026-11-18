@@ -83,6 +83,48 @@ test("caller-owned server exposes explicit tools and accepts neighboring registr
   assert.equal(typeof f.api.createIracingMcpServer, "function");
 });
 
+test("optional reference lookup uses the same strict, bounded caller-owned tool boundary", async (t) => {
+  let selected = 0;
+  const f = await fixture(t, {
+    getReferenceQueries: () => {
+      selected++;
+      return {
+        list: async () => ({
+          entries: [{ id: 120, name: "Example Series", secret: "SECRET" }],
+          metadata_available: false,
+          assets_available: false,
+        }),
+      };
+    },
+  });
+  const tool = (await f.client.listTools()).tools.find(
+    (entry) => entry.name === "find_reference",
+  );
+  assert.equal(tool.inputSchema.type, "object");
+  assert.equal(tool.inputSchema.additionalProperties, false);
+  assert.equal(tool.annotations.readOnlyHint, true);
+  assert.equal(selected, 0);
+  const invalid = await f.call("find_reference", {
+    kind: "series",
+    query: "120",
+    credentials: "SECRET",
+  });
+  assert.equal(invalid.structuredContent.error.code, "INVALID_INPUT");
+  assert.equal(selected, 0);
+  const result = await f.call("find_reference", {
+    kind: "series",
+    query: "120",
+  });
+  assert.deepEqual(result.structuredContent.matches, [
+    { id: 120, name: "Example Series" },
+  ]);
+  assert.deepEqual(
+    JSON.parse(result.content[0].text),
+    result.structuredContent,
+  );
+  assert.doesNotMatch(JSON.stringify(result), /SECRET/);
+});
+
 test("historical search selects per request, forwards criteria and projects output", async (t) => {
   let selected = 0;
   const f = await fixture(t, {
@@ -114,6 +156,7 @@ test("historical search selects per request, forwards criteria and projects outp
     cust_id: 99,
     league_id: 8579,
     start_range_begin: "2026-11-01T00:00:00Z",
+    start_range_end: "2026-11-02T00:00:00Z",
   };
   const result = await f.call("search_race_results", args);
   assert.equal(result.structuredContent.query_complete, true);
@@ -137,6 +180,10 @@ test("input validation happens before resolving any dependencies", async (t) => 
       selected++;
       return {};
     },
+    getRaceSearchQueries: () => {
+      selected++;
+      return {};
+    },
   });
   const cases = [
     ["get_my_driver", { token: "SECRET" }],
@@ -146,6 +193,30 @@ test("input validation happens before resolving any dependencies", async (t) => 
     ["get_recent_races", { limit: 11 }],
     ["get_recent_races", { limit: 0 }],
     ["get_recent_races", { access_token: "SECRET" }],
+    [
+      "search_race_results",
+      {
+        source: "series",
+        series_id: 491,
+        start_range_begin: "2019-01-01T00:00:00Z",
+        start_range_end: "2026-11-17T00:00:00Z",
+      },
+    ],
+    [
+      "search_race_results",
+      {
+        source: "series",
+        finish_range_begin: "2019-01-01T00:00:00Z",
+      },
+    ],
+    [
+      "search_race_results",
+      {
+        source: "hosted",
+        start_range_begin: "2019-01-01T00:00:00Z",
+        start_range_end: "2026-11-17T00:00:00Z",
+      },
+    ],
   ];
   for (const [name, args] of cases) {
     const result = await f.call(name, args);
@@ -339,7 +410,11 @@ test("cancellation during capability selection prevents domain queries", async (
     );
     const pending = callbacks.get(name)(
       name === "search_race_results"
-        ? { source: "hosted", start_range_begin: "2026-11-01T00:00:00Z" }
+        ? {
+            source: "hosted",
+            start_range_begin: "2026-11-01T00:00:00Z",
+            start_range_end: "2026-11-02T00:00:00Z",
+          }
         : {},
       { mcpReq: { signal: control.signal } },
     );
@@ -374,6 +449,7 @@ test("historical search refuses inconsistent injected chunk totals", async (t) =
   const result = await f.call("search_race_results", {
     source: "hosted",
     start_range_begin: "2026-11-01T00:00:00Z",
+    start_range_end: "2026-11-02T00:00:00Z",
   });
   assert.equal(result.structuredContent.error.code, "DATA_RESOLUTION_FAILED");
 });
@@ -403,6 +479,7 @@ test("historical search refuses oversized projected chunks", async (t) => {
   const result = await f.call("search_race_results", {
     source: "hosted",
     start_range_begin: "2026-11-01T00:00:00Z",
+    start_range_end: "2026-11-02T00:00:00Z",
   });
   assert.equal(result.structuredContent.error.code, "RESPONSE_LIMIT_EXCEEDED");
   assert.ok(Buffer.byteLength(JSON.stringify(result)) <= 64 * 1024);

@@ -2,13 +2,16 @@ import {
   CarApi,
   CarclassApi,
   TrackApi,
+  SeriesApi,
   Configuration,
+  type ConfigurationParameters,
   type IracingAPIResponse,
 } from "@iracing-data/api-client-fetch";
 import {
   CarsCatalog,
   TracksCatalog,
   CarClassesCatalog,
+  SeriesCatalog,
 } from "@iracing-data/mcp";
 import { createReferenceCatalog } from "../catalog.js";
 import { readLinkedData } from "./linked-response.js";
@@ -40,7 +43,7 @@ export function createCatalogLoader(
  */
 export function createReferenceCatalogs(
   directory: string,
-  accessToken: () => Promise<string>,
+  accessToken: ConfigurationParameters["accessToken"],
   fetchApi: typeof fetch = fetch,
 ): readonly ReferenceCatalog[] {
   const configuration = new Configuration({ accessToken, fetchApi });
@@ -50,6 +53,8 @@ export function createReferenceCatalogs(
   const tracks = new TrackApi(configuration);
 
   const classes = new CarclassApi(configuration);
+
+  const series = new SeriesApi(configuration);
 
   return [
     createReferenceCatalog(directory, {
@@ -67,6 +72,13 @@ export function createReferenceCatalogs(
       ...CarClassesCatalog,
       load: createCatalogLoader(
         (signal) => classes.getCarClass({ signal }),
+        fetchApi,
+      ),
+    }),
+    createReferenceCatalog(directory, {
+      ...SeriesCatalog,
+      load: createCatalogLoader(
+        (signal) => series.getSeries({ signal }),
         fetchApi,
       ),
     }),

@@ -3,6 +3,7 @@ import {
   OAuthTokenResponseSchema,
 } from "@iracing-data/oauth-client";
 import { z } from "zod";
+import type { IRacingOAuthClientMetadataInput } from "@iracing-data/oauth-client";
 
 const HostSchema = z.string().min(1).default("127.0.0.1");
 
@@ -19,28 +20,79 @@ const TransportOptionsSchema = z.discriminatedUnion("transport", [
   }),
 ]);
 
-const AuthenticationOptionsSchema = z.union([
-  z.object({
+const metadata = IRacingOAuthClientMetadataSchema.shape;
+
+const CredentialsOptionsSchema = z.object({
+  credentialsFile: z.string().trim().min(1),
+  clientId: metadata.clientId.trim().min(1),
+  clientSecret: metadata.clientSecret,
+  maskedClientSecret: metadata.maskedClientSecret,
+  username: metadata.username,
+  password: metadata.password,
+  maskedPassword: metadata.maskedPassword,
+  redirectUri: metadata.redirectUri,
+});
+
+const AccessTokenAuthenticationSchema = z
+  .object({
     accessToken: OAuthTokenResponseSchema.shape.access_token,
+  })
+  .transform(({ accessToken }) => ({
+    kind: "access_token" as const,
+    accessToken,
+  }));
+
+const OAuthAuthenticationSchema = CredentialsOptionsSchema.transform(
+  ({
+    credentialsFile,
+    ...metadata
+  }): {
+    credentialsFile: string;
+    clientMetadata: IRacingOAuthClientMetadataInput;
+  } => ({
+    credentialsFile,
+    clientMetadata: {
+      ...metadata,
+      redirectUri: metadata.redirectUri ?? "http://127.0.0.1",
+      scopes: ["iracing.auth"],
+    },
   }),
-  z.object({
-    credentials: z.string().trim().min(1),
-    clientId: IRacingOAuthClientMetadataSchema.shape.clientId.trim().min(1),
-    clientSecret: IRacingOAuthClientMetadataSchema.shape.clientSecret,
-    maskedClientSecret:
-      IRacingOAuthClientMetadataSchema.shape.maskedClientSecret,
-    username: IRacingOAuthClientMetadataSchema.shape.username,
-    password: IRacingOAuthClientMetadataSchema.shape.password,
-    maskedPassword: IRacingOAuthClientMetadataSchema.shape.maskedPassword,
-    redirectUri: IRacingOAuthClientMetadataSchema.shape.redirectUri,
-  }),
+)
+  .pipe(
+    z.object({
+      credentialsFile: z.string().trim().min(1),
+      clientMetadata: IRacingOAuthClientMetadataSchema,
+    }),
+  )
+  .transform(({ credentialsFile, clientMetadata }) => ({
+    kind: clientMetadata.username
+      ? ("password_limited" as const)
+      : ("authorization_code" as const),
+    credentialsFile,
+    clientMetadata,
+  }));
+
+/**
+ * Schema for declaring authentication method.
+ */
+export const AuthenticationOptionsSchema = z.union([
+  AccessTokenAuthenticationSchema,
+  OAuthAuthenticationSchema,
 ]);
 
 /**
- * Options for starting an MCP server.
+ * Values required for declaring authentication method.
+ */
+export type AuthenticationOptions = z.output<
+  typeof AuthenticationOptionsSchema
+>;
+
+/**
+ * Serve command options.
  */
 export const ServeOptionsSchema = z.intersection(
   AuthenticationOptionsSchema,
   TransportOptionsSchema,
 );
+
 export type ServeOptions = z.infer<typeof ServeOptionsSchema>;

@@ -215,6 +215,94 @@ export const CarClassCatalogPayloadSchema = z
       "Downloaded /data/carclass/get JSON array. Entries are identified by car_class_id; collection order has no ranking semantics.",
   });
 
+/** Partial series identity; additional upstream metadata is retained. */
+export const SeriesPayloadSchema = z
+  .looseObject({
+    series_id: z.int().positive().meta({
+      description:
+        "Series identifier; joins race results and iracing://assets/series/{id}.",
+    }),
+    series_name: z.string().min(1),
+    series_short_name: z.string().optional(),
+    category: z.string().optional(),
+    category_id: z.int().optional(),
+  })
+  .meta({
+    id: "seriesPayload",
+    title: "iRacing series",
+    description:
+      "Partial acceptance schema for a downloaded /data/series/get entry. Unknown fields, including eligibility and license restrictions, are retained.",
+  });
+
+/** Materialized series metadata, distinct from the cache-link envelope. */
+export const SeriesCatalogPayloadSchema = z
+  .array(SeriesPayloadSchema)
+  .min(1)
+  .meta({
+    id: "seriesCatalogPayload",
+    title: "iRacing series catalog",
+    description:
+      "Downloaded series array; entries are identified by series_id. Not an exhaustive description of upstream fields.",
+  });
+
+/** Observed constant row; negative sentinel values are preserved. */
+export const ReferenceValuePayloadSchema = z
+  .looseObject({
+    label: z.string(),
+    value: z.int(),
+  })
+  .meta({
+    id: "referenceValuePayload",
+    title: "iRacing labeled reference value",
+    description:
+      "Partial constant-row schema. Values are upstream identifiers, not ranks. Divisions include the negative ALL sentinel.",
+  });
+
+/** Categories, event types and divisions remain arrays, not keyed objects. */
+export const ReferenceValuesPayloadSchema = z
+  .array(ReferenceValuePayloadSchema)
+  .meta({
+    id: "referenceValuesPayload",
+    title: "iRacing reference values",
+    description:
+      "Partial acceptance schema for direct constants arrays. Unknown row fields and new integer values are retained.",
+  });
+
+/** Partial license group definition with nested license levels preserved. */
+export const LicenseGroupPayloadSchema = z
+  .looseObject({
+    license_group: z.int().positive(),
+    group_name: z.string().min(1),
+    levels: z
+      .array(
+        z.looseObject({
+          license_id: z.int().positive(),
+          license_group: z.int().positive().optional(),
+          license: z.string().optional(),
+          short_name: z.string().optional(),
+          license_letter: z.string().optional(),
+          color: z.string().optional(),
+        }),
+      )
+      .optional(),
+  })
+  .meta({
+    id: "licenseGroupPayload",
+    title: "iRacing license group definition",
+    description:
+      "Partial downloaded lookup/licenses group, not a member's license status. Unknown fields are retained; unmodeled safety-rating scales are not inferred.",
+  });
+
+/** Downloaded license groups, not their signed-link response. */
+export const LicenseDefinitionsPayloadSchema = z
+  .array(LicenseGroupPayloadSchema)
+  .meta({
+    id: "licenseDefinitionsPayload",
+    title: "iRacing license definitions",
+    description:
+      "Partial acceptance schema for grouped license definitions and their nested levels.",
+  });
+
 const imagePath = z.string().meta({
   description:
     "Upstream image filename or path. Official asset documentation gives https://images-static.iracing.com/ as the image base; this is not necessarily an absolute URL.",
@@ -379,6 +467,16 @@ export const SeriesAssetsPayloadSchema = z
   });
 
 export type CarPayload = z.infer<typeof CarPayloadSchema>;
+export type SeriesPayload = z.infer<typeof SeriesPayloadSchema>;
+export type SeriesCatalogPayload = z.infer<typeof SeriesCatalogPayloadSchema>;
+export type ReferenceValuePayload = z.infer<typeof ReferenceValuePayloadSchema>;
+export type ReferenceValuesPayload = z.infer<
+  typeof ReferenceValuesPayloadSchema
+>;
+export type LicenseGroupPayload = z.infer<typeof LicenseGroupPayloadSchema>;
+export type LicenseDefinitionsPayload = z.infer<
+  typeof LicenseDefinitionsPayloadSchema
+>;
 export type TrackPayload = z.infer<typeof TrackPayloadSchema>;
 export type CarClassPayload = z.infer<typeof CarClassPayloadSchema>;
 export type CarCatalogPayload = z.infer<typeof CarCatalogPayloadSchema>;

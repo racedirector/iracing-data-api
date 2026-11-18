@@ -5,6 +5,7 @@ import type {
   IracingToolServices,
   RecentRaceQueries,
   RaceSearchQueries,
+  ReferenceQueries,
 } from "@iracing-data/mcp";
 
 /** Principal verified by the HTTP host or fixed for local stdio. */
@@ -116,10 +117,12 @@ export type McpCapabilitySource =
 /**
  * Compose tool services from host-selected capabilities, without choosing identity.
  * @param {McpCapabilitySource} source - One owner's capabilities or host-owned request-local selection.
+ * @param {ReferenceQueries} references - Optional reference access bound to this host/credential owner.
  * @returns {IracingToolServices} Explicit MCP tool services.
  */
 export function createMcpServices(
   source: McpCapabilitySource,
+  references?: ReferenceQueries,
 ): IracingToolServices {
   async function select(context: IracingToolContext): Promise<McpCapabilities> {
     context.signal.throwIfAborted();
@@ -133,6 +136,15 @@ export function createMcpServices(
   }
 
   return {
+    ...(references
+      ? {
+          getReferenceQueries: (context: IracingToolContext) => {
+            context.signal.throwIfAborted();
+
+            return references;
+          },
+        }
+      : {}),
     getRaceSearchQueries: async (context) => {
       // The host callback may be untyped at runtime despite its TS contract.
       const candidate: unknown = (await select(context)).raceSearchQueries;

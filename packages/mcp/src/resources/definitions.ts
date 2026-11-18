@@ -5,7 +5,10 @@ import {
   TrackCatalogPayloadSchema,
   CarClassPayloadSchema,
   CarClassCatalogPayloadSchema,
+  SeriesPayloadSchema,
+  SeriesCatalogPayloadSchema,
 } from "@iracing-data/api-schema";
+import { createResourceSchema } from "./schemas.js";
 import type { CatalogResolver, ReferenceCatalog } from "./service.js";
 import type { z } from "zod";
 
@@ -53,6 +56,18 @@ export function createReferenceResource<T>(
     description: definition.description,
     idField: definition.idField,
     resolver,
+    schemas: [
+      createResourceSchema(
+        definition.name,
+        `${definition.title} collection schema`,
+        definition.schema,
+      ),
+      createResourceSchema(
+        `${definition.name}/entity`,
+        `${definition.title} entity schema`,
+        definition.entitySchema,
+      ),
+    ],
   };
 }
 
@@ -61,7 +76,7 @@ export const CarsCatalog = {
   name: "cars",
   title: "iRacing Cars",
   description:
-    "Resolve car_id from race results to car_name and complete car metadata.",
+    "Resolve car_id to car_name and complete car metadata. Image metadata: iracing://assets/cars/{id}; available media: iracing://assets/cars/{id}/media when exposed by the host. A car's logo or sponsor branding is not necessarily a canonical manufacturer logo; clarify ambiguous manufacturer-logo requests.",
   idField: "car_id",
   schema: CarCatalogPayloadSchema,
   entitySchema: CarPayloadSchema,
@@ -73,7 +88,7 @@ export const TracksCatalog = {
   name: "tracks",
   title: "iRacing Tracks",
   description:
-    "Resolve track_id from race results to track_name, configuration and complete track metadata.",
+    "Resolve track_id to track_name, configuration and complete track metadata. When exposed by the host, asset metadata is at iracing://assets/tracks/{id}, available media at iracing://assets/tracks/{id}/media and map layers at iracing://track-maps/{track_id}/{layer}.",
   idField: "track_id",
   schema: TrackCatalogPayloadSchema,
   entitySchema: TrackPayloadSchema,
@@ -91,3 +106,15 @@ export const CarClassesCatalog = {
   entitySchema: CarClassPayloadSchema,
   id: (carClass) => carClass.car_class_id,
 } satisfies CatalogDefinition<z.infer<typeof CarClassPayloadSchema>>;
+
+/** Series metadata joins race-result identities to series branding. */
+export const SeriesCatalog = {
+  name: "series",
+  title: "iRacing Series",
+  description:
+    "Resolve series_id directly to series names and complete metadata, including upstream eligibility and license restrictions when present. This does not guarantee current-season cars, schedules or recent activity; those require separate scoped data. Do not infer identity or nonexistence from race results. Branding metadata: iracing://assets/series/{id} when exposed by the host.",
+  idField: "series_id",
+  schema: SeriesCatalogPayloadSchema,
+  entitySchema: SeriesPayloadSchema,
+  id: (series) => series.series_id,
+} satisfies CatalogDefinition<z.infer<typeof SeriesPayloadSchema>>;

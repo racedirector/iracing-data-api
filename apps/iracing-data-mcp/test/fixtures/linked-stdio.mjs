@@ -1,5 +1,5 @@
-import { createMcpServices, createStdioTransport } from "../../dist/index.js";
 import { fixtureFetch, resolveLinkedCapabilities } from "./linked-account.mjs";
+import { createMcpServices, createStdioTransport } from "./runtime.mjs";
 
 globalThis.fetch = fixtureFetch;
 createStdioTransport({

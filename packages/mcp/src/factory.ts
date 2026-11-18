@@ -1,6 +1,14 @@
 import { McpServer } from "@modelcontextprotocol/server";
+import { createServerInstructions } from "./instructions.js";
 import { registerIracingTools } from "./register.js";
+import { registerAssetResources } from "./resources/assets/index.js";
+import { registerReferenceDocuments } from "./resources/documents.js";
 import { registerReferenceResources } from "./resources/index.js";
+import type {
+  AssetCatalog,
+  ReadAssetMedia,
+} from "./resources/assets/service.js";
+import type { ReferenceDocument } from "./resources/documents.js";
 import type { ReferenceCatalog } from "./resources/service.js";
 import type { IracingToolServices } from "./services.js";
 
@@ -12,11 +20,20 @@ export interface IracingMcpServerOptions {
   /** Optional MCP SDK capabilities and instructions. */
   readonly serverOptions?: ConstructorParameters<typeof McpServer>[1];
 
-  /** Caller-owned selectors for the three supported tools. */
+  /** Caller-owned selectors for three required tools and optional reference lookup. */
   readonly services: IracingToolServices;
 
   /** Optional reference catalogs with host-owned data access. */
   readonly catalogs?: readonly ReferenceCatalog[];
+
+  /** Optional small reference documents with host-owned data access. */
+  readonly documents?: readonly ReferenceDocument[];
+
+  /** Optional static asset resources with host-owned metadata and media access. */
+  readonly assets?: {
+    readonly catalogs: readonly AssetCatalog[];
+    readonly readMedia: ReadAssetMedia;
+  };
 }
 
 /**
@@ -26,18 +43,38 @@ export interface IracingMcpServerOptions {
  * @param {IracingMcpServerOptions["serverOptions"]} root0.serverOptions - Optional SDK server settings.
  * @param {IracingToolServices} root0.services - Request-local capability selectors.
  * @param {readonly ReferenceCatalog[]} root0.catalogs - Host-owned reference catalogs.
- * @returns {McpServer} New, unconnected MCP server with three tools registered.
+ * @param {readonly ReferenceDocument[]} root0.documents - Host-owned small reference datasets.
+ * @param {IracingMcpServerOptions["assets"]} root0.assets - Host-owned asset data access.
+ * @returns {McpServer} New, unconnected server with required tools and optional reference lookup.
  */
 export function createIracingMcpServer({
   serverInfo,
   serverOptions,
   services,
   catalogs = [],
+  documents = [],
+  assets,
 }: IracingMcpServerOptions): McpServer {
-  const server = new McpServer(serverInfo, serverOptions);
+  const instructions = createServerInstructions({
+    catalogs,
+    documents,
+    assets: assets?.catalogs ?? [],
+    findReference: typeof services.getReferenceQueries === "function",
+  });
+
+  const server = new McpServer(serverInfo, {
+    ...serverOptions,
+    instructions: [instructions, serverOptions?.instructions]
+      .filter(Boolean)
+      .join("\n\n"),
+  });
 
   registerIracingTools(server, services);
   registerReferenceResources(server, catalogs);
+  registerReferenceDocuments(server, documents);
+  if (assets) {
+    registerAssetResources(server, assets.catalogs, assets.readMedia);
+  }
 
   return server;
 }

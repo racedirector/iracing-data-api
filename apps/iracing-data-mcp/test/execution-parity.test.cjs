@@ -79,7 +79,7 @@ test(
     const { Client } = await import("@modelcontextprotocol/client");
     const { StdioClientTransport } =
       await import("@modelcontextprotocol/client/stdio");
-    const { createMcpRouter } = await import("../dist/cli/router.js");
+    const { createMcpRouter } = await import("./fixtures/runtime.mjs");
     const { createMcpServices } = await import("../dist/index.js");
     const { capabilities } = await import("./fixtures/capabilities.mjs");
     for (const [mode, name, args, code] of [
@@ -116,7 +116,7 @@ test(
 );
 
 test("concurrent HTTP operations retain request correlation", async () => {
-  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpRouter } = await import("./fixtures/runtime.mjs");
   const { createMcpServices } = await import("../dist/index.js");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const requests = [];
@@ -145,7 +145,7 @@ test(
   async (t) => {
     const { once } = require("node:events");
     const { request } = require("node:http");
-    const { createHttpServer } = await import("../dist/cli/server.js");
+    const { createHttpServer } = await import("./fixtures/runtime.mjs");
     const { createMcpServices } = await import("../dist/index.js");
     const entered = Promise.withResolvers();
     const aborted = Promise.withResolvers();

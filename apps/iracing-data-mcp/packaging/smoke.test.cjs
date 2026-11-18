@@ -96,8 +96,8 @@ test(
     assert.equal("createFileCapabilities" in api, false);
     assert.equal("validateFileSession" in api, false);
     assert.equal(typeof api.createFetchQueries, "function");
-    assert.equal(typeof api.createHttpTransport, "function");
-    assert.equal(typeof api.createStdioTransport, "function");
+    assert.equal("createHttpTransport" in api, false);
+    assert.equal("createStdioTransport" in api, false);
     assert.equal(typeof api.createMcpServices, "function");
     assert.equal(typeof api.McpServices, "function");
     assert.equal(manifest.dependencies.awilix, undefined);
@@ -124,7 +124,12 @@ test(
       await client.connect(transport);
       assert.deepEqual(
         (await client.listTools()).tools.map((tool) => tool.name),
-        ["get_my_driver", "get_recent_races", "search_race_results"],
+        [
+          "get_my_driver",
+          "get_recent_races",
+          "search_race_results",
+          "find_reference",
+        ],
       );
     } finally {
       await client.close();

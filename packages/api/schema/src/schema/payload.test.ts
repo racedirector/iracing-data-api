@@ -11,6 +11,10 @@ import {
   CarPayloadSchema,
   TrackPayloadSchema,
   CarClassPayloadSchema,
+  SeriesCatalogPayloadSchema,
+  SeriesPayloadSchema,
+  ReferenceValuesPayloadSchema,
+  LicenseDefinitionsPayloadSchema,
 } from "./payload";
 import { APIResponseSchema } from "./responses";
 
@@ -27,6 +31,17 @@ it("validates downloaded catalogs without stripping additive upstream data", () 
     [
       CarClassCatalogPayloadSchema,
       [{ car_class_id: 0, name: "Hosted All Cars Class", extra: null }],
+    ],
+    [
+      SeriesCatalogPayloadSchema,
+      [
+        {
+          series_id: 17,
+          series_name: "Example",
+          allowed_licenses: [],
+          upstream_extra: true,
+        },
+      ],
     ],
   ] as const;
   for (const [schema, value] of cases) {
@@ -48,6 +63,42 @@ it("validates downloaded catalogs without stripping additive upstream data", () 
   assert.equal(
     CarClassPayloadSchema.safeParse({ car_class_id: -1, name: "Example" })
       .success,
+    false,
+  );
+});
+
+it("preserves reference sentinel values, license groups and additive metadata", () => {
+  const values = [
+    { label: "ALL", value: -1, future: true },
+    { label: "Division 1", value: 0 },
+  ];
+  assert.deepEqual(ReferenceValuesPayloadSchema.parse(values), values);
+  assert.equal(
+    ReferenceValuesPayloadSchema.safeParse([{ label: "Bad", value: "1" }])
+      .success,
+    false,
+  );
+  assert.equal(SeriesPayloadSchema.safeParse({ series_id: 17 }).success, false);
+  const licenses = [
+    {
+      license_group: 1,
+      group_name: "Example",
+      min_sr_to_fast_track: 300,
+      levels: [
+        {
+          license_id: 4,
+          license_group: 1,
+          license: "Example 4.0",
+          extra: { kept: true },
+        },
+      ],
+    },
+  ];
+  assert.deepEqual(LicenseDefinitionsPayloadSchema.parse(licenses), licenses);
+  assert.equal(
+    LicenseDefinitionsPayloadSchema.safeParse([
+      { license_group: 0, group_name: "Bad" },
+    ]).success,
     false,
   );
 });

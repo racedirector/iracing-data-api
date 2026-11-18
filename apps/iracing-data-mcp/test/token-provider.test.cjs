@@ -78,7 +78,7 @@ test("switching an injected token strategy applies equally to stdio and HTTP", a
   const { Client } = await import("@modelcontextprotocol/client");
   const { StdioClientTransport } =
     await import("@modelcontextprotocol/client/stdio");
-  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpRouter } = await import("./fixtures/runtime.mjs");
   const { createMcpServices } = await import("../dist/index.js");
   const { fixtureFetch, resolveLinkedCapabilities } =
     await import("./fixtures/linked-account.mjs");

@@ -18,10 +18,33 @@ function requestBody() {
   };
 }
 
+test("standalone router isolates overlapping protocol requests", async () => {
+  const { createMcpRouter, createMcpServices } =
+    await import("./fixtures/runtime.mjs");
+  const { capabilities } = await import("./fixtures/capabilities.mjs");
+  let selections = 0;
+  const app = createMcpRouter({
+    services: createMcpServices(() => {
+      selections++;
+      return capabilities("success");
+    }),
+  });
+  const responses = await Promise.all(
+    Array.from({ length: 8 }, () =>
+      app.request("http://localhost/mcp", requestBody()),
+    ),
+  );
+  for (const response of responses) {
+    assert.equal(response.status, 200);
+    assert.match(await response.text(), /cust_id/);
+  }
+  assert.equal(selections, 8);
+});
+
 test("public HTTP handler can be mounted at any exact path", async () => {
   const { Hono } = await import("hono");
   const { createHttpTransport, createMcpServices } =
-    await import("../dist/index.js");
+    await import("./fixtures/runtime.mjs");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   for (const path of ["/", "/mcp", "/integrations/iracing"]) {
     const handler = createHttpTransport({
@@ -40,7 +63,7 @@ test("public HTTP handler can be mounted at any exact path", async () => {
 });
 
 test("standalone router rejects nonlocal Host and Origin before selecting services", async () => {
-  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpRouter } = await import("./fixtures/runtime.mjs");
   const { createMcpServices } = await import("../dist/index.js");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   let selections = 0;
@@ -75,7 +98,7 @@ test("standalone router rejects nonlocal Host and Origin before selecting servic
 });
 
 test("standalone app serves only /mcp and returns empty 404 elsewhere", async () => {
-  const { createMcpRouter } = await import("../dist/cli/router.js");
+  const { createMcpRouter } = await import("./fixtures/runtime.mjs");
   const { createMcpServices } = await import("../dist/index.js");
   const { capabilities } = await import("./fixtures/capabilities.mjs");
   const app = createMcpRouter({
@@ -92,4 +115,41 @@ test("standalone app serves only /mcp and returns empty 404 elsewhere", async ()
       assert.equal(await response.text(), "");
     }
   }
+});
+
+test("HTTP reference lookup stays host-selected and rejects foreign origins before reading catalogs", async () => {
+  const { createMcpRouter } = await import("./fixtures/runtime.mjs");
+  const { createMcpServices } = await import("../dist/index.js");
+  const { capabilities } = await import("./fixtures/capabilities.mjs");
+  let reads = 0;
+  const app = createMcpRouter({
+    services: createMcpServices(() => capabilities("success"), {
+      list: async () => {
+        reads++;
+        return {
+          entries: [{ id: 120, name: "Selected host's series" }],
+          metadata_available: false,
+          assets_available: false,
+        };
+      },
+    }),
+  });
+  const init = requestBody();
+  init.body = JSON.stringify({
+    jsonrpc: "2.0",
+    id: 1,
+    method: "tools/call",
+    params: {
+      name: "find_reference",
+      arguments: { kind: "series", query: "120" },
+    },
+  });
+  init.headers.origin = "https://attacker.example";
+  assert.equal((await app.request("http://localhost/mcp", init)).status, 403);
+  assert.equal(reads, 0);
+  delete init.headers.origin;
+  const response = await app.request("http://localhost/mcp", init);
+  assert.equal(response.status, 200);
+  assert.match(await response.text(), /Selected host's series/);
+  assert.equal(reads, 1);
 });

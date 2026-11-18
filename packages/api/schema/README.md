@@ -20,8 +20,9 @@ Use the schemas directly for runtime validation or feed them into helpers like `
 
 ## Downloaded JSON payloads
 
-[`src/schema/payload.ts`](src/schema/payload.ts) owns downloaded car, track and
-car-class catalogs, plus car/track/series asset documents. These are separate
+[`src/schema/payload.ts`](src/schema/payload.ts) owns downloaded car, track,
+car-class and series catalogs, labeled reference values, license definitions,
+plus car/track/series asset documents. These are separate
 from the `/data` endpoint's `APIResponseSchema` (`link` and `expires`).
 
 Exports use `*PayloadSchema` for Zod schemas and `*Payload` for inferred types

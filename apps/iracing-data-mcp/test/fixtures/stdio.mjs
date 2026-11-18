@@ -1,5 +1,5 @@
-import { createMcpServices, createStdioTransport } from "../../dist/index.js";
 import { capabilities } from "./capabilities.mjs";
+import { createMcpServices, createStdioTransport } from "./runtime.mjs";
 
 createStdioTransport({
   serveOptions: {},

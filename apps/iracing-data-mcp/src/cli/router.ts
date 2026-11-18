@@ -1,18 +1,21 @@
 import {
+  createMcpHandler,
   hostHeaderValidationResponse,
   localhostAllowedHostnames,
   localhostAllowedOrigins,
   originValidationResponse,
 } from "@modelcontextprotocol/server";
 import { Hono } from "hono";
-import { createHttpTransport } from "../transports/http/index.js";
-import type { IracingMcpServerOptions } from "@iracing-data/mcp";
+import type { McpServer } from "@modelcontextprotocol/server";
 
 /** Dependencies selected by the standalone host. */
-export type McpRouterOptions = Pick<
-  IracingMcpServerOptions,
-  "services" | "catalogs"
->;
+export interface McpRouterOptions {
+  /**
+   * Create a separate server per connection while retaining host-owned services.
+   * @returns {McpServer} An unconnected server for this connection.
+   */
+  server: () => McpServer;
+}
 
 /**
  * Mount the standalone application's MCP endpoint; embedding hosts choose their own path.
@@ -22,10 +25,8 @@ export type McpRouterOptions = Pick<
 export function createMcpRouter(options: McpRouterOptions): Hono {
   const router = new Hono();
 
-  const handler = createHttpTransport({
-    services: options.services,
-    catalogs: options.catalogs,
-    serveOptions: { maxRequestBodySize: 64 * 1024 },
+  const handler = createMcpHandler(options.server, {
+    maxRequestBodySize: 64 * 1024,
   });
 
   router.all("/mcp", (context) => {

@@ -1,7 +1,6 @@
 import { ApplicationFailure } from "@iracing-data/mcp";
 import { InMemoryStore, OAuthClient } from "@iracing-data/oauth-client";
 import { LocalAuthorizationError } from "./auth-errors.js";
-import type { AccessTokenProvider } from "./token-provider.js";
 import type {
   IRacingOAuthClientMetadataInput,
   OAuthClientOptions,
@@ -36,9 +35,7 @@ export interface CreateTokenProviderOptions
  * @returns {AccessTokenProvider} A provider for retrieving an access token.
  * @throws {TypeError} If the selected session key is blank.
  */
-export function createTokenProvider(
-  options: CreateTokenProviderOptions,
-): AccessTokenProvider {
+export function createTokenProvider(options: CreateTokenProviderOptions) {
   const { sessionKey } = options;
 
   if (!sessionKey.trim()) {

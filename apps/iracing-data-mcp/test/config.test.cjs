@@ -56,7 +56,12 @@ test("local stdio executable initializes and advertises all tools", async (t) =>
     await client.connect(transport);
     assert.deepEqual(
       (await client.listTools()).tools.map((tool) => tool.name),
-      ["get_my_driver", "get_recent_races", "search_race_results"],
+      [
+        "get_my_driver",
+        "get_recent_races",
+        "search_race_results",
+        "find_reference",
+      ],
     );
   } finally {
     await client.close();
@@ -85,7 +90,7 @@ test("explicit credential path overrides an invalid environment path", async (t)
 
   try {
     await client.connect(transport);
-    assert.equal((await client.listTools()).tools.length, 3);
+    assert.equal((await client.listTools()).tools.length, 4);
   } finally {
     await client.close();
   }
@@ -129,7 +134,7 @@ test("dotenv CLI loads environment outside the MCP executable and respects inher
     });
     try {
       await client.connect(transport);
-      assert.equal((await client.listTools()).tools.length, 3);
+      assert.equal((await client.listTools()).tools.length, 4);
       if (inherited) {
         const result = await client.callTool({
           name: "get_my_driver",
@@ -156,7 +161,8 @@ test("registration validation permits explicit access tokens without OAuth metad
     assert.equal(
       ServeOptionsSchema.safeParse({
         transport: "stdio",
-        credentials: "credentials.json",
+        credentialsFile: "credentials.json",
+        redirectUri: "http://127.0.0.1:8080/callback",
         clientId: value,
       }).success,
       false,
@@ -165,15 +171,54 @@ test("registration validation permits explicit access tokens without OAuth metad
   const config = ServeOptionsSchema.parse({
     transport: "stdio",
     clientId: "fixture",
-    credentials: "credentials.json",
+    credentialsFile: "credentials.json",
+    redirectUri: "http://127.0.0.1:8080/callback",
   });
-  assert.equal(config.clientId, "fixture");
+  assert.equal(config.clientMetadata.clientId, "fixture");
+  assert.equal(config.kind, "authorization_code");
+  const restored = ServeOptionsSchema.parse({
+    transport: "stdio",
+    credentialsFile: "credentials.json",
+    clientId: "fixture",
+    clientSecret: "synthetic-secret",
+  });
+  assert.equal(restored.clientMetadata.redirectUri, "http://127.0.0.1");
+  assert.equal(
+    ServeOptionsSchema.parse({
+      transport: "stdio",
+      credentialsFile: "credentials.json",
+      clientId: "fixture",
+      clientSecret: "synthetic-secret",
+      username: "driver",
+      password: "synthetic-password",
+    }).kind,
+    "password_limited",
+  );
+  for (const fields of [
+    { clientSecret: "raw", maskedClientSecret: "masked" },
+    { username: "driver" },
+    { redirectUri: "invalid" },
+  ]) {
+    assert.equal(
+      ServeOptionsSchema.safeParse({
+        transport: "stdio",
+        credentialsFile: "credentials.json",
+        clientId: "fixture",
+        ...fields,
+      }).success,
+      false,
+    );
+  }
   assert.deepEqual(
     ServeOptionsSchema.parse({
       transport: "stdio",
       accessToken: "synthetic-token",
     }),
-    { transport: "stdio", accessToken: "synthetic-token" },
+    {
+      transport: "stdio",
+      kind: "access_token",
+      accessToken: "synthetic-token",
+    },
   );
 });
 
