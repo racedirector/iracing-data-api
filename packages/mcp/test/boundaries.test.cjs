@@ -412,6 +412,7 @@ test("cancellation during capability selection prevents domain queries", async (
       name === "search_race_results"
         ? {
             source: "hosted",
+            cust_id: 1,
             start_range_begin: "2026-11-01T00:00:00Z",
             start_range_end: "2026-11-02T00:00:00Z",
           }
@@ -448,6 +449,7 @@ test("historical search refuses inconsistent injected chunk totals", async (t) =
   });
   const result = await f.call("search_race_results", {
     source: "hosted",
+    cust_id: 1,
     start_range_begin: "2026-11-01T00:00:00Z",
     start_range_end: "2026-11-02T00:00:00Z",
   });
@@ -478,6 +480,7 @@ test("historical search refuses oversized projected chunks", async (t) => {
   });
   const result = await f.call("search_race_results", {
     source: "hosted",
+    cust_id: 1,
     start_range_begin: "2026-11-01T00:00:00Z",
     start_range_end: "2026-11-02T00:00:00Z",
   });

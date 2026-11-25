@@ -27,7 +27,9 @@ before dependency effects, generates one correlation context, normalizes expecte
 failures and exceptions, projects output, and builds equivalent structured/JSON-text
 results. SDK-native invalid-input errors are text-only, so input parsing is
 deliberately deferred to retain the fixed sanitized `INVALID_INPUT` envelope.
-The SDK still owns protocol validation, dispatch and final output validation.
+Invalid input carries at most eight bounded `{field, reason}` diagnostics derived
+from input schema keys only. The SDK still owns protocol validation, dispatch and
+final output validation.
 
 Wire output schemas must be JSON-compatible object schemas without transforms.
 Use source schemas or domain code for normalization; the adapter presents the
@@ -137,7 +139,12 @@ are fetched by adapters without forwarded bearer credentials or redirects.
 
 Tool outputs include equivalent structured content and JSON text
 within a combined 64 KiB cap. Errors use fixed allowlisted messages,
-codes, metadata and internally generated request IDs. Tool calls are
+codes, metadata and internally generated request IDs. An `INVALID_INPUT`
+error may also carry a `details` array of at most eight `{field, reason}`
+objects; `field` is a dotted path built only from input schema keys and
+`reason` comes from a closed allowlist. Details never include a rejected
+value, raw schema message, upstream text or a signed URL, and they are
+rejected on any other error code. Tool calls are
 read-only, require the host-selected authorization, and propagate cancellation.
 Selectors receive optional internally generated `context.request` correlation
 alongside the signal and host-verified identity. Domain operations receive only
@@ -151,7 +158,15 @@ Search retrieves one upstream chunk, without row slicing. Query-scoped counts
 and `query_complete` distinguish one retrieved chunk from all matching results.
 Calls do not retain cursor state or promise a stable snapshot across searches.
 Supply an explicit season or UTC date scope; no participant or race-only filter
-is assumed. Source-specific filters are validated before selecting services.
+is assumed. Source-specific filters are validated before selecting services:
+hosted accepts `track_id`, `car_id`, `session_name`, `host_cust_id`, `league_id`
+and `league_season_id`; series accepts `season_year`, `season_quarter`,
+`series_id`, `race_week_num`, `official_only` and `event_types`; `cust_id`,
+`team_id`, `category_ids` and the start/finish ranges apply to both. Hosted
+search additionally requires one of `cust_id`, `team_id`, `host_cust_id` or
+`session_name`, as documented by the authenticated upstream notes. Rejected
+combinations fail before the capability selector runs and report the offending
+fields in `details`.
 For both sources, `SearchInput` enforces a positive explicit start/finish window
 of at most 90 days. When an end is omitted, its begin must be less than 90 days
 old and not in the future. Older historical windows need explicit ends; multi-year

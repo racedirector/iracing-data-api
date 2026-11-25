@@ -1,12 +1,18 @@
 import { z } from "zod";
 import {
   ApplicationFailure,
+  DetailReasonSchema,
   createRequestContext,
   toolError,
 } from "./diagnostics/errors.js";
 import { toolInputSchema } from "./input.js";
 import { completeResult } from "./result.js";
-import type { FailureFor, RequestContext } from "./diagnostics/errors.js";
+import type {
+  DetailReason,
+  ErrorDetail,
+  FailureFor,
+  RequestContext,
+} from "./diagnostics/errors.js";
 import type {
   IracingToolContext,
   IracingToolRegistry,
@@ -95,7 +101,9 @@ async function executeApplicationTool<
 
     throwIfCancelled(context.signal);
     if (!checked.success) {
-      throw new ApplicationFailure("INVALID_INPUT");
+      throw new ApplicationFailure("INVALID_INPUT", {
+        details: inputDetails(checked.error.issues),
+      });
     }
 
     const result = await definition.execute(checked.data, context);
@@ -129,4 +137,73 @@ function throwIfCancelled(signal: AbortSignal): void {
   if (signal.aborted) {
     throw new DOMException("Request cancelled.", "AbortError");
   }
+}
+
+const fieldSegment = /^[a-z][a-z0-9_]*$/;
+
+/** Built-in schema issue codes that identify a field without exposing messages. */
+const builtInReasons: Readonly<Record<string, DetailReason>> = Object.freeze({
+  invalid_type: "invalid_value",
+  invalid_value: "invalid_value",
+  invalid_enum_value: "invalid_value",
+  invalid_format: "invalid_format",
+  too_small: "invalid_value",
+  too_big: "invalid_value",
+});
+
+/**
+ * Project schema issues into allowlisted field diagnostics.
+ *
+ * Only sanitized issue paths and reasons declared by the owning input schema are
+ * used. Rejected values, raw schema messages, upstream text and unrecognized
+ * issue shapes never reach the error envelope. `ApplicationFailure` orders,
+ * deduplicates and bounds the retained details.
+ */
+function inputDetails(issues: readonly z.core.$ZodIssue[]): ErrorDetail[] {
+  return issues.flatMap(issueDetails);
+}
+
+function issueDetails(issue: z.core.$ZodIssue): readonly ErrorDetail[] {
+  if (issue.code === "unrecognized_keys") {
+    return issue.keys.flatMap((key) => {
+      const field = fieldPath([key]);
+
+      return field ? [{ field, reason: "unknown_field" as const }] : [];
+    });
+  }
+
+  const field = fieldPath(issue.path);
+
+  if (!field) {
+    return [];
+  }
+
+  const reason =
+    issue.code === "custom"
+      ? customReason(issue.params)
+      : builtInReasons[issue.code];
+
+  return reason ? [{ field, reason }] : [];
+}
+
+function customReason(params: unknown): DetailReason | undefined {
+  const candidate =
+    typeof params === "object" && params !== null
+      ? (params as { reason?: unknown }).reason
+      : undefined;
+
+  const parsed = DetailReasonSchema.safeParse(candidate);
+
+  return parsed.success ? parsed.data : undefined;
+}
+
+function fieldPath(path: readonly PropertyKey[]): string | undefined {
+  const field = path
+    .filter(
+      (segment): segment is string =>
+        typeof segment === "string" && fieldSegment.test(segment),
+    )
+    .join(".");
+
+  return field.length > 0 && field.length <= 64 ? field : undefined;
 }

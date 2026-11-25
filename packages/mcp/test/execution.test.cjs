@@ -99,6 +99,48 @@ test("parsed defaults, refinements and transforms run before execution exactly o
   assert.equal(executed, 1);
 });
 
+test("input diagnostics project only allowlisted schema paths and reasons", async (t) => {
+  const f = await fixture(t, {
+    inputSchema: z
+      .strictObject({ field: z.string() })
+      .superRefine((_input, context) => {
+        context.addIssue({
+          code: "custom",
+          path: ["field"],
+          message: "SECRET_SCHEMA_MESSAGE",
+          params: { reason: "invalid_value" },
+        });
+        context.addIssue({
+          code: "custom",
+          path: ["field"],
+          message: "SECRET_SCHEMA_MESSAGE",
+          params: { reason: "SECRET_REASON" },
+        });
+        context.addIssue({
+          code: "custom",
+          path: ["Bad Segment"],
+          message: "SECRET_SCHEMA_MESSAGE",
+          params: { reason: "invalid_value" },
+        });
+        context.addIssue({
+          code: "custom",
+          message: "SECRET_SCHEMA_MESSAGE",
+          params: { reason: "invalid_value" },
+        });
+      }),
+  });
+  const result = await f.call({ field: "LEAK_CANARY" });
+
+  assert.equal(result.structuredContent.error.code, "INVALID_INPUT");
+  assert.deepEqual(result.structuredContent.error.details, [
+    { field: "field", reason: "invalid_value" },
+  ]);
+  assert.doesNotMatch(
+    JSON.stringify(result),
+    /SECRET_SCHEMA_MESSAGE|SECRET_REASON|LEAK_CANARY/,
+  );
+});
+
 test("canonical output projects both representations and supplies output defaults", async (t) => {
   const f = await fixture(t, {
     outputSchema: z.object({

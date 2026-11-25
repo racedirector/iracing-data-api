@@ -95,6 +95,26 @@ const retryableFailures: FailureFor[] = [
 ];
 void retryableFailures;
 
+const invalidInputDetails: FailureFor<"INVALID_INPUT"> = {
+  code: "INVALID_INPUT",
+  details: [{ field: "track_id", reason: "unsupported_for_source" }],
+};
+void invalidInputDetails;
+
+const unknownInputReason: FailureFor<"INVALID_INPUT"> = {
+  code: "INVALID_INPUT",
+  // @ts-expect-error Details are limited to the allowlisted input reasons.
+  details: [{ field: "track_id", reason: "SECRET" }],
+};
+void unknownInputReason;
+
+const notFoundDetails: FailureFor<"NOT_FOUND"> = {
+  code: "NOT_FOUND",
+  // @ts-expect-error Input details cannot be attached to unrelated failures.
+  details: [{ field: "track_id", reason: "unsupported_for_source" }],
+};
+void notFoundDetails;
+
 // @ts-expect-error Non-retryable codes cannot promise retry metadata.
 const notFoundDelay: FailureFor = { code: "NOT_FOUND", retry_after_seconds: 5 };
 void notFoundDelay;

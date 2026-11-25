@@ -87,8 +87,11 @@ export type {
 export {
   ApplicationFailure,
   ApplicationErrorCodeSchema,
+  DetailReasonSchema,
+  ErrorDetailSchema,
   ErrorEnvelopeSchema,
   createRequestContext,
+  maximumErrorDetails,
   toolError,
   errorEnvelope,
   ProtocolFailure,
@@ -97,6 +100,8 @@ export {
 } from "./diagnostics/errors.js";
 export type {
   ApplicationErrorCode,
+  DetailReason,
+  ErrorDetail,
   RequestContext,
   FailureDomain,
 } from "./diagnostics/errors.js";
