@@ -182,14 +182,20 @@ function requireSeasonPair(
   });
 }
 
-/** Upstream accepts neither search without a date or season scope. */
+/**
+ * Upstream accepts neither search without a date or season scope. Either season
+ * field counts as a supplied season scope so an incomplete pair reports only
+ * `required_together` from {@link requireSeasonPair}, not a redundant range
+ * request for a caller who already chose a season.
+ */
 function requireDateScope(value: SearchValues, context: z.RefinementCtx): void {
   const hasRange =
     value.start_range_begin !== undefined ||
     value.finish_range_begin !== undefined;
 
   const hasSeason =
-    value.source === "series" && value.season_year !== undefined;
+    value.source === "series" &&
+    (value.season_year !== undefined || value.season_quarter !== undefined);
 
   if (hasRange || hasSeason) {
     return;

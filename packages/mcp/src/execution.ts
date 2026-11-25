@@ -101,9 +101,7 @@ async function executeApplicationTool<
 
     throwIfCancelled(context.signal);
     if (!checked.success) {
-      throw new ApplicationFailure("INVALID_INPUT", {
-        details: inputDetails(checked.error.issues),
-      });
+      throw invalidInputFailure(checked.error);
     }
 
     const result = await definition.execute(checked.data, context);
@@ -152,12 +150,32 @@ const builtInReasons: Readonly<Record<string, DetailReason>> = Object.freeze({
 });
 
 /**
+ * Build the canonical `INVALID_INPUT` failure for a rejected schema parse.
+ *
+ * Host adapters that re-validate caller input use this projection so a second
+ * parse reports the same bounded field details instead of surfacing a caller
+ * problem as an internal failure.
+ * @param {object} error - Rejected parse result carrying the schema issues.
+ * @param {readonly z.core.$ZodIssue[]} error.issues - Issues from the rejected parse.
+ * @returns {ApplicationFailure} Input failure with projected, bounded details.
+ */
+export function invalidInputFailure(error: {
+  readonly issues: readonly z.core.$ZodIssue[];
+}): ApplicationFailure {
+  return new ApplicationFailure("INVALID_INPUT", {
+    details: inputDetails(error.issues),
+  });
+}
+
+/**
  * Project schema issues into allowlisted field diagnostics.
  *
  * Only sanitized issue paths and reasons declared by the owning input schema are
- * used. Rejected values, raw schema messages, upstream text and unrecognized
- * issue shapes never reach the error envelope. `ApplicationFailure` orders,
- * deduplicates and bounds the retained details.
+ * used. `unrecognized_keys` is the exception: its field echoes the caller's own
+ * key name, which by definition is not a schema key, under the same syntax and
+ * length limits. Rejected values, raw schema messages, upstream text and
+ * unrecognized issue shapes never reach the error envelope. `ApplicationFailure`
+ * orders, deduplicates and bounds the retained details.
  */
 function inputDetails(issues: readonly z.core.$ZodIssue[]): ErrorDetail[] {
   return issues.flatMap(issueDetails);
@@ -198,12 +216,24 @@ function customReason(params: unknown): DetailReason | undefined {
 }
 
 function fieldPath(path: readonly PropertyKey[]): string | undefined {
-  const field = path
-    .filter(
-      (segment): segment is string =>
-        typeof segment === "string" && fieldSegment.test(segment),
-    )
-    .join(".");
+  const segments: string[] = [];
+
+  for (const segment of path) {
+    // Details name fields, not elements, so array indices are collapsed.
+    if (typeof segment === "number") {
+      continue;
+    }
+
+    // Reject the whole path rather than silently retargeting the surviving
+    // segments to a different field than the one the issue describes.
+    if (typeof segment !== "string" || !fieldSegment.test(segment)) {
+      return undefined;
+    }
+
+    segments.push(segment);
+  }
+
+  const field = segments.join(".");
 
   return field.length > 0 && field.length <= 64 ? field : undefined;
 }

@@ -8,6 +8,7 @@ import {
   ApplicationFailure,
   SearchInput,
   SearchRow,
+  invalidInputFailure,
   type RaceSearchInput,
   type RaceSearchQueries,
 } from "@iracing-data/mcp";
@@ -195,13 +196,20 @@ export function createRaceSearchQueries(
 
   return {
     async search(input, { signal }) {
-      const checked = SearchInput.parse(input);
+      // Re-validate at the host boundary. This parse reads the clock again, so a
+      // window that passed the execution layer can still fail here; project it as
+      // the same bounded input failure rather than an internal error.
+      const checked = SearchInput.safeParse(input);
 
-      const { source, chunk_index, ...criteria } = checked;
+      if (!checked.success) {
+        throw invalidInputFailure(checked.error);
+      }
+
+      const { source, chunk_index, ...criteria } = checked.data;
 
       signal.throwIfAborted();
       const info = resolveManifest(
-        await searchManifest(api, checked, signal),
+        await searchManifest(api, checked.data, signal),
         chunk_index,
       );
 

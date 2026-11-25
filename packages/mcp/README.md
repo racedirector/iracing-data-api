@@ -141,10 +141,12 @@ Tool outputs include equivalent structured content and JSON text
 within a combined 64 KiB cap. Errors use fixed allowlisted messages,
 codes, metadata and internally generated request IDs. An `INVALID_INPUT`
 error may also carry a `details` array of at most eight `{field, reason}`
-objects; `field` is a dotted path built only from input schema keys and
-`reason` comes from a closed allowlist. Details never include a rejected
-value, raw schema message, upstream text or a signed URL, and they are
-rejected on any other error code. Tool calls are
+objects; `reason` comes from a closed allowlist and `field` is a dotted path
+built from input schema keys. `unknown_field` is the one exception: it echoes
+the caller's own unrecognized key, which by definition is not a schema key,
+subject to the same identifier syntax and 64-character limit. Details never
+include a rejected value, raw schema message, upstream text or a signed URL,
+and they are rejected on any other error code. Tool calls are
 read-only, require the host-selected authorization, and propagate cancellation.
 Selectors receive optional internally generated `context.request` correlation
 alongside the signal and host-verified identity. Domain operations receive only

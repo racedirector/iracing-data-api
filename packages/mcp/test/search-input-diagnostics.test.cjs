@@ -173,6 +173,13 @@ test("missing scope and unpaired seasons report deterministic reasons", async (t
     { field: "season_year", reason: "required_together" },
   ]);
 
+  // Either season field counts as a supplied scope: completing the pair is the
+  // only fix, so the caller is not also told to supply a date range.
+  const quarterOnly = await f.call({ source: "series", season_quarter: 4 });
+  assert.deepEqual(details(quarterOnly), [
+    { field: "season_quarter", reason: "required_together" },
+  ]);
+
   assert.equal(f.calls.capability, 0);
 });
 
@@ -223,6 +230,20 @@ test("unknown top-level keys are reported as unknown_field", async (t) => {
   assert.deepEqual(details(result), [
     { field: "bogus_filter", reason: "unknown_field" },
   ]);
+  assert.equal(f.calls.capability, 0);
+
+  // The echoed key is the caller's own unrecognized key, so it stays subject to
+  // the identifier syntax and length limits. A key outside that shape is dropped
+  // rather than normalized into a field that was never supplied.
+  const unsafe = await f.call({
+    source: "series",
+    season_year: 2024,
+    season_quarter: 2,
+    LEAK_CANARY: 1,
+  });
+  assert.equal(unsafe.structuredContent.error.code, "INVALID_INPUT");
+  assert.deepEqual(details(unsafe), []);
+  assert.doesNotMatch(JSON.stringify(unsafe), /LEAK_CANARY/);
   assert.equal(f.calls.capability, 0);
 });
 

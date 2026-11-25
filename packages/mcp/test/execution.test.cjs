@@ -124,6 +124,18 @@ test("input diagnostics project only allowlisted schema paths and reasons", asyn
         });
         context.addIssue({
           code: "custom",
+          path: ["Bad Segment", "nested"],
+          message: "SECRET_SCHEMA_MESSAGE",
+          params: { reason: "invalid_format" },
+        });
+        context.addIssue({
+          code: "custom",
+          path: ["list", 0, "name"],
+          message: "SECRET_SCHEMA_MESSAGE",
+          params: { reason: "invalid_value" },
+        });
+        context.addIssue({
+          code: "custom",
           message: "SECRET_SCHEMA_MESSAGE",
           params: { reason: "invalid_value" },
         });
@@ -132,8 +144,11 @@ test("input diagnostics project only allowlisted schema paths and reasons", asyn
   const result = await f.call({ field: "LEAK_CANARY" });
 
   assert.equal(result.structuredContent.error.code, "INVALID_INPUT");
+  // A mixed valid/invalid segment path is rejected as a whole rather than
+  // retargeted to the surviving segment; array indices collapse.
   assert.deepEqual(result.structuredContent.error.details, [
     { field: "field", reason: "invalid_value" },
+    { field: "list.name", reason: "invalid_value" },
   ]);
   assert.doesNotMatch(
     JSON.stringify(result),

@@ -1,6 +1,12 @@
 import { z } from "zod";
-import { registerApplicationTool } from "../../src/execution.js";
-import type { FailureFor } from "../../src/diagnostics/errors.js";
+import {
+  invalidInputFailure,
+  registerApplicationTool,
+} from "../../src/execution.js";
+import type {
+  ApplicationFailure,
+  FailureFor,
+} from "../../src/diagnostics/errors.js";
 import type {
   IracingToolRegistry,
   IracingToolServices,
@@ -145,3 +151,14 @@ declare const signal: AbortSignal;
 const operationContext: OperationContext = { signal };
 // @ts-expect-error Domain operations do not receive MCP diagnostic context.
 void operationContext.request;
+
+// Host adapters re-validate caller input and must project a rejected parse as the
+// same canonical input failure rather than an internal error.
+const rejected = z.strictObject({ count: z.number() }).safeParse({
+  count: "SECRET",
+});
+
+if (!rejected.success) {
+  const projected: ApplicationFailure = invalidInputFailure(rejected.error);
+  void projected;
+}
