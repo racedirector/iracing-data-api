@@ -318,6 +318,11 @@ Filters
 are source-specific: hosted supports car, track, session name, host and league;
 series supports series, race week, event types and official-only. Both support
 customer, team and category IDs. Use `find_reference` to resolve names to IDs.
+Upstream hosted search also requires one of `cust_id`, `team_id`,
+`host_cust_id` or `session_name`; the MCP input schema rejects a hosted request
+without one. Rejected input returns `INVALID_INPUT` with bounded `details`
+entries naming the offending field and an allowlisted reason, never the rejected
+value or raw schema text.
 
 Example arguments for participant activity in The Beer League:
 

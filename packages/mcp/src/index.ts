@@ -87,16 +87,22 @@ export type {
 export {
   ApplicationFailure,
   ApplicationErrorCodeSchema,
+  DetailReasonSchema,
+  ErrorDetailSchema,
   ErrorEnvelopeSchema,
   createRequestContext,
+  maximumErrorDetails,
   toolError,
   errorEnvelope,
   ProtocolFailure,
   requestId,
   errorPolicy,
 } from "./diagnostics/errors.js";
+export { invalidInputFailure } from "./execution.js";
 export type {
   ApplicationErrorCode,
+  DetailReason,
+  ErrorDetail,
   RequestContext,
   FailureDomain,
 } from "./diagnostics/errors.js";

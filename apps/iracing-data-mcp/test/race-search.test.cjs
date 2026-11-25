@@ -157,31 +157,52 @@ test("pre-cancelled searches perform no HTTP requests", async () => {
   assert.equal(calls.length, 0);
 });
 
-test("overlong search windows and old open-ended windows fail before API or chunk requests", async () => {
-  for (const source of ["series", "hosted"]) {
-    const { queries, calls } = await fixture();
-    for (const window of [
+test("rejected search input returns bounded INVALID_INPUT details before API or chunk requests", async () => {
+  const { createRequestContext, errorEnvelope } =
+    await import("@iracing-data/mcp");
+
+  const windows = [
+    [
       {
         start_range_begin: "2019-01-01T00:00:00Z",
         start_range_end: "2026-11-17T00:00:00Z",
       },
+      "start_range_end",
+      "range_too_wide",
+    ],
+    [
       {
         finish_range_begin: "2019-01-01T00:00:00Z",
         finish_range_end: "2026-11-17T00:00:00Z",
       },
+      "finish_range_end",
+      "range_too_wide",
+    ],
+    [
       { start_range_begin: "2019-01-01T00:00:00Z" },
+      "start_range_end",
+      "missing_range",
+    ],
+  ];
+
+  for (const [window, field, reason] of windows) {
+    for (const base of [
+      { source: "hosted", cust_id: 42 },
+      { source: "series", season_year: 2026, season_quarter: 4 },
     ]) {
+      const { queries, calls } = await fixture();
       await assert.rejects(
-        queries.search({ source, ...window }, context()),
+        queries.search({ ...base, ...window }, context()),
         (error) => {
-          assert.ok(
-            error.issues.some((issue) => issue.message.includes("90 days")),
-          );
+          assert.equal(error.name, "ApplicationFailure");
+          const envelope = errorEnvelope(error, createRequestContext()).error;
+          assert.equal(envelope.code, "INVALID_INPUT");
+          assert.deepEqual(envelope.details, [{ field, reason }]);
           return true;
         },
       );
+      assert.equal(calls.length, 0);
     }
-    assert.equal(calls.length, 0);
   }
 });
 
