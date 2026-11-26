@@ -129,6 +129,11 @@ test("stores canonical documents and derived projections with verified hashes", 
     Buffer.byteLength(stored.projectionJson),
   );
   assert.equal(stored.projection.subsession_id, write.subsessionId);
+  assert.equal(stored.projection.content_hash, stored.documentHash);
+  assert.equal(stored.projection.fetched_at, stored.fetchedAt);
+  assert.equal(stored.projection.revalidate_after, stored.revalidateAfter);
+  assert.equal(stored.projection.projection_version, stored.projectionVersion);
+  assert.equal(stored.projection.oversized, stored.projectionOversized);
   assert.equal(stored.lastReadAt, null);
 
   const stats = store.stats();
