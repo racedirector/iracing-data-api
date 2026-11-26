@@ -33,15 +33,17 @@ A sanitized document was grown from `team-multiclass` until it approximated the
 largest captured document. It is explicitly synthetic: 60 teams, 3 sessions,
 874,353 canonical bytes, 57,802 projection bytes.
 
-| Step                                   | Median |    Min |    Max |
-| -------------------------------------- | -----: | -----: | -----: |
-| Parse + validate (`zod`)               | 3.1 ms | 1.7 ms | 6.7 ms |
-| Canonicalize + serialize + SHA-256     | 5.4 ms | 5.2 ms | 7.4 ms |
-| Build bounded projection               | 0.9 ms | 0.7 ms | 4.8 ms |
-| SQLite write (upsert transaction)      | 6.8 ms | 6.2 ms | 8.7 ms |
-| Fresh read (verify + parse projection) | 0.7 ms | 0.7 ms | 0.9 ms |
+| Step                                    | Median |    Min |     Max |
+| --------------------------------------- | -----: | -----: | ------: |
+| Parse + validate (`zod`)                | 2.1 ms | 1.8 ms |  2.6 ms |
+| Canonicalize + serialize + SHA-256      | 6.0 ms | 5.8 ms |  7.1 ms |
+| Build bounded projection (`zod` decode) | 1.6 ms | 1.2 ms |  9.4 ms |
+| SQLite write (upsert transaction)       | 7.0 ms | 6.6 ms | 10.2 ms |
+| Fresh read (verify + parse projection)  | 0.7 ms | 0.6 ms |  0.9 ms |
 
-Five repetitions per step, on the same process. The write path includes the
+Five repetitions per step, on the same process. The projection step decodes
+allowlisted fields through permissive zod schemas, so an invalid optional
+upstream value is omitted instead of failing an otherwise valid document. The write path includes the
 canonicalization and hashing done by the store; the read path verifies versions,
 byte counts and both hashes and parses only the small projection, not the
 canonical document.

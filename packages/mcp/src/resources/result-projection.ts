@@ -45,18 +45,58 @@ const positiveId = z.int().positive().max(Number.MAX_SAFE_INTEGER);
 
 const nonnegativeInt = z.int().nonnegative();
 
-const TrackProjectionSchema = z.strictObject({
+type ValueShape = Record<string, z.ZodType>;
+
+/**
+ * Build a permissive decoder for a strict projection shape.
+ *
+ * The payload schema is loose, so an optional upstream field may arrive as null
+ * or the wrong type. Decoding invalid values to absent keeps the rest of a valid
+ * document projectable, and `z.object` strips unknown keys. The strict output
+ * schema is still applied to the finished projection.
+ */
+function permissiveObject(
+  shape: ValueShape,
+): z.ZodType<Record<string, unknown>> {
+  const permissive: ValueShape = {};
+
+  for (const [key, schema] of Object.entries(shape)) {
+    permissive[key] = schema.optional().catch(undefined);
+  }
+
+  return z.object(permissive).transform((value) => {
+    const result: Record<string, unknown> = {};
+
+    for (const [key, entry] of Object.entries(value)) {
+      if (entry !== undefined) {
+        result[key] = entry;
+      }
+    }
+
+    return result;
+  });
+}
+
+const trackValueShape = {
   track_id: positiveId.optional(),
   track_name: z.string().optional(),
   config_name: z.string().optional(),
-});
+} satisfies ValueShape;
 
-const CompletedDistanceSchema = z.strictObject({
+const TrackInputSchema = permissiveObject(trackValueShape);
+
+const TrackProjectionSchema = z.strictObject(trackValueShape);
+
+const distanceValueShape = {
   event_laps_complete: z.number().optional(),
   race_summary_laps_complete: z.number().optional(),
-});
+} satisfies ValueShape;
 
-const EventProjectionSchema = z.strictObject({
+const DistanceInputSchema = permissiveObject(distanceValueShape);
+
+const CompletedDistanceSchema = z.strictObject(distanceValueShape);
+
+const eventValueShape = {
   event_type: z.int(),
   event_type_name: z.string().optional(),
   start_time: z.string().optional(),
@@ -67,7 +107,6 @@ const EventProjectionSchema = z.strictObject({
   season_id: nonnegativeInt.optional(),
   season_name: z.string().optional(),
   race_week_num: nonnegativeInt.optional(),
-  track: TrackProjectionSchema.optional(),
   num_drivers: z.int().optional(),
   event_average_lap: z.number().optional(),
   event_best_lap_time: z.number().optional(),
@@ -78,26 +117,47 @@ const EventProjectionSchema = z.strictObject({
   results_restricted: z.boolean().optional(),
   restrict_results: z.boolean().optional(),
   heat_info_id: z.int().optional(),
-  completed_distance: CompletedDistanceSchema.optional(),
   league_id: nonnegativeInt.optional(),
   league_name: z.string().optional(),
   league_season_id: nonnegativeInt.optional(),
   league_season_name: z.string().optional(),
   host_id: nonnegativeInt.optional(),
   session_name: z.string().optional(),
+} satisfies ValueShape;
+
+const EventInputSchema = permissiveObject(eventValueShape);
+
+const EventProjectionSchema = z.strictObject({
+  ...eventValueShape,
+  track: TrackProjectionSchema.optional(),
+  completed_distance: CompletedDistanceSchema.optional(),
 });
 
-const SessionIndexSchema = z.strictObject({
-  simsession_number: z.int(),
+const sessionValueShape = {
   simsession_name: z.string().optional(),
   simsession_type: z.int().optional(),
   simsession_type_name: z.string().optional(),
   simsession_subtype: z.int().optional(),
+} satisfies ValueShape;
+
+const SessionInputSchema = permissiveObject(sessionValueShape);
+
+const SessionIndexSchema = z.strictObject({
+  simsession_number: z.int(),
+  ...sessionValueShape,
   is_main_event: z.boolean(),
   entry_count: nonnegativeInt,
   driver_count: nonnegativeInt,
   class_count: nonnegativeInt,
 });
+
+const driverValueShape = {
+  cust_id: positiveId.optional(),
+  team_id: z.int().optional(),
+  display_name: z.string().optional(),
+} satisfies ValueShape;
+
+const DriverInputSchema = permissiveObject(driverValueShape);
 
 const NestedDriverProjectionSchema = z.strictObject({
   cust_id: positiveId,
@@ -105,42 +165,48 @@ const NestedDriverProjectionSchema = z.strictObject({
   display_name: z.string().optional(),
 });
 
+const entryValueShape = {
+  cust_id: positiveId.optional(),
+  team_id: z.int().optional(),
+  display_name: z.string().optional(),
+  ai: z.boolean().optional(),
+  finish_position: z.int().optional(),
+  position: z.int().optional(),
+  finish_position_in_class: z.int().optional(),
+  starting_position: z.int().optional(),
+  starting_position_in_class: z.int().optional(),
+  car_class_id: z.int().optional(),
+  car_class_name: z.string().optional(),
+  car_class_short_name: z.string().optional(),
+  car_id: z.int().optional(),
+  car_name: z.string().optional(),
+  reason_out: z.string().optional(),
+  reason_out_id: z.int().optional(),
+  laps_complete: z.int().optional(),
+  laps_lead: z.int().optional(),
+  opt_laps_complete: z.int().optional(),
+  incidents: z.int().optional(),
+  interval: z.int().optional(),
+  class_interval: z.int().optional(),
+  average_lap: z.number().optional(),
+  best_lap_num: z.int().optional(),
+  best_lap_time: z.number().optional(),
+  qual_lap_time: z.number().optional(),
+  champ_points: z.number().optional(),
+  aggregate_champ_points: z.number().optional(),
+  league_points: z.number().optional(),
+  league_agg_points: z.number().optional(),
+  drop_race: z.boolean().optional(),
+  division: z.int().optional(),
+  division_name: z.string().optional(),
+} satisfies ValueShape;
+
+const EntryInputSchema = permissiveObject(entryValueShape);
+
 const EntryProjectionSchema = z
   .strictObject({
     attribution: z.enum(["team", "individual"]),
-    cust_id: positiveId.optional(),
-    team_id: z.int().optional(),
-    display_name: z.string().optional(),
-    ai: z.boolean().optional(),
-    finish_position: z.int().optional(),
-    position: z.int().optional(),
-    finish_position_in_class: z.int().optional(),
-    starting_position: z.int().optional(),
-    starting_position_in_class: z.int().optional(),
-    car_class_id: z.int().optional(),
-    car_class_name: z.string().optional(),
-    car_class_short_name: z.string().optional(),
-    car_id: z.int().optional(),
-    car_name: z.string().optional(),
-    reason_out: z.string().optional(),
-    reason_out_id: z.int().optional(),
-    laps_complete: z.int().optional(),
-    laps_lead: z.int().optional(),
-    opt_laps_complete: z.int().optional(),
-    incidents: z.int().optional(),
-    interval: z.int().optional(),
-    class_interval: z.int().optional(),
-    average_lap: z.number().optional(),
-    best_lap_num: z.int().optional(),
-    best_lap_time: z.number().optional(),
-    qual_lap_time: z.number().optional(),
-    champ_points: z.number().optional(),
-    aggregate_champ_points: z.number().optional(),
-    league_points: z.number().optional(),
-    league_agg_points: z.number().optional(),
-    drop_race: z.boolean().optional(),
-    division: z.int().optional(),
-    division_name: z.string().optional(),
+    ...entryValueShape,
     drivers: z.array(NestedDriverProjectionSchema).optional(),
   })
   .meta({
@@ -148,12 +214,23 @@ const EntryProjectionSchema = z
       "Allowlisted participant row. Team rows nest identity-only drivers; positions and status remain upstream values.",
   });
 
+const classValueShape = {
+  car_class_id: z.int().optional(),
+  car_class_name: z.string().optional(),
+  car_class_short_name: z.string().optional(),
+} satisfies ValueShape;
+
+const ClassInputSchema = permissiveObject(classValueShape);
+
+const ClassSummarySchema = z.strictObject({
+  ...classValueShape,
+  entry_count: nonnegativeInt,
+  driver_count: nonnegativeInt,
+});
+
 const mainEventBaseShape = {
   simsession_number: z.literal(0),
-  simsession_name: z.string().optional(),
-  simsession_type: z.int().optional(),
-  simsession_type_name: z.string().optional(),
-  simsession_subtype: z.int().optional(),
+  ...sessionValueShape,
   is_main_event: z.literal(true),
   entry_count: nonnegativeInt,
   driver_count: nonnegativeInt,
@@ -163,14 +240,6 @@ const mainEventBaseShape = {
 const MainEventProjectionSchema = z.strictObject({
   ...mainEventBaseShape,
   results: z.array(EntryProjectionSchema),
-});
-
-const ClassSummarySchema = z.strictObject({
-  car_class_id: z.int().optional(),
-  car_class_name: z.string().optional(),
-  car_class_short_name: z.string().optional(),
-  entry_count: nonnegativeInt,
-  driver_count: nonnegativeInt,
 });
 
 const MainEventSummarySchema = z.strictObject({
@@ -247,42 +316,6 @@ export function measureUtf8Bytes(text: string): number {
   return new TextEncoder().encode(text).byteLength;
 }
 
-const entryFields = [
-  "cust_id",
-  "team_id",
-  "display_name",
-  "ai",
-  "finish_position",
-  "position",
-  "finish_position_in_class",
-  "starting_position",
-  "starting_position_in_class",
-  "car_class_id",
-  "car_class_name",
-  "car_class_short_name",
-  "car_id",
-  "car_name",
-  "reason_out",
-  "reason_out_id",
-  "laps_complete",
-  "laps_lead",
-  "opt_laps_complete",
-  "incidents",
-  "interval",
-  "class_interval",
-  "average_lap",
-  "best_lap_num",
-  "best_lap_time",
-  "qual_lap_time",
-  "champ_points",
-  "aggregate_champ_points",
-  "league_points",
-  "league_agg_points",
-  "drop_race",
-  "division",
-  "division_name",
-] as const;
-
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -305,25 +338,32 @@ function nestedDrivers(entry: RaceResultEntryPayload): unknown[] {
   return Array.isArray(value) ? value : [];
 }
 
+function addParticipantIds(
+  entry: RaceResultEntryPayload,
+  ids: Set<number>,
+): void {
+  const row = entry as Record<string, unknown>;
+
+  if (typeof row.cust_id === "number" && row.cust_id > 0) {
+    ids.add(row.cust_id);
+  }
+
+  for (const driver of nestedDrivers(entry)) {
+    if (
+      isRecord(driver) &&
+      typeof driver.cust_id === "number" &&
+      driver.cust_id > 0
+    ) {
+      ids.add(driver.cust_id);
+    }
+  }
+}
+
 function participantIds(session: RaceResultSimsessionPayload): Set<number> {
   const ids = new Set<number>();
 
   for (const entry of session.results) {
-    const row = entry as Record<string, unknown>;
-
-    if (typeof row.cust_id === "number" && row.cust_id > 0) {
-      ids.add(row.cust_id);
-    }
-
-    for (const driver of nestedDrivers(entry)) {
-      if (
-        isRecord(driver) &&
-        typeof driver.cust_id === "number" &&
-        driver.cust_id > 0
-      ) {
-        ids.add(driver.cust_id);
-      }
-    }
+    addParticipantIds(entry, ids);
   }
 
   return ids;
@@ -343,7 +383,7 @@ function classCount(session: RaceResultSimsessionPayload): number {
   return classes.size;
 }
 
-function projectEntry(entry: RaceResultEntryPayload): unknown {
+function projectEntry(entry: RaceResultEntryPayload): Record<string, unknown> {
   const row = entry as Record<string, unknown>;
 
   const drivers = nestedDrivers(entry);
@@ -353,38 +393,28 @@ function projectEntry(entry: RaceResultEntryPayload): unknown {
   const attribution =
     teamId !== undefined && drivers.length > 0 ? "team" : "individual";
 
-  const projected: Record<string, unknown> = { attribution };
-
-  for (const field of entryFields) {
-    if (row[field] !== undefined) {
-      projected[field] = row[field];
-    }
-  }
+  const projected: Record<string, unknown> = {
+    attribution,
+    ...EntryInputSchema.parse(row),
+  };
 
   if (attribution === "team") {
-    projected.drivers = drivers.map((driver) => {
-      const nested = isRecord(driver) ? driver : {};
+    projected.drivers = drivers.flatMap((driver) => {
+      const parsed = DriverInputSchema.safeParse(
+        isRecord(driver) ? driver : {},
+      );
 
-      return defined({
-        cust_id: nested.cust_id,
-        team_id: nested.team_id,
-        display_name: nested.display_name,
-      });
+      return parsed.success && parsed.data.cust_id !== undefined
+        ? [parsed.data]
+        : [];
     });
   }
 
-  return defined(projected);
+  return projected;
 }
 
 function sessionMetadata(session: RaceResultSimsessionPayload) {
-  const source = session as Record<string, unknown>;
-
-  return defined({
-    simsession_name: source.simsession_name,
-    simsession_type: source.simsession_type,
-    simsession_type_name: source.simsession_type_name,
-    simsession_subtype: source.simsession_subtype,
-  });
+  return SessionInputSchema.parse(session);
 }
 
 function projectSessionIndex(session: RaceResultSimsessionPayload) {
@@ -398,57 +428,33 @@ function projectSessionIndex(session: RaceResultSimsessionPayload) {
   });
 }
 
-function projectEvent(document: RaceResultPayload) {
+function projectEvent(document: RaceResultPayload): Record<string, unknown> {
   const source = document as Record<string, unknown>;
 
-  const track = isRecord(source.track)
-    ? defined({
-        track_id: source.track.track_id,
-        track_name: source.track.track_name,
-        config_name: source.track.config_name,
-      })
-    : undefined;
+  const event = EventInputSchema.parse(source);
+
+  if (isRecord(source.track)) {
+    const track = TrackInputSchema.parse(source.track);
+
+    if (Object.keys(track).length > 0) {
+      event.track = track;
+    }
+  }
 
   const raceSummary = isRecord(source.race_summary)
     ? source.race_summary
     : undefined;
 
-  const completedDistance = defined({
+  const completedDistance = DistanceInputSchema.parse({
     event_laps_complete: source.event_laps_complete,
     race_summary_laps_complete: raceSummary?.laps_complete,
   });
 
-  return defined({
-    event_type: document.event_type,
-    event_type_name: source.event_type_name,
-    start_time: source.start_time,
-    end_time: source.end_time,
-    official_session: source.official_session,
-    series_id: source.series_id,
-    series_name: source.series_name,
-    season_id: source.season_id,
-    season_name: source.season_name,
-    race_week_num: source.race_week_num,
-    track,
-    num_drivers: source.num_drivers,
-    event_average_lap: source.event_average_lap,
-    event_best_lap_time: source.event_best_lap_time,
-    event_strength_of_field: source.event_strength_of_field,
-    num_lead_changes: source.num_lead_changes,
-    num_cautions: source.num_cautions,
-    num_caution_laps: source.num_caution_laps,
-    results_restricted: source.results_restricted,
-    restrict_results: source.restrict_results,
-    heat_info_id: source.heat_info_id,
-    completed_distance:
-      Object.keys(completedDistance).length > 0 ? completedDistance : undefined,
-    league_id: source.league_id,
-    league_name: source.league_name,
-    league_season_id: source.league_season_id,
-    league_season_name: source.league_season_name,
-    host_id: source.host_id,
-    session_name: source.session_name,
-  });
+  if (Object.keys(completedDistance).length > 0) {
+    event.completed_distance = completedDistance;
+  }
+
+  return event;
 }
 
 function classSummaries(session: RaceResultSimsessionPayload) {
@@ -471,19 +477,21 @@ function classSummaries(session: RaceResultSimsessionPayload) {
   return [...groups.entries()].map(([carClassId, entries]) => {
     const first = entries[0] as Record<string, unknown>;
 
-    const driverCount = entries.reduce<number>((total, entry) => {
-      const nested = nestedDrivers(entry as RaceResultEntryPayload).length;
+    const ids = new Set<number>();
 
-      return total + (nested > 0 ? nested : 1);
-    }, 0);
+    for (const entry of entries) {
+      addParticipantIds(entry as RaceResultEntryPayload, ids);
+    }
 
-    return defined({
-      car_class_id: carClassId,
-      car_class_name: first.car_class_name,
-      car_class_short_name: first.car_class_short_name,
+    return {
+      ...ClassInputSchema.parse({
+        car_class_id: carClassId,
+        car_class_name: first.car_class_name,
+        car_class_short_name: first.car_class_short_name,
+      }),
       entry_count: entries.length,
-      driver_count: driverCount,
-    });
+      driver_count: ids.size,
+    };
   });
 }
 

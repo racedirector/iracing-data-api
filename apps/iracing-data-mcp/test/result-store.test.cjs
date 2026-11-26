@@ -160,6 +160,79 @@ test("canonical key order is stable and real value changes alter the hash", asyn
   );
 });
 
+test("preserves __proto__ as an own canonical JSON property", async () => {
+  const api = await modules();
+  const left = JSON.parse('{"__proto__":{"x":1},"a":1}');
+  const right = JSON.parse('{"__proto__":{"x":2},"a":1}');
+  const serialized = api.serializeCanonicalJson(left);
+
+  assert.match(serialized, /"__proto__"/);
+  assert.equal(serialized.includes("x"), true);
+  assert.notEqual(
+    api.canonicalContentHash(serialized),
+    api.canonicalContentHash(api.serializeCanonicalJson(right)),
+  );
+  assert.deepEqual(JSON.parse(serialized), JSON.parse(serialized));
+});
+
+test("rejects a projection that does not belong to the document being written", async () => {
+  const api = await modules();
+  const store = new api.ResultStore({
+    databasePath: path.join(temporaryDirectory(), "cache.sqlite"),
+  });
+  store.bindOwner(OWNER, CUST, 1);
+  const write = await recordFor(api, "individual");
+  const projection = JSON.parse(write.projectionJson);
+  const mutations = [
+    ["fetched_at", projection.fetched_at + 1],
+    ["revalidate_after", projection.revalidate_after + 1],
+    ["content_hash", `sha256:${"b".repeat(64)}`],
+    ["oversized", !projection.oversized],
+    ["projection_version", 2],
+  ];
+
+  for (const [field, value] of mutations) {
+    assert.throws(
+      () =>
+        store.write({
+          ...write,
+          projectionJson: JSON.stringify({
+            ...projection,
+            [field]: value,
+          }),
+        }),
+      (error) => error.code === "DATA_RESOLUTION_FAILED",
+      `${field} mismatch should be rejected`,
+    );
+  }
+
+  assert.equal(store.stats().documents, 0);
+  store.write(write);
+  assert.equal(store.stats().documents, 1);
+  store.close();
+});
+
+test("enforces one owner binding across separate store instances", async () => {
+  const api = await modules();
+  const databasePath = path.join(temporaryDirectory(), "cache.sqlite");
+  const first = new api.ResultStore({ databasePath });
+  first.bindOwner(OWNER, CUST, 1);
+  first.close();
+
+  const second = new api.ResultStore({ databasePath });
+  assert.throws(
+    () => second.bindOwner("other-owner", CUST + 1, 2),
+    (error) => error.code === "CONFIGURATION_ERROR",
+  );
+  second.bindOwner(OWNER, CUST, 3);
+  assert.deepEqual(second.readOwnerBinding(), {
+    ownerScope: OWNER,
+    custId: CUST,
+    boundAt: 1,
+  });
+  second.close();
+});
+
 test("reuses stored projections across close and reopen without upstream work", async () => {
   const api = await modules();
   const databasePath = path.join(temporaryDirectory(), "cache.sqlite");
@@ -353,8 +426,13 @@ test("creates owner-only directories and files", async () => {
   store.bindOwner(OWNER, CUST, 1);
   store.close();
 
-  assert.equal(statSync(path.dirname(databasePath)).mode & 0o777, 0o700);
-  assert.equal(statSync(databasePath).mode & 0o777, 0o600);
+  if (process.platform === "win32") {
+    assert.ok(statSync(path.dirname(databasePath)).isDirectory());
+    assert.ok(statSync(databasePath).isFile());
+  } else {
+    assert.equal(statSync(path.dirname(databasePath)).mode & 0o777, 0o700);
+    assert.equal(statSync(databasePath).mode & 0o777, 0o600);
+  }
 });
 
 test("stats report document and projection bytes separately", async () => {

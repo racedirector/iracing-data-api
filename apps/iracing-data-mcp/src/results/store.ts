@@ -252,7 +252,8 @@ interface StoredRow {
 
 const schemaSql = `
 CREATE TABLE owner_binding (
-  owner_scope TEXT PRIMARY KEY NOT NULL,
+  singleton INTEGER PRIMARY KEY CHECK (singleton = 1),
+  owner_scope TEXT NOT NULL UNIQUE,
   cust_id INTEGER NOT NULL,
   bound_at INTEGER NOT NULL
 );
@@ -381,6 +382,30 @@ function assertOwnerOnlyPath(databasePath: string): void {
   chmodSync(databasePath, 0o600);
 }
 
+/**
+ * Roll back a transaction if one is still active.
+ *
+ * @param {DatabaseSync} database - Open database handle.
+ * @returns {boolean} True when the handle remains usable; false when it was closed.
+ */
+function rollbackSafely(database: DatabaseSync): boolean {
+  try {
+    if (database.isTransaction) {
+      database.exec("ROLLBACK");
+    }
+
+    return true;
+  } catch {
+    try {
+      database.close();
+    } catch {
+      // The original failure is more useful than a secondary close error.
+    }
+
+    return false;
+  }
+}
+
 function parseJson(text: string): unknown {
   try {
     return JSON.parse(text);
@@ -454,10 +479,27 @@ function canonicalWrite(write: RaceResultWrite): CanonicalWrite {
     );
   }
 
+  const documentHash = canonicalContentHash(documentJson);
+
+  const projectionRecord = projection as Record<string, unknown>;
+
+  if (
+    projectionRecord.projection_version !== RACE_RESULT_PROJECTION_VERSION ||
+    projectionRecord.content_hash !== documentHash ||
+    projectionRecord.fetched_at !== write.fetchedAt ||
+    projectionRecord.revalidate_after !== write.revalidateAfter ||
+    projectionRecord.oversized !== write.projectionOversized
+  ) {
+    throw new ResultStoreError(
+      "DATA_RESOLUTION_FAILED",
+      "Result projection does not belong to the document being stored.",
+    );
+  }
+
   return {
     documentJson,
     documentBytes,
-    documentHash: canonicalContentHash(documentJson),
+    documentHash,
     projectionJson,
     projectionBytes,
     projectionHash: canonicalContentHash(projectionJson),
@@ -597,49 +639,62 @@ export class ResultStore {
 
       return database;
     } catch (error) {
-      database.close();
+      try {
+        database.close();
+      } catch {
+        // Preserve the original open failure.
+      }
+
       throw error;
     }
   }
 
   #migrate(database: DatabaseSync): void {
-    const version = (
-      database.prepare("PRAGMA user_version").get() as { user_version: number }
-    ).user_version;
-
-    if (version > RESULT_STORE_SCHEMA_VERSION) {
-      throw new ResultStoreError(
-        "CONFIGURATION_ERROR",
-        "Result store schema is newer than this host supports.",
-      );
-    }
-
-    if (version === RESULT_STORE_SCHEMA_VERSION) {
-      return;
-    }
-
-    const existing = database
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
-      )
-      .all() as { name: string }[];
-
-    if (existing.length > 0) {
-      throw new ResultStoreError(
-        "CONFIGURATION_ERROR",
-        "Unrecognized result store schema at version zero.",
-      );
-    }
-
     database.exec("BEGIN IMMEDIATE");
+
     try {
+      // Both schema checks run under the write lock so two connections cannot
+      // both observe version zero and race their CREATE TABLE statements.
+      const version = (
+        database.prepare("PRAGMA user_version").get() as {
+          user_version: number;
+        }
+      ).user_version;
+
+      if (version > RESULT_STORE_SCHEMA_VERSION) {
+        throw new ResultStoreError(
+          "CONFIGURATION_ERROR",
+          "Result store schema is newer than this host supports.",
+        );
+      }
+
+      if (version === RESULT_STORE_SCHEMA_VERSION) {
+        database.exec("COMMIT");
+
+        return;
+      }
+
+      const existing = database
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'",
+        )
+        .all() as { name: string }[];
+
+      if (existing.length > 0) {
+        throw new ResultStoreError(
+          "CONFIGURATION_ERROR",
+          "Unrecognized result store schema at version zero.",
+        );
+      }
+
       database.exec(schemaSql);
       database.exec(
         `PRAGMA user_version = ${String(RESULT_STORE_SCHEMA_VERSION)}`,
       );
       database.exec("COMMIT");
     } catch (error) {
-      database.exec("ROLLBACK");
+      rollbackSafely(database);
+
       throw error;
     }
   }
@@ -662,26 +717,42 @@ export class ResultStore {
 
     const database = this.#open();
 
-    const existing = database
-      .prepare("SELECT owner_scope, cust_id FROM owner_binding LIMIT 1")
-      .get() as { owner_scope: string; cust_id: number } | undefined;
+    database.exec("BEGIN IMMEDIATE");
 
-    if (existing) {
-      if (existing.owner_scope !== ownerScope || existing.cust_id !== custId) {
-        throw new ResultStoreError(
-          "CONFIGURATION_ERROR",
-          "Result store is bound to a different upstream identity.",
-        );
+    try {
+      const existing = database
+        .prepare("SELECT owner_scope, cust_id FROM owner_binding LIMIT 1")
+        .get() as { owner_scope: string; cust_id: number } | undefined;
+
+      if (existing) {
+        if (
+          existing.owner_scope !== ownerScope ||
+          existing.cust_id !== custId
+        ) {
+          throw new ResultStoreError(
+            "CONFIGURATION_ERROR",
+            "Result store is bound to a different upstream identity.",
+          );
+        }
+
+        database.exec("COMMIT");
+
+        return;
       }
 
-      return;
-    }
+      database
+        .prepare(
+          "INSERT INTO owner_binding (singleton, owner_scope, cust_id, bound_at) VALUES (1, ?, ?, ?)",
+        )
+        .run(ownerScope, custId, boundAt);
+      database.exec("COMMIT");
+    } catch (error) {
+      if (!rollbackSafely(database)) {
+        this.#database = null;
+      }
 
-    database
-      .prepare(
-        "INSERT INTO owner_binding (owner_scope, cust_id, bound_at) VALUES (?, ?, ?)",
-      )
-      .run(ownerScope, custId, boundAt);
+      throw error;
+    }
   }
 
   /**
@@ -752,7 +823,10 @@ export class ResultStore {
         );
       database.exec("COMMIT");
     } catch (error) {
-      database.exec("ROLLBACK");
+      if (!rollbackSafely(database)) {
+        this.#database = null;
+      }
+
       throw error;
     }
   }

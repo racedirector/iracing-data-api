@@ -521,11 +521,28 @@ const RaceResultIndividualPayloadSchema = z
       description: "iRacing customer identifier of the individual participant.",
     }),
   })
+  .superRefine((row, ctx) => {
+    if (row.team_id !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["team_id"],
+        message: "Individual entries must not supply team_id",
+      });
+    }
+
+    if (row.driver_results !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["driver_results"],
+        message: "Individual entries must not supply driver_results",
+      });
+    }
+  })
   .meta({
     id: "raceResultIndividualPayload",
     title: "iRacing individual race-result entry",
     description:
-      "Individual entry in a race result. Unknown upstream fields are retained.",
+      "Individual entry in a race result. Team fields must use the team entry shape; unknown upstream fields are retained.",
   });
 
 /**

@@ -43,7 +43,12 @@ export function canonicalize(value: unknown): unknown {
 
   const source = value as Record<string, unknown>;
 
-  const result: Record<string, unknown> = {};
+  // Null prototype is required: assignment of "__proto__" on a plain object
+  // invokes the inherited setter and silently drops an own JSON property.
+  const result: Record<string, unknown> = Object.create(null) as Record<
+    string,
+    unknown
+  >;
 
   for (const key of Object.keys(source).sort()) {
     if (source[key] !== undefined) {

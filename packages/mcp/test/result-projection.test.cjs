@@ -237,3 +237,59 @@ test("the final validator rejects non-allowlisted fields", async () => {
     }),
   );
 });
+
+test("omits invalid optional fields instead of failing the whole projection", async () => {
+  const { createRaceResultProjection } = await api();
+  const { RaceResultPayloadSchema } = await schema();
+  const document = RaceResultPayloadSchema.parse(load("individual"));
+  const main = document.session_results.find(
+    (session) => session.simsession_number === 0,
+  );
+  const row = main.results[0];
+  row.display_name = null;
+  row.finish_position = "0";
+  row.laps_lead = 0;
+  row.car_id = 12.5;
+  document.num_cautions = "4";
+  document.track.track_id = "331";
+  if (row.driver_results) {
+    row.driver_results[0].display_name = 42;
+  }
+
+  const { projection } = createRaceResultProjection(document, provenance);
+  const projected = projection.main_event.results[0];
+
+  assert.equal("display_name" in projected, false);
+  assert.equal("finish_position" in projected, false);
+  assert.equal("car_id" in projected, false);
+  assert.equal(projected.laps_lead, 0);
+  assert.equal("num_cautions" in projection.event, false);
+  assert.equal("track_id" in projection.event.track, false);
+  assert.equal(projection.event.track.track_name, document.track.track_name);
+});
+
+test("class driver counts use distinct customer ids like the main event", async () => {
+  const { createRaceResultProjection, RACE_RESULT_RESOURCE_BYTE_LIMIT } =
+    await api();
+  const { RaceResultPayloadSchema } = await schema();
+  const document = RaceResultPayloadSchema.parse(load("individual"));
+  const main = document.session_results.find(
+    (session) => session.simsession_number === 0,
+  );
+  const template = main.results[0];
+  main.results = Array.from({ length: 400 }, () => ({
+    ...structuredClone(template),
+    cust_id: 900001,
+    display_name: `Synthetic Driver ${"x".repeat(150)}`,
+  }));
+
+  const { projection } = createRaceResultProjection(document, provenance);
+
+  assert.equal(projection.oversized, true);
+  assert.ok(projection.full_projection_bytes > RACE_RESULT_RESOURCE_BYTE_LIMIT);
+  assert.equal(projection.main_event.entry_count, 400);
+  assert.equal(projection.main_event.driver_count, 1);
+  assert.equal(projection.main_event.class_summaries.length, 1);
+  assert.equal(projection.main_event.class_summaries[0].entry_count, 400);
+  assert.equal(projection.main_event.class_summaries[0].driver_count, 1);
+});

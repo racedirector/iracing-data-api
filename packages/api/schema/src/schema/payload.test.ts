@@ -309,6 +309,15 @@ it("requires only the race-result protocol essentials", () => {
       session_results: [
         {
           simsession_number: 0,
+          results: [{ cust_id: 900005, team_id: -1, driver_results: [] }],
+        },
+      ],
+    },
+    {
+      ...raceResult(),
+      session_results: [
+        {
+          simsession_number: 0,
           results: [{ team_id: -1, driver_results: [{ cust_id: 0 }] }],
         },
       ],
