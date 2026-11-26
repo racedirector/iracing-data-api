@@ -13,8 +13,8 @@ import { createReferenceCatalogs } from "../../../adapters/catalog.js";
 import { createFetchQueries } from "../../../adapters/fetch.js";
 import { createAssetMediaReader } from "../../../adapters/media.js";
 import { createReferenceDocuments } from "../../../adapters/reference-documents.js";
+import { createStaticCacheRefresh } from "../../../adapters/static-cache-refresh.js";
 import { createMcpServices } from "../../../composition.js";
-import { registerStaticCacheRefresh } from "../../../refresh/index.js";
 import { createHttpListener } from "../../http.js";
 import * as commandOptions from "./options.js";
 import { ServeOptionsSchema } from "./schema.js";
@@ -127,6 +127,9 @@ function createMcpServer({
   const services = createMcpServices(
     createFetchQueries(tokenResolver),
     createCatalogReferenceQueries(catalogs, assetCatalogs),
+    staticCacheRefresh
+      ? createStaticCacheRefresh(catalogs, assetCatalogs)
+      : undefined,
   );
 
   const documents = createReferenceDocuments(outputDirectory, tokenResolver);
@@ -142,10 +145,6 @@ function createMcpServer({
       },
       serverInfo: { name: "iracing-data-mcp", version: "0.0.0" },
     });
-
-    if (staticCacheRefresh) {
-      registerStaticCacheRefresh(server, catalogs, assetCatalogs);
-    }
 
     return server;
   };

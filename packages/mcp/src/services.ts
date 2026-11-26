@@ -2,6 +2,7 @@ import type { RequestContext } from "./diagnostics/errors.js";
 import type { ReferenceQueries } from "./tools/find-reference/service.js";
 import type { DriverQueries } from "./tools/get-my-driver/service.js";
 import type { RecentRaceQueries } from "./tools/get-recent-races/service.js";
+import type { StaticCacheRefresh } from "./tools/refresh-static-cache/service.js";
 import type { RaceSearchQueries } from "./tools/search-race-results/service.js";
 import type { McpServer, AuthInfo } from "@modelcontextprotocol/server";
 
@@ -22,6 +23,15 @@ export interface IracingToolContext {
 
 /** The host selects independently implemented capabilities for each request. */
 export interface IracingToolServices {
+  /**
+   * Optional selector; refresh_static_cache is advertised only when supplied.
+   * @param {IracingToolContext} context - Caller cancellation and host context.
+   * @returns {StaticCacheRefresh | Promise<StaticCacheRefresh>} Host-owned snapshot maintenance.
+   */
+  getStaticCacheRefresh?(
+    context: IracingToolContext,
+  ): StaticCacheRefresh | Promise<StaticCacheRefresh>;
+
   /**
    * Optional explicit selector; find_reference is advertised only when supplied.
    * @param {IracingToolContext} context - Cancellation and host-selected request context.

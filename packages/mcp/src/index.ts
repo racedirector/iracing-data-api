@@ -1,4 +1,9 @@
 export { createIracingMcpServer } from "./factory.js";
+export {
+  RefreshInput,
+  RefreshOutput,
+} from "./tools/refresh-static-cache/schema.js";
+export type { StaticCacheRefresh } from "./tools/refresh-static-cache/service.js";
 export { createCatalogReferenceQueries } from "./resources/reference-queries.js";
 export {
   FindReferenceInput,

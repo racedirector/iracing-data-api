@@ -9,10 +9,18 @@ credential-free, client-agnostic and provides three required tools:
 - `search_race_results`: explicit series or hosted/league participation search
   through `RaceSearchQueries`, for any supplied driver/team or search criteria.
 
-An optional fourth tool, `find_reference`, resolves car, track, series and
+An optional tool, `find_reference`, resolves car, track, series and
 car-class names/IDs through injected `ReferenceQueries`. It is advertised only
 when `services.getReferenceQueries` is supplied; existing three-selector hosts
 remain valid. The default runtime supplies this reference capability.
+
+Hosts can also opt into `refresh_static_cache` by supplying
+`services.getStaticCacheRefresh`. Its `StaticCacheRefresh` capability replaces
+one explicitly selected static dataset and returns an entry count (or `null`
+when unavailable). The core owns validation, summary projection and safe MCP
+results; the host owns loading, persistence and last-good retention. The reference
+runtime injects this capability for local stdio only. A shared replacement may
+finish after caller cancellation.
 
 Tools register explicitly through the package-internal
 [`registerApplicationTool`](src/execution.ts) adapter onto the MCP SDK.

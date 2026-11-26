@@ -6,6 +6,7 @@ import type {
   RecentRaceQueries,
   RaceSearchQueries,
   ReferenceQueries,
+  StaticCacheRefresh,
 } from "@iracing-data/mcp";
 
 /** Principal verified by the HTTP host or fixed for local stdio. */
@@ -118,11 +119,13 @@ export type McpCapabilitySource =
  * Compose tool services from host-selected capabilities, without choosing identity.
  * @param {McpCapabilitySource} source - One owner's capabilities or host-owned request-local selection.
  * @param {ReferenceQueries} references - Optional reference access bound to this host/credential owner.
+ * @param {StaticCacheRefresh} staticCacheRefresh - Optional host-owned snapshot maintenance.
  * @returns {IracingToolServices} Explicit MCP tool services.
  */
 export function createMcpServices(
   source: McpCapabilitySource,
   references?: ReferenceQueries,
+  staticCacheRefresh?: StaticCacheRefresh,
 ): IracingToolServices {
   async function select(context: IracingToolContext): Promise<McpCapabilities> {
     context.signal.throwIfAborted();
@@ -136,6 +139,15 @@ export function createMcpServices(
   }
 
   return {
+    ...(staticCacheRefresh
+      ? {
+          getStaticCacheRefresh: (context: IracingToolContext) => {
+            context.signal.throwIfAborted();
+
+            return staticCacheRefresh;
+          },
+        }
+      : {}),
     ...(references
       ? {
           getReferenceQueries: (context: IracingToolContext) => {

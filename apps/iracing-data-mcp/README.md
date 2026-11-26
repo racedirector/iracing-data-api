@@ -202,6 +202,12 @@ Asset selectors map to the existing plural `cars-assets.json` and
 request; media bytes are not cached. No bulk refresh, arbitrary endpoints or
 dynamic-result caches are supported. HTTP registration is unchanged.
 
+The tool contract and execution boundary live in `@iracing-data/mcp`.
+`src/adapters/static-cache-refresh.ts` implements its optional `StaticCacheRefresh`
+capability against the shared live resolvers; `createMcpServices` accepts it as
+the third argument. The CLI injects it only for stdio, while embedding hosts
+explicitly choose whether to supply `getStaticCacheRefresh`.
+
 Series catalogs and reference definitions are not refresh selectors. To refetch
 those, stop the server, remove the chosen snapshot, and restart.
 
