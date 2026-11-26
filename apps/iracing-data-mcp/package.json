@@ -56,7 +56,7 @@
   },
   "devDependencies": {
     "@modelcontextprotocol/client": "2.4.0",
-    "@modelcontextprotocol/inspector": "^2.15.0",
+    "@modelcontextprotocol/inspector": "^2.16.0",
     "@types/node": "^26.6.2",
     "tsx": "^4.23.15"
   }
