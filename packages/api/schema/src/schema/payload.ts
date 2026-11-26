@@ -466,6 +466,217 @@ export const SeriesAssetsPayloadSchema = z
       "Downloaded /data/series/assets JSON object keyed by stringified series_id, not a JSON array.",
   });
 
+/**
+ * Nested team driver from a downloaded race result.
+ *
+ * Identity is required; team association is optional because some upstream
+ * events omit it. Unknown fields are retained.
+ */
+export const RaceResultDriverPayloadSchema = z
+  .looseObject({
+    cust_id: z.int().positive().max(Number.MAX_SAFE_INTEGER).meta({
+      description:
+        "iRacing customer identifier of the driver. Positive and not a measurement.",
+    }),
+    team_id: z.int().optional().meta({
+      description:
+        "Owning team identifier when supplied. Negative identifiers are valid upstream values.",
+    }),
+  })
+  .meta({
+    id: "raceResultDriverPayload",
+    title: "iRacing race-result team driver",
+    description:
+      "Nested driver inside a team race-result entry. Identity is required; additional upstream fields are retained.",
+  });
+
+/**
+ * Team race-result entry with nested drivers.
+ *
+ * Negative team identifiers are observed upstream and accepted. A team entry
+ * without drivers is malformed for this document.
+ */
+export const RaceResultTeamPayloadSchema = z
+  .looseObject({
+    team_id: z.int().meta({
+      description:
+        "Team identifier. Negative values are valid upstream team identifiers, not errors.",
+    }),
+    driver_results: z.array(RaceResultDriverPayloadSchema).min(1).meta({
+      description:
+        "Drivers who participated for this team. Nonempty for a team entry; order is upstream-provided.",
+    }),
+  })
+  .meta({
+    id: "raceResultTeamPayload",
+    title: "iRacing team race-result entry",
+    description:
+      "Team entry in a race result with at least one nested driver. Unknown upstream fields are retained.",
+  });
+
+/** Individual race-result entry. */
+const RaceResultIndividualPayloadSchema = z
+  .looseObject({
+    cust_id: z.int().positive().max(Number.MAX_SAFE_INTEGER).meta({
+      description: "iRacing customer identifier of the individual participant.",
+    }),
+  })
+  .superRefine((row, ctx) => {
+    if (row.team_id !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["team_id"],
+        message: "Individual entries must not supply team_id",
+      });
+    }
+
+    if (row.driver_results !== undefined) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["driver_results"],
+        message: "Individual entries must not supply driver_results",
+      });
+    }
+  })
+  .meta({
+    id: "raceResultIndividualPayload",
+    title: "iRacing individual race-result entry",
+    description:
+      "Individual entry in a race result. Team fields must use the team entry shape; unknown upstream fields are retained.",
+  });
+
+/**
+ * One race-result entry: either a team row with nested drivers or an individual.
+ *
+ * Team rows are matched first because they carry a negative or positive
+ * `team_id`; individual rows carry `cust_id` and no `driver_results`.
+ */
+export const RaceResultEntryPayloadSchema = z
+  .union([RaceResultTeamPayloadSchema, RaceResultIndividualPayloadSchema])
+  .meta({
+    id: "raceResultEntryPayload",
+    title: "iRacing race-result entry",
+    description:
+      "Individual or team participant row. A team row nests drivers in driver_results; unknown upstream fields are retained.",
+  });
+
+/** Track identity inside a downloaded race result. */
+export const RaceResultTrackPayloadSchema = z
+  .looseObject({
+    track_id: z.int().positive().max(Number.MAX_SAFE_INTEGER).optional().meta({
+      description:
+        "Track configuration identifier. Derived from document.track.track_id; the result root does not reliably carry a flat track_id.",
+    }),
+    track_name: z.string().optional(),
+    config_name: z.string().optional(),
+    category: z.string().optional(),
+    category_id: z.int().optional(),
+  })
+  .meta({
+    id: "raceResultTrackPayload",
+    title: "iRacing race-result track",
+    description:
+      "Track identity nested in a downloaded result document. Configuration identity requires track_id; presentation fields are optional.",
+  });
+
+/** One session in a downloaded result document. */
+export const RaceResultSimsessionPayloadSchema = z
+  .looseObject({
+    simsession_number: z.int().meta({
+      description:
+        "Session ordering. The main event is 0; practice, qualifying, heats and other sessions use negative values. Do not assume a fixed range.",
+    }),
+    simsession_name: z.string().optional().meta({
+      description:
+        "Upstream session label such as PRACTICE, HEAT 1, CONSOLATION or FEATURE. Free-form, not an enum.",
+    }),
+    simsession_type: z.int().optional().meta({
+      description:
+        "Upstream session type value. Not consistent across event kinds; do not use it to identify the main event.",
+    }),
+    simsession_type_name: z.string().optional(),
+    simsession_subtype: z.int().optional(),
+    results: z.array(RaceResultEntryPayloadSchema).meta({
+      description:
+        "Participant entries for this session. Empty arrays are structurally valid.",
+    }),
+  })
+  .meta({
+    id: "raceResultSimsessionPayload",
+    title: "iRacing result session",
+    description:
+      "One session within a downloaded result document. Session trees are event-shaped; unknown upstream fields are retained.",
+  });
+
+/**
+ * Downloaded `/results/get` document.
+ *
+ * The document is the result object itself, not the `{link, expires}` HTTP
+ * envelope. Required fields are limited to the protocol essentials observed in
+ * evidence: a root identity, an event type, and session entries with exactly one
+ * main event at zero. All other upstream fields are optional and retained.
+ */
+export const RaceResultPayloadSchema = z
+  .looseObject({
+    subsession_id: z.int().positive().max(Number.MAX_SAFE_INTEGER).meta({
+      description:
+        "Subsession identity. The document returned for a requested subsession must match it exactly.",
+    }),
+    event_type: z.int().meta({
+      description:
+        "Upstream event type (for example practice or race). Not enumerated; new values remain accepted.",
+    }),
+    event_type_name: z.string().optional(),
+    series_id: z.int().nonnegative().optional().meta({
+      description:
+        "Series identifier when supplied. Zero is the hosted/league sentinel, not a missing value.",
+    }),
+    season_id: z.int().nonnegative().optional().meta({
+      description:
+        "Season identifier when supplied. Zero is the hosted/league sentinel, not a missing value.",
+    }),
+    race_week_num: z.int().nonnegative().optional(),
+    official_session: z.boolean().optional(),
+    start_time: z.string().optional(),
+    end_time: z.string().optional(),
+    track: RaceResultTrackPayloadSchema.optional(),
+    session_results: z.array(RaceResultSimsessionPayloadSchema).min(1).meta({
+      description:
+        "Ordered upstream sessions. Exactly one entry has simsession_number 0; that is the main event, which is not necessarily a race.",
+    }),
+  })
+  .superRefine((document, ctx) => {
+    const numbers = new Set<number>();
+
+    for (let index = 0; index < document.session_results.length; index += 1) {
+      const session = document.session_results[index];
+
+      if (numbers.has(session.simsession_number)) {
+        ctx.addIssue({
+          code: "custom",
+          path: ["session_results", index, "simsession_number"],
+          message: "Duplicate simsession_number",
+        });
+      }
+
+      numbers.add(session.simsession_number);
+    }
+
+    if (!numbers.has(0)) {
+      ctx.addIssue({
+        code: "custom",
+        path: ["session_results"],
+        message: "Missing main event at simsession_number 0",
+      });
+    }
+  })
+  .meta({
+    id: "raceResultPayload",
+    title: "iRacing race result",
+    description:
+      "Downloaded /data/results/get document: complete upstream result data with sessions and participants. This is not the link/expires HTTP envelope. Required fields are protocol essentials only; unknown upstream fields are retained.",
+  });
+
 export type CarPayload = z.infer<typeof CarPayloadSchema>;
 export type SeriesPayload = z.infer<typeof SeriesPayloadSchema>;
 export type SeriesCatalogPayload = z.infer<typeof SeriesCatalogPayloadSchema>;
@@ -490,3 +701,17 @@ export type SeriesAssetPayload = z.infer<typeof SeriesAssetPayloadSchema>;
 export type CarAssetsPayload = z.infer<typeof CarAssetsPayloadSchema>;
 export type TrackAssetsPayload = z.infer<typeof TrackAssetsPayloadSchema>;
 export type SeriesAssetsPayload = z.infer<typeof SeriesAssetsPayloadSchema>;
+export type RaceResultPayload = z.infer<typeof RaceResultPayloadSchema>;
+export type RaceResultSimsessionPayload = z.infer<
+  typeof RaceResultSimsessionPayloadSchema
+>;
+export type RaceResultEntryPayload = z.infer<
+  typeof RaceResultEntryPayloadSchema
+>;
+export type RaceResultTeamPayload = z.infer<typeof RaceResultTeamPayloadSchema>;
+export type RaceResultDriverPayload = z.infer<
+  typeof RaceResultDriverPayloadSchema
+>;
+export type RaceResultTrackPayload = z.infer<
+  typeof RaceResultTrackPayloadSchema
+>;
