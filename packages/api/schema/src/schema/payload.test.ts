@@ -15,6 +15,12 @@ import {
   SeriesPayloadSchema,
   ReferenceValuesPayloadSchema,
   LicenseDefinitionsPayloadSchema,
+  RaceResultPayloadSchema,
+  RaceResultSimsessionPayloadSchema,
+  RaceResultEntryPayloadSchema,
+  RaceResultTeamPayloadSchema,
+  RaceResultDriverPayloadSchema,
+  RaceResultTrackPayloadSchema,
 } from "./payload";
 import { APIResponseSchema } from "./responses";
 
@@ -179,4 +185,193 @@ it("publishes JSON-compatible schema metadata and extensibility policies", () =>
   const trackAssets = z.toJSONSchema(TrackAssetsPayloadSchema);
   assert.match(JSON.stringify(trackAssets), /Unit: count of images/);
   assert.match(JSON.stringify(trackAssets), /"format":"uri"/);
+});
+
+const raceResult = () => ({
+  subsession_id: 42,
+  event_type: 5,
+  root_canary: { future: true },
+  session_results: [
+    {
+      simsession_number: -1,
+      simsession_name: "QUALIFY",
+      simsession_type: 4,
+      session_canary: "kept",
+      results: [
+        {
+          cust_id: 900001,
+          display_name: "Driver",
+          starting_position: -1,
+          reason_out_id: 99,
+          entry_canary: [1, 2],
+        },
+      ],
+    },
+    {
+      simsession_number: 0,
+      simsession_name: "FEATURE",
+      simsession_type: 6,
+      results: [
+        {
+          cust_id: 900002,
+          display_name: "Winner",
+          finish_position: 0,
+        },
+        {
+          team_id: -900003,
+          display_name: "Team",
+          finish_position: 1,
+          team_canary: "kept",
+          driver_results: [
+            {
+              cust_id: 900004,
+              team_id: -900003,
+              display_name: "Team Driver",
+              driver_canary: true,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+});
+
+it("validates downloaded race results without stripping additive upstream data", () => {
+  const document = raceResult();
+  assert.deepEqual(RaceResultPayloadSchema.parse(document), document);
+  assert.equal(
+    RaceResultSimsessionPayloadSchema.safeParse(document.session_results[0])
+      .success,
+    true,
+  );
+  assert.equal(
+    RaceResultEntryPayloadSchema.safeParse(
+      document.session_results[1].results[1],
+    ).success,
+    true,
+  );
+  assert.equal(
+    RaceResultTeamPayloadSchema.safeParse(
+      document.session_results[1].results[1],
+    ).success,
+    true,
+  );
+  assert.equal(
+    RaceResultDriverPayloadSchema.safeParse({
+      cust_id: 900004,
+      team_id: -900003,
+    }).success,
+    true,
+  );
+  assert.equal(
+    RaceResultTrackPayloadSchema.safeParse({
+      track_id: 331,
+      track_name: "Chili Bowl",
+      config_name: "N/A",
+    }).success,
+    true,
+  );
+});
+
+it("requires only the race-result protocol essentials", () => {
+  const invalid = [
+    { ...raceResult(), subsession_id: 0 },
+    { ...raceResult(), subsession_id: "42" },
+    { ...raceResult(), event_type: "Race" },
+    { ...raceResult(), session_results: [] },
+    { ...raceResult(), session_results: undefined },
+    {
+      ...raceResult(),
+      session_results: [
+        { simsession_number: 0, results: [] },
+        { simsession_number: 0, results: [] },
+      ],
+    },
+    {
+      ...raceResult(),
+      session_results: [{ simsession_number: -1, results: [] }],
+    },
+    {
+      ...raceResult(),
+      session_results: [{ simsession_number: 0, results: undefined }],
+    },
+    {
+      ...raceResult(),
+      session_results: [
+        {
+          simsession_number: 0,
+          results: [{ team_id: -1, driver_results: [] }],
+        },
+      ],
+    },
+    {
+      ...raceResult(),
+      session_results: [
+        {
+          simsession_number: 0,
+          results: [{ team_id: -1, driver_results: [{ cust_id: 0 }] }],
+        },
+      ],
+    },
+    {
+      ...raceResult(),
+      session_results: [{ simsession_number: 0, results: [{ cust_id: -4 }] }],
+    },
+    {
+      ...raceResult(),
+      session_results: [{ simsession_number: 0, results: [{ cust_id: 1.5 }] }],
+    },
+  ];
+  invalid.forEach((document, index) => {
+    assert.equal(
+      RaceResultPayloadSchema.safeParse(document).success,
+      false,
+      `case ${index} should fail`,
+    );
+  });
+});
+
+it("accepts negative team identifiers, sentinels and new upstream values", () => {
+  const document = raceResult();
+  const team = document.session_results[1].results[1] as unknown as {
+    team_id: number;
+  };
+  assert.ok(team.team_id < 0);
+  const practice = document.session_results[0].results[0] as unknown as {
+    starting_position: number;
+    reason_out_id: number;
+    simsession_extension?: unknown;
+  };
+  assert.equal(practice.starting_position, -1);
+  assert.equal(practice.reason_out_id, 99);
+  practice.simsession_extension = { new: true };
+  const qualify = document.session_results[0] as unknown as {
+    simsession_name: string;
+    simsession_type: number;
+  };
+  qualify.simsession_name = "ALPHABET SOUP C MAIN";
+  qualify.simsession_type = 12345;
+  assert.deepEqual(RaceResultPayloadSchema.parse(document), document);
+});
+
+it("publishes race-result schemas with extensible boundaries", () => {
+  const published = z.toJSONSchema(RaceResultPayloadSchema);
+  const serialized = JSON.stringify(published);
+  for (const id of [
+    "raceResultPayload",
+    "raceResultSimsessionPayload",
+    "raceResultTeamPayload",
+    "raceResultIndividualPayload",
+    "raceResultDriverPayload",
+    "raceResultTrackPayload",
+  ]) {
+    const definition = published.$defs?.[id];
+    assert.ok(definition, `missing definition ${id}`);
+    assert.deepEqual(definition.additionalProperties, {});
+  }
+  assert.match(serialized, /main event/);
+  assert.match(
+    serialized,
+    /Negative values are valid upstream team identifiers/,
+  );
 });

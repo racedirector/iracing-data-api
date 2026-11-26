@@ -25,6 +25,24 @@ export {
 } from "./resources/schemas.js";
 export type { ResourceSchema } from "./resources/schemas.js";
 export {
+  RACE_RESULT_PROJECTION_VERSION,
+  RACE_RESULT_RESOURCE_BYTE_LIMIT,
+  RACE_RESULT_SOURCE_PATH,
+  RaceResultProjectionSchema,
+  RaceResultProjectionUnionSchema,
+  RaceResultSummaryProjectionSchema,
+  createRaceResultProjection,
+  measureUtf8Bytes,
+  validateRaceResultProjection,
+} from "./resources/result-projection.js";
+export type {
+  RaceResultProjection,
+  RaceResultProjectionUnion,
+  RaceResultProvenance,
+  RaceResultSummaryProjection,
+  SerializedRaceResultProjection,
+} from "./resources/result-projection.js";
+export {
   ReferenceDocuments,
   createReferenceDocumentResource,
   registerReferenceDocuments,
