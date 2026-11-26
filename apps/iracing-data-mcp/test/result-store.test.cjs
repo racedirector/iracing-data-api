@@ -217,6 +217,34 @@ test("rejects a projection that does not belong to the document being written", 
   store.close();
 });
 
+test("rejects a new document paired with the previous projection", async () => {
+  const api = await modules();
+  const store = new api.ResultStore({
+    databasePath: path.join(temporaryDirectory(), "cache.sqlite"),
+  });
+  store.bindOwner(OWNER, CUST, 1);
+  const write = await recordFor(api, "individual");
+  const updated = structuredClone(fixture("individual"));
+  updated.session_results.find(
+    (session) => session.simsession_number === 0,
+  ).results[1].display_name = "Amended Result Driver";
+
+  assert.throws(
+    () =>
+      store.write({
+        ...write,
+        documentJson: JSON.stringify(updated),
+      }),
+    (error) => error.code === "DATA_RESOLUTION_FAILED",
+  );
+  assert.equal(store.stats().documents, 0);
+
+  store.write(write);
+  const stored = store.read(OWNER, write.subsessionId);
+  assert.equal(stored.projection.content_hash, stored.documentHash);
+  store.close();
+});
+
 test("enforces one owner binding across separate store instances", async () => {
   const api = await modules();
   const databasePath = path.join(temporaryDirectory(), "cache.sqlite");
