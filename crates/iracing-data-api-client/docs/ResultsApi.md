@@ -124,21 +124,21 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Parameters
 
-| Name                   | Type               | Description                                                                                                                             | Required | Notes |
-| ---------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----- |
-| **start_range_begin**  | Option<**String**> | Session start times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                              |          |
-| **start_range_end**    | Option<**String**> | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  |          |
-| **finish_range_begin** | Option<**String**> | Session finish times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                             |          |
-| **finish_range_end**   | Option<**String**> | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. |          |
-| **cust_id**            | Option<**f64**>    | The participant's customer ID. Ignored if team_id is supplied.                                                                          |          |
-| **team_id**            | Option<**f64**>    | The team ID to search for. Takes priority over cust_id if both are supplied.                                                            |          |
-| **host_cust_id**       | Option<**f64**>    | The host's customer ID.                                                                                                                 |          |
-| **session_name**       | Option<**String**> | Part or all of the session's name.                                                                                                      |          |
-| **league_id**          | Option<**f64**>    | Include only results for the league with this ID.                                                                                       |          |
-| **league_season_id**   | Option<**f64**>    | Include only results for the league season with this ID.                                                                                |          |
-| **car_id**             | Option<**f64**>    | One of the cars used by the session.                                                                                                    |          |
-| **track_id**           | Option<**f64**>    | The ID of the track used by the session.                                                                                                |          |
-| **category_ids**       | Option<**String**> | Track categories to include in the search. Defaults to all. ?category_ids=1,2,3,4                                                       |          |
+| Name                   | Type                           | Description                                                                                                                             | Required | Notes |
+| ---------------------- | ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----- |
+| **start_range_begin**  | Option<**String**>             | Session start times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                              |          |
+| **start_range_end**    | Option<**String**>             | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  |          |
+| **finish_range_begin** | Option<**String**>             | Session finish times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                             |          |
+| **finish_range_end**   | Option<**String**>             | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. |          |
+| **cust_id**            | Option<**f64**>                | The participant's customer ID. Ignored if team_id is supplied.                                                                          |          |
+| **team_id**            | Option<**f64**>                | The team ID to search for. Takes priority over cust_id if both are supplied.                                                            |          |
+| **host_cust_id**       | Option<**f64**>                | The host's customer ID.                                                                                                                 |          |
+| **session_name**       | Option<**String**>             | Part or all of the session's name.                                                                                                      |          |
+| **league_id**          | Option<**f64**>                | Include only results for the league with this ID.                                                                                       |          |
+| **league_season_id**   | Option<**f64**>                | Include only results for the league season with this ID.                                                                                |          |
+| **car_id**             | Option<**f64**>                | One of the cars used by the session.                                                                                                    |          |
+| **track_id**           | Option<**f64**>                | The ID of the track used by the session.                                                                                                |          |
+| **category_ids**       | Option<[**Vec<i32>**](i32.md)> | Track categories to include in the search. Defaults to all. ?category_ids=1,2,3,4                                                       |          |
 
 ### Return type
 
@@ -161,21 +161,21 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Parameters
 
-| Name                   | Type               | Description                                                                                                                             | Required | Notes |
-| ---------------------- | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----- |
-| **season_year**        | Option<**f64**>    | Required when using season_quarter.                                                                                                     |          |
-| **season_quarter**     | Option<**f64**>    | Required when using season_year.                                                                                                        |          |
-| **start_range_begin**  | Option<**String**> | Session start times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                              |          |
-| **start_range_end**    | Option<**String**> | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  |          |
-| **finish_range_begin** | Option<**String**> | Session finish times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                             |          |
-| **finish_range_end**   | Option<**String**> | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. |          |
-| **cust_id**            | Option<**f64**>    | Include only sessions in which this customer participated. Ignored if team_id is supplied.                                              |          |
-| **team_id**            | Option<**f64**>    | Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.                                |          |
-| **series_id**          | Option<**f64**>    | Include only sessions for series with this ID.                                                                                          |          |
-| **race_week_num**      | Option<**f64**>    | Include only sessions with this race week number.                                                                                       |          |
-| **official_only**      | Option<**bool**>   | If true, include only sessions earning championship points. Defaults to all.                                                            |          |
-| **event_types**        | Option<**String**> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5                                                         |          |
-| **category_ids**       | Option<**String**> | License categories to include in the search. Defaults to all. ?category_ids=1,2,3,4                                                     |          |
+| Name                   | Type                                                                     | Description                                                                                                                             | Required | Notes |
+| ---------------------- | ------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- | -------- | ----- |
+| **season_year**        | Option<**f64**>                                                          | Required when using season_quarter.                                                                                                     |          |
+| **season_quarter**     | Option<**f64**>                                                          | Required when using season_year.                                                                                                        |          |
+| **start_range_begin**  | Option<**String**>                                                       | Session start times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                              |          |
+| **start_range_end**    | Option<**String**>                                                       | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  |          |
+| **finish_range_begin** | Option<**String**>                                                       | Session finish times. ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\".                                                             |          |
+| **finish_range_end**   | Option<**String**>                                                       | ISO-8601 UTC time zero offset: \"2022-04-01T15:45Z\". Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. |          |
+| **cust_id**            | Option<**f64**>                                                          | Include only sessions in which this customer participated. Ignored if team_id is supplied.                                              |          |
+| **team_id**            | Option<**f64**>                                                          | Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.                                |          |
+| **series_id**          | Option<**f64**>                                                          | Include only sessions for series with this ID.                                                                                          |          |
+| **race_week_num**      | Option<**f64**>                                                          | Include only sessions with this race week number.                                                                                       |          |
+| **official_only**      | Option<**bool**>                                                         | If true, include only sessions earning championship points. Defaults to all.                                                            |          |
+| **event_types**        | Option<[**Vec<models::IracingEventType>**](models::IracingEventType.md)> | Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5                                                         |          |
+| **category_ids**       | Option<[**Vec<i32>**](i32.md)>                                           | License categories to include in the search. Defaults to all. ?category_ids=1,2,3,4                                                     |          |
 
 ### Return type
 

@@ -72,20 +72,20 @@ All URIs are relative to *https://members-ng.iracing.com*
 
 ### Parameters
 
-| Name                       | Type               | Description                                                                                                  | Required | Notes |
-| -------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------ | -------- | ----- |
-| **search**                 | Option<**String**> | Will search against league name, description, owner, and league ID.                                          |          |
-| **tag**                    | Option<**String**> | One or more tags, comma-separated.                                                                           |          |
-| **restrict_to_member**     | Option<**bool**>   | If true include only leagues for which customer is a member.                                                 |          |
-| **restrict_to_recruiting** | Option<**bool**>   | If true include only leagues which are recruiting.                                                           |          |
-| **restrict_to_friends**    | Option<**bool**>   | If true include only leagues owned by a friend.                                                              |          |
-| **restrict_to_watched**    | Option<**bool**>   | If true include only leagues owned by a watched member.                                                      |          |
-| **minimum_roster_count**   | Option<**f64**>    | If set include leagues with at least this number of members.                                                 |          |
-| **maximum_roster_count**   | Option<**f64**>    | If set include leagues with no more than this number of members.                                             |          |
-| **lowerbound**             | Option<**f64**>    | First row of results to return. Defaults to 1.                                                               |          |
-| **upperbound**             | Option<**f64**>    | Last row of results to return. Defaults to lowerbound + 39.                                                  |          |
-| **sort**                   | Option<**String**> | One of relevance, leaguename, displayname, rostercount. displayname is owners's name. Defaults to relevance. |          |
-| **order**                  | Option<**String**> | One of asc or desc. Defaults to asc.                                                                         |          |
+| Name                       | Type                                 | Description                                                                                                  | Required | Notes |
+| -------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------ | -------- | ----- |
+| **search**                 | Option<**String**>                   | Will search against league name, description, owner, and league ID.                                          |          |
+| **tag**                    | Option<[**Vec<String>**](String.md)> | One or more tags, comma-separated.                                                                           |          |
+| **restrict_to_member**     | Option<**bool**>                     | If true include only leagues for which customer is a member.                                                 |          |
+| **restrict_to_recruiting** | Option<**bool**>                     | If true include only leagues which are recruiting.                                                           |          |
+| **restrict_to_friends**    | Option<**bool**>                     | If true include only leagues owned by a friend.                                                              |          |
+| **restrict_to_watched**    | Option<**bool**>                     | If true include only leagues owned by a watched member.                                                      |          |
+| **minimum_roster_count**   | Option<**f64**>                      | If set include leagues with at least this number of members.                                                 |          |
+| **maximum_roster_count**   | Option<**f64**>                      | If set include leagues with no more than this number of members.                                             |          |
+| **lowerbound**             | Option<**f64**>                      | First row of results to return. Defaults to 1.                                                               |          |
+| **upperbound**             | Option<**f64**>                      | Last row of results to return. Defaults to lowerbound + 39.                                                  |          |
+| **sort**                   | Option<**String**>                   | One of relevance, leaguename, displayname, rostercount. displayname is owners's name. Defaults to relevance. |          |
+| **order**                  | Option<**String**>                   | One of asc or desc. Defaults to asc.                                                                         |          |
 
 ### Return type
 

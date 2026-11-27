@@ -1132,7 +1132,13 @@ paths:
           name: tag
           schema:
             description: One or more tags, comma-separated.
-            type: string
+            minItems: 1
+            type: array
+            items:
+              type: string
+              minLength: 1
+          style: form
+          explode: false
           description: One or more tags, comma-separated.
         - in: query
           name: restrict_to_member
@@ -2021,8 +2027,14 @@ paths:
           schema:
             description: Track categories to include in the search.  Defaults to all.
               ?category_ids=1,2,3,4
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          style: form
+          explode: false
           description: Track categories to include in the search.  Defaults to all.
             ?category_ids=1,2,3,4
       responses:
@@ -2136,8 +2148,12 @@ paths:
           schema:
             description: Types of events to include in the search. Defaults to all.
               ?event_types=2,3,4,5
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              $ref: "#/components/schemas/iracingEventType"
+          style: form
+          explode: false
           description: Types of events to include in the search. Defaults to all.
             ?event_types=2,3,4,5
         - in: query
@@ -2145,8 +2161,14 @@ paths:
           schema:
             description: License categories to include in the search.  Defaults to all.
               ?category_ids=1,2,3,4
-            type: string
-            pattern: ^\d+(?:,\d+)*$
+            minItems: 1
+            type: array
+            items:
+              type: integer
+              minimum: 0
+              maximum: 9007199254740991
+          style: form
+          explode: false
           description: License categories to include in the search.  Defaults to all.
             ?category_ids=1,2,3,4
       responses:

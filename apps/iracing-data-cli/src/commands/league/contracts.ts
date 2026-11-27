@@ -12,6 +12,20 @@ import {
 import { z } from "zod";
 import type { CredentialOptions } from "../../credentials.js";
 
+/** Translate CLI comma-separated tag flags at the transport boundary. */
+const LeagueDirectoryCliParametersSchema =
+  LeagueDirectoryParametersSchema.extend({
+    tag: z
+      .string()
+      .optional()
+      .transform((value) => value?.split(",")),
+  }).transform(({ tag, ...rest }) =>
+    LeagueDirectoryParametersSchema.parse({
+      ...rest,
+      ...(tag === undefined ? {} : { tag }),
+    }),
+  );
+
 /** Canonical queries paired with the selected league operation. */
 export const LeagueRequestSchema = z.discriminatedUnion("operation", [
   z.object({ operation: z.literal("get"), query: LeagueGetParametersSchema }),
@@ -41,7 +55,7 @@ export const LeagueRequestSchema = z.discriminatedUnion("operation", [
   }),
   z.object({
     operation: z.literal("directory"),
-    query: LeagueDirectoryParametersSchema,
+    query: LeagueDirectoryCliParametersSchema,
   }),
   z.object({
     operation: z.literal("customer-sessions"),

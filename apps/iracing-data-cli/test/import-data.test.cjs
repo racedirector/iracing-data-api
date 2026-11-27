@@ -183,6 +183,7 @@ test("invalid import flags do not invoke services", async () => {
     ["member", "get"],
     ["member", "get", "--cust-ids", "not-ids"],
     ["member", "get", "--cust-ids", "123", "--include-licenses", "invalid"],
+    ["results-search-hosted", "--category-ids", "2,,5"],
     ["results-search-hosted", "--start-range-begin", "yesterday"],
     ["results-search-hosted", "--team-id", "invalid"],
   ]) {

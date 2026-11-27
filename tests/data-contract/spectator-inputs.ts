@@ -1,16 +1,24 @@
-import { MemberGetParametersSchema } from "../../packages/api/schema/dist";
+import {
+  MemberGetParametersSchema,
+  LeagueDirectoryParametersSchema,
+  ResultsSearchHostedParametersSchema,
+  ResultsSearchSeriesParametersSchema,
+} from "../../packages/api/schema/dist";
 import { z } from "../../packages/api/schema/node_modules/zod";
 import type {
   SeasonApi as AxiosSeasonApi,
   ResultsApi as AxiosResultsApi,
   MemberApi as AxiosMemberApi,
+  LeagueApi as AxiosLeagueApi,
 } from "../../packages/api/client/axios/dist";
 import type {
   SeasonApi as FetchSeasonApi,
   ResultsApi as FetchResultsApi,
   MemberApi as FetchMemberApi,
+  LeagueApi as FetchLeagueApi,
 } from "../../packages/api/client/fetch/dist";
 import type { SeasonSpectatorSubsessionidsDetailParameters } from "../../packages/api/schema/dist";
+
 const parameters: SeasonSpectatorSubsessionidsDetailParameters = {
   event_types: [2, 5],
   season_ids: [513, 937],
@@ -74,3 +82,34 @@ void memberInputIsPrecise;
 void memberOutputMatchesInput;
 void fetchMember;
 void axiosMember;
+
+const directory = LeagueDirectoryParametersSchema.parse({ tag: ["a", "b"] });
+const hosted = ResultsSearchHostedParametersSchema.parse({
+  category_ids: [1, 5],
+});
+const series = ResultsSearchSeriesParametersSchema.parse({
+  event_types: [2, 5],
+  category_ids: [1, 5],
+});
+const fetchDirectory: Parameters<FetchLeagueApi["getLeagueDirectory"]>[0] =
+  directory;
+const axiosDirectory: Parameters<AxiosLeagueApi["getLeagueDirectory"]>[0] =
+  directory;
+const fetchHosted: Pick<
+  NonNullable<Parameters<FetchResultsApi["getResultsSearchHosted"]>[0]>,
+  "category_ids"
+> = { category_ids: hosted.category_ids };
+const axiosHosted: Parameters<AxiosResultsApi["getResultsSearchHosted"]>[0] =
+  hosted;
+const fetchSeries: Pick<
+  NonNullable<Parameters<FetchResultsApi["getResultsSearchSeries"]>[0]>,
+  "event_types" | "category_ids"
+> = { event_types: series.event_types, category_ids: series.category_ids };
+const axiosSeries: Parameters<AxiosResultsApi["getResultsSearchSeries"]>[0] =
+  series;
+void fetchDirectory;
+void axiosDirectory;
+void fetchHosted;
+void axiosHosted;
+void fetchSeries;
+void axiosSeries;

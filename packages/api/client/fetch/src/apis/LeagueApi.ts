@@ -39,7 +39,7 @@ export interface GetLeagueCustomerLeagueSessionsRequest {
 
 export interface GetLeagueDirectoryRequest {
   search?: string;
-  tag?: string;
+  tag?: Array<string>;
   restrict_to_member?: boolean;
   restrict_to_recruiting?: boolean;
   restrict_to_friends?: boolean;
@@ -221,7 +221,9 @@ export class LeagueApi extends runtime.BaseAPI {
     }
 
     if (requestParameters["tag"] != null) {
-      queryParameters["tag"] = requestParameters["tag"];
+      queryParameters["tag"] = requestParameters["tag"]!.join(
+        runtime.COLLECTION_FORMATS["csv"],
+      );
     }
 
     if (requestParameters["restrict_to_member"] != null) {

@@ -8,6 +8,7 @@ import {
   MemberChartDataParametersSchema,
   MemberProfileParametersSchema,
   ResultsSearchHostedParametersSchema,
+  CategoryIdsParameterSchema,
 } from "@iracing-data/api-schema";
 import { z } from "zod";
 import { readCredentialOptions } from "../../schema.js";
@@ -20,6 +21,19 @@ const MemberGetCliParametersSchema = z
     include_licenses: BooleanParameterSchema.optional(),
   })
   .pipe(MemberGetParametersSchema);
+
+/** Decode CSV CLI flags without widening SDK collection contracts. */
+const HostedSearchCliParametersSchema =
+  ResultsSearchHostedParametersSchema.extend({
+    category_ids: CategoryIdsParameterSchema.optional().transform((value) =>
+      value?.split(",").map(Number),
+    ),
+  }).transform(({ category_ids, ...rest }) =>
+    ResultsSearchHostedParametersSchema.parse({
+      ...rest,
+      ...(category_ids === undefined ? {} : { category_ids }),
+    }),
+  );
 
 /** Validated import-support requests. */
 export const ImportRequestSchema = z.discriminatedUnion("operation", [
@@ -49,7 +63,7 @@ export const ImportRequestSchema = z.discriminatedUnion("operation", [
   }),
   z.object({
     operation: z.literal("search-hosted"),
-    query: ResultsSearchHostedParametersSchema,
+    query: HostedSearchCliParametersSchema,
   }),
   z.object({
     operation: z.enum(["car", "car-class", "track"]),

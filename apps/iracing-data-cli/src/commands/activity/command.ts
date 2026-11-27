@@ -4,6 +4,24 @@ import { z } from "zod";
 import { readCredentialOptions } from "../../schema.js";
 import type { CredentialOptions } from "../../credentials.js";
 
+/** Decode CSV flags before passing typed collection inputs to the SDK. */
+const SearchSeriesCliParametersSchema =
+  schema.ResultsSearchSeriesParametersSchema.extend({
+    event_types: schema.EventTypesParameterSchema.optional().transform(
+      (value) =>
+        value?.split(",").map((id) => schema.EventTypeSchema.parse(Number(id))),
+    ),
+    category_ids: schema.CategoryIdsParameterSchema.optional().transform(
+      (value) => value?.split(",").map(Number),
+    ),
+  }).transform(({ event_types, category_ids, ...rest }) =>
+    schema.ResultsSearchSeriesParametersSchema.parse({
+      ...rest,
+      ...(event_types === undefined ? {} : { event_types }),
+      ...(category_ids === undefined ? {} : { category_ids }),
+    }),
+  );
+
 /** Canonical result-detail, driver, session, and time-attack requests. */
 export const ActivityRequestSchema = z.discriminatedUnion("operation", [
   z.object({
@@ -20,7 +38,7 @@ export const ActivityRequestSchema = z.discriminatedUnion("operation", [
   }),
   z.object({
     operation: z.literal("search-series"),
-    query: schema.ResultsSearchSeriesParametersSchema,
+    query: SearchSeriesCliParametersSchema,
   }),
   z.object({
     operation: z.literal("season-results"),

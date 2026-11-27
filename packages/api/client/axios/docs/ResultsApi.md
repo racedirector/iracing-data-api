@@ -250,7 +250,7 @@ let league_id: number; //Include only results for the league with this ID. (opti
 let league_season_id: number; //Include only results for the league season with this ID. (optional) (default to undefined)
 let car_id: number; //One of the cars used by the session. (optional) (default to undefined)
 let track_id: number; //The ID of the track used by the session. (optional) (default to undefined)
-let category_ids: string; //Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
+let category_ids: Array<number>; //Track categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getResultsSearchHosted(
   start_range_begin,
@@ -271,21 +271,21 @@ const { status, data } = await apiInstance.getResultsSearchHosted(
 
 ### Parameters
 
-| Name                   | Type         | Description                                                                                                                                       | Notes                            |
-| ---------------------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| **start_range_begin**  | [**string**] | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | (optional) defaults to undefined |
-| **start_range_end**    | [**string**] | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | (optional) defaults to undefined |
-| **finish_range_begin** | [**string**] | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | (optional) defaults to undefined |
-| **finish_range_end**   | [**string**] | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | (optional) defaults to undefined |
-| **cust_id**            | [**number**] | The participant\&#39;s customer ID. Ignored if team_id is supplied.                                                                               | (optional) defaults to undefined |
-| **team_id**            | [**number**] | The team ID to search for. Takes priority over cust_id if both are supplied.                                                                      | (optional) defaults to undefined |
-| **host_cust_id**       | [**number**] | The host\&#39;s customer ID.                                                                                                                      | (optional) defaults to undefined |
-| **session_name**       | [**string**] | Part or all of the session\&#39;s name.                                                                                                           | (optional) defaults to undefined |
-| **league_id**          | [**number**] | Include only results for the league with this ID.                                                                                                 | (optional) defaults to undefined |
-| **league_season_id**   | [**number**] | Include only results for the league season with this ID.                                                                                          | (optional) defaults to undefined |
-| **car_id**             | [**number**] | One of the cars used by the session.                                                                                                              | (optional) defaults to undefined |
-| **track_id**           | [**number**] | The ID of the track used by the session.                                                                                                          | (optional) defaults to undefined |
-| **category_ids**       | [**string**] | Track categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                            | (optional) defaults to undefined |
+| Name                   | Type                    | Description                                                                                                                                       | Notes                            |
+| ---------------------- | ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **start_range_begin**  | [**string**]            | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | (optional) defaults to undefined |
+| **start_range_end**    | [**string**]            | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | (optional) defaults to undefined |
+| **finish_range_begin** | [**string**]            | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | (optional) defaults to undefined |
+| **finish_range_end**   | [**string**]            | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | (optional) defaults to undefined |
+| **cust_id**            | [**number**]            | The participant\&#39;s customer ID. Ignored if team_id is supplied.                                                                               | (optional) defaults to undefined |
+| **team_id**            | [**number**]            | The team ID to search for. Takes priority over cust_id if both are supplied.                                                                      | (optional) defaults to undefined |
+| **host_cust_id**       | [**number**]            | The host\&#39;s customer ID.                                                                                                                      | (optional) defaults to undefined |
+| **session_name**       | [**string**]            | Part or all of the session\&#39;s name.                                                                                                           | (optional) defaults to undefined |
+| **league_id**          | [**number**]            | Include only results for the league with this ID.                                                                                                 | (optional) defaults to undefined |
+| **league_season_id**   | [**number**]            | Include only results for the league season with this ID.                                                                                          | (optional) defaults to undefined |
+| **car_id**             | [**number**]            | One of the cars used by the session.                                                                                                              | (optional) defaults to undefined |
+| **track_id**           | [**number**]            | The ID of the track used by the session.                                                                                                          | (optional) defaults to undefined |
+| **category_ids**       | **Array&lt;number&gt;** | Track categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                            | (optional) defaults to undefined |
 
 ### Return type
 
@@ -334,8 +334,8 @@ let team_id: number; //Include only sessions in which this team participated. Ta
 let series_id: number; //Include only sessions for series with this ID. (optional) (default to undefined)
 let race_week_num: number; //Include only sessions with this race week number. (optional) (default to undefined)
 let official_only: boolean; //If true, include only sessions earning championship points. Defaults to all. (optional) (default to undefined)
-let event_types: string; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
-let category_ids: string; //License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
+let event_types: Array<IracingEventType>; //Types of events to include in the search. Defaults to all. ?event_types=2,3,4,5 (optional) (default to undefined)
+let category_ids: Array<number>; //License categories to include in the search.  Defaults to all. ?category_ids=1,2,3,4 (optional) (default to undefined)
 
 const { status, data } = await apiInstance.getResultsSearchSeries(
   season_year,
@@ -356,21 +356,21 @@ const { status, data } = await apiInstance.getResultsSearchSeries(
 
 ### Parameters
 
-| Name                   | Type          | Description                                                                                                                                       | Notes                            |
-| ---------------------- | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| **season_year**        | [**number**]  | Required when using season_quarter.                                                                                                               | (optional) defaults to undefined |
-| **season_quarter**     | [**number**]  | Required when using season_year.                                                                                                                  | (optional) defaults to undefined |
-| **start_range_begin**  | [**string**]  | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | (optional) defaults to undefined |
-| **start_range_end**    | [**string**]  | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | (optional) defaults to undefined |
-| **finish_range_begin** | [**string**]  | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | (optional) defaults to undefined |
-| **finish_range_end**   | [**string**]  | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | (optional) defaults to undefined |
-| **cust_id**            | [**number**]  | Include only sessions in which this customer participated. Ignored if team_id is supplied.                                                        | (optional) defaults to undefined |
-| **team_id**            | [**number**]  | Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.                                          | (optional) defaults to undefined |
-| **series_id**          | [**number**]  | Include only sessions for series with this ID.                                                                                                    | (optional) defaults to undefined |
-| **race_week_num**      | [**number**]  | Include only sessions with this race week number.                                                                                                 | (optional) defaults to undefined |
-| **official_only**      | [**boolean**] | If true, include only sessions earning championship points. Defaults to all.                                                                      | (optional) defaults to undefined |
-| **event_types**        | [**string**]  | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5                                                              | (optional) defaults to undefined |
-| **category_ids**       | [**string**]  | License categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                          | (optional) defaults to undefined |
+| Name                   | Type                              | Description                                                                                                                                       | Notes                            |
+| ---------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **season_year**        | [**number**]                      | Required when using season_quarter.                                                                                                               | (optional) defaults to undefined |
+| **season_quarter**     | [**number**]                      | Required when using season_year.                                                                                                                  | (optional) defaults to undefined |
+| **start_range_begin**  | [**string**]                      | Session start times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                              | (optional) defaults to undefined |
+| **start_range_end**    | [**string**]                      | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if start_range_begin is less than 90 days in the past.  | (optional) defaults to undefined |
+| **finish_range_begin** | [**string**]                      | Session finish times. ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;.                                                             | (optional) defaults to undefined |
+| **finish_range_end**   | [**string**]                      | ISO-8601 UTC time zero offset: \&quot;2022-04-01T15:45Z\&quot;. Exclusive. May be omitted if finish_range_begin is less than 90 days in the past. | (optional) defaults to undefined |
+| **cust_id**            | [**number**]                      | Include only sessions in which this customer participated. Ignored if team_id is supplied.                                                        | (optional) defaults to undefined |
+| **team_id**            | [**number**]                      | Include only sessions in which this team participated. Takes priority over cust_id if both are supplied.                                          | (optional) defaults to undefined |
+| **series_id**          | [**number**]                      | Include only sessions for series with this ID.                                                                                                    | (optional) defaults to undefined |
+| **race_week_num**      | [**number**]                      | Include only sessions with this race week number.                                                                                                 | (optional) defaults to undefined |
+| **official_only**      | [**boolean**]                     | If true, include only sessions earning championship points. Defaults to all.                                                                      | (optional) defaults to undefined |
+| **event_types**        | **Array&lt;IracingEventType&gt;** | Types of events to include in the search. Defaults to all. ?event_types&#x3D;2,3,4,5                                                              | (optional) defaults to undefined |
+| **category_ids**       | **Array&lt;number&gt;**           | License categories to include in the search. Defaults to all. ?category_ids&#x3D;1,2,3,4                                                          | (optional) defaults to undefined |
 
 ### Return type
 

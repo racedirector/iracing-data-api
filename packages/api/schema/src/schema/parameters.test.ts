@@ -84,6 +84,54 @@ describe("MemberGetParameters", () => {
   });
 });
 
+describe("typed collection query parameters", () => {
+  it("preserves order, duplicates and optional omission", () => {
+    assert.deepEqual(
+      LeagueDirectoryParametersSchema.parse({
+        tag: ["tag-a", "tag-b", "tag-a"],
+      }),
+      { tag: ["tag-a", "tag-b", "tag-a"] },
+    );
+    assert.deepEqual(
+      ResultsSearchHostedParametersSchema.parse({ category_ids: [1, 5, 1] }),
+      { category_ids: [1, 5, 1] },
+    );
+    assert.deepEqual(
+      ResultsSearchSeriesParametersSchema.parse({
+        event_types: [2, 5, 2],
+        category_ids: [1, 5, 1],
+      }),
+      { event_types: [2, 5, 2], category_ids: [1, 5, 1] },
+    );
+    assert.deepEqual(LeagueDirectoryParametersSchema.parse({}), {});
+    assert.deepEqual(ResultsSearchHostedParametersSchema.parse({}), {});
+    assert.deepEqual(ResultsSearchSeriesParametersSchema.parse({}), {});
+  });
+
+  it("rejects wire strings, empty arrays and invalid IDs", () => {
+    for (const tag of ["one,two", [], [""], ["one", ""]])
+      assert.equal(
+        LeagueDirectoryParametersSchema.safeParse({ tag }).success,
+        false,
+      );
+    for (const category_ids of ["1,5", [], [1, -1], [1, 2.5], [1, "5"]]) {
+      assert.equal(
+        ResultsSearchHostedParametersSchema.safeParse({ category_ids }).success,
+        false,
+      );
+      assert.equal(
+        ResultsSearchSeriesParametersSchema.safeParse({ category_ids }).success,
+        false,
+      );
+    }
+    for (const event_types of ["2,5", [], [1], [2, "5"], [2, 6]])
+      assert.equal(
+        ResultsSearchSeriesParametersSchema.safeParse({ event_types }).success,
+        false,
+      );
+  });
+});
+
 describe("semantic endpoint parameters", () => {
   it("coerces member division event types while retaining the documented 4/5 restriction", () => {
     for (const event_type of [4, 5, "4", "5"]) {
@@ -183,16 +231,16 @@ describe("semantic endpoint parameters", () => {
       season_quarter: "4",
       series_id: "321",
       race_week_num: "0",
-      event_types: "2,5",
-      category_ids: "1,5",
+      event_types: [2, 5],
+      category_ids: [1, 5],
     });
     assert.deepEqual(series, {
       season_year: 2026,
       season_quarter: 4,
       series_id: 321,
       race_week_num: 0,
-      event_types: "2,5",
-      category_ids: "1,5",
+      event_types: [2, 5],
+      category_ids: [1, 5],
     });
 
     const worldRecords = StatsWorldRecordsParametersSchema.parse({

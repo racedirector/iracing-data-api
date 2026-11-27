@@ -201,6 +201,7 @@ test("invalid league requests fail before service effects", async () => {
     ["sessions", "--league-id", "1"],
     ["standings", "--league-id", "1", "--season-id", "bad"],
     ["directory", "--lowerbound", "bad"],
+    ["directory", "--tag", "a,,b"],
   ]) {
     let called = false;
     const command = createLeagueCommand({

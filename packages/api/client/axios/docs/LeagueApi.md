@@ -131,7 +131,7 @@ const configuration = new Configuration();
 const apiInstance = new LeagueApi(configuration);
 
 let search: string; //Will search against league name, description, owner, and league ID. (optional) (default to undefined)
-let tag: string; //One or more tags, comma-separated. (optional) (default to undefined)
+let tag: Array<string>; //One or more tags, comma-separated. (optional) (default to undefined)
 let restrict_to_member: boolean; //If true include only leagues for which customer is a member. (optional) (default to undefined)
 let restrict_to_recruiting: boolean; //If true include only leagues which are recruiting. (optional) (default to undefined)
 let restrict_to_friends: boolean; //If true include only leagues owned by a friend. (optional) (default to undefined)
@@ -161,20 +161,20 @@ const { status, data } = await apiInstance.getLeagueDirectory(
 
 ### Parameters
 
-| Name                       | Type          | Description                                                                                                       | Notes                            |
-| -------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------- |
-| **search**                 | [**string**]  | Will search against league name, description, owner, and league ID.                                               | (optional) defaults to undefined |
-| **tag**                    | [**string**]  | One or more tags, comma-separated.                                                                                | (optional) defaults to undefined |
-| **restrict_to_member**     | [**boolean**] | If true include only leagues for which customer is a member.                                                      | (optional) defaults to undefined |
-| **restrict_to_recruiting** | [**boolean**] | If true include only leagues which are recruiting.                                                                | (optional) defaults to undefined |
-| **restrict_to_friends**    | [**boolean**] | If true include only leagues owned by a friend.                                                                   | (optional) defaults to undefined |
-| **restrict_to_watched**    | [**boolean**] | If true include only leagues owned by a watched member.                                                           | (optional) defaults to undefined |
-| **minimum_roster_count**   | [**number**]  | If set include leagues with at least this number of members.                                                      | (optional) defaults to undefined |
-| **maximum_roster_count**   | [**number**]  | If set include leagues with no more than this number of members.                                                  | (optional) defaults to undefined |
-| **lowerbound**             | [**number**]  | First row of results to return. Defaults to 1.                                                                    | (optional) defaults to undefined |
-| **upperbound**             | [**number**]  | Last row of results to return. Defaults to lowerbound + 39.                                                       | (optional) defaults to undefined |
-| **sort**                   | [**string**]  | One of relevance, leaguename, displayname, rostercount. displayname is owners\&#39;s name. Defaults to relevance. | (optional) defaults to undefined |
-| **order**                  | [**string**]  | One of asc or desc. Defaults to asc.                                                                              | (optional) defaults to undefined |
+| Name                       | Type                    | Description                                                                                                       | Notes                            |
+| -------------------------- | ----------------------- | ----------------------------------------------------------------------------------------------------------------- | -------------------------------- |
+| **search**                 | [**string**]            | Will search against league name, description, owner, and league ID.                                               | (optional) defaults to undefined |
+| **tag**                    | **Array&lt;string&gt;** | One or more tags, comma-separated.                                                                                | (optional) defaults to undefined |
+| **restrict_to_member**     | [**boolean**]           | If true include only leagues for which customer is a member.                                                      | (optional) defaults to undefined |
+| **restrict_to_recruiting** | [**boolean**]           | If true include only leagues which are recruiting.                                                                | (optional) defaults to undefined |
+| **restrict_to_friends**    | [**boolean**]           | If true include only leagues owned by a friend.                                                                   | (optional) defaults to undefined |
+| **restrict_to_watched**    | [**boolean**]           | If true include only leagues owned by a watched member.                                                           | (optional) defaults to undefined |
+| **minimum_roster_count**   | [**number**]            | If set include leagues with at least this number of members.                                                      | (optional) defaults to undefined |
+| **maximum_roster_count**   | [**number**]            | If set include leagues with no more than this number of members.                                                  | (optional) defaults to undefined |
+| **lowerbound**             | [**number**]            | First row of results to return. Defaults to 1.                                                                    | (optional) defaults to undefined |
+| **upperbound**             | [**number**]            | Last row of results to return. Defaults to lowerbound + 39.                                                       | (optional) defaults to undefined |
+| **sort**                   | [**string**]            | One of relevance, leaguename, displayname, rostercount. displayname is owners\&#39;s name. Defaults to relevance. | (optional) defaults to undefined |
+| **order**                  | [**string**]            | One of asc or desc. Defaults to asc.                                                                              | (optional) defaults to undefined |
 
 ### Return type
 

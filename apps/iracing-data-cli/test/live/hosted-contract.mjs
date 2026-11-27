@@ -128,7 +128,10 @@ export async function runHostedContract({
     const flags = Object.entries(input.data).flatMap(([key, value]) =>
       value === undefined
         ? []
-        : [`--${key.replaceAll("_", "-")}`, String(value)],
+        : [
+            `--${key.replaceAll("_", "-")}`,
+            Array.isArray(value) ? value.join(",") : String(value),
+          ],
     );
     await program.parseAsync([
       "node",
