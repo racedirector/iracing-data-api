@@ -1,6 +1,8 @@
 import { Command } from "@commander-js/extra-typings";
 import {
   MemberGetParametersSchema,
+  CustomerIdsParameterSchema,
+  BooleanParameterSchema,
   MemberAwardsParametersSchema,
   MemberAwardInstancesParametersSchema,
   MemberChartDataParametersSchema,
@@ -10,6 +12,14 @@ import {
 import { z } from "zod";
 import { readCredentialOptions } from "../../schema.js";
 import type { CredentialOptions } from "../../credentials.js";
+
+/** Decode CLI flags before crossing the typed Data API SDK boundary. */
+const MemberGetCliParametersSchema = z
+  .object({
+    cust_ids: CustomerIdsParameterSchema.transform((ids) => ids.split(",")),
+    include_licenses: BooleanParameterSchema.optional(),
+  })
+  .pipe(MemberGetParametersSchema);
 
 /** Validated import-support requests. */
 export const ImportRequestSchema = z.discriminatedUnion("operation", [
@@ -35,7 +45,7 @@ export const ImportRequestSchema = z.discriminatedUnion("operation", [
   }),
   z.object({
     operation: z.literal("member"),
-    query: MemberGetParametersSchema,
+    query: MemberGetCliParametersSchema,
   }),
   z.object({
     operation: z.literal("search-hosted"),

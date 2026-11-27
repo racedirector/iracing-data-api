@@ -22,19 +22,20 @@ struct Cli {
     include_licenses: bool,
 }
 
-fn normalize_customer_ids(customer_ids: &[String]) -> Result<String, Box<dyn Error>> {
-    let ids: Vec<&str> = customer_ids
+fn normalize_customer_ids(customer_ids: &[String]) -> Result<Vec<String>, Box<dyn Error>> {
+    let ids: Vec<String> = customer_ids
         .iter()
         .map(String::as_str)
         .map(str::trim)
         .filter(|id| !id.is_empty())
+        .map(str::to_owned)
         .collect();
 
     if ids.is_empty() {
         return Err("at least one customer ID must be provided".into());
     }
 
-    Ok(ids.join(","))
+    Ok(ids)
 }
 
 #[tokio::main]

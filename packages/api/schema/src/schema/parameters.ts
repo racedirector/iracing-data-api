@@ -24,7 +24,6 @@ import {
   CategorySchema,
   ChartTypeParameterSchema,
   CustomerIdSchema,
-  CustomerIdsParameterSchema,
   DivisionParameterSchema,
   DivisionEventTypeParameterSchema,
   EventTypeParameterSchema,
@@ -235,11 +234,11 @@ export const MemberChartDataParametersSchema = z.object({
 
 /** Validates member get parameters at the Data API request boundary. */
 export const MemberGetParametersSchema = z.object({
-  cust_ids: CustomerIdsParameterSchema.meta({
+  cust_ids: z.array(z.string().regex(/^\d+$/)).min(1).meta({
     description:
       "Comma-separated list of customer IDs. Example: ?cust_ids=2,3,4",
   }),
-  include_licenses: BooleanParameterSchema.optional(),
+  include_licenses: z.boolean().optional(),
 });
 
 /** Validates member profile parameters at the Data API request boundary. */

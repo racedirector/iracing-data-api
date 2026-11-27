@@ -11854,13 +11854,13 @@ export const MemberApiAxiosParamCreator = function (
   return {
     /**
      *
-     * @param {string} cust_ids Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
+     * @param {Array<string>} cust_ids Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
      * @param {boolean} [include_licenses]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     getMember: async (
-      cust_ids: string,
+      cust_ids: Array<string>,
       include_licenses?: boolean,
       options: RawAxiosRequestConfig = {},
     ): Promise<RequestArgs> => {
@@ -11886,8 +11886,10 @@ export const MemberApiAxiosParamCreator = function (
       // http bearer authentication required
       await setBearerAuthToObject(localVarHeaderParameter, configuration);
 
-      if (cust_ids !== undefined) {
-        localVarQueryParameter["cust_ids"] = cust_ids;
+      if (cust_ids) {
+        localVarQueryParameter["cust_ids"] = cust_ids.join(
+          COLLECTION_FORMATS.csv,
+        );
       }
 
       if (include_licenses !== undefined) {
@@ -12220,13 +12222,13 @@ export const MemberApiFp = function (configuration?: Configuration) {
   return {
     /**
      *
-     * @param {string} cust_ids Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
+     * @param {Array<string>} cust_ids Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
      * @param {boolean} [include_licenses]
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      */
     async getMember(
-      cust_ids: string,
+      cust_ids: Array<string>,
       include_licenses?: boolean,
       options?: RawAxiosRequestConfig,
     ): Promise<
@@ -12578,7 +12580,7 @@ export interface MemberApiGetMemberRequest {
   /**
    * Comma-separated list of customer IDs. Example: ?cust_ids&#x3D;2,3,4
    */
-  readonly cust_ids: string;
+  readonly cust_ids: Array<string>;
 
   readonly include_licenses?: boolean;
 }
